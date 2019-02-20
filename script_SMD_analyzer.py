@@ -117,16 +117,16 @@ for i in range (3): print (' ')
 [filename, DM, no_of_DM_steps, DM_var_step, save_intermediate_data, AverageChannelNumber, AverageTPointsNumber, frequency_band_cut, specify_freq_range, frequency_cuts, colormap, customDPI, freqStartArray, freqStopArray] = SMD_analyzer_param_reader()
 
   
-
+filepath = 'DATA/' + filename
 
 #**************************************************************
 # ***                  Opening datafile                     ***
 #**************************************************************
 print ('  File to be analyzed: ', filename)
 print (' ')
-file = open(filename, 'rb')
+file = open(filepath, 'rb')
 
-smd_filesize = (os.stat(filename).st_size)       # Size of file
+smd_filesize = (os.stat(filepath).st_size)       # Size of file
 print ('  File size: ', smd_filesize)
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
@@ -145,10 +145,10 @@ if not os.path.exists(newpath):
 
 if filename[0:3] == 'ADR':
     file.seek(smd_filesize - 1024 - 131096)
-    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filename, file)  
+    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filepath, file)  
 if filename[0:3] == 'DSP':
     file.seek(smd_filesize - 1024)
-    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(filename, file)
+    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(filepath, file)
 
 
 file.seek(0) # Jump to the file begin to read period and number of samples
