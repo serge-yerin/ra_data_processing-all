@@ -27,7 +27,7 @@ def DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df,
         inter_matrix = np.zeros((FFTsize, samplesPerPeriod))
         inter_matrix[:,:] = array.transpose()[:,:]    
         # DM compensation
-        matrix = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], filename, save_intermediate_data, customDPI)
+        matrix, shiftPar = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], filename, save_intermediate_data, customDPI)
         del inter_matrix
         # Averaging in frequency
         reducedMatrix = np.array([[0.0 for col in range(samplesPerPeriod)] for row in range(int(FFTsize/AverageChannelNumber))])

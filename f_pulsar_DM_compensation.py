@@ -21,13 +21,4 @@ def DM_compensation(matrix_0, freq_points, fmin, fmax, df, TimeRes, pulsarPeriod
             shiftPar[i] = -1 * round(pulsarPeriod * (dt[i] / pulsarPeriod - math.floor(dt[i] / pulsarPeriod)) / TimeRes)
         matrix_0[i] = np.roll(matrix_0[i], shiftPar[i])
     
-    if save_intermediate_data == 1:
-    
-        ShiftParTXT = open(filename + '_results/Shift parameter.txt', "w")
-        for i in range(freq_points):
-            ShiftParTXT.write(str(fmin + df * i)+'   '+str(shiftPar[i])+' \n' )
-        ShiftParTXT.close()
-        
-        plot1D(shiftPar, filename + '_results/01.2 - Shift parameter.png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
-    
-    return matrix_0
+    return matrix_0, shiftPar

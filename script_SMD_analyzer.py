@@ -245,8 +245,20 @@ if save_intermediate_data == 1:
 
 # *** Compensation of DM (dispersion delay) ***
 
-matrix = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM, filename, save_intermediate_data, customDPI)
+matrix, shiftPar = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM, filename, save_intermediate_data, customDPI)
 del inter_matrix
+
+
+# *** Saving shift parameter for dispersion delay compensation vs. frequency to file and plot ***
+if save_intermediate_data == 1:
+
+    ShiftParTXT = open(filename + '_results/Shift parameter.txt', "w")
+    for i in range(FFTsize):
+        ShiftParTXT.write(str(fmin + df * i)+'   '+str(shiftPar[i])+' \n' )
+    ShiftParTXT.close()
+    
+    plot1D(shiftPar, filename + '_results/01.2 - Shift parameter.png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
+ 
     
 
 # *** Plot of the data with DM compensation but without data reduction ***
@@ -617,7 +629,7 @@ if optimization_switch == 1:
 
     # *** Compensation of DM (dispersion delay) ***
 
-    matrix = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM, filename, save_intermediate_data, customDPI)
+    matrix, shiftPar = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM, filename, save_intermediate_data, customDPI)
     del inter_matrix
     
 
