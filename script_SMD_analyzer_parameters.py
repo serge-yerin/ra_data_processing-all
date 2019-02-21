@@ -4,8 +4,8 @@
 
 filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
 
-no_of_DM_steps = 161             # Number of DM steps to plot 361
-DM_var_step = 0.002              # Step of optimal DM finding
+no_of_DM_steps = 721             # Number of DM steps to plot 361
+DM_var_step = 0.001              # Step of optimal DM finding
 save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 32        # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time

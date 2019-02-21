@@ -1,7 +1,7 @@
 '''
 '''
 
-from f_text_manupulations import find_between
+from f_text_manipulations import find_between
 
 def SMD_analyzer_param_reader():
     '''
@@ -13,36 +13,37 @@ def SMD_analyzer_param_reader():
 
             if line.startswith('filename ='): 
                 filename = find_between(line.split()[2], "'", "'")
-                print (' File name = ', filename, '\n')
+                print (' File name:  ', filename, '\n')
 
             if line.startswith('no_of_DM_steps ='):
                 no_of_DM_steps = int(line.split()[2])
-                print (' Number of DM analysis steps =       ', no_of_DM_steps)
+                print (' Number of DM analysis steps =        ', no_of_DM_steps)
 
             if line.startswith('DM_var_step ='): 
                 DM_var_step = float(line.split()[2])
-                print (' Step of DM analysis =               ', DM_var_step)
+                print (' Step of DM analysis =                ', DM_var_step)
                 
             if line.startswith('save_intermediate_data ='): 
                 save_intermediate_data = int(line.split()[2])
-                print (' Save intermediate data?             ', save_intermediate_data)
+                print (' Save intermediate data?              ', save_intermediate_data)
 
             if line.startswith('AverageChannelNumber ='): 
                 AverageChannelNumber = int(line.split()[2])
-                print (' Number of channels to average =     ', AverageChannelNumber)
+                print (' Number of channels to average =      ', AverageChannelNumber)
                 
             if line.startswith('AverageTPointsNumber ='): 
                 AverageTPointsNumber = int(line.split()[2])
-                print (' Number of time points to average =  ', AverageTPointsNumber)
+                print (' Number of time points to average =   ', AverageTPointsNumber)
                 
             if line.startswith('frequency_band_cut ='): 
                 frequency_band_cut = int(line.split()[2])
-                print (' Make cuts of frequency bands?       ', frequency_band_cut)
+                print (' Make cuts of frequency bands?        ', frequency_band_cut)
 
             if line.startswith('specify_freq_range ='): 
                 specify_freq_range = int(line.split()[2])
-                print (' Specify particular frequency range? ', specify_freq_range)             
-    
+                print (' Specify particular frequency range?  ', specify_freq_range)
+
+   
             
             if line.startswith('frequency_cuts ='):
                 temp = find_between(line, '[', ']')
@@ -65,7 +66,7 @@ def SMD_analyzer_param_reader():
                 print (' Highest frequency of the band =      ', freqStopArray)                
             if line.startswith('DM ='): 
                 DM = float(line.split()[2])
-                print (' Dispersion measure =                 ', DM, ' pc / cm3 \n')
+                print (' Initial Dispersion measure =         ', DM, ' pc / cm3 \n')
             
     
     return filename, DM, no_of_DM_steps, DM_var_step, save_intermediate_data, AverageChannelNumber, AverageTPointsNumber, frequency_band_cut, specify_freq_range, frequency_cuts, colormap, customDPI, freqStartArray, freqStopArray

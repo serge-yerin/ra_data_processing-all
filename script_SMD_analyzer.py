@@ -235,6 +235,7 @@ if save_intermediate_data == 1:
     plt.close('all') 
 
 
+    
 
 # *** Plot of raw data without DM compensation and data reduction ***
 
@@ -252,12 +253,12 @@ del inter_matrix
 # *** Saving shift parameter for dispersion delay compensation vs. frequency to file and plot ***
 if save_intermediate_data == 1:
 
-    ShiftParTXT = open(filename + '_results/Shift parameter.txt', "w")
+    ShiftParTXT = open(filename + '_results/Shift parameter (initial DM).txt', "w")
     for i in range(FFTsize):
         ShiftParTXT.write(str(fmin + df * i)+'   '+str(shiftPar[i])+' \n' )
     ShiftParTXT.close()
     
-    plot1D(shiftPar, filename + '_results/01.2 - Shift parameter.png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
+    plot1D(shiftPar, filename + '_results/01.2 - Shift parameter (initial DM).png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
  
     
 
@@ -343,7 +344,7 @@ integrProfile = np.roll(integrProfile, roll_number) # Rolling the vector to make
 SNRinitMax = np.max(integrProfile)
 
 # ***   Plotting and saving the SNR curve  ***
-plot1D(integrProfile, filename + '_results/05 - SNR.png', 'Averaged profile', 'Averaged pulse profile in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Phase of pulsar period', customDPI)
+plot1D(integrProfile, filename + '_results/05 - SNR.png', 'Averaged profile for DM = ' + str(round(DM, 3)), 'Averaged pulse profile in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Phase of pulsar period', customDPI)
 
 
 
@@ -528,8 +529,6 @@ del inter_matrix
 
 
 
-
-
 # Preparing indexes for showing the maximal SNR value and its coordinates
 DM_steps_real, time_points = profiles_varDM.shape
 phase_vector = np.linspace(0,1,num = time_points)
@@ -551,20 +550,35 @@ print('  * SNR for optimal DM can be calculated in the next part of the program'
 
 # Saving integrated profiles with DM variation calculation to TXT file
 if save_intermediate_data == 1:
-    DM_Var_TXT = open(filename + '_results/Average profile vs DM 2D.txt', "w")
+    DM_Var_TXT = open(filename + '_results/Average profile vs DM 2D (initial DM).txt', "w")
     for step in range(DM_steps_real-1):
         DM_Var_TXT.write(''.join(format(DM_vector[step], "8.5f")) + '   '.join(format(profiles_varDM[step, i], "12.5f") for i in range(time_points)) + ' \n')
     DM_Var_TXT.close()
 
 
 
+plt.figure(1, figsize = (10.0, 6.0))
+plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
+ImA = plt.imshow(np.flipud(profiles_varDM), aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
+plt.title('Pulse profile vs DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
+plt.yticks(fontsize=8, fontweight='bold')
+plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
+plt.ylabel('deltaDM', fontsize = 8, fontweight='bold')
+plt.colorbar()
+plt.xticks(fontsize = 8, fontweight = 'bold')
+plt.text(0.76, 0.89,'Current SNR \n    '+str(round(SNRinitMax, 3)), fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
+plt.text(0.76, 0.05, '  Current DM  \n'+str(round(DM, 4))+' pc / cm3', fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
+pylab.savefig(filename + '_results/08 - SNR vs DM.png', bbox_inches='tight', dpi = customDPI) 
+plt.close('all')        
+
+endTime = time.time()    # Stop timer of calculations because next figure will popup and wait for response of user
 
 plt.figure(1, figsize = (10.0, 6.0))
 plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-ImA = plt.imshow(profiles_varDM, aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
+ImA = plt.imshow(np.flipud(profiles_varDM), aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
 plt.axhline(y = 0,   color = 'r', linestyle = '-', linewidth = 0.4)
 plt.axvline(x = 0.5, color = 'r', linestyle = '-', linewidth = 0.4)
-plt.plot(MAXpointX, MAXpointY, marker = 'o', markersize = 1.5, color = 'chartreuse') 
+plt.plot(MAXpointX, - MAXpointY, marker = 'o', markersize = 1.5, color = 'chartreuse') 
 plt.title('Pulse profile vs DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
 plt.yticks(fontsize=8, fontweight='bold')
 plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
@@ -578,23 +592,10 @@ plt.show()
 plt.close('all')    
 
 
-plt.figure(1, figsize = (10.0, 6.0))
-plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-ImA = plt.imshow(profiles_varDM, aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
-plt.title('Pulse profile vs DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
-plt.yticks(fontsize=8, fontweight='bold')
-plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
-plt.ylabel('deltaDM', fontsize = 8, fontweight='bold')
-plt.colorbar()
-plt.xticks(fontsize = 8, fontweight = 'bold')
-plt.text(0.76, 0.89,'Current SNR \n    '+str(round(SNRinitMax, 3)), fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-plt.text(0.76, 0.05, '  Current DM  \n'+str(round(DM, 4))+' pc / cm3', fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-pylab.savefig(filename + '_results/08 - SNR vs DM.png', bbox_inches='tight', dpi = customDPI) 
-plt.close('all')        
+
 
 del reducedMatrix, integrProfile, matrix, DM
 
-endTime = time.time()    # Time of calculations      
         
 for i in range (2): print (' ')
 print ('  In band calculations and DM variation lasted for ', round((endTime - startTime),3), 'seconds')
@@ -679,6 +680,8 @@ if optimization_switch == 1:
     beginIndex  = int(input('\n    First index of noise segment:           '))
     endIndex    = int(input('\n    Last index of noise segment:            '))
 
+    startTime = time.time()
+
     # ***   Matrix sum in one dimension   ***
     for i in range (freq_channels):
         reducedMatrix[i,:] = reducedMatrix[i,:] - np.mean(reducedMatrix[i, beginIndex:endIndex])
@@ -699,7 +702,7 @@ if optimization_switch == 1:
     SNRoptMax = np.max(integrProfile)
 
     # ***   Plotting and saving the SNR curve  ***
-    plot1D(integrProfile, filename + '_results/15 - SNR optimal DM.png', 'Averaged profile', 'Averaged pulse profile with optimal DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Phase of pulsar period', customDPI)
+    plot1D(integrProfile, filename + '_results/15 - SNR optimal DM.png', 'Averaged profile for DM = ' + str(round(DM, 3)), 'Averaged pulse profile with optimal DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Phase of pulsar period', customDPI)
 
 
 
@@ -867,7 +870,6 @@ if optimization_switch == 1:
     # ***   Calculations and figures plotting for variation of DM  ***
     #*****************************************************************
     
-    startTime = time.time()
     
     # Integrated profiles with DM variation calculation
     profiles_varDM, DM_vector = DM_variation(initial_matrix.transpose(), no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI)
@@ -891,10 +893,10 @@ if optimization_switch == 1:
     
     plt.figure(1, figsize = (10.0, 6.0))
     plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-    ImA = plt.imshow(profiles_varDM, aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
+    ImA = plt.imshow(np.flipud(profiles_varDM), aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
     plt.axhline(y = 0,   color = 'r', linestyle = '-', linewidth = 0.4)
     plt.axvline(x = 0.5, color = 'r', linestyle = '-', linewidth = 0.4)
-    plt.plot(MAXpointX, MAXpointY, marker = 'o', markersize = 1.5, color = 'chartreuse') # 'y' '#008000'
+    plt.plot(MAXpointX, - MAXpointY, marker = 'o', markersize = 1.5, color = 'chartreuse') # 'y' '#008000'
     plt.title('Pulse profile vs DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
     plt.yticks(fontsize=8, fontweight='bold')
     plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
@@ -911,7 +913,7 @@ if optimization_switch == 1:
 
     plt.figure(1, figsize = (10.0, 6.0))
     plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-    ImA = plt.imshow(profiles_varDM, aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
+    ImA = plt.imshow(np.flipud(profiles_varDM), aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap) 
     plt.title('Pulse profile vs DM in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
     plt.yticks(fontsize=8, fontweight='bold')
     plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
