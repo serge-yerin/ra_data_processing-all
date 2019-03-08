@@ -4,6 +4,7 @@ import struct
 import os
 import numpy as np
 
+
 def FileHeaderReaderDSP(filepath, start_byte):
     '''
     Reads info from DSP (.jds) data file header and returns needed parameters to main script
@@ -189,6 +190,7 @@ def FileHeaderReaderDSP(filepath, start_byte):
     print (' Frequency band:                ', fmin, ' - ', fmax, ' MHz')
     print ('')    
      
+    file.close()
     
     return TimeRes, fmin, fmax, df / pow(10,6), frequency, Wb
     

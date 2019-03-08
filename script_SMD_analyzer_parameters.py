@@ -4,7 +4,7 @@
 
 path = 'd:/PYTHON/ra_data_processing-all/DATA/'
 
-filename = 'ADR_A150221_211250_PSRB0834+06.gcd.smd'
+filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
 
 no_of_DM_steps = 721             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
@@ -44,7 +44,7 @@ freqStopArray =  30.0
 #DM = 5.750   #PSRname='B0809+74'    oldDM = 5.754    5.762  5.750-interpulse
 #DM = 23.73   #PSRname='B0820+02'
 #DM = 19.4751 #PSRname='B0823+26'
-DM = 12.8579  #PSRname='B0834+06'     12.8579 - from catalogue
+#DM = 12.8579  #PSRname='B0834+06'     12.8579 - from catalogue
 #DM = 27.27   #PSRname='B0919+06'
 #DM = 15.33   #PSRname='B0943+10'    oldDM = 15.3500
 #DM = 2.9730  #PSRname='B0950+08'    oldDM = 2.9702   2.9902
@@ -60,7 +60,7 @@ DM = 12.8579  #PSRname='B0834+06'     12.8579 - from catalogue
 #DM = 24.640  #PSRname='B2020+28'
 #DM = 24.7    #PSRname='B2110+27'
 
-#DM = 45.325  #PSRname='J0250+5854'   DM = 45.785    46.065
+DM = 45.325  #PSRname='J0250+5854'   DM = 45.785    46.065
 #DM = 3.8214  #PSRname='J0243+5267' 
 #DM = 36.0    #PSRname='J0407+1607'
 #DM = 21.02   #PSRname='J0459-0210'

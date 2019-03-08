@@ -65,7 +65,7 @@ filepath = path + filename
 #**************************************************************
 print ('  File to be analyzed: ', filename)
 print (' ')
-file = open(filepath, 'rb')
+
 
 smd_filesize = (os.stat(filepath).st_size)       # Size of file
 print ('  File size: ', round(smd_filesize/1024/1024, 6), ' Mb')
@@ -85,14 +85,12 @@ if not os.path.exists(newpath):
 # Jumping to the end of the file to read the data file header with parameters of data record
 
 if filename[0:3] == 'ADR':
-    file.seek(smd_filesize - 1024 - 131096)
-    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(file)  
+    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filepath, smd_filesize - 1024 - 131096)  
 if filename[0:3] == 'DSP':
-    file.seek(smd_filesize - 1024)
-    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(file)
+    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(filepath, smd_filesize - 1024)
 
+file = open(filepath, 'rb')
 
-file.seek(0) # Jump to the file begin to read period and number of samples
 
 #   *** Reading pulsar period and number of samples per period ***
 print (' Dispersion measure =           ', DM, ' pc / cm3    ')
@@ -116,7 +114,7 @@ initial_matrix = np.reshape(initial_matrix, [samplesPerPeriod, FFTsize])
 
 print ('    Matrix shape: ', initial_matrix.shape)
 
-
+file.close()
 
 #**************************************************************
 # ***   Calculations and figures plotting for specified DM  ***
