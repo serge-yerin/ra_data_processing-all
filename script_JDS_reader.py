@@ -20,8 +20,8 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
@@ -54,7 +54,7 @@ from datetime import datetime, timedelta
 #from matplotlib import rc
 
 # My functions
-
+from f_file_header_JDS import FileHeaderReaderDSP
 from f_FPGA_to_PC_array import FPGAtoPCarray
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
@@ -99,7 +99,7 @@ Log_File = open("JDS_Results/Service/Log.txt", "w")
 
 
 Log_File.write('\n\n    ****************************************************\n' )
-Log_File.write('    *    JDS data files reader  v.%s LOG     *      (c) YeS 2016\n' %Software_version )
+Log_File.write('    *     JDS data files reader  v.%s LOG      *      (c) YeS 2019\n' %Software_version )
 Log_File.write('    ****************************************************\n\n' )
 
 Log_File.write('  Date of data processing: %s   \n' %currentDate )
@@ -139,266 +139,53 @@ for fileNo in range (len(fileList)):   # loop by files
     if len(fname) < 1 : fname = fileList[fileNo]
 
 
-
+    # *** Data file header read ***
+    
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+        CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, 
+        df, frequency, FreqPointsNum] = FileHeaderReaderDSP(fname, 0)
+        
+        
+    # *** Saving main parameters from header to LOG FILE ***
+    Log_File.write(' Initial data file name:         %s \n' % df_filename)
+    Log_File.write(' File size:                      %s Mb \n' % str(df_filesize/1024/1024))
+    Log_File.write(' Creation time in UTC time:      %s \n' % str(df_creation_timeUTC))
+    Log_File.write(' System (receiver) name:         %s \n' % df_system_name)
+    Log_File.write(' Place of observations:          %s \n' % df_obs_place)
+    Log_File.write(' File description:               %s \n' % df_description)
+    Log_File.write(' Averaged spectra:               %s \n' % Navr)
+    Log_File.write(' Clock frequency:                %s MHz \n' % str(CLCfrq*10**-6))
+    Log_File.write(' Receiver mode:                  %s \n' % ReceiverMode)
+    Log_File.write(' Temporal resolution:            %s \n' % TimeRes)
+    Log_File.write(' Frequency resolution:           %s kHz \n' % round((df/1000), 3))
+    Log_File.write(' Minimal frequency:              %s MHz \n' % fmin)
+    Log_File.write(' Maximal frequency:              %s MHz \n' % fmax)
+    Log_File.write(' Number of frequency channels:   %s \n' % FreqPointsNum)
+        
+    Log_File.close()
+    
+    # Initial time line settings
+    TimeScaleStartDate = datetime(int(df_creation_timeUTC[0:4]), int(df_creation_timeUTC[5:7]), int(df_creation_timeUTC[8:10]), 0, 0, 0, 0)
+    
+    timeLineMS = np.zeros(int(SpInFile)) # List of ms values from ends of spectra
+    
+    
+    
+    # *** Creating a name for long timeline TXT file ***
+    if fileNo == 0 and (longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1): 
+        TLfile_name = df_filename + '_Timeline.txt'
+        TLfile = open(TLfile_name, 'wb')  # Open and close to delete the file with the same name
+        TLfile.close()
+    
     with open(fname, 'rb') as file:
     
-        # reading FHEADER
-        df_filesize = (os.stat(fname).st_size)               # Size of file
-        df_filename = file.read(32).decode('utf-8').rstrip('\x00')           # Initial data file name
-        df_creation_timeLOC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in local time
-        df_creation_timeUTC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in UTC time
-        df_system_name = file.read(32).decode('utf-8').rstrip('\x00')        # System (receiver) name
-        df_UTC_time = np.fromfile(file, dtype=np.uint16, count = 8)
-        df_system_time = file.read(16).decode('utf-8').rstrip('\x00')        # System (receiver) time UTC
-        df_obs_place = file.read(96).decode('utf-8').rstrip('\x00')          # place of observations
-        df_description = file.read(256).decode('utf-8').rstrip('\x00')       # File description
-        
-        print ('')
-        print (' Initial data file name:        ', df_filename)
-        print (' File size:                     ', round(df_filesize/1024/1024,3), ' Mb (',df_filesize, ' bytes )')
-        print (' Creation time in local time:   ', str(df_creation_timeLOC.rstrip()))
-        print (' Creation time in UTC time:     ', df_creation_timeUTC)
-        print (' System (receiver) name:        ', df_system_name)
-        print (' System (receiver) UTC:         ', df_UTC_time[0],'/',df_UTC_time[1],'/',df_UTC_time[3],' ', df_UTC_time[4],':',df_UTC_time[5],':',df_UTC_time[6],',',df_UTC_time[7])
-        print (' System (receiver) time:        ', df_system_time)
-        print (' Place of observations:         ', df_obs_place)
-        print (' File description:              ', df_description)
-    
-        print ('')
-        
-        # *** Parameters that are poor descibed in file description ***
-        # reading FHEADER PP and DSPP0 ((16+5)*32 bit)
-        DSPmode = np.fromfile(file, dtype=np.uint16, count = 1)
-    
-        Mode = int(DSPmode & 7)
-        #print ' Old mode switch:               ', Mode
-            
-        CHselect = np.right_shift (DSPmode & 32, 5)
-        #if CHselect == 0:   print (' Channel:                        A')
-        #if CHselect == 1:   print (' Channel:                        B')
-    
-        opMode = np.right_shift (DSPmode & 64, 6)
-        #if opMode == 0:   print ' Operational Mode:               Normal'
-        #if opMode == 1:   print ' Operational Mode:               Decimation (spectrum averaging off)'
-    
-        FFTwindow = np.right_shift (DSPmode & 128, 7)
-        #if FFTwindow == 0:   print ' FFT window:                     Hanning'
-        #if FFTwindow == 1:   print ' FFT window:                     Rectangle'
-        
-        DCrem = np.right_shift (DSPmode & 256, 8)
-        #if DCrem == 0:   print ' DC removing:                    No'
-        #if DCrem == 1:   print ' DC removing:                    Yes'
-    
-        Clock = np.right_shift (DSPmode & 512, 9)    
-        #if Clock == 0:   print ' Clock:                          Internal'
-        #if Clock == 1:   print ' Clock:                          External'
-    
-        ChAon = np.right_shift (DSPmode & 1024, 10)
-        #if ChAon == 0:   print ' Channel A:                      On'
-        #if ChAon == 1:   print ' Channel A:                      Off'
-    
-        ChBon = np.right_shift (DSPmode & 2048, 11)    
-        #if ChBon == 0:   print ' Channel B:                      On'
-        #if ChBon == 1:   print ' Channel B:                      Off'
-        
-        SynchroStart = np.right_shift (DSPmode & 4096, 12)    
-        #if SynchroStart == 0:   print ' Synchro start:                  On'
-        #if SynchroStart == 1:   print ' Synchro start:                  Off'
-        
-        waitGPS = np.right_shift (DSPmode & 8192, 13)
-        #if waitGPS == 0:   print ' GPS start:                      Off'
-        #if waitGPS == 1:   print ' GPS start:                      On'
-        
-        extWeight = np.right_shift (DSPmode & 16384, 14)    
-        #if extWeight == 0:   print ' Weighting window:               Internal Hanning'
-        #if extWeight == 1:   print ' Weighting window:               External'
-        
-        DMAinter = np.right_shift ((DSPmode & 2147483648), 31) 
-        #if DMAinter == 0:   print ' DMA interrupt:                  Disable'
-        #if DMAinter == 1:   print ' DMA interrupt:                  Enable'
-    
-        
-        dataBlockSize = struct.unpack('i', file.read(4))[0] # No info
-        print (' Data block size:               ', dataBlockSize)
-        
-        prcMode       = struct.unpack('i', file.read(4))[0]
-        
-        NAvr = (prcMode & 4095) + 1
-        SLine = np.right_shift ((prcMode & 458752), 16)
-        Width = np.right_shift ((prcMode & 7340032), 19)
-        #print (' NAvr (?):                      ', NAvr)
-        #print (' Start line number (?):         ', SLine)
-        #print (' Width of spectra (?):          ', Width)
-        
-        testGen = struct.unpack('i', file.read(4))[0] # No info
-        clc     = struct.unpack('i', file.read(4))[0] # No info
-        fftsize = struct.unpack('i', file.read(4))[0] # 
-        #print (' testGen (?):                   ', testGen)
-        #print (' fftsize (?):                   ', fftsize)
-        #print (' clc (?):                       ', clc)
-        
-        temp    = file.read(40) # No info
-        
-        FFT_Size   = struct.unpack('i', file.read(4))[0] # FFT size
-        MinDSPSize = struct.unpack('i', file.read(4))[0] # e
-        MinDMASize = struct.unpack('i', file.read(4))[0] # 
-        DMASizeCnt = struct.unpack('i', file.read(4))[0] # 
-        DMASize    = struct.unpack('i', file.read(4))[0] # 
-        #print (' FFT_Size (?):                  ', FFT_Size)
-        #print (' MinDSPSize (?):                ', MinDSPSize)
-        #print (' MinDMASize (?):                ', MinDMASize)
-        #print (' DMASizeCnt (?):                ', DMASizeCnt)
-        #print (' DMASize (?):                   ', DMASize)
-    
-        temp = file.read(2)       # Skipping
-        
-        print ('')
-        
-        # *** Parameters that are well descibed in file description ***
-        
-        CLCfrq     = struct.unpack('f', file.read(4))[0] # 
-        Synch      = struct.unpack('i', file.read(4))[0] # 
-        SSht       = struct.unpack('i', file.read(4))[0] # 
-        Mode       = struct.unpack('i', file.read(4))[0] # 
-        Wch        = struct.unpack('i', file.read(4))[0] # 
-        Smd        = struct.unpack('i', file.read(4))[0] # 
-        Offt       = struct.unpack('i', file.read(4))[0] # 
-        Lb         = struct.unpack('i', file.read(4))[0] # 
-        Hb         = struct.unpack('i', file.read(4))[0] # 
-        Wb         = struct.unpack('i', file.read(4))[0] # 
-        Navr       = struct.unpack('i', file.read(4))[0] # 
-        CAvr       = struct.unpack('i', file.read(4))[0] # 
-        Weight     = struct.unpack('i', file.read(4))[0] # 
-        DCRem      = struct.unpack('i', file.read(4))[0] # 
-        ExtSyn     = struct.unpack('i', file.read(4))[0] # 
-        Ch1        = struct.unpack('i', file.read(4))[0] # 
-        Ch2        = struct.unpack('i', file.read(4))[0] # 
-        ExtWin     = struct.unpack('i', file.read(4))[0] # 
-        Clip       = struct.unpack('i', file.read(4))[0] # 
-        HPF0       = struct.unpack('i', file.read(4))[0] # 
-        HPF1       = struct.unpack('i', file.read(4))[0] # 
-        LPF0       = struct.unpack('i', file.read(4))[0] # 
-        LPF1       = struct.unpack('i', file.read(4))[0] # 
-        ATT0       = struct.unpack('i', file.read(4))[0] # 
-        ATT1       = struct.unpack('i', file.read(4))[0] # 
-        
-        df_softname = file.read(16).decode('utf-8').rstrip('\x00')       # 
-        df_softvers = file.read(16).decode('utf-8').rstrip('\x00')       # 
-        df_DSP_vers = file.read(32).decode('utf-8').rstrip('\x00')       # 
-        
-    
-        if Mode == 0:
-            print (' Mode:                            Waveform')
-            if Wch == 0:
-                print (' Channel:                        A')
-            if Wch == 1:
-                print (' Channel:                        B')
-            if Wch == 2:
-                print (' Channels                        A & B')
-        if Mode == 1:
-            print (' Mode:                           Spectra A & B')
-        if Mode == 2:
-            print (' Mode:                           Correlation A & B')
-    
-    
-        print (' Sampling ADC frequency:        ', CLCfrq/10**6, ' MHz')
-        if ExtSyn == 0:  print (' Synchronization:                Internal')
-        if ExtSyn == 1:  print (' Synchronization:                External')   
-        print (' GPS synchronization (0-On):    ', Synch)
-        print (' Number of averaged spectra:    ', Navr, '\n\n')
-        print (' Snap shot Mode (always 1):     ', SSht)
-        print (' Smd:                           ', Smd)
-        print (' Offt:                          ', Offt)
-        print (' Lowest channel number:         ', Lb)
-        print (' Highest channel number:        ', Hb)
-        print (' Number of channels:            ', Wb)
-        print (' CAvr:                          ', CAvr)
-        if Weight == 0:  print (' Weightning window:              On')
-        if Weight == 1:  print (' Weightning window:              Off')
-        if DCRem == 0:   print (' DC removing:                    No')
-        if DCRem == 1:   print (' DC removing:                    Yes')
-        if Ch1 == 0:     print (' Channel 1:                      On')
-        if Ch1 == 1:     print (' Channel 1:                      Off')    
-        if Ch2 == 0:     print (' Channel 2:                      On')
-        if Ch2 == 1:     print (' Channel 2:                      Off')
-        if ExtWin == 0:  print (' External FFT window:            No')
-        if ExtWin == 1:  print (' External FFT window:            Yes')    
-        print (' Clip:                          ', Clip)
-        print (' HPF0:                          ', HPF0)
-        print (' HPF1:                          ', HPF1)
-        print (' LPF0:                          ', LPF0)
-        print (' LPF1:                          ', LPF1)
-        print (' ATT0:                          ', ATT0)
-        print (' ATT1:                          ', ATT1)   
-            
-        print (' Softvare name:                 ', df_softname)
-        print (' Softvare version:              ', df_softvers)
-        print (' DSP soft version:              ', df_DSP_vers)
-    
-    
-        # *** Saving to LOG FILE ***
-        Log_File.write(' Initial data file name:         %s \n' % df_filename)
-        Log_File.write(' File size:                      %s Mb \n' % str(df_filesize/1024/1024))
-        Log_File.write(' Creation time in local time:    %s \n' % str(df_creation_timeLOC))
-        Log_File.write(' Creation time in UTC time:      %s \n' % str(df_creation_timeUTC))
-        Log_File.write(' System (receiver) name:         %s \n' % df_system_name)
-        Log_File.write(' Place of observations:          %s \n' % df_obs_place)
-        Log_File.write(' File description:               %s \n' % df_description)
-        Log_File.write(' Averaged spectra:               %s \n' % Navr)
-        Log_File.write(' Clock frequency:                %s MHz \n' % str(CLCfrq*10**-6))
-        
-    
-        print ('\n')
-        
-        
-        # *** Temporal and frequency resolutions ***
-        Sfft = 8192.0
-        TimeRes = Navr * (Sfft / CLCfrq);
-        df = CLCfrq / 2 / Sfft
-        print (' Temporal resolution:           ', round((TimeRes*1000),3), '  ms')
-        print (' Real frequency resolution:     ', round((df/1000),3), ' kHz')
-        
-        
-    
-        # *** Frequncy calculation (in MHz) ***
-        f0 = (Lb * df)
-        FreqPointsNum = Wb
-        frequency = [0 for col in range(FreqPointsNum)]
-        for i in range (0, FreqPointsNum):
-            frequency[i] = (f0 + (i * df)) * (10**-6)    
-        if Mode == 1: 
-            SpInFile = int(df_filesize - 1024)/(2*4*FreqPointsNum)    # Number of frequency points in specter 
-            ReceiverMode = 'Spectra mode'
-        if Mode == 2: 
-            SpInFile = int(df_filesize - 1024)/(4*4*FreqPointsNum)    # Number of frequency points in specter 
-            ReceiverMode = 'Correlation mode'
-        print (' Frequency band:                ', round(frequency[0],3), ' - ', round(frequency[FreqPointsNum-1]+(df/pow(10,6)),3), ' MHz')
-        print ('')    
-        print (' Number of spectra in file:     ', SpInFile, '\n\n')
-        
-    
-        
-        # Initial time line settings
-        TimeScaleStartDate = datetime(int(df_creation_timeUTC[0:4]), int(df_creation_timeUTC[5:7]), int(df_creation_timeUTC[8:10]), 0, 0, 0, 0)
-        
-        timeLineMS = np.zeros(int(SpInFile)) # List of ms values from ends of spectra
-    
-        
-        
-        # *** Creating a name for long timeline TXT file ***
-        if fileNo == 0 and (longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1): 
-            TLfile_name = df_filename + '_Timeline.txt'
-            TLfile = open(TLfile_name, 'wb')  # Open and close to delete the file with the same name
-            TLfile.close()
-        
-        
         # *** If it is the first file - write the header to long data file
         if((longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1) and fileNo == 0): 
             file.seek(0)
             file_header = file.read(1024)
-    
+        
             # *** Creating a binary file with data for long data storage ***
-            if(longFileSaveAch == 1 and (Mode == 1 or Mode == 2)): 
+            if((Mode == 1 or Mode == 2) and longFileSaveAch == 1):             
                 Data_A_name = df_filename+'_Data_chA.dat'
                 Data_AFile = open(Data_A_name, 'wb')
                 Data_AFile.write(file_header)
@@ -441,7 +228,7 @@ for fileNo in range (len(fileList)):   # loop by files
         #************************************************************************************
         #                            R E A D I N G   D A T A                                *
         #************************************************************************************
-        
+    
         file.seek(1024)  # Jumping to 1024 byte from file beginning #+ (sizeOfChunk+8) * chunkSkip
         
         
@@ -723,7 +510,7 @@ for fileNo in range (len(fileList)):   # loop by files
                     TwoDynSpectraPlot(CorrModule, CorrPhase, 2*VminNorm, 2*VmaxNorm, -3.15, 3.15,
                         'Correlation spectrum (normalized) ',
                         figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place, 
-                        df_filename, df_description, 'Intensity, dB', 'Phase, deg', Nsp, 
+                        df_filename, df_description, 'Intensity, dB', 'Phase, rad', Nsp, 
                         1, 1, ReceiverMode, TimeFigureScale, TimeScale,
                         Nsp, frequency, FreqPointsNum, colormap,
                         'Module', 'Phase', 

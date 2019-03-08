@@ -192,7 +192,17 @@ def FileHeaderReaderDSP(filepath, start_byte):
      
     file.close()
     
-    return TimeRes, fmin, fmax, df / pow(10,6), frequency, Wb
+    if Mode == 1: 
+        SpInFile = int(df_filesize - 1024)/(2*4*FreqPointsNum)    # Number of frequency points in specter 
+        ReceiverMode = 'Spectra mode'
+    if Mode == 2: 
+        SpInFile = int(df_filesize - 1024)/(4*4*FreqPointsNum)    # Number of frequency points in specter 
+        ReceiverMode = 'Correlation mode'
+    print ('')    
+    print (' Number of spectra in file:     ', SpInFile, '\n\n')
+    
+    
+    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb
     
 
 

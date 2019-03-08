@@ -87,7 +87,10 @@ if not os.path.exists(newpath):
 if filename[0:3] == 'ADR':
     [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filepath, smd_filesize - 1024 - 131096)  
 if filename[0:3] == 'DSP':
-    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(filepath, smd_filesize - 1024)
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+        CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, 
+        TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(filepath, smd_filesize - 1024)
+    df = df / pow(10,6)
 
 file = open(filepath, 'rb')
 
