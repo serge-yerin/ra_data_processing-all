@@ -5,11 +5,20 @@ from f_text_manipulations import find_between
 
 def SMD_analyzer_param_reader():
     '''
-    Plots 2D plots of variable
+    Reads parameters of average pulsar pulse analysis from file "script_SMD_analyzer_parameters.py"
+    and passes them to the main script "script_SMD_analyzer.py"
     '''
+    
     file = open('script_SMD_analyzer_parameters.py', 'r')
+    
+    print ('\n  * Parameters of analysis: /n')
+    
     for line in file:
         if not line.startswith('#') and len(line)>1:
+
+            if line.startswith('path ='): 
+                path = find_between(line.split()[2], "'", "'")
+                print (' File path:  ', path, '\n')
 
             if line.startswith('filename ='): 
                 filename = find_between(line.split()[2], "'", "'")
@@ -69,4 +78,4 @@ def SMD_analyzer_param_reader():
                 print (' Initial Dispersion measure =         ', DM, ' pc / cm3 \n')
             
     
-    return filename, DM, no_of_DM_steps, DM_var_step, save_intermediate_data, AverageChannelNumber, AverageTPointsNumber, frequency_band_cut, specify_freq_range, frequency_cuts, colormap, customDPI, freqStartArray, freqStopArray
+    return filename, path, DM, no_of_DM_steps, DM_var_step, save_intermediate_data, AverageChannelNumber, AverageTPointsNumber, frequency_band_cut, specify_freq_range, frequency_cuts, colormap, customDPI, freqStartArray, freqStopArray

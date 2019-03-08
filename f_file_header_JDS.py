@@ -4,13 +4,26 @@ import struct
 import os
 import numpy as np
 
-def FileHeaderReaderDSP(filename, file):
+def FileHeaderReaderDSP(filepath, start_byte):
     '''
-    Reads info from ADR data file header and returnt needed parameters
+    Reads info from DSP (.jds) data file header and returns needed parameters to main script
+    Input parameters:
+        filepath - a path to the file to read data
+        start_byte - number of byte from which start reading
+    Output parameters:
+        TimeRes - temporal resolution of data in the file in seconds
+        fmin - minimal frequency of observations in MHz
+        fmax - minimal frequency of observations in MHz
+        df / pow(10,6) - frequyency resolution in MHz
+        frequency - list of channels frequencies in MHz
+        Wb - number of frequency points i.e. ( len(frequency) )
     '''
     
+    file = open(filepath, 'rb')
+    file.seek(start_byte) # Jump to the start of the header info
+    
     # reading FHEADER
-    df_filesize = (os.stat(filename).st_size)                               # Size of file
+    df_filesize = (os.stat(filepath).st_size)                               # Size of file
     df_filename = file.read(32).decode('utf-8').rstrip('\x00')           # Initial data file name
     df_creation_timeLOC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in local time
     df_creation_timeUTC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in UTC time
@@ -22,7 +35,7 @@ def FileHeaderReaderDSP(filename, file):
     
     print ('')
     print (' Initial data file name:        ', df_filename)
-    print (' File size:                     ', round(df_filesize/1024/1024,3), ' Mb (',df_filesize, ' bytes )')
+    print (' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (', df_filesize, ' bytes )')
     print (' Creation time in local time:   ', str(df_creation_timeLOC.rstrip()))
     print (' Creation time in UTC time:     ', df_creation_timeUTC)
     print (' System (receiver) name:        ', df_system_name)
@@ -160,8 +173,8 @@ def FileHeaderReaderDSP(filename, file):
     Sfft = 8192.0
     TimeRes = Navr * (Sfft / CLCfrq);
     df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
-    print (' Temporal resolution:           ', round((TimeRes*1000),3), '  ms')
-    print (' Real frequency resolution:     ', round((df/1000),3), ' kHz')
+    print (' Temporal resolution:           ', round((TimeRes*1000), 3), '  ms')
+    print (' Real frequency resolution:     ', round((df/1000), 3), ' kHz')
     
  
     # *** Frequncy calculation (in MHz) ***
@@ -171,11 +184,31 @@ def FileHeaderReaderDSP(filename, file):
     for i in range (0, FreqPointsNum):
         frequency[i] = (f0 + (i * df)) * (10**-6)    
         
-    fmin = round(frequency[0],3)
-    fmax = round(frequency[FreqPointsNum-1]+(df/pow(10,6)),3)
+    fmin = round(frequency[0], 3)
+    fmax = round(frequency[FreqPointsNum-1] + (df/pow(10,6)), 3)
     print (' Frequency band:                ', fmin, ' - ', fmax, ' MHz')
     print ('')    
      
     
     return TimeRes, fmin, fmax, df / pow(10,6), frequency, Wb
     
+
+
+
+
+if __name__ == '__main__':
+    
+    filename = 'd:/PYTHON/ra_data_processing-all/DATA/E250714_130330.jds'
+    
+    print('\n\n Parameters of the file: ')
+    
+    FileHeaderReaderDSP(filename, 0)
+
+
+
+
+
+
+
+
+

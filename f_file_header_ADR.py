@@ -3,15 +3,26 @@
 
 import struct
 import os
+import math
 import numpy as np
 
-def FileHeaderReaderADR(filename, file):
+def FileHeaderReaderADR(file):
     '''
-    Reads info from ADR data file header and returnt needed parameters
+    Reads info from ADR (.adr) data file header and returns needed parameters to the main script
+    Input parameters:
+        file - a handle of opened in main script file to read data
+    Output parameters:
+        TimeRes - temporal resolution of data in the file in seconds
+        fmin - minimal frequency of observations in MHz
+        fmax - minimal frequency of observations in MHz
+        df - frequyency resolution in Hz ???
+        frequencyList0 - list of channels frequencies in MHz
+        Width*1024 - number of frequency points i.e. ( len(frequency) )
     '''
     
+
     # reading FHEADER
-    df_filesize = (os.stat(filename).st_size)                            # Size of file
+    #df_filesize = (os.stat(filename).st_size)                            # Size of file
 
     df_filename = file.read(32).decode('utf-8').rstrip('\x00')
     df_creation_timeLOC = file.read(24).decode('utf-8').rstrip('\x00')   # Creation time in local time
@@ -44,7 +55,7 @@ def FileHeaderReaderADR(filename, file):
 
     print ('')
     print (' Initial data file name:        ', df_filename)
-    print (' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (',df_filesize, ' bytes )')
+    #print (' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (',df_filesize, ' bytes )')
     print (' Creation time in local time:   ', str(df_creation_timeLOC))
     print (' Creation time in UTC time:     ', df_creation_timeUTC)
     print (' System (receiver) name:        ', df_system_name)
@@ -111,8 +122,8 @@ def FileHeaderReaderADR(filename, file):
     
     TimeRes = NAvr * (16384. / F_ADC);
     df = F_ADC / FFT_Size                                
-    print (' Time resolution:               ', TimeRes, '  sec')
-    print (' Real frequency resolution:     ', df, ' Hz')
+    print (' Time resolution:               ', round(TimeRes*1000, 3), '  ms')
+    print (' Real frequency resolution:     ', round(df/1000, 3), ' kHz')
     print ('')
     
     # *** Frequncy calculation (in MHz) ***
@@ -127,3 +138,22 @@ def FileHeaderReaderADR(filename, file):
         frequencyList0[i] = (fmin + ((i+1) * df))
     
     return TimeRes, fmin, fmax, df, frequencyList0, Width*1024
+    
+    
+    
+    
+if __name__ == '__main__':
+    
+    filename = 'd:/PYTHON/ra_data_processing-all/DATA/A170712_160219.adr'
+    
+    print('\n\n Parameters of the file: ')
+    
+    with open(filename, 'rb') as file:
+        
+        FileHeaderReaderADR(file)
+        
+        
+        
+        
+        
+        
