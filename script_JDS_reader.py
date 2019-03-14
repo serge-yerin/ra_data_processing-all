@@ -6,7 +6,7 @@ Software_version = '2019.03.08'
 #                        PARAMETERS                          *
 #*************************************************************
 # Directory of files to be analyzed:
-directory = 'd:/PYTHON/ra_data_processing-all/DATA/'
+directory = 'DATA/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -20,7 +20,7 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
@@ -45,7 +45,6 @@ import sys
 import struct
 import math
 import numpy as np
-import pylab
 import matplotlib.pyplot as plt
 import time
 import gc
@@ -59,8 +58,6 @@ from f_FPGA_to_PC_array import FPGAtoPCarray
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
-
-
 
 
 
@@ -353,12 +350,6 @@ for fileNo in range (len(fileList)):   # loop by files
                         for i in range(Nsp):
                             TLfile.write((TimeScale[i][:]+' \n'))  #str.encode
                     
-                    
-                    #TLfile = open(TLfile_name, 'ab')
-                    #for i in range(Nsp):
-                    #    TLfile.write(str.encode(TimeScale[i][:]+' \n')) 
-                    #TLfile.close
-                
                 
                 
                 # *** Converting to logarythmic scale matrices ***
@@ -374,7 +365,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         CorrPhase = np.arctan2(Data_CIm, Data_CRe)
                     CorrPhase[np.isnan(CorrPhase)] = 0
                 
-                
+                # *** Saving correlation data to a long-term module and phase files ***
                 if (Mode == 2 and CorrelationProcess == 1 and longFileSaveCMP == 1):
                     Data_CmFile = open(Data_Cm_name, 'ab')
                     Data_CmFile.write(np.float64(CorrModule))
@@ -492,7 +483,7 @@ for fileNo in range (len(fileList)):   # loop by files
     
     
     
-                # *** FIGURE Normalized dynamic spectrum channels A and B (python 3 new version) ***
+                # *** FIGURE Normalized dynamic spectrum channels A and B ***
                 if (Mode == 1 or Mode == 2) and DynSpecSaveCleaned == 1:
                     TwoDynSpectraPlot(Data_ChA, Data_ChB, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
                         'Dynamic spectrum (normalized) ',
@@ -505,7 +496,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         ' Dynamic spectra fig.', currentDate, currentTime, Software_version, customDPI) 
     
                         
-                # *** FIGURE Normalized correlation spectrum Module and Phase (python 3 new version) ***
+                # *** FIGURE Normalized correlation spectrum Module and Phase ***
                 if (Mode == 2 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
                     TwoDynSpectraPlot(CorrModule, CorrPhase, 2*VminNorm, 2*VmaxNorm, -3.15, 3.15,
                         'Correlation spectrum (normalized) ',
@@ -538,7 +529,7 @@ for fileNo in range (len(fileList)):   # loop by files
             print ('    The difference is ', (df_filesize - file.tell()), ' bytes')
             print ('\n  File was NOT read till the end!!! ERROR')
     
-    #file.close()  #Here we close the file
+    file.close()  #Here we close the file
 
 
 endTime = time.time()    # Time of calculations      
