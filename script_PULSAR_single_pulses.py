@@ -65,53 +65,7 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-
-#*************************************************************
-#                       FUNCTIONS                            *
-#*************************************************************
-
-
-def Cleaning(Data):
-    '''
-    Takes an array of data, calculates its standart deviation, then forms a mask of 
-    data which is bigger than 3*StD. 
-    '''
-    
-    StD_data = []
-    StD_data = np.std(Data)
-    mean_data = np.mean(Data)
-    a, b = Data.shape 
-
-    print (' Data shape:                    ',  a, b)
-    print (' StD of Data:                   ', StD_data)
-    print (' Mean of Data is:               ', mean_data)
-        
-    #cleaning_mask = np.ones_like(Data) # Making cleaning mask filled with ones
-    '''
-    for col in range (a):
-        if np.mean(Data[col, :]) > StD_data:
-            cleaning_mask[col, :] = 0.0000001
-            print('  yes!')
-    for line in range (b):
-        if np.mean(Data[:, line]) > mean_data:
-            cleaning_mask[:, line] = 0.0000001
-            print('  yes!')
-    '''
-    
-    Data[Data > (mean_data + 0.5 * StD_data)] = mean_data
-    #cleaning_mask[1000:2000,1000:2000] = 0.0000001
-    #plot2D(cleaning_mask, 'Cleaning mask.png', frequencyList0, np.min(cleaning_mask), np.max(cleaning_mask), colormap, 'Cleaning mask', customDPI)
-    #Data[:,:] = Data[:,:] * cleaning_mask[:,:]
-    
-    '''
-    #StD_data = np.std(Data, axis=0)
-    for i in range (0, len(Data[0])):
-        if StDdata[i] > RFImeanConst * np.mean(StDdata): 
-            Data[:,i] = np.mean(Data)
-    '''
-    #del cleaning_mask
-    return Data
-
+from f_ra_data_clean import pulsar_data_clean
 
 
 
@@ -190,7 +144,6 @@ for j in range(1):  # Main loop by types of data to analyze
     for block in range (numOfBlocks):
     
         data = np.fromfile(dat_file, dtype=np.float64, count = num_frequencies * num_spectra) 
-        
         data = np.reshape(data, [num_frequencies, num_spectra], order='F')
         
         # To mask the last channels of DSP where exact time is stored
@@ -201,7 +154,7 @@ for j in range(1):  # Main loop by types of data to analyze
         
         Normalization_lin(data, num_frequencies, num_spectra)
         
-        Cleaning(data)
+        pulsar_data_clean(data)
         
         
         
@@ -220,16 +173,18 @@ for j in range(1):  # Main loop by types of data to analyze
         # Average and log data
         with np.errstate(invalid='ignore'):
             data_log[:,:] = 10 * np.log10(data[:,:])
-        data_log[np.isnan(data_log)] = -120
+        data_log[np.isnan(data_log)] = 0
     
-        
-    plot2Da(data_log, newpath+'/03 - Full log initial data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
-    
-    plot1D(data_log[:,1], newpath+'/04 - Initial data specter.png', 'Label', 'Initial data specter', 'x_label', 'y_label', customDPI)
-
     
     del data
     dat_file.close()
+    
+    plot2Da(data_log, newpath+'/03 - Full log cleaned data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
+    
+    plot1D(data_log[:,1], newpath+'/04 - Cleaned data single specter.png', 'Label', 'Initial data specter', 'x_label', 'y_label', customDPI)
+
+    
+
 
             
     temp_array = np.zeros((num_frequencies, 4 * max_shift))
@@ -243,7 +198,7 @@ for j in range(1):  # Main loop by types of data to analyze
     
     temp_array[:] = np.roll(temp_array[:], - num_spectra)
     
-    plot2Da(temp_array, newpath+'/06 - Shifted compensated full data.png', frequencyList0, np.min(temp_array), np.max(temp_array), colormap, 'Shifted compensated full data', customDPI)
+    plot2Da(temp_array, newpath+'/06 - DM compensated data.png', frequencyList0, np.min(temp_array), np.max(temp_array), colormap, 'Shifted compensated full data', customDPI)
     
     
     array_compensated_DM = np.zeros((num_frequencies, max_shift), float)
@@ -269,7 +224,7 @@ endTime = time.time()    # Time of calculations
 for i in range (0,2) : print (' ')
 print ('   The program execution lasted for ', round((endTime - startTime),3), 'seconds')
 for i in range (0,2) : print (' ')
-print ('                 *** Program PULSAT_single_pulse_reader has finished! ***')
+print ('                 *** Program PULSAR_single_pulse_reader has finished! ***')
 for i in range (0,3) : print (' ')
 
 
