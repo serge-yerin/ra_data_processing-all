@@ -4,6 +4,7 @@ import struct
 import os
 import math
 import numpy as np
+import datetime
 
 def FileHeaderReaderADR(filepath, start_byte):
     '''
@@ -119,28 +120,58 @@ def FileHeaderReaderADR(filepath, start_byte):
     
     print ('')
     
-    
-    
-    TimeRes = NAvr * (16384. / F_ADC);
-    df = F_ADC / FFT_Size                                
+     
+    # *** Time resolution ***
+    TimeRes = NAvr * (FFT_Size / float(F_ADC));
     print (' Time resolution:               ', round(TimeRes*1000, 3), '  ms')
-    print (' Real frequency resolution:     ', round(df/1000, 3), ' kHz')
+            
+    # *** Frequncy calculation (in MHz) ***
+    df = F_ADC / FFT_Size 
+    FreqPointsNum = int(Width * 1024)                # Number of frequency points in specter 
+    f0 = (SLine * 1024 * df)
+    frequency = [0 for col in range(FreqPointsNum)]
+    for i in range (0, FreqPointsNum):
+        frequency[i] = (f0 + (i * df)) * (10**-6)    
+    
+    print (' Real frequency resolution:     ', round(df/1000., 3), ' kHz')
+    print (' Frequency band:                ', round(frequency[0],3), ' - ', round(frequency[FreqPointsNum-1]+(df/pow(10,6)),3), ' MHz')
     print ('')
     
-    # *** Frequncy calculation (in MHz) ***
-    fmin = ((SLine) * 1024. * df)/10**6
-    fmax = ((SLine + Width) * 1024. * df)/10**6
-    df = df * math.pow(10, -6)
-    print (' Lower frequency bounnd:        ', fmin, ' MHz')
-    print (' Higher frequency bounnd:       ', fmax, ' MHz')
-    for i in range (3): print (' ')
-    frequencyList0 = [0 for col in range(Width * 1024)]
-    for i in range (0, Width * 1024):
-        frequencyList0[i] = (fmin + ((i+1) * df))
+    file.seek(1024)
+      
+    
+    # *** DSP_INF reading ***
+    temp = file.read(4).decode('utf-8')                 # Header of the chunk
+    sizeOfChunk = struct.unpack('i', file.read(4))[0]
+    frm_size = struct.unpack('i', file.read(4))[0]
+    frm_count = struct.unpack('i', file.read(4))[0]
+    frm_sec = struct.unpack('i', file.read(4))[0]
+    frm_phase = struct.unpack('i', file.read(4))[0]
+    AligningDSPINFtag = file.read(4072)
+    
+    print (' Data header:                   ', temp)
+    print (' Size of data chunk:            ', sizeOfChunk, ' bytes')
+    print (' Frame size:                    ', frm_size, ' bytes')
+    print (' Frame count:                   ', frm_count)
+    print (' Frame second:                  ', frm_sec)
+    print (' Frame phase:                   ', frm_phase)
+    print ('')
+    
+    SpInFrame = int(frm_size / BlockSize)
+    FrameInChunk = int(sizeOfChunk / frm_size)
+    ChunksInFile = int(((df_filesize - 1024) / (sizeOfChunk+8)))
+    FramesInFile = int(ChunksInFile * FrameInChunk)
+    SpInFile = FramesInFile * SpInFrame               
+    print (' Number of spectra in frame:    ', SpInFrame)
+    print (' Number of frames in chunk:     ', FrameInChunk)
+    print (' Number of chunks in file:      ', ChunksInFile)
+    print (' Number of frames in file:      ', FramesInFile)
+    print (' Number of spectra in file:     ', SpInFile)
+
     
     file.close()
-    
-    return TimeRes, fmin, fmax, df, frequencyList0, Width*1024
+
+    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, F_ADC, df_creation_timeUTC, SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk, ReceiverMode, ADRmode, sumDifMode, NAvr, TimeRes, frequency[0], frequency[FreqPointsNum-1], df, frequency, frm_sec, frm_phase, FFT_Size, SLine, Width
     
     
     
@@ -152,9 +183,8 @@ if __name__ == '__main__':
     print('\n\n Parameters of the file: ')
     
     FileHeaderReaderADR(filename, 0)
-        
-        
-        
-        
-        
-        
+
+
+
+
+

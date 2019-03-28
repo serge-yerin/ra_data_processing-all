@@ -5,7 +5,7 @@ import numpy as np
 
 def FPGAtoPCarrayDSP (FPGAdata, NAvr):
     '''
-    FPGAtoPC Transforms FPGA array data format to ordinary PC numbers
+    FPGAtoPCarrayDSP Transforms FPGA array data format of DSP receiver to ordinary PC numbers
     Input parameters:
         FPGAdata - array of values in FPGA format
         NAvr - number of averages apectra to normalize the data
@@ -31,6 +31,14 @@ def FPGAtoPCarrayDSP (FPGAdata, NAvr):
 
 # *** FPGAtoPC Transforms FPGA array data format to ordinary PC numbers ***    
 def FPGAtoPCarrayADR (FPGAdata, NAvr):
+    '''
+    FPGAtoPCarrayADR Transforms FPGA array data format of ADR receiver to ordinary PC numbers
+    Input parameters:
+        FPGAdata - array of values in FPGA format
+        NAvr - number of averages apectra to normalize the data
+    Output parameters:
+        PCdata - result arra in ordinary PC format (numpy float64 array)
+    '''
     temp_float = np.uint32(FPGAdata)  
     temp = np.int64(FPGAdata)         
     A = np.int64(int('11111111111111111111111111000000', 2)) 

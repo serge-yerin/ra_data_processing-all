@@ -85,7 +85,14 @@ if not os.path.exists(newpath):
 # Jumping to the end of the file to read the data file header with parameters of data record
 
 if filename[0:3] == 'ADR':
-    [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filepath, smd_filesize - 1024 - 131096)  
+
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, 
+            F_ADC, df_creation_timeUTC, SpInFile, SpInFrame, FrameInChunk, 
+            ChunksInFile, sizeOfChunk, ReceiverMode, ADRmode, sumDifMode, 
+            NAvr, TimeRes, fmin, fmax, df, frequencyList0, frm_sec, frm_phase, 
+            FFTsize, SLine, Width] = FileHeaderReaderADR(filepath, smd_filesize - 1024 - 131096)
+
+    #[TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filepath, smd_filesize - 1024 - 131096)  
 if filename[0:3] == 'DSP':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, 

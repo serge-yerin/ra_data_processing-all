@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2018.02.25'
+Software_version = '2019.03.28'
 # Program intended to read, show and analyze data from ADR
 
 #*************************************************************
@@ -22,8 +22,8 @@ customDPI = 300               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 Sum_Diff_Calculate = 0        # Calculate sum and diff of A & B channels?
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveSSD = 0           # Save sum / diff data to a long file?
@@ -54,7 +54,11 @@ import gc
 import datetime
 from datetime import datetime, timedelta
 from matplotlib import rc
+import warnings
+warnings.filterwarnings("ignore")
 
+
+from f_file_header_ADR import FileHeaderReaderADR
 from f_FPGA_to_PC_array import FPGAtoPCarrayADR
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
@@ -135,174 +139,26 @@ for fileNo in range (len(fileList)):   # loop by files
     # *** Opening datafile ***
     fname = ''
     if len(fname) < 1 : fname = fileList[fileNo]
+    
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, 
+            F_ADC, df_creation_timeUTC, SpInFile, SpInFrame, FrameInChunk, 
+            ChunksInFile, sizeOfChunk, ReceiverMode, ADRmode, sumDifMode, 
+            NAvr, TimeRes, fmin, fmax, df, frequency, frm_sec, frm_phase, 
+            FFT_Size, SLine, Width] = FileHeaderReaderADR(fname, 0)
+    
+    FreqPointsNum = int(Width * 1024) 
+    Log_File.close()
+    
+    
+    # *** Setting the time reference (file beginning) ***
+    TimeFirstFramePhase = float(frm_phase)/F_ADC
+    TimeFirstFrameFloatSec = frm_sec + TimeFirstFramePhase
+    TimeScaleStartTime = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]), int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]), int(df_creation_timeUTC[6:8]), int(df_creation_timeUTC[9:12])*1000)
+        
+        
     with open(fname, 'rb') as file:
-    
-        # reading FHEADER
-        df_filesize = (os.stat(fname).st_size)               # Size of file
-    
-        df_filename = file.read(32).decode('utf-8').rstrip('\x00')
-        df_creation_timeLOC = file.read(24).decode('utf-8').rstrip('\x00')   # Creation time in local time
-        temp = file.read(8)
-        df_creation_timeUTC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in UTC time
-        df_system_name = file.read(32).decode('utf-8').rstrip('\x00')        # System (receiver) name
-        df_obs_place = file.read(128).decode('utf-8').rstrip('\x00')         # place of observations
-        df_description = file.read(256).decode('utf-8').rstrip('\x00')       # File description
-    
-        # reading FHEADER PP ADRS_PAR
-        ADRmode = struct.unpack('i', file.read(4))[0]
-        FFT_Size = struct.unpack('i', file.read(4))[0]
-        NAvr = struct.unpack('i', file.read(4))[0]
-        SLine = struct.unpack('i', file.read(4))[0]
-        Width = struct.unpack('i', file.read(4))[0]
-        BlockSize = struct.unpack('i', file.read(4))[0]
-        F_ADC = struct.unpack('i', file.read(4))[0]
-
-        # FHEADER PP ADRS_OPT
-        SizeOfStructure = struct.unpack('i', file.read(4))[0]   # the size of ADRS_OPT structure
-        StartStop = struct.unpack('i', file.read(4))[0]         # starts/stops DSP data processing
-        StartSec = struct.unpack('i', file.read(4))[0];         # UTC abs.time.sec - processing starts
-        StopSec = struct.unpack('i', file.read(4))[0];          # UTC abs.time.sec - processing stops
-        Testmode = struct.unpack('i', file.read(4))[0];         
-        NormCoeff1 = struct.unpack('i', file.read(4))[0];       # Normalization coefficient 1-CH: 1 ... 65535 (k = n / 8192), 1 < n < 65536
-        NormCoeff2 = struct.unpack('i', file.read(4))[0];       # Normalization coefficient 2-CH: 1 ... 65535 (k = n / 8192), 1 < n < 65536
-        Delay = struct.unpack('i', file.read(4))[0];            # Delay in picoseconds	-1000000000 ... 1000000000
-        temp = struct.unpack('i', file.read(4))[0];
-        ADRSoptions = bin(temp) 
-
-        print ('')
-        print (' Initial data file name:        ', df_filename)
-        print (' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (',df_filesize, ' bytes )')
-        print (' Creation time in local time:   ', str(df_creation_timeLOC))
-        print (' Creation time in UTC time:     ', df_creation_timeUTC)
-        print (' System (receiver) name:        ', df_system_name)
-        print (' Place of observations:         ', df_obs_place)
-        print (' File description:              ', df_description)
-        print ('')
-        print (' ADR operation mode             ', ADRmode)
-        print (' FFT size                       ', FFT_Size)
-        print (' Averaged spectra               ', NAvr)
-        print (' Start line number              ', SLine)
-        print (' Width in lines                 ', Width)
-        print (' Block size                     ', BlockSize)
-        print (' Clock frequency                ', F_ADC*10**-6 , ' MHz')
-        print ('')
-        print (' Size of structure              ', SizeOfStructure)
-        print (' Start and Stop                 ', StartStop)
-        print (' Start Second                   ', StartSec)
-        print (' Stop Second                    ', StopSec)
-        print (' Testmode                       ', Testmode)
-        print (' Norm coeff 1                   ', NormCoeff1)
-        print (' Norm coeff 2                   ', NormCoeff2)
-        print (' Digital delay                  ', Delay)
-        print ('')
-        # print (' ADRSoptions                    ', ADRSoptions)
-
-        Log_File.write(' Initial data file name:         %s \n' % df_filename)
-        Log_File.write(' File size:                      %s Mb \n' % str(df_filesize/1024/1024))
-        Log_File.write(' Creation time in local time:    %s \n' % str(df_creation_timeLOC))
-        Log_File.write(' Creation time in UTC time:      %s \n' % str(df_creation_timeUTC))
-        Log_File.write(' System (receiver) name:         %s \n' % df_system_name)
-        Log_File.write(' Place of observations:          %s \n' % df_obs_place)
-        Log_File.write(' File description:               %s \n' % df_description)
-        Log_File.write(' FFT size:                       %s \n' % FFT_Size)
-        Log_File.write(' Averaged spectra:               %s \n' % NAvr)
-        Log_File.write(' Clock frequency:                %s MHz \n' % str(F_ADC*10**-6))
         
         
-        if (int(temp) & int('1000')) == 8: print (' Start by sec:                   Yes')
-        else: print (' Start by sec:                   No')
-        if (int(temp) & int('0100')) == 4: print (' CLC:                            External')
-        else: print (' CLC:                            Internal')
-        if (int(temp) & int('0010')) == 2: print (' FFT Window type:                Rectangle')
-        else: print (' FFT Window type:                Hanning')    
-        if (int(temp) & int('0001')) == 1: 
-            print (' Sum mode switch:                On')
-            sumDifMode = ' Sum/diff mode'
-        else: 
-            print (' Sum mode switch:                Off')
-            sumDifMode = ''
-        print (' ')
-        
-        if ADRmode == 0:   
-            print (' Mode:                           Waveform A channel')
-        elif ADRmode == 1: 
-            print (' Mode:                           Waveform B channel')
-        elif ADRmode == 2: 
-            print (' Mode:                           Waveform A and B channels')
-        elif ADRmode == 3: 
-            print (' Mode:                           Power spectrum of A channel')
-            ReceiverMode = 'Spectra mode'
-        elif ADRmode == 4: 
-            print (' Mode:                           Power spectrum of B channel')
-            ReceiverMode = 'Spectra mode'
-        elif ADRmode == 5: 
-            print (' Mode:                           Power spectra of A and B channels')
-            ReceiverMode = 'Spectra mode'
-        elif ADRmode == 6: 
-            print (' Mode:                           A and B spectra correlation mode')
-            ReceiverMode = 'Correlation mode'
-        else: 
-            print (' Mode:                           Error detecting mode!!!')
-            sys.exit('         Program stopped')
-        
-        print ('')
-        
-        # *** Time resolution ***
-        TimeRes = NAvr * (FFT_Size / float(F_ADC));
-        print (' Time resolution:               ', round(TimeRes*1000, 3), '  ms')
-                
-        # *** Frequncy calculation (in MHz) ***
-        df = F_ADC / FFT_Size 
-        FreqPointsNum = int(Width * 1024)                # Number of frequency points in specter 
-        f0 = (SLine * 1024 * df)
-        frequency = [0 for col in range(FreqPointsNum)]
-        for i in range (0, FreqPointsNum):
-            frequency[i] = (f0 + (i * df)) * (10**-6)    
-        
-        print (' Real frequency resolution:     ', round(df/1000., 3), ' kHz')
-        print (' Frequency band:                ', round(frequency[0],3), ' - ', round(frequency[FreqPointsNum-1]+(df/pow(10,6)),3), ' MHz')
-        print ('')
-        
-        file.seek(1024)
-        #print 'Current position is', file.tell(), ' bytes' # tells the position in the file
-    
-        
-        # *** DSP_INF reading ***
-        temp = file.read(4).decode('utf-8')                 # Header of the chunk
-        sizeOfChunk = struct.unpack('i', file.read(4))[0]
-        frm_size = struct.unpack('i', file.read(4))[0]
-        frm_count = struct.unpack('i', file.read(4))[0]
-        frm_sec = struct.unpack('i', file.read(4))[0]
-        frm_phase = struct.unpack('i', file.read(4))[0]
-        AligningDSPINFtag = file.read(4072)
-        
-        # *** Setting the time reference (file beginning) ***
-        TimeFirstFramePhase = float(frm_phase)/F_ADC
-        TimeFirstFrameFloatSec = frm_sec + TimeFirstFramePhase
-        TimeScaleStartTime = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]), int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]), int(df_creation_timeUTC[6:8]), int(df_creation_timeUTC[9:12])*1000)
-            
-        print (' Data header:                   ', temp)
-        print (' Size of data chunk:            ', sizeOfChunk, ' bytes')
-        print (' Frame size:                    ', frm_size, ' bytes')
-        print (' Frame count:                   ', frm_count)
-        print (' Frame second:                  ', frm_sec)
-        print (' Frame phase:                   ', frm_phase)
-        print ('')
-        
-        SpInFrame = int(frm_size / BlockSize)
-        FrameInChunk = int(sizeOfChunk / frm_size)
-        ChunksInFile = int(((df_filesize - 1024) / (sizeOfChunk+8)))
-        FramesInFile = int(ChunksInFile * FrameInChunk)
-        SpInFile = FramesInFile * SpInFrame               
-        print (' Number of spectra in frame:    ', SpInFrame)
-        print (' Number of frames in chunk:     ', FrameInChunk)
-        print (' Number of chunks in file:      ', ChunksInFile)
-        print (' Number of frames in file:      ', FramesInFile)
-        print (' Number of spectra in file:     ', SpInFile)
-        
-        Log_File.close()
-        
-    
         # *** Reading indexes of data from index file '*.fft' ***
         indexes = []
         ifname = str(int(FFT_Size/2)) + '.fft'
@@ -317,7 +173,6 @@ for fileNo in range (len(fileList)):   # loop by files
     
             
         timeLineSecond = np.zeros(ChunksInFile) # List of second values from DSP_INF field
-    
     
         
         # *** If it is the first file - write the header to long data file *** 
@@ -462,7 +317,6 @@ for fileNo in range (len(fileList)):   # loop by files
                 del data
                 
                 
-                
                 # *** TimeLine calculations ***
                 for i in range (Nim):
     
@@ -490,7 +344,6 @@ for fileNo in range (len(fileList)):   # loop by files
                     for iframe in range (0, SpInFrame):
                         TimeScale.append(str((TimeScaleStartTime + TimeAdd)))  #.time()
                         TimeFigureScale.append(str((TimeFigureStartTime+TimeFigureAdd).time())) 
-                    
                 
                 
                 # *** Performing index changes ***
@@ -584,10 +437,12 @@ for fileNo in range (len(fileList)):   # loop by files
                 
                 # *** Converting to logarythmic scale matrices *** 
                 if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
-                    Data_Ch_A = 10*np.log10(Data_Ch_A)
+                    with np.errstate(divide='ignore'):
+                        Data_Ch_A = 10*np.log10(Data_Ch_A)
     
                 if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:
-                    Data_Ch_B = 10*np.log10(Data_Ch_B)
+                    with np.errstate(divide='ignore'):
+                        Data_Ch_B = 10*np.log10(Data_Ch_B)
     
                 if (ADRmode == 6 and CorrelationProcess == 1):
                     with np.errstate(divide='ignore'):
