@@ -54,7 +54,7 @@ from datetime import datetime, timedelta
 
 # My functions
 from f_file_header_JDS import FileHeaderReaderDSP
-from f_FPGA_to_PC_array import FPGAtoPCarray
+from f_FPGA_to_PC_array import FPGAtoPCarrayDSP
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
@@ -307,11 +307,11 @@ for fileNo in range (len(fileList)):   # loop by files
                 
                 # *** Converting from FPGA to PC float format ***
                 if Mode == 1 or Mode == 2:
-                    Data_ChA = FPGAtoPCarray(Data_ChA, Navr)
-                    Data_ChB = FPGAtoPCarray(Data_ChB, Navr)
+                    Data_ChA = FPGAtoPCarrayDSP(Data_ChA, Navr)
+                    Data_ChB = FPGAtoPCarrayDSP(Data_ChB, Navr)
                 if (Mode == 2 and CorrelationProcess == 1):
-                    Data_CRe = FPGAtoPCarray(Data_CRe, Navr)
-                    Data_CIm = FPGAtoPCarray(Data_CIm, Navr)
+                    Data_CRe = FPGAtoPCarrayDSP(Data_CRe, Navr)
+                    Data_CIm = FPGAtoPCarrayDSP(Data_CIm, Navr)
                     
                 
                 
