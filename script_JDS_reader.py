@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.03.08'
+Software_version = '2019.04.06'
 # Program intended to read, show and analyze data from DSPZ receivers
 
 #*************************************************************
@@ -81,7 +81,7 @@ print (' ')
 
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-newpath = "JDS_Results/Service" 
+newpath = "JDS_Results/Service"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 if DynSpecSaveInitial == 1:
@@ -90,7 +90,7 @@ if DynSpecSaveInitial == 1:
 if (DynSpecSaveCleaned == 1 and CorrelationProcess == 1):
     if not os.path.exists('JDS_Results/Correlation_spectra'):
         os.makedirs('JDS_Results/Correlation_spectra')
-    
+
 # *** Creating a TXT logfile ***
 Log_File = open("JDS_Results/Service/Log.txt", "w")
 
@@ -127,22 +127,22 @@ for fileNo in range (len(fileList)):   # loop by files
     Log_File = open("JDS_Results/Service/Log.txt", "a")
     Log_File.write('\n\n\n  * File '+str(fileNo+1)+' of %s \n' %str(len(fileList)))
     Log_File.write('  * File path: %s \n\n\n' %str(fileList[fileNo]) )
-    
 
-#*********************************************************************************     
-  
+
+#*********************************************************************************
+
     # *** Opening datafile ***
     fname = ''
     if len(fname) < 1 : fname = fileList[fileNo]
 
 
     # *** Data file header read ***
-    
+
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, 
+        CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
         df, frequency, FreqPointsNum] = FileHeaderReaderDSP(fname, 0)
-        
-        
+
+
     # *** Saving main parameters from header to LOG FILE ***
     Log_File.write(' Initial data file name:         %s \n' % df_filename)
     Log_File.write(' File size:                      %s Mb \n' % str(df_filesize/1024/1024))
@@ -158,41 +158,41 @@ for fileNo in range (len(fileList)):   # loop by files
     Log_File.write(' Minimal frequency:              %s MHz \n' % fmin)
     Log_File.write(' Maximal frequency:              %s MHz \n' % fmax)
     Log_File.write(' Number of frequency channels:   %s \n' % FreqPointsNum)
-        
+
     Log_File.close()
-    
+
     # Initial time line settings
     TimeScaleStartDate = datetime(int(df_creation_timeUTC[0:4]), int(df_creation_timeUTC[5:7]), int(df_creation_timeUTC[8:10]), 0, 0, 0, 0)
-    
+
     timeLineMS = np.zeros(int(SpInFile)) # List of ms values from ends of spectra
-    
-    
-    
+
+
+
     # *** Creating a name for long timeline TXT file ***
-    if fileNo == 0 and (longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1): 
+    if fileNo == 0 and (longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1):
         TLfile_name = df_filename + '_Timeline.txt'
         TLfile = open(TLfile_name, 'wb')  # Open and close to delete the file with the same name
         TLfile.close()
-    
+
     with open(fname, 'rb') as file:
-    
+
         # *** If it is the first file - write the header to long data file
-        if((longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1) and fileNo == 0): 
+        if((longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1) and fileNo == 0):
             file.seek(0)
             file_header = file.read(1024)
-        
+
             # *** Creating a binary file with data for long data storage ***
-            if((Mode == 1 or Mode == 2) and longFileSaveAch == 1):             
+            if((Mode == 1 or Mode == 2) and longFileSaveAch == 1):
                 Data_A_name = df_filename+'_Data_chA.dat'
                 Data_AFile = open(Data_A_name, 'wb')
                 Data_AFile.write(file_header)
                 Data_AFile.close()
-            if(longFileSaveBch == 1 and (Mode == 1 or Mode == 2)): 
+            if(longFileSaveBch == 1 and (Mode == 1 or Mode == 2)):
                 Data_B_name = df_filename+'_Data_chB.dat'
                 Data_BFile = open(Data_B_name, 'wb')
                 Data_BFile.write(file_header)
                 Data_BFile.close()
-            if(longFileSaveCRI == 1 and Mode == 2): 
+            if(longFileSaveCRI == 1 and Mode == 2):
                 Data_CRe_name = df_filename+'_Data_CRe.dat'
                 Data_CReFile = open(Data_CRe_name, 'wb')
                 Data_CReFile.write(file_header)
@@ -201,7 +201,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 Data_CImFile = open(Data_CIm_name, 'wb')
                 Data_CImFile.write(file_header)
                 Data_CImFile.close()
-            if(longFileSaveCMP == 1 and Mode == 2): 
+            if(longFileSaveCMP == 1 and Mode == 2):
                 Data_Cm_name = df_filename+'_Data_C_m.dat'
                 Data_CmFile = open(Data_Cm_name, 'wb')
                 Data_CmFile.write(file_header)
@@ -209,26 +209,26 @@ for fileNo in range (len(fileList)):   # loop by files
                 Data_Cp_name = df_filename+'_Data_C_p.dat'
                 Data_CpFile = open(Data_Cp_name, 'wb')
                 Data_CpFile.write(file_header)
-                Data_CpFile.close()   
-                
-                
-                
-            
+                Data_CpFile.close()
+
+
+
+
             del file_header
-            
+
         Log_File.close()
         print (' ')
         print ('  *** Reading data from file ***')
-        print (' ')   
-        
-        
+        print (' ')
+
+
         #************************************************************************************
         #                            R E A D I N G   D A T A                                *
         #************************************************************************************
-    
+
         file.seek(1024)  # Jumping to 1024 byte from file beginning #+ (sizeOfChunk+8) * chunkSkip
-        
-        
+
+
         if Mode > 0 and Mode < 3:           # Spectra modes
             figID = -1
             figMAX = int(math.ceil((SpInFile - spSkip)/MaxNsp))
@@ -242,69 +242,69 @@ for fileNo in range (len(fileList)):   # loop by files
                     Nsp = int(SpInFile - spSkip - MaxNsp * figID)
                 else:
                     Nsp = MaxNsp
-    
-    
+
+
                 # *** Preparing empty matrices ***
                 if Mode == 1 or Mode == 2:
                     Data_ChA = np.zeros((Nsp, FreqPointsNum))
-                
-                if Mode == 1 or Mode == 2:            
-                    Data_ChB = np.zeros((Nsp, FreqPointsNum)) 
-            
-                if Mode == 2:            
+
+                if Mode == 1 or Mode == 2:
+                    Data_ChB = np.zeros((Nsp, FreqPointsNum))
+
+                if Mode == 2:
                     Data_CRe = np.zeros((Nsp, FreqPointsNum))
                     Data_CIm = np.zeros((Nsp, FreqPointsNum))
                     CorrModule = np.zeros((Nsp, FreqPointsNum))
                     CorrPhase = np.zeros((Nsp, FreqPointsNum))
-                
+
                 # *** Reading and reshaping all data for figure ***
-                if Mode == 1: 
-                    raw = np.fromfile(file, dtype='u4', count = (2 * Nsp * FreqPointsNum)) 
+                if Mode == 1:
+                    raw = np.fromfile(file, dtype='u4', count = (2 * Nsp * FreqPointsNum))
                     raw = np.reshape(raw, [2*FreqPointsNum, Nsp], order='F')
-                    Data_ChA = raw[0:(FreqPointsNum*2):2, :].transpose()    
-                    Data_ChB = raw[1:(FreqPointsNum*2):2, :].transpose()  
-                    
-                if Mode == 2: 
-                    raw = np.fromfile(file, dtype='u4', count = (4 * Nsp * FreqPointsNum)) 
-                    raw = np.reshape(raw, [4*FreqPointsNum, Nsp], order='F')  
-                    Data_ChA = raw[0:(FreqPointsNum*4):4, :].transpose()    
+                    Data_ChA = raw[0:(FreqPointsNum*2):2, :].transpose()
+                    Data_ChB = raw[1:(FreqPointsNum*2):2, :].transpose()
+
+                if Mode == 2:
+                    raw = np.fromfile(file, dtype='u4', count = (4 * Nsp * FreqPointsNum))
+                    raw = np.reshape(raw, [4*FreqPointsNum, Nsp], order='F')
+                    Data_ChA = raw[0:(FreqPointsNum*4):4, :].transpose()
                     Data_ChB = raw[1:(FreqPointsNum*4):4, :].transpose()
                     Data_CRe = raw[2:(FreqPointsNum*4):4, :].transpose()
                     Data_CIm = raw[3:(FreqPointsNum*4):4, :].transpose()
-                
+
                 del raw
-                    
+
                 # *** Single out timing from data ***
                 counterA2 = np.uint64(Data_ChA[:,-1])
                 counterB2 = np.uint64(Data_ChB[:,-1])
                 counterA1 = np.uint64(Data_ChA[:,-2])
                 counterB1 = np.uint64(Data_ChB[:,-2])
-                
+
                 A = np.uint64(int('01111111111111111111111111111111', 2))
                 msCount = np.uint32(np.bitwise_and (counterB2, A))        # number of ms since record started
                 ftCount = np.uint32(np.bitwise_and (counterA2, A))        # number of specter since record started
-                    
+
                 A = np.uint64(int('00000111111111111111111111111111', 2))
                 phaOfSec = np.uint32(np.bitwise_and (counterA1, A))        # phase of second for the spectr
                 A = np.uint64(int('00000000000000011111111111111111', 2))
                 secOfDay = np.uint32(np.bitwise_and (counterB1, A))        # second of the day for the specter
-                
-    
-    
+
+
+
                 # *** Time line arranging ***
-                
-                # Preparing/cleaning matrices for time scales 
+
+                # Preparing/cleaning matrices for time scales
                 TimeScale = []              # New for each file
                 TimeFigureScale = []        # Timelime (new) for each figure (Nsp)
                 # Calculations
                 FigStartTime = timedelta(0, int(secOfDay[0]), int(1000000*phaOfSec[0]/CLCfrq))
                 for i in range (Nsp):
                     TimeAdd = timedelta(0, int(secOfDay[i]), int(1000000*phaOfSec[i]/CLCfrq))
-                    TimeScale.append(str(str(TimeScaleStartDate + TimeAdd)))  
+                    TimeScale.append(str(str(TimeScaleStartDate + TimeAdd)))
                     TimeFigureScale.append(str((TimeAdd - FigStartTime)))
-                    
-                
-                
+
+
+
                 # *** Converting from FPGA to PC float format ***
                 if Mode == 1 or Mode == 2:
                     Data_ChA = FPGAtoPCarrayDSP(Data_ChA, Navr)
@@ -312,22 +312,22 @@ for fileNo in range (len(fileList)):   # loop by files
                 if (Mode == 2 and CorrelationProcess == 1):
                     Data_CRe = FPGAtoPCarrayDSP(Data_CRe, Navr)
                     Data_CIm = FPGAtoPCarrayDSP(Data_CIm, Navr)
-                    
-                
-                
+
+
+
                 '''
                 # *** Absolute correlation specter plot ***
-                if Mode == 2 and figID == 0:   #  Immediate correlation spectrum channels A & B  
-                    TwoImmedSpectraPlot(frequency, Data_CRe[1][:], Data_CIm[1][:], 'Channel A', 'Channel B', 
-                                        frequency[0], frequency[FreqPointsNum-1], -0.001, 0.001, 
-                                        'Frequency, MHz', 'Amplitude, dB', 
+                if Mode == 2 and figID == 0:   #  Immediate correlation spectrum channels A & B
+                    TwoImmedSpectraPlot(frequency, Data_CRe[1][:], Data_CIm[1][:], 'Channel A', 'Channel B',
+                                        frequency[0], frequency[FreqPointsNum-1], -0.001, 0.001,
+                                        'Frequency, MHz', 'Amplitude, dB',
                                         'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                         'Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz',
                                         'JDS_Results/Service/'+df_filename[0:14]+' Correlation Spectrum Re and Im before log.png')
                 '''
-                
-                
-                
+
+
+
                 # *** Saving data to a long-term file ***
                 if (Mode == 1 or Mode == 2) and longFileSaveAch == 1:
                     Data_AFile = open(Data_A_name, 'ab')
@@ -344,27 +344,27 @@ for fileNo in range (len(fileList)):   # loop by files
                     Data_CImFile = open(Data_CIm_name, 'ab')
                     Data_CImFile.write(np.float64(Data_CIm))
                     Data_CImFile.close()
-                    
+
                 if(longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1):
                     with open(TLfile_name, 'a') as TLfile:
                         for i in range(Nsp):
                             TLfile.write((TimeScale[i][:]+' \n'))  #str.encode
-                    
-                
-                
+
+
+
                 # *** Converting to logarythmic scale matrices ***
                 if (Mode == 1 or Mode == 2):
-                    with np.errstate(invalid='ignore'):            
+                    with np.errstate(invalid='ignore'):
                         Data_ChA = 10*np.log10(Data_ChA)
                         Data_ChB = 10*np.log10(Data_ChB)
                     Data_ChA[np.isnan(Data_ChA)] = -120
                     Data_ChB[np.isnan(Data_ChB)] = -120
                 if (Mode == 2 and CorrelationProcess == 1):
-                    with np.errstate(invalid='ignore'):
+                    with np.errstate(invalid='ignore', divide='ignore'):
                         CorrModule = 10*np.log10(((Data_CRe)**2 + (Data_CIm)**2)**(0.5))
                         CorrPhase = np.arctan2(Data_CIm, Data_CRe)
                     CorrPhase[np.isnan(CorrPhase)] = 0
-                
+
                 # *** Saving correlation data to a long-term module and phase files ***
                 if (Mode == 2 and CorrelationProcess == 1 and longFileSaveCMP == 1):
                     Data_CmFile = open(Data_Cm_name, 'ab')
@@ -373,9 +373,9 @@ for fileNo in range (len(fileList)):   # loop by files
                     Data_CpFile = open(Data_Cp_name, 'ab')
                     Data_CpFile.write(np.float64(CorrPhase))
                     Data_CpFile.close()
-                    
-                
-                    
+
+
+
                 # *** Saving immediate spectrum to file ***
                 if(SpecterFileSaveSwitch == 1 and figID == 0):
                     SpFile = open('JDS_Results/Service/Specter_'+df_filename[0:14]+'.txt', 'w')
@@ -384,157 +384,157 @@ for fileNo in range (len(fileList)):   # loop by files
                             SpFile.write(str('{:10.6f}'.format(frequency[i]))+'  '+str('{:16.10f}'.format(Data_ChA[ImmediateSpNo][i]))+'  '+str('{:16.10f}'.format(Data_ChB[ImmediateSpNo][i]))+' \n')
                         if Mode == 2:
                             SpFile.write(str(frequency[i])+'  '+str(Data_ChA[ImmediateSpNo][i])+'  '+str(Data_ChB[ImmediateSpNo][i])+'  '+str(Data_CRe[ImmediateSpNo][i])+'  '+str(Data_CIm[ImmediateSpNo][i])+' \n')
-                        
-                    SpFile.close()    
-                    
-                    
-                    
-    
+
+                    SpFile.close()
+
+
+
+
     #************************************************************************************
     #                                  F I G U R E S
     #************************************************************************************
-                    
-    
-                
+
+
+
                 # *** Plotting immediate spectra before cleaning and normalizing ***
                 if (Mode == 1 or Mode == 2) and figID == 0:
-                    TwoImmedSpectraPlot(frequency, Data_ChA[0][:], Data_ChB[0][:], 'Channel A', 'Channel B', 
-                                                frequency[0], frequency[FreqPointsNum-1], -120, -20, 
-                                                'Frequency, MHz', 'Amplitude, dB', 
+                    TwoImmedSpectraPlot(frequency, Data_ChA[0][:], Data_ChB[0][:], 'Channel A', 'Channel B',
+                                                frequency[0], frequency[FreqPointsNum-1], -120, -20,
+                                                'Frequency, MHz', 'Amplitude, dB',
                                                 'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                                 'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Immediate Spectrum before cleaning and normalizing.png', 
+                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Immediate Spectrum before cleaning and normalizing.png',
                                                 currentDate, currentTime, Software_version)
-            
+
                 if Mode == 2 and CorrelationProcess == 1 and figID == 0:
-                    OneImmedSpecterPlot(frequency, CorrModule[0][:], 'Correlation module',  
-                                                frequency[0], frequency[FreqPointsNum-1], -140, -20, 
-                                                'Frequency, MHz', 'Amplitude, dB', 
+                    OneImmedSpecterPlot(frequency, CorrModule[0][:], 'Correlation module',
+                                                frequency[0], frequency[FreqPointsNum-1], -140, -20,
+                                                'Frequency, MHz', 'Amplitude, dB',
                                                 'Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                                 'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Correlation Immedaiate Spectrum before cleaning and normalizing.png', 
+                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Correlation Immedaiate Spectrum before cleaning and normalizing.png',
                                                 currentDate, currentTime, Software_version)
-            
+
                 if Mode == 2 and CorrelationProcess == 1 and figID == 0:
-                    OneImmedSpecterPlot(frequency, CorrPhase[0][:], 'Correlation phase', 
-                                                frequency[0], frequency[FreqPointsNum-1], -4, 4, 
-                                                'Frequency, MHz', 'Phase, deg', 
+                    OneImmedSpecterPlot(frequency, CorrPhase[0][:], 'Correlation phase',
+                                                frequency[0], frequency[FreqPointsNum-1], -4, 4,
+                                                'Frequency, MHz', 'Phase, deg',
                                                 'Immediate correlation phase spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                                 'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Correlation Immedaiate phase before cleaning and normalizing.png', 
+                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Correlation Immedaiate phase before cleaning and normalizing.png',
                                                 currentDate, currentTime, Software_version)
-    
-    
-                                                
-                                                
+
+
+
+
                 # *** FIGURE Initial dynamic spectrum channels A and B (python 3 new version) ***
                 if (Mode == 1 or Mode == 2) and DynSpecSaveInitial == 1:
                     TwoDynSpectraPlot(Data_ChA, Data_ChB, Vmin, Vmax, Vmin, Vmax,
                         'Dynamic spectrum (initial) ',
-                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place, 
-                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nsp, 
+                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
+                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nsp,
                         1, 1, ReceiverMode, TimeFigureScale, TimeScale,
                         Nsp, frequency, FreqPointsNum, colormap,
-                        'Channel A', 'Channel B', 
+                        'Channel A', 'Channel B',
                         'JDS_Results/Initial_spectra/',
-                        ' Initial dynamic spectrum fig.', 
-                        currentDate, currentTime, Software_version, customDPI) 
-                                                
-                
+                        ' Initial dynamic spectrum fig.',
+                        currentDate, currentTime, Software_version, customDPI)
+
+
                 # *** FIGURE Initial correlation spectrum Module and Phase (python 3 new version) ***
                 if (Mode == 2 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1):
                     TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15,
                         'Correlation spectrum (initial) ',
-                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place, 
-                        df_filename, df_description, 'Intensity, dB', 'Phase, deg', Nsp, 
+                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
+                        df_filename, df_description, 'Intensity, dB', 'Phase, deg', Nsp,
                         1, 1, ReceiverMode, TimeFigureScale, TimeScale,
                         Nsp, frequency, FreqPointsNum, colormap,
-                        'Module', 'Phase', 
+                        'Module', 'Phase',
                         'JDS_Results/Correlation_spectra/',
-                        ' Correlation dynamic spectra fig.', 
+                        ' Correlation dynamic spectra fig.',
                         currentDate, currentTime, Software_version, customDPI)
-                
-                                                
+
+
                 # *** Normalizing amplitude-frequency responce ***
                 if Mode == 1 or Mode == 2:
                     Normalization_dB(Data_ChA, FreqPointsNum, Nsp)
                     Normalization_dB(Data_ChB, FreqPointsNum, Nsp)
                 if Mode == 2 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
                     Normalization_dB(CorrModule, FreqPointsNum, Nsp)
-                    
-                    
+
+
                 # *** Deleting cahnnels with strong RFI ***
                 if Mode == 1 or Mode == 2:
                     simple_channel_clean(Data_ChA, RFImeanConst)
                     simple_channel_clean(Data_ChB, RFImeanConst)
                 if Mode == 2 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
                     simple_channel_clean(CorrModule, 2 * RFImeanConst)
-        
-    
-                
+
+
+
                 #   *** Immediate spectra ***    (only for first figure in data file)
-                if (Mode == 1 or Mode == 2) and figID == 0:   # Immediate spectrum channels A & B  
-                    TwoImmedSpectraPlot(frequency, Data_ChA[1][:], Data_ChB[1][:], 'Channel A', 'Channel B', 
-                                        frequency[0], frequency[FreqPointsNum-1], -10.0, 40.0, 
-                                        'Frequency, MHz', 'Amplitude, dB', 
+                if (Mode == 1 or Mode == 2) and figID == 0:   # Immediate spectrum channels A & B
+                    TwoImmedSpectraPlot(frequency, Data_ChA[1][:], Data_ChB[1][:], 'Channel A', 'Channel B',
+                                        frequency[0], frequency[FreqPointsNum-1], -10.0, 40.0,
+                                        'Frequency, MHz', 'Amplitude, dB',
                                         'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                         'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
                                         'JDS_Results/Service/'+df_filename[0:14]+' Channels A and B Immediate Spectrum after cleaning and normalizing.png', currentDate, currentTime, Software_version)
-    
-    
-    
+
+
+
                 # *** FIGURE Normalized dynamic spectrum channels A and B ***
                 if (Mode == 1 or Mode == 2) and DynSpecSaveCleaned == 1:
                     TwoDynSpectraPlot(Data_ChA, Data_ChB, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
                         'Dynamic spectrum (normalized) ',
-                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place, 
-                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nsp, 
+                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
+                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nsp,
                         1, 1, ReceiverMode, TimeFigureScale, TimeScale,
                         Nsp, frequency, FreqPointsNum, colormap,
-                        'Channel A', 'Channel B', 
+                        'Channel A', 'Channel B',
                         'JDS_Results/',
-                        ' Dynamic spectra fig.', currentDate, currentTime, Software_version, customDPI) 
-    
-                        
+                        ' Dynamic spectra fig.', currentDate, currentTime, Software_version, customDPI)
+
+
                 # *** FIGURE Normalized correlation spectrum Module and Phase ***
                 if (Mode == 2 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
                     TwoDynSpectraPlot(CorrModule, CorrPhase, 2*VminNorm, 2*VmaxNorm, -3.15, 3.15,
                         'Correlation spectrum (normalized) ',
-                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place, 
-                        df_filename, df_description, 'Intensity, dB', 'Phase, rad', Nsp, 
+                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
+                        df_filename, df_description, 'Intensity, dB', 'Phase, rad', Nsp,
                         1, 1, ReceiverMode, TimeFigureScale, TimeScale,
                         Nsp, frequency, FreqPointsNum, colormap,
-                        'Module', 'Phase', 
+                        'Module', 'Phase',
                         'JDS_Results/Correlation_spectra/',
                         ' Correlation dynamic spectra cleaned fig.', currentDate, currentTime, Software_version, customDPI)
-                
-    
-    
+
+
+
             '''
             # Check of second counter data for linearity
-            OneImmedSpecterPlot(list(range(ChunksInFile)), timeLineSecond, 'timeLineSecond', 
-                                0, ChunksInFile, 0, 2000, 
-                                'Time, sec', 'Second counter, sec', 
+            OneImmedSpecterPlot(list(range(ChunksInFile)), timeLineSecond, 'timeLineSecond',
+                                0, ChunksInFile, 0, 2000,
+                                'Time, sec', 'Second counter, sec',
                                 'Second counter',
                                 ' ',
                                 'ADR_Results/Service/' + df_filename[0:14] + ' Second counter fig.' + str(figID+1) + '.png')
-            
+
             '''
-            
+
             gc.collect()
-    
+
         print ('\n  Position in file: ', file.tell(), ' File size: ', df_filesize)
         if (file.tell() == df_filesize): print ('\n  File was read till the end \n')
-        if (file.tell() < df_filesize):  
+        if (file.tell() < df_filesize):
             print ('    The difference is ', (df_filesize - file.tell()), ' bytes')
             print ('\n  File was NOT read till the end!!! ERROR')
-    
+
     file.close()  #Here we close the file
 
 
-endTime = time.time()    # Time of calculations      
-      
-        
+endTime = time.time()    # Time of calculations
+
+
 print (' ')
 print ('  The program execution lasted for ', round((endTime - startTime),2), 'seconds')
 for i in range (0,2) : print (' ')

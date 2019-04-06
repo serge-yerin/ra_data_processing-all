@@ -16,18 +16,18 @@ def DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df,
     # ***   Rolling to central position of pulse the whole matrix   ***
     for i in range (FFTsize):
         array[:,i] = np.roll(array[:,i], roll_number)
-    
+
     # ***   Preparing the vector of DMs to calculate profiles   ***
     for step in range (no_of_DM_steps):
         DM_vector[step] = DM + ((step - int(no_of_DM_steps/2)) * DM_var_step)
-    
+
     # ***   Step by step calculate profiles for each DM value as in the main program   ***
     for step in range (no_of_DM_steps):
         # Preparing matrices
         inter_matrix = np.zeros((FFTsize, samplesPerPeriod))
-        inter_matrix[:,:] = array.transpose()[:,:]    
+        inter_matrix[:,:] = array.transpose()[:,:]
         # DM compensation
-        matrix, shiftPar = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], filename, save_intermediate_data, customDPI)
+        matrix, shiftPar = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], save_intermediate_data, customDPI)
         del inter_matrix
         # Averaging in frequency
         reducedMatrix = np.array([[0.0 for col in range(samplesPerPeriod)] for row in range(int(FFTsize/AverageChannelNumber))])
@@ -35,11 +35,11 @@ def DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df,
             for j in range (samplesPerPeriod):
                 reducedMatrix[i, j] = sum(matrix[i*AverageChannelNumber : (i+1)*AverageChannelNumber, j])
         frequencyList1 = frequencyList0[::AverageChannelNumber]
-        
+
         freq_channels, time_points = reducedMatrix.shape
         integrProfile = np.array([])
         integrProfile = (np.sum(reducedMatrix, axis = 0))
-    
+
         for i in range (freq_channels):
             reducedMatrix[i,:] = reducedMatrix[i,:] - np.mean(reducedMatrix[i, beginIndex:endIndex])
         # Calcultation of integrated profile

@@ -2,8 +2,8 @@
 '''
 
 import numpy as np
-        
-# ***  *** 
+
+# ***  ***
 def Normalization_dB(Data, FreqPointsNum, Num_of_apectra):
     '''
     Normalizing amplitude-frequency responce (spectra) in dB!!!
@@ -21,12 +21,13 @@ def Normalization_dB(Data, FreqPointsNum, Num_of_apectra):
         DataMinNorm[i] = np.mean(DataMinf[DataMinf.argsort()[:5]])  # calculating mean of 5 minimum values knowing their indexes
 
     for k in range (Num_of_apectra):
-        Data[k, :] = Data[k, :] - DataMinNorm[:]
+        with np.errstate(invalid='ignore'):
+            Data[k, :] = Data[k, :] - DataMinNorm[:]
     return Data
-    
-    
-    
-    
+
+
+
+
 def Normalization_lin(Data, FreqPointsNum, num_of_spectra):
     '''
     Normalization of amplidude-frequency responce in linear scale!!!
@@ -46,5 +47,3 @@ def Normalization_lin(Data, FreqPointsNum, num_of_spectra):
     for k in range (num_of_spectra):
         Data[:, k] = Data[:, k] / DataMinNorm[:]
     return Data
-    
-    
