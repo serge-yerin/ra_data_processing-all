@@ -52,45 +52,33 @@ def FileHeaderReaderFITS(filepath):
 
 
     file = open(filepath, 'rb')
-
     hdul = fits.open(filepath)
-    hdul.info()
+    #hdul.info()
 
-
-    # Primary header
+    # Header 0
     hdr = hdul[0].header
 
-    print(' \n\n')
+    print(' \n')
     print(' Length of header = ', len(hdr), '\n')
-
     for i in range (len(hdr)):
         print (' %2i' % i, ' %50s: ' % hdr.comments[i], hdr[i])
 
-
     df_system_name = hdr[17]
     df_obs_place = hdr[16]
-
-
-    print(' \n\n\n')
-
-
+    print(' \n')
 
     # print(repr(hdr)) - representation as it is in file
     # print(list(hdr.keys())) - prints all keywords in header
 
     '''
     hdr1 = hdul[1].header
-
-    print(' \n\n')
+    print(' \n')
     print(' Length of header = ', len(hdr1), '\n')
-
     for i in range (len(hdr1)):
         print (' %2i' % i, ' %50s: ' % hdr1.comments[i], hdr1[i])
     '''
-    print(' \n\n\n')
 
-
-
+    # Header 1
     cols = hdul[1].columns
     data = hdul[1].data
     #cols.info()
@@ -99,86 +87,74 @@ def FileHeaderReaderFITS(filepath):
     for i in range (17):
         print('   * ', cols.names[i], '   ', cols.units[i])
         #print(data.field(i))
-        print(' \n')
 
     frequency_list = data.field(1)
 
-    print(' \n\n\n')
+    print(' \n')
 
+    # Header 2
     cols = hdul[2].columns
     data = hdul[2].data
     for i in range (16):
-        print('   * ', cols.names[i], '   ', cols.units[i])
-        print(data.field(i))
-        #print(' \n')
+        print('   * %15s' % cols.names[i], ' %5s ' % cols.units[i], ' %40s ' % data.field(i))
+
 
 
     df_description = cols.units[0]
 
 
-    print(' \n\n')
+    print(' \n')
 
     cols = hdul[3].columns
     data = hdul[3].data
     for i in range (4):
-        print('   * ', cols.names[i], '   ', cols.units[i])
-        #print(data.field(i))
-        #print(' \n')
+        print('   * %15s' % cols.names[i], ' %5s ' % cols.units[i], ' %40s ' % data.field(i))
 
 
-    print(' \n\n')
+
+    print(' \n')
 
     cols = hdul[4].columns
     data = hdul[4].data
     for i in range (4):
-        print('   * ', cols.names[i], '   ', cols.units[i])
-        #print(data.field(i))
-        #print(' \n')
+        print('   * %15s' % cols.names[i], ' %5s ' % cols.units[i], ' %40s ' % data.field(i))
 
 
-    print(' \n\n')
+    print(' \n')
 
     cols = hdul[5].columns
     data = hdul[5].data
     for i in range (4):
         print('   * ', cols.names[i], '   ', cols.units[i])
         #print(data.field(i))
-        #print(' \n')
 
-
-    print(' \n\n')
+    print(' \n')
 
     cols = hdul[6].columns
     data = hdul[6].data
     for i in range (4):
         print('   * ', cols.names[i], '   ', cols.units[i])
         #print(data.field(i))
-        #print(' \n')
 
-
-    print(' \n\n')
+    print(' \n')
 
     cols = hdul[7].columns
     data = hdul[7].data
     for i in range (2):
         print('   * ', cols.names[i], '   ', cols.units[i])
         #print(data.field(i))
-        print(' \n')
+    print(' \n')
 
 
+    FreqPointsNum = 412
     dynamic_spectra = data.field(1)
-    time_JD = data.field(0)
+    dynamic_spectra = dynamic_spectra[:, :, 0:FreqPointsNum]
 
+    time_JD = data.field(0)
     time_line = Time(time_JD, format='jd', scale='utc')
     nt = time_line.shape[0]
-    time_line_str = np.empty(nt, dtype="S30")
-    time_line_str[:] = str(time_line.isot[:])
-    #time_line_str[:] =
-    print (time_line_str[0:10])
+    time_line_str = time_line.iso
 
-    FreqPointsNum = 350
-
-    dynamic_spectra = dynamic_spectra[:, :, 0:FreqPointsNum]
 
     with np.errstate(divide='ignore'):
         dynamic_spectra = 10*np.log10(dynamic_spectra)
@@ -186,40 +162,12 @@ def FileHeaderReaderFITS(filepath):
     dynamic_spectra1 = dynamic_spectra[:,0,:]
     dynamic_spectra2 = dynamic_spectra[:,1,:]
     Nim, pol, freq_num = dynamic_spectra.shape
-    print(' Shape of dynamic spectra matrix: ', dynamic_spectra.shape)
-    print(' Shape of frequency list:         ', frequency_list.shape)
-    print(' Shape of time line:              ', time_line.shape)
-
-    '''
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    ImA = plt.imshow(dynamic_spectra1.transpose(), aspect='auto', cmap='jet')
-    pylab.savefig('Fig 1.png', bbox_inches='tight', dpi = 300)
-    #plt.show()
-    plt.close('all')
-
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    ImA = plt.imshow(dynamic_spectra2.transpose(), aspect='auto', cmap='jet')
-    pylab.savefig('Fig 2.png', bbox_inches='tight', dpi = 300)
-    #plt.show()
-    plt.close('all')
+    print('   * Shape of dynamic spectra matrix: ', dynamic_spectra.shape)
+    print('   * Shape of frequency list:         ', frequency_list.shape)
+    print('   * Shape of time line:              ', nt)
 
 
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    ImA = plt.imshow(dynamic_spectra1.transpose(), aspect='auto', cmap='jet')
-    pylab.savefig('Fig 4.png', bbox_inches='tight', dpi = 300)
-    #plt.show()
-    plt.close('all')
-
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    ImA = plt.imshow(np.flipud(dynamic_spectra2.transpose()), aspect='auto', cmap='jet')
-    pylab.savefig('Fig 5.png', bbox_inches='tight', dpi = 300)
-    #plt.show()
-    plt.close('all')
-    '''
+    # ***    F I G U R E S   ***
 
 
     plt.figure(1, figsize=(10.0, 6.0))
@@ -228,7 +176,6 @@ def FileHeaderReaderFITS(filepath):
     plt.plot(dynamic_spectra2[0, 0:FreqPointsNum])
     pylab.savefig('FITS_Results/Immediate spectrum.png', bbox_inches='tight', dpi = 300)
     plt.close('all')
-
 
 
 
@@ -274,23 +221,6 @@ def FileHeaderReaderFITS(filepath):
     # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
     VminNorm = 0
     VmaxNorm = 12
-    #figID = 0
-    #figMAX = 1
-    #TimeRes = 1
-    #df = 0
-    #sumDifMode = ''
-    #df_filename = filepath
-    #SpInFrame = 1
-    #FrameInChunk = 1
-    #ReceiverMode = 'Spectra mode'
-    #TimeFigureScale = time_line_str
-    #TimeScale = time_line_str
-    #SpectrNum = Nim
-    #frequency = np.linspace(0,FreqPointsNum,FreqPointsNum+1)
-    #colormap = 'jet'
-    #df_filename = 'filename______'
-
-
 
 
 
@@ -322,7 +252,7 @@ def FileHeaderReaderFITS(filepath):
 
 if __name__ == '__main__':
 
-    filename = 'DATA/20190407_094300_BST.fits'
+    filename = 'DATA/20190329_102000_BST.fits'
 
     print('\n\n * Parameters of the file: ')
 
