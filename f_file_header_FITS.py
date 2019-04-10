@@ -12,12 +12,12 @@ from astropy.time import Time
 import matplotlib.pyplot as plt
 
 from f_spectra_normalization import Normalization_dB
-from f_plot_formats import plot2D, TwoDynSpectraPlot #, OneImmedSpecterPlot, TwoImmedSpectraPlot,
+from f_plot_formats import plot2D, TwoDynSpectraPlot, TwoImmedSpectraPlot #, OneImmedSpecterPlot
 
 
 ################################################################################
 
-def FileHeaderReaderFITS(filepath):
+def FileHeaderReaderFITS(foldpath, filename):
     '''
     Reads info from FITS (.fits) data file header and returns needed parameters to the main script
     Input parameters:
@@ -51,8 +51,8 @@ def FileHeaderReaderFITS(filepath):
 
 
 
-    file = open(filepath, 'rb')
-    hdul = fits.open(filepath)
+    file = open(foldpath + filename, 'rb')
+    hdul = fits.open(foldpath + filename)
     #hdul.info()
 
     # Header 0
@@ -65,6 +65,9 @@ def FileHeaderReaderFITS(filepath):
 
     df_system_name = hdr[17]
     df_obs_place = hdr[16]
+    TimeRes = (1 / float(hdr[14]))
+    df = 1000 * float(hdr[13][0:8])
+
     print(' \n')
 
     # print(repr(hdr)) - representation as it is in file
@@ -86,10 +89,11 @@ def FileHeaderReaderFITS(filepath):
     #print(data.dtype.name)
     for i in range (17):
         print('   * ', cols.names[i], '   ', cols.units[i])
-        #print(data.field(i))
+        print(data.field(i), ' \n')
 
     frequency_list = data.field(1)
-
+    Label01 = data.field(14)[0, 0]
+    Label02 = data.field(14)[0, 1]
     print(' \n')
 
     # Header 2
@@ -99,8 +103,7 @@ def FileHeaderReaderFITS(filepath):
         print('   * %15s' % cols.names[i], ' %5s ' % cols.units[i], ' %40s ' % data.field(i))
 
 
-
-    df_description = cols.units[0]
+    df_description = data.field(0)[0]
 
 
     print(' \n')
@@ -146,9 +149,19 @@ def FileHeaderReaderFITS(filepath):
     print(' \n')
 
 
-    FreqPointsNum = 412
+
+    beginIndex  = int(input('\n    First index of frequency subband:           '))
+    endIndex    = int(input('\n    Last index of frequency subband:            '))
+    FreqPointsNum = endIndex - beginIndex + 1
+
+    print('\n')
+
+    frequency = np.zeros(FreqPointsNum)
+    frequency[:] = frequency_list[0, beginIndex : endIndex+1]
+
+
     dynamic_spectra = data.field(1)
-    dynamic_spectra = dynamic_spectra[:, :, 0:FreqPointsNum]
+    dynamic_spectra = dynamic_spectra[:, :, 0 : FreqPointsNum]
 
     time_JD = data.field(0)
     time_line = Time(time_JD, format='jd', scale='utc')
@@ -169,44 +182,36 @@ def FileHeaderReaderFITS(filepath):
 
     # ***    F I G U R E S   ***
 
+    Vmin = np.min([np.min(dynamic_spectra1[0, 0:FreqPointsNum]), np.min(dynamic_spectra2[0, 0:FreqPointsNum])])
+    Vmax = np.max([np.max(dynamic_spectra1[0, 0:FreqPointsNum]), np.max(dynamic_spectra2[0, 0:FreqPointsNum])])
 
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    plt.plot(dynamic_spectra1[0, 0:FreqPointsNum])
-    plt.plot(dynamic_spectra2[0, 0:FreqPointsNum])
-    pylab.savefig('FITS_Results/Immediate spectrum.png', bbox_inches='tight', dpi = 300)
-    plt.close('all')
+    TwoImmedSpectraPlot(frequency, dynamic_spectra1[0, 0:FreqPointsNum], dynamic_spectra2[0, 0:FreqPointsNum],
+                        Label01, Label02,
+                        frequency[0], frequency[len(frequency)-1], Vmin-3, Vmax+3,
+                        'Frequency, MHz', 'Intensity, dB',
+                        'Immediate spectrum', 'for file ' + filename + ', Description: ' + df_description,
+                        'FITS_Results/' + filename + '_Immediate spectrum.png',
+                        currentDate, currentTime, Software_version)
 
-
-
-    Vmin = 65
-    Vmax = 110
     figID = 0
     figMAX = 1
-    TimeRes = 1
-    df = 0
     sumDifMode = ''
-    df_filename = filepath
     SpInFrame = 1
     FrameInChunk = 1
     ReceiverMode = 'Spectra mode'
     TimeFigureScale = time_line_str
     TimeScale = time_line_str
-    SpectrNum = Nim
-    frequency = np.linspace(0,FreqPointsNum,FreqPointsNum+1)
-    colormap = 'jet'
-    df_filename = 'filename______'
 
 
 # *** FIGURE Initial dynamic spectrum channels A and B (python 3 new version) ***
 
     TwoDynSpectraPlot(np.flipud(dynamic_spectra1), np.flipud(dynamic_spectra2),
-        Vmin, Vmax, Vmin, Vmax,
+        np.min(dynamic_spectra1), np.max(dynamic_spectra1), np.min(dynamic_spectra2), np.max(dynamic_spectra2),
         'Dynamic spectrum (initial) ',
         figID, figMAX, TimeRes, df, sumDifMode, df_system_name, df_obs_place,
-        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nim,
+        filename, df_description, 'Intensity, dB', 'Intensity, dB', Nim,
         SpInFrame, FrameInChunk, ReceiverMode, TimeFigureScale, TimeScale,
-        SpectrNum, frequency, FreqPointsNum, colormap,
+        Nim, frequency, FreqPointsNum, 'jet',
         'Channel A', 'Channel B',
         'FITS_Results/',
         ' Initial dynamic spectrum fig.',
@@ -220,7 +225,7 @@ def FileHeaderReaderFITS(filepath):
 
     # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
     VminNorm = 0
-    VmaxNorm = 12
+    VmaxNorm = 4
 
 
 
@@ -228,12 +233,12 @@ def FileHeaderReaderFITS(filepath):
         VminNorm, VmaxNorm, VminNorm, VmaxNorm,
         'Dynamic spectrum (normalized) ',
         figID, figMAX, TimeRes, df, sumDifMode, df_system_name, df_obs_place,
-        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nim,
+        filename, df_description, 'Intensity, dB', 'Intensity, dB', Nim,
         SpInFrame, FrameInChunk, ReceiverMode, TimeFigureScale, TimeScale,
-        SpectrNum, frequency, FreqPointsNum, colormap,
+        Nim, frequency, FreqPointsNum, 'jet',
         'Channel A', 'Channel B',
         'FITS_Results/',
-        ' Dynamic spectrum fig.',
+        ' Normalized dynamic spectrum fig.',
         currentDate, currentTime, Software_version, 300)
 
 
@@ -252,8 +257,9 @@ def FileHeaderReaderFITS(filepath):
 
 if __name__ == '__main__':
 
-    filename = 'DATA/20190329_102000_BST.fits'
+    filename = '20190408_132500_BST.fits'
+    foldpath = 'DATA/'
 
     print('\n\n * Parameters of the file: ')
 
-    FileHeaderReaderFITS(filename)
+    FileHeaderReaderFITS(foldpath, filename)
