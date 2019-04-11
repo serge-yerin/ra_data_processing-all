@@ -6,7 +6,7 @@ Software_version = '2019.03.28'
 #                        PARAMETERS                          *
 #*************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'           # 'h:/2019.04.02_UTR2_3C461_interferometer/'
+directory = 'h:/2019.04.03_GURT_Sun/'   #'DATA/'
 
 
 MaxNim = 8192                 # Number of data chunks for one figure

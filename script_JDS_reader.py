@@ -6,7 +6,7 @@ Software_version = '2019.04.06'
 #                        PARAMETERS                          *
 #*************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'           # 'h:/2019.04.03_UTR2_3C405_interferometer/'
+directory = 'h:/2019.04.03_UTR2_3C405_interferometer/' # 'DATA/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -26,8 +26,8 @@ longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to lo
 longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
-CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveInitial = 1       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 
@@ -50,7 +50,6 @@ import time
 import gc
 import datetime
 from datetime import datetime, timedelta
-#from matplotlib import rc
 
 # My functions
 from f_file_header_JDS import FileHeaderReaderDSP
@@ -58,7 +57,6 @@ from f_FPGA_to_PC_array import FPGAtoPCarrayDSP
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
-
 
 
 
@@ -87,7 +85,7 @@ if not os.path.exists(newpath):
 if DynSpecSaveInitial == 1:
     if not os.path.exists('JDS_Results/Initial_spectra'):
         os.makedirs('JDS_Results/Initial_spectra')
-if (DynSpecSaveCleaned == 1 and CorrelationProcess == 1):
+if (CorrSpecSaveCleaned == 1  and CorrelationProcess == 1):
     if not os.path.exists('JDS_Results/Correlation_spectra'):
         os.makedirs('JDS_Results/Correlation_spectra')
 
@@ -364,6 +362,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         CorrModule = 10*np.log10(((Data_CRe)**2 + (Data_CIm)**2)**(0.5))
                         CorrPhase = np.arctan2(Data_CIm, Data_CRe)
                     CorrPhase[np.isnan(CorrPhase)] = 0
+                    CorrModule[np.isinf(CorrModule)] = -135.5
 
                 # *** Saving correlation data to a long-term module and phase files ***
                 if (Mode == 2 and CorrelationProcess == 1 and longFileSaveCMP == 1):
