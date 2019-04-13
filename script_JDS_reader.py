@@ -1,12 +1,12 @@
 # Python3
-Software_version = '2019.04.06'
+Software_version = '2019.04.13'
 # Program intended to read, show and analyze data from DSPZ receivers
 
-#*************************************************************
-#                        PARAMETERS                          *
-#*************************************************************
+#*******************************************************************************
+#                             P A R A M E T E R S                              *
+#*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'h:/2019.04.03_UTR2_3C405_interferometer/' # 'DATA/'
+directory = 'DATA/'           #'h:/2019.04.03_UTR2_3C405_interferometer/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -20,25 +20,21 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
-longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
+longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
+longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
+DynSpecSaveInitial = 1        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 1       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 
-
-
-#*************************************************************
-
-
-#*************************************************************
-#                   IMPORT LIBRARIES                         *
-#*************************************************************
+################################################################################
+#*******************************************************************************
+#                    I M P O R T    L I B R A R I E S                          *
+#*******************************************************************************
 # Common functions
 import os
 import sys
@@ -58,11 +54,10 @@ from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
 
-
-
-#*************************************************************
-#                       MAIN PROGRAM                         *
-#*************************************************************
+################################################################################
+#*******************************************************************************
+#                          M A I N    P R O G R A M                            *
+#*******************************************************************************
 
 for i in range(8): print (' ')
 print ('   ****************************************************')
@@ -133,13 +128,10 @@ for fileNo in range (len(fileList)):   # loop by files
     fname = ''
     if len(fname) < 1 : fname = fileList[fileNo]
 
-
     # *** Data file header read ***
-
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
         df, frequency, FreqPointsNum] = FileHeaderReaderDSP(fname, 0)
-
 
     # *** Saving main parameters from header to LOG FILE ***
     Log_File.write(' Initial data file name:         %s \n' % df_filename)
@@ -208,8 +200,6 @@ for fileNo in range (len(fileList)):   # loop by files
                 Data_CpFile = open(Data_Cp_name, 'wb')
                 Data_CpFile.write(file_header)
                 Data_CpFile.close()
-
-
 
 
             del file_header
@@ -426,8 +416,14 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
 
-                # *** FIGURE Initial dynamic spectrum channels A and B (python 3 new version) ***
+                # *** FIGURE Initial dynamic spectrum channels A and B ***
                 if (Mode == 1 or Mode == 2) and DynSpecSaveInitial == 1:
+
+
+
+
+
+                    
                     TwoDynSpectraPlot(Data_ChA, Data_ChB, Vmin, Vmax, Vmin, Vmax,
                         'Dynamic spectrum (initial) ',
                         figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
