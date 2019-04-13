@@ -3,10 +3,10 @@
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 foldpath = 'DATA/'
-filename = '20190407_094300_BST.fits'
+filename = '20190410_104300_BST.fits'
 
 VminNorm = 0                # Min value on nirmalized spectra plot
-VmaxNorm = 15               # Max value on nirmalized spectra plot
+VmaxNorm = 3               # Max value on nirmalized spectra plot
 
 colormap = 'jet'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300             # Resolution of images of dynamic spectra
@@ -116,7 +116,7 @@ TwoImmedSpectraPlot(frequency[0,:], dynamic_spectra1[0, 0:FreqPointsNum], dynami
                     frequency[0,0], frequency[0, FreqPointsNum-1], Vmin-3, Vmax+3,
                     'Frequency, MHz', 'Intensity, dB',
                     'Immediate spectrum', 'for file ' + filename + ', Description: ' + df_description,
-                    'FITS_Results/' + filename[0:19] + ' Immediate spectrum.png',
+                    'FITS_Results/' + filename[0:19] + ' ' + str(df_description).replace('"','') + ' Immediate spectrum.png',
                     currentDate, currentTime, Software_version)
 
 
@@ -125,7 +125,7 @@ figID = 0
 figMAX = 1
 sumDifMode = ''
 ReceiverMode = 'Spectra mode'
-fig_file_name = 'FITS_Results/' + filename[0:19] + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png'
+fig_file_name = 'FITS_Results/' + filename[0:19] + ' ' + str(df_description).replace('"','') + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png'
 Suptitle = 'Dynamic spectrum (initial) ' + str(filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
 
 TimeFigureScaleFig = np.empty_like(time_line_str)
@@ -135,7 +135,7 @@ for i in range (len(time_line_str)):
     TimeScaleFig[i] = time_line_str[i][11:23]
 
 # *** FIGURE Initial dynamic spectra channels A and B ***
-TwoDynSpectraPlot(np.flipud(dynamic_spectra1), np.flipud(dynamic_spectra2),
+TwoDynSpectraPlot(dynamic_spectra1, dynamic_spectra2,
             np.min(dynamic_spectra1), np.max(dynamic_spectra1), np.min(dynamic_spectra2), np.max(dynamic_spectra2),
             Suptitle, 'Intensity, dB', 'Intensity, dB', no_of_spectra,
             TimeFigureScaleFig, TimeScaleFig, frequency[0,:],
@@ -149,11 +149,11 @@ Normalization_dB(dynamic_spectra2, FreqPointsNum, nt)
 
 
 # Preparing variables for figure
-fig_file_name = 'FITS_Results/' + filename[0:19] + ' Normalized dynamic spectrum fig.' + str(figID+1) + '.png'
+fig_file_name = 'FITS_Results/' + filename[0:19] + ' ' + str(df_description).replace('"','') + ' Normalized dynamic spectrum fig.' + str(figID+1) + '.png'
 Suptitle = 'Dynamic spectrum (normalized) ' + str(filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
 
 # *** FIGURE Dynamic spectra channels A and B normalized ***
-TwoDynSpectraPlot(np.flipud(dynamic_spectra1), np.flipud(dynamic_spectra2),
+TwoDynSpectraPlot(dynamic_spectra1, dynamic_spectra2,
             VminNorm, VmaxNorm, VminNorm, VmaxNorm,
             Suptitle, 'Intensity, dB', 'Intensity, dB', no_of_spectra,
             TimeFigureScaleFig, TimeScaleFig, frequency[0,:],
