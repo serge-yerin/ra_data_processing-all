@@ -14,7 +14,7 @@ RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 20                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 30                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -291,6 +291,11 @@ for fileNo in range (len(fileList)):   # loop by files
                     TimeScale.append(str(str(TimeScaleStartDate + TimeAdd)))
                     TimeFigureScale.append(str((TimeAdd - FigStartTime)))
 
+                TimeFigureScaleFig = np.empty_like(TimeFigureScale)
+                TimeScaleFig = np.empty_like(TimeScale)
+                for i in range (len(TimeFigureScale)):
+                    TimeFigureScaleFig[i] = TimeFigureScale[i][0:11]
+                    TimeScaleFig[i] = TimeScale[i][11:23]
 
 
                 # *** Converting from FPGA to PC float format ***
@@ -300,7 +305,6 @@ for fileNo in range (len(fileList)):   # loop by files
                 if (Mode == 2 and CorrelationProcess == 1):
                     Data_CRe = FPGAtoPCarrayDSP(Data_CRe, Navr)
                     Data_CIm = FPGAtoPCarrayDSP(Data_CIm, Navr)
-
 
 
                 '''
@@ -419,11 +423,14 @@ for fileNo in range (len(fileList)):   # loop by files
                 # *** FIGURE Initial dynamic spectrum channels A and B ***
                 if (Mode == 1 or Mode == 2) and DynSpecSaveInitial == 1:
 
-
-
-
-
-                    
+                    Suptitle = 'Dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    fig_file_name = 'JDS_Results/Initial_spectra/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png'
+                    TwoDynSpectraPlot(Data_ChA, Data_ChB, Vmin, Vmax, Vmin, Vmax, Suptitle,
+                                            'Intensity, dB', 'Intensity, dB', Nsp,
+                                            TimeFigureScaleFig, TimeScaleFig, frequency,
+                                            FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
+                                            currentDate, currentTime, Software_version, customDPI)
+                    '''
                     TwoDynSpectraPlot(Data_ChA, Data_ChB, Vmin, Vmax, Vmin, Vmax,
                         'Dynamic spectrum (initial) ',
                         figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
@@ -434,10 +441,19 @@ for fileNo in range (len(fileList)):   # loop by files
                         'JDS_Results/Initial_spectra/',
                         ' Initial dynamic spectrum fig.',
                         currentDate, currentTime, Software_version, customDPI)
-
+                    '''
 
                 # *** FIGURE Initial correlation spectrum Module and Phase (python 3 new version) ***
                 if (Mode == 2 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1):
+
+                    Suptitle = 'Correlation dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    fig_file_name = 'JDS_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png'
+                    TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
+                                            'Intensity, dB', 'Phase, rad', Nsp,
+                                            TimeFigureScaleFig, TimeScaleFig, frequency,
+                                            FreqPointsNum, colormap, 'Correlation module', 'Correlation phase',
+                                            fig_file_name, currentDate, currentTime, Software_version, customDPI)
+                    '''
                     TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15,
                         'Correlation spectrum (initial) ',
                         figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
@@ -448,7 +464,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         'JDS_Results/Correlation_spectra/',
                         ' Correlation dynamic spectra fig.',
                         currentDate, currentTime, Software_version, customDPI)
-
+                    '''
 
                 # *** Normalizing amplitude-frequency responce ***
                 if Mode == 1 or Mode == 2:
@@ -480,6 +496,15 @@ for fileNo in range (len(fileList)):   # loop by files
 
                 # *** FIGURE Normalized dynamic spectrum channels A and B ***
                 if (Mode == 1 or Mode == 2) and DynSpecSaveCleaned == 1:
+
+                    Suptitle = 'Dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    fig_file_name = 'JDS_Results/' + df_filename[0:14] + ' Dynamic spectra fig.' + str(figID+1) + '.png'
+                    TwoDynSpectraPlot(Data_ChA, Data_ChB, VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
+                                            'Intensity, dB', 'Intensity, dB', Nsp,
+                                            TimeFigureScaleFig, TimeScaleFig, frequency,
+                                            FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
+                                            currentDate, currentTime, Software_version, customDPI)
+                    '''
                     TwoDynSpectraPlot(Data_ChA, Data_ChB, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
                         'Dynamic spectrum (normalized) ',
                         figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
@@ -489,10 +514,19 @@ for fileNo in range (len(fileList)):   # loop by files
                         'Channel A', 'Channel B',
                         'JDS_Results/',
                         ' Dynamic spectra fig.', currentDate, currentTime, Software_version, customDPI)
-
+                    '''
 
                 # *** FIGURE Normalized correlation spectrum Module and Phase ***
                 if (Mode == 2 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
+
+                    Suptitle = 'Correlation dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    fig_file_name = 'JDS_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectra cleaned fig.' + str(figID+1) + '.png'
+                    TwoDynSpectraPlot(CorrModule, CorrPhase, 2*VminNorm, 2*VmaxNorm, -3.15, 3.15, Suptitle,
+                                            'Intensity, dB', 'Phase, rad', Nsp,
+                                            TimeFigureScaleFig, TimeScaleFig, frequency,
+                                            FreqPointsNum, colormap, 'Normalized correlation module', 'Correlation phase',
+                                            fig_file_name, currentDate, currentTime, Software_version, customDPI)
+                    '''
                     TwoDynSpectraPlot(CorrModule, CorrPhase, 2*VminNorm, 2*VmaxNorm, -3.15, 3.15,
                         'Correlation spectrum (normalized) ',
                         figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
@@ -502,7 +536,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         'Module', 'Phase',
                         'JDS_Results/Correlation_spectra/',
                         ' Correlation dynamic spectra cleaned fig.', currentDate, currentTime, Software_version, customDPI)
-
+                    '''
 
 
             '''

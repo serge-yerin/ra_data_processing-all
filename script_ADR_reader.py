@@ -627,7 +627,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 # *** FIGURE Initial correlation spectrum module and phase (python 3 new version) ***
                 if (ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1):
 
-                    Suptitle = 'Dynamic spectrum (correlation) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    Suptitle = 'Correlation dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
                     fig_file_name = 'ADR_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png'
                     TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
@@ -805,7 +805,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 # *** FIGURE Correlation spectrum module and phase cleaned and normalized (python 3 new version) ***
                 if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
 
-                    Suptitle = 'Dynamic spectrum (correlation) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    Suptitle = 'Correlation dynamic spectrum (nolmalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
                     fig_file_name = 'ADR_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
                     TwoDynSpectraPlot(CorrModule, CorrPhase, VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
