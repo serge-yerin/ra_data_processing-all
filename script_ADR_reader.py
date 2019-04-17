@@ -601,13 +601,14 @@ for fileNo in range (len(fileList)):   # loop by files
                 # *** FIGURE Initial dynamic spectrum channels A and B (python 3 new version) ***
                 if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveInitial == 1):
 
-                    Suptitle = 'Dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
-                    fig_file_name = 'ADR_Results/Initial_spectra/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png'
-                    #TimeFigureScaleFig = np.empty_like(TimeFigureScale)
-                    #TimeScaleFig = np.empty_like(TimeScale)
-                    #for i in range (len(TimeFigureScale)):
-                    #    TimeFigureScaleFig[i] = TimeFigureScale[i][0:11]
-                    #    TimeScaleFig[i] = TimeScale[i][11:23]
+                    fig_file_name = ('ADR_Results/Initial_spectra/' + df_filename[0:14] +
+                                    ' Initial dynamic spectrum fig.' + str(figID+1) + '.png')
+                    Suptitle = ('Dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+
+                                str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+
+                                str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+
+                                sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
+                                '\n'+ReceiverMode+', Description: '+str(df_description))
+
 
                     TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, Vmin, Vmax, Vmin, Vmax, Suptitle,
                                             'Intensity, dB', 'Intensity, dB', Nim * SpInFrame * FrameInChunk,
@@ -615,42 +616,23 @@ for fileNo in range (len(fileList)):   # loop by files
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                                             currentDate, currentTime, Software_version, customDPI)
 
-                    '''
-                    TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, Vmin, Vmax, Vmin, Vmax,
-                        'Dynamic spectrum (initial) ',
-                        figID, figMAX, TimeRes, df, sumDifMode, df_system_name, df_obs_place,
-                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nim,
-                        SpInFrame, FrameInChunk, ReceiverMode, TimeFigureScale, TimeScale,
-                        SpectrNum, frequency, FreqPointsNum, colormap,
-                        'Channel A', 'Channel B',
-                        'ADR_Results/Initial_spectra/',
-                        ' Initial dynamic spectrum fig.',
-                        currentDate, currentTime, Software_version, customDPI)
-                    '''
-
                 # *** FIGURE Initial correlation spectrum module and phase (python 3 new version) ***
                 if (ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1):
 
-                    Suptitle = 'Correlation dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
-                    fig_file_name = 'ADR_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png'
+                    fig_file_name = ('ADR_Results/Correlation_spectra/' + df_filename[0:14] +
+                                    ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png')
+                    Suptitle = ('Correlation dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+
+                                str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+
+                                str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+
+                                sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
+                                '\n'+ReceiverMode+', Description: '+str(df_description))
+
                     TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Correlation module', 'Correlation phase',
                                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
-                    '''
-                    TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15,
-                        'Dynamic spectrum (correlation) ',
-                        figID, figMAX, TimeRes, df, sumDifMode, df_system_name, df_obs_place,
-                        df_filename, df_description, 'Intensity, dB', 'Phase, rad', Nim,
-                        SpInFrame, FrameInChunk, ReceiverMode, TimeFigureScale, TimeScale,
-                        SpectrNum, frequency, FreqPointsNum, colormap,
-                        'Correlation module', 'Correlation phase',
-                        'ADR_Results/Correlation_spectra/',
-                        ' Correlation dynamic spectrum fig.',
-                        currentDate, currentTime, Software_version, customDPI)
-                    '''
 
                 # *** Normalizing amplitude-frequency responce ***
                 if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
@@ -785,26 +767,19 @@ for fileNo in range (len(fileList)):   # loop by files
                 # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
                 if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1):
 
-                    Suptitle = 'Dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
-                    fig_file_name = 'ADR_Results/' + df_filename[0:14] + ' Dynamic spectrum fig.' + str(figID+1) + '.png'
+                    fig_file_name = ('ADR_Results/' + df_filename[0:14] + ' Dynamic spectrum fig.' +
+                                    str(figID+1) + '.png')
+                    Suptitle = ('Dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+
+                                ' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                                ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+
+                                str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+
+                                str(df_description))
                     TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
                                             'Intensity, dB', 'Intensity, dB', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                                             currentDate, currentTime, Software_version, customDPI)
 
-                    '''
-                    TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
-                        'Dynamic spectrum (normalized) ',
-                        figID, figMAX, TimeRes, df, sumDifMode, df_system_name, df_obs_place,
-                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nim,
-                        SpInFrame, FrameInChunk, ReceiverMode, TimeFigureScale, TimeScale,
-                        SpectrNum, frequency, FreqPointsNum, colormap,
-                        'Channel A', 'Channel B',
-                        'ADR_Results/',
-                        ' Dynamic spectrum fig.',
-                        currentDate, currentTime, Software_version, customDPI)
-                    '''
 
                 # *** FIGURE Correlation spectrum module and phase cleaned and normalized (python 3 new version) ***
                 if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
@@ -816,18 +791,6 @@ for fileNo in range (len(fileList)):   # loop by files
                                             TimeFigureScaleFig, TimeScaleFig, frequency, FreqPointsNum, colormap,
                                             'Normalized and cleaned correlation module', 'Correlation phase',
                                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
-                    '''
-                    TwoDynSpectraPlot(CorrModule, CorrPhase, VminNorm, 3*VmaxNorm, -3.15, 3.15,
-                        'Dynamic spectrum (correlation) ',
-                        figID, figMAX, TimeRes, df, sumDifMode, df_system_name, df_obs_place,
-                        df_filename, df_description, 'Intensity, dB', 'Phase, rad', Nim,
-                        SpInFrame, FrameInChunk, ReceiverMode, TimeFigureScale, TimeScale,
-                        SpectrNum, frequency, FreqPointsNum, colormap,
-                        'Correlation module', 'Correlation phase',
-                        'ADR_Results/Correlation_spectra/',
-                        ' Correlation dynamic spectrum cleaned fig.',
-                        currentDate, currentTime, Software_version, customDPI)
-                    '''
 
             # Check of second counter data for linearity
             #OneImmedSpecterPlot(list(range(ChunksInFile)), timeLineSecond, 'timeLineSecond',

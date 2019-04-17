@@ -1,6 +1,6 @@
 # Python3
-Software_version = '2019.03.27'
-# Program intended to read, show and analyze data from NDA
+Software_version = '2019.04.17'
+# Program intended to read, show and analyze data from Routine receiver of Nancay Decametric Array
 
 #*************************************************************
 #                        PARAMETERS                          *
@@ -187,9 +187,7 @@ with open(fname, 'rb') as file:
             dataLHP = raw[5  :FreqPointsNum+5, :]
             point = raw[FreqPointsNum+4 : FreqPointsNum+5]
             dataRHP = raw[FreqPointsNum+6 : 2*FreqPointsNum+6, :]
-
             del raw
-
 
             TimeScale = []              # New for each file
             for i in range (Nsp):
@@ -208,6 +206,12 @@ with open(fname, 'rb') as file:
             for i in range (Nsp):
                 TimeScaleStr[i] = str(TimeScale[i])
             del TimeScale
+
+            TimeFigureScaleFig = np.empty_like(TimeFigureScale)
+            TimeScaleFig = np.empty_like(TimeScaleStr)
+            for i in range (len(TimeFigureScale)):
+                TimeFigureScaleFig[i] = TimeFigureScale[i][0:11]
+                TimeScaleFig[i] = TimeScaleStr[i][11:23]
 
             # ??? Converting to dB scale ???
             dataLHP = 0.3125 * dataLHP
@@ -233,21 +237,23 @@ with open(fname, 'rb') as file:
             VmaxR = np.max(dataRHP)
 
 
-            
-
-
+            fig_file_name = 'NDA_Results/Initial_spectra/' + fname[-11:] + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png'
+            Suptitle = ('Dynamic spectrum (initial) ' + str(fname[-11:]) +
+                                        ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
+                                        '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                                        ' ms, df = '+str(round(df*1000.,3))+' kHz, '+sumDifMode+
+                                        ' Receiver: '+str(df_system_name)+
+                                        ', Place: '+str(df_obs_place) +
+                                        '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC')
 
             TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminL, VmaxL, VminR, VmaxR,
-                'Dynamic spectrum (initial) ',
-                figID, figMAX, TimeRes, df*1000000, sumDifMode, df_system_name, df_obs_place,
-                fname[-11:], 'Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC', 'Intensity, dB', 'Intensity, dB', Nsp,
-                1, 1, ReceiverMode, TimeFigureScale, TimeScaleStr,
-                Nsp, frequency, FreqPointsNum, colormap,
-                'Left-hand circular polarization', 'Right-hand circular polarization',
-                'NDA_Results/Initial_spectra/',
-                ' Initial dynamic spectrum fig.',
-                currentDate, currentTime, Software_version, customDPI)
-
+                        Suptitle,
+                        'Intensity, dB', 'Intensity, dB', Nsp,
+                        TimeFigureScaleFig, TimeScaleFig, frequency,
+                        FreqPointsNum, colormap,
+                        'Left-hand circular polarization', 'Right-hand circular polarization',
+                        fig_file_name,
+                        currentDate, currentTime, Software_version, customDPI)
 
             if (DynSpecSaveCleaned == 1):
 
@@ -260,17 +266,25 @@ with open(fname, 'rb') as file:
                 simple_channel_clean(dataRHP.transpose(), RFImeanConst)
 
                 # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
-                TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm,
-                    'Dynamic spectrum (normalized) ',
-                    figID, figMAX, TimeRes, df*1000000, sumDifMode, df_system_name, df_obs_place,
-                    fname[-11:], 'Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC', 'Intensity, dB', 'Intensity, dB', Nsp,
-                    1, 1, ReceiverMode, TimeFigureScale, TimeScaleStr,
-                    Nsp, frequency, FreqPointsNum, colormap,
-                    'Left-hand circular polarization', 'Right-hand circular polarization',
-                    'NDA_Results/',
-                    ' Normalized dynamic spectrum fig.',
-                    currentDate, currentTime, Software_version, customDPI)
 
+                fig_file_name = ('NDA_Results/' + fname[-11:] +
+                                ' Normalized dynamic spectrum fig.' + str(figID+1) + '.png')
+                Suptitle = ('Dynamic spectrum (normalized) ' + str(fname[-11:]) +
+                            ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
+                            '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                            ' ms, df = '+str(round(df*1000.,3))+' kHz, '+sumDifMode+
+                            ' Receiver: '+str(df_system_name)+
+                            ', Place: '+str(df_obs_place) +
+                            '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
+                            ' hour '+solar_culm[2:4]+' min, UTC')
+
+                TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm,
+                                Suptitle, 'Intensity, dB', 'Intensity, dB', Nsp,
+                                TimeFigureScaleFig, TimeScaleFig, frequency,
+                                FreqPointsNum, colormap,
+                                'Left-hand circular polarization', 'Right-hand circular polarization',
+                                fig_file_name,
+                                currentDate, currentTime, Software_version, customDPI)
 
             if (TotalIntPolSavePic == 1):
 
@@ -291,17 +305,25 @@ with open(fname, 'rb') as file:
 
 
                 # *** FIGURE Dynamic spectrum total intensity and polarization level ***
+
+                fig_file_name = ('NDA_Results/Total_intensity_and_polarization/' + fname[-11:] +
+                                ' Dynamic spectrum (total and polarization) fig.' + str(figID+1) + '.png')
+                Suptitle = ('Dynamic spectrum (Total) ' + str(fname[-11:]) +
+                            ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
+                            '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                            ' ms, df = '+str(round(df*1000.,3))+' kHz, '+sumDifMode+
+                            ' Receiver: '+str(df_system_name)+
+                            ', Place: '+str(df_obs_place) +
+                            '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
+                            ' hour '+solar_culm[2:4]+' min, UTC')
+
                 TwoDynSpectraPlot(TotalIntensity.transpose(), LevelCirculPol.transpose(), VminNorm, VmaxNormTotal, -1, 1,
-                    'Dynamic spectrum (Total) ',
-                    figID, figMAX, TimeRes, df*1000000, sumDifMode, df_system_name, df_obs_place,
-                    fname[-11:], 'Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC',
-                    'Intensity, dB', 'Relative units', Nsp,
-                    1, 1, ReceiverMode, TimeFigureScale, TimeScaleStr,
-                    Nsp, frequency, FreqPointsNum, colormap,
-                    'Total intensity', 'Level of circular polarization',
-                    'NDA_Results/Total_intensity_and_polarization/',
-                    ' Dynamic spectrum (total and polarization) fig.',
-                    currentDate, currentTime, Software_version, customDPI)
+                                Suptitle, 'Intensity, dB', 'Relative units', Nsp,
+                                TimeFigureScaleFig, TimeScaleFig, frequency,
+                                FreqPointsNum, colormap,
+                                'Total intensity', 'Level of circular polarization',
+                                fig_file_name,
+                                currentDate, currentTime, Software_version, customDPI)
 
         del TotalIntensity, LevelCirculPol, Data_sum, Data_diff, dataLHP, dataRHP, time_stamps
 
@@ -421,6 +443,13 @@ with open(fname, 'rb') as file:
             TimeScaleStr[i] = str(TimeScale[i])
         del TimeScale
 
+        TimeFigureScaleFig = np.empty_like(TimeFigureScale)
+        TimeScaleFig = np.empty_like(TimeScaleStr)
+        for i in range (len(TimeFigureScale)):
+            TimeFigureScaleFig[i] = TimeFigureScale[i][0:11]
+            TimeScaleFig[i] = TimeScaleStr[i][11:23]
+
+
         # ??? Converting to dB scale ???
         dataLHP = 0.3125 * dataLHP
         dataRHP = 0.3125 * dataRHP
@@ -443,18 +472,25 @@ with open(fname, 'rb') as file:
         VmaxL = np.max(dataLHP)
         VminR = np.min(dataRHP)
         VmaxR = np.max(dataRHP)
-        TwoDynSpectraPlot(dataLHP, dataRHP, VminL, VmaxL, VminR, VmaxR,
-            'Dynamic spectrum (initial) ',
-            0, 1, TimeRes, df*1000000, sumDifMode, df_system_name, df_obs_place,
-            fname[-11:], 'Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC',
-            'Intensity, dB', 'Intensity, dB', blockNum,
-            1, 1, ReceiverMode, TimeFigureScale, TimeScaleStr,
-            blockNum, frequency, FreqPointsNum, colormap,
-            'Left-hand circular polarization', 'Right-hand circular polarization',
-            'NDA_Results/Averaged/',
-            ' 03 - Initial dynamic spectrum fig. ',
-            currentDate, currentTime, Software_version, customDPI)
 
+        fig_file_name = ('NDA_Results/Averaged/' + fname[-11:] +
+                        ' 03 - Initial dynamic spectrum fig. ' + str(figID+1) + '.png')
+        Suptitle = ('Dynamic spectrum (initial) ' + str(fname[-11:]) +
+                    ' - Fig. '+str(0+1)+ ' of '+str(1)+
+                    '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                    ' ms, df = '+str(round(df*1000.,3))+' kHz, '+sumDifMode+
+                    ' Receiver: '+str(df_system_name)+
+                    ', Place: '+str(df_obs_place) +
+                    '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
+                    ' hour '+solar_culm[2:4]+' min, UTC')
+
+        TwoDynSpectraPlot(dataLHP, dataRHP, VminL, VmaxL, VminR, VmaxR,
+                                Suptitle, 'Intensity, dB', 'Intensity, dB', blockNum,
+                                TimeFigureScaleFig, TimeScaleFig, frequency,
+                                FreqPointsNum, colormap,
+                                'Left-hand circular polarization', 'Right-hand circular polarization',
+                                fig_file_name,
+                                currentDate, currentTime, Software_version, customDPI)
 
         if (DynSpecSaveCleaned == 1):
 
@@ -467,17 +503,25 @@ with open(fname, 'rb') as file:
             simple_channel_clean(dataRHP, RFImeanConst)
 
             # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
+
+            fig_file_name = ('NDA_Results/Averaged/' + fname[-11:] +
+                        ' 04 - Normalized dynamic spectrum fig. ' + str(figID+1) + '.png')
+            Suptitle = ('Dynamic spectrum (normalized) ' + str(fname[-11:]) +
+                    ' - Fig. '+str(0+1)+ ' of '+str(1)+
+                    '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                    ' ms, df = '+str(round(df*1000.,3))+' kHz, '+sumDifMode+
+                    ' Receiver: '+str(df_system_name)+
+                    ', Place: '+str(df_obs_place) +
+                    '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
+                    ' hour '+solar_culm[2:4]+' min, UTC')
+
             TwoDynSpectraPlot(dataLHP, dataRHP, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
-                'Dynamic spectrum (normalized) ',
-                0, 1, TimeRes, df*1000000, sumDifMode, df_system_name, df_obs_place,
-                fname[-11:], 'Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC',
-                'Intensity, dB', 'Intensity, dB', blockNum,
-                1, 1, ReceiverMode, TimeFigureScale, TimeScaleStr,
-                blockNum, frequency, FreqPointsNum, colormap,
-                'Left-hand circular polarization', 'Right-hand circular polarization',
-                'NDA_Results/Averaged/',
-                ' 04 - Normalized dynamic spectrum fig. ',
-                currentDate, currentTime, Software_version, customDPI)
+                                Suptitle, 'Intensity, dB', 'Intensity, dB', blockNum,
+                                TimeFigureScaleFig, TimeScaleFig, frequency,
+                                FreqPointsNum, colormap,
+                                'Left-hand circular polarization', 'Right-hand circular polarization',
+                                fig_file_name,
+                                currentDate, currentTime, Software_version, customDPI)
 
 
         if (TotalIntPolSavePic == 1):
@@ -509,22 +553,27 @@ with open(fname, 'rb') as file:
 
 
             # *** FIGURE Dynamic spectrum total intensity and polarization level (python 3 new version) ***
+
+            fig_file_name = ('NDA_Results/Averaged/' + fname[-11:] +
+                        ' 05 - Dynamic spectrum (total and polarization) fig. ' + str(figID+1) + '.png')
+            Suptitle = ('Dynamic spectrum (Total) ' + str(fname[-11:]) +
+                    ' - Fig. '+str(0+1)+ ' of '+str(1)+
+                    '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
+                    ' ms, df = '+str(round(df*1000.,3))+' kHz, '+sumDifMode+
+                    ' Receiver: '+str(df_system_name)+
+                    ', Place: '+str(df_obs_place) +
+                    '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
+                    ' hour '+solar_culm[2:4]+' min, UTC')
+
             TwoDynSpectraPlot(TotalIntensity, LevelCirculPol, VminNorm, VmaxNormTotal, -1, 1,
-                'Dynamic spectrum (Total) ',
-                0, 1, TimeRes, df*1000000, sumDifMode, df_system_name, df_obs_place,
-                fname[-11:], 'Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC',
-                'Intensity, dB', 'Relative units', blockNum,
-                1, 1, ReceiverMode, TimeFigureScale, TimeScaleStr,
-                blockNum, frequency, FreqPointsNum, colormap,
-                'Total intensity', 'Level of circular polarization',
-                'NDA_Results/Averaged/',
-                ' 05 - Dynamic spectrum (total and polarization) fig. ',
-                currentDate, currentTime, Software_version, customDPI)
+                                Suptitle, 'Intensity, dB', 'Intensity, dB', blockNum,
+                                TimeFigureScaleFig, TimeScaleFig, frequency,
+                                FreqPointsNum, colormap,
+                                'Total intensity', 'Level of circular polarization',
+                                fig_file_name,
+                                currentDate, currentTime, Software_version, customDPI)
 
         del TotalIntensity, LevelCirculPol, Data_sum, Data_diff, dataLHP, dataRHP, time_stamps
-
-
-
 
 
 
