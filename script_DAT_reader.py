@@ -6,25 +6,25 @@ Software_version = '2018.02.27'
 #                        PARAMETERS                          *
 #*************************************************************
 # Path to data files
-common_path = 'e:/PYTHON/ra_data_processing-all/'          #  'DATA/'
+common_path = 'DATA/'          # 'e:/PYTHON/ra_data_processing-all/'          
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'C030419_040210.jds_Data_CIm.dat'
+filename = common_path + 'A190320_004557.adr_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm']
+typesOfData = ['chA', 'chB']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
 
-StartStopSwitch = 0            # Read the whole file (0) or specified time limits (1)
+StartStopSwitch = 1            # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                 # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                  # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 14               # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 10               # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6               # Constant of RFI mitigation (usually = 8)
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'jet'               # Colormap of images of dynamic spectra ('jet' or 'Greys')
@@ -40,8 +40,8 @@ freqStart = 8.0
 freqStop = 33.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2017-07-12 09:11:15'
-dateTimeStop =  '2017-07-12 09:12:45'
+dateTimeStart = '2019-03-20 11:00:00'
+dateTimeStop =  '2019-03-20 12:30:00'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0

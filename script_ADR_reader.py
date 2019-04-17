@@ -7,15 +7,15 @@ Software_version = '2019.04.13'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'           #'h:/2019.04.03_GURT_Sun/'
+directory = 'DATA/'           #'i:/2017.08.25_GURT_Sun_ADR1/'
 
-MaxNim = 8192                 # Number of data chunks for one figure
+MaxNim = 1024                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
 Vmax = -50                    # Upper limit of figure dynamic range for initial spectra
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 15                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 customDPI = 300               # Resolution of images of dynamic spectra
@@ -478,7 +478,8 @@ for fileNo in range (len(fileList)):   # loop by files
                                         'Frequency, MHz', 'Amplitude, dB',
                                         'Immediate spectrum '+str(df_filename[0:18])+ ' channel A',
                                         'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel A Immediate Spectrum before cleaning and normalizing.png')
+                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel A Immediate Spectrum before cleaning and normalizing.png',
+                                        currentDate, currentTime, Software_version)
 
                 if ADRmode == 4 and figID == 0:   # Immediate spectrum channel B
                     OneImmedSpecterPlot(frequency, Data_Ch_B[0][:], 'Channel B',
@@ -486,7 +487,8 @@ for fileNo in range (len(fileList)):   # loop by files
                                         'Frequency, MHz', 'Amplitude, dB',
                                         'Immediate spectrum '+str(df_filename[0:18])+ ' channel B',
                                         'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel B Immediate Spectrum before cleaning and normalizing.png')
+                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel B Immediate Spectrum before cleaning and normalizing.png',
+                                        currentDate, currentTime, Software_version)
 
                 if (ADRmode == 5 or ADRmode == 6) and figID == 0: # Immediate spectrum channels A & B
                     TwoImmedSpectraPlot(frequency, Data_Ch_A[0][:], Data_Ch_B[0][:], 'Channel A', 'Channel B',
@@ -503,7 +505,8 @@ for fileNo in range (len(fileList)):   # loop by files
                                         'Frequency, MHz', 'Amplitude, dB',
                                         'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                         'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Correlation module spectrum.png')
+                                        'ADR_Results/Service/'+df_filename[0:14]+' Correlation module spectrum.png',
+                                        currentDate, currentTime, Software_version)
 
                 if ADRmode == 6 and CorrelationProcess == 1:
                     OneImmedSpecterPlot(frequency, CorrPhase[0][:], 'Correlation phase',
@@ -511,7 +514,8 @@ for fileNo in range (len(fileList)):   # loop by files
                                         'Frequency, MHz', 'Phase, rad',
                                         'Immediate correlation phase spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                         'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/' + df_filename[0:14] + ' Correlation phase spectrum.png')
+                                        'ADR_Results/Service/' + df_filename[0:14] + ' Correlation phase spectrum.png',
+                                        currentDate, currentTime, Software_version)
 
 
                 # Initial dynamic specter channel A
