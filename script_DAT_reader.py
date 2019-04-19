@@ -6,20 +6,20 @@ Software_version = '2018.02.27'
 #                        PARAMETERS                          *
 #*************************************************************
 # Path to data files
-common_path = 'DATA/'          # 'e:/PYTHON/ra_data_processing-all/'          
+common_path = 'DATA/'          # 'e:/PYTHON/ra_data_processing-all/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A190320_004557.adr_Data_chA.dat'
+filename = common_path + 'A170712_160219.adr_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['chA', 'chB']
+typesOfData = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
 
-StartStopSwitch = 1            # Read the whole file (0) or specified time limits (1)
+StartStopSwitch = 0            # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                 # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                  # Manual upper limit of immediate spectrum figure color range
@@ -65,7 +65,7 @@ from matplotlib import rc
 # My functions
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_plot_formats import OneImmedSpecterPlot
+from f_plot_formats import OneImmedSpecterPlot, OneDynSpectraPlot
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 
@@ -379,6 +379,10 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
     print ('  *** Building images ***')
     for i in range (2) : print (' ')
 
+    # Exact string timescales to show on plots
+    TimeScaleFig = np.empty_like(dateTimeNew)
+    for i in range (len(dateTimeNew)):
+        TimeScaleFig[i] = str(dateTimeNew[i][0:11]+'\n'+dateTimeNew[i][11:23])
 
     # Limits of figures for common case or for Re/Im parts to show the interferometric picture
     if typesOfData[j]== 'CRe' or typesOfData[j] == 'CIm':
@@ -506,7 +510,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
     plt.text(0.74, 0.035,'Processed '+currentDate+ ' at '+currentTime, fontsize=6, transform=plt.gcf().transFigure)
     pylab.savefig('DAT_Results/' +fileNameAdd+ df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum.png', bbox_inches='tight', dpi = customDPI)
     plt.close('all')                                    #filename[-7:-4:]
-
+    
 
     if (typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm'):
 
@@ -516,6 +520,23 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
 
         # *** Dynamic spectra of cleaned and normalized signal ***
+
+        Suptitle = ('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+
+                    ' '+nameAdd+'\n Initial parameters: dt = '+str(round(TimeRes,3))+
+                    ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
+                    ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
+                    ' sec.)\n'+' Receiver: '+str(df_system_name)+
+                    ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
+        fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+
+                        ' Dynamic spectrum cleanned and normalized'+'.png')
+
+        OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle,
+                        'Intensity, dB', len(dateTimeNew),
+                        TimeScaleFig, freqLine,
+                        len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
+                        currentDate, currentTime, Software_version, customDPI)
+
+        '''
         plt.figure(2, figsize=(16.0, 7.0))
         ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
         plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
@@ -538,7 +559,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         for i in range(len(a)-1):   #a-1
             k = int(a[i])
             a[i] = str(dateTimeNew[k][0:11]+'\n'+dateTimeNew[k][11:23])
-            #a[i] = str(dateTimeNew[k][11:23])
+            a[i] = str(dateTimeNew[k][11:23])
         ax1.set_xticklabels(a)
         plt.xticks(fontsize=8, fontweight='bold')
         plt.xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fontsize=10, fontweight='bold')
@@ -547,7 +568,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
                                                                              #filename[-7:-4:]
         plt.close('all')
-
+        '''
 
         '''
         # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
