@@ -114,6 +114,7 @@ def OneDynSpectraPlot(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, Time
                         currentDate, currentTime, Software_version, customDPI):
     fig, axarr = plt.subplots(1, 1, figsize=(16.0, 7.0))
     im0 = axarr.imshow(np.flipud(Data), aspect='auto', vmin=Vmin, vmax=Vmax, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
+    rc('font', size=8, weight='bold')
     axarr.set_ylabel('Frequency, MHz', fontweight='bold', fontsize=10)
     fig.suptitle(Suptitle, fontsize = 10, fontweight = 'bold', x = 0.46, y = 0.96)
     axarr.set_yticklabels(axarr.get_yticks(), fontsize = 8, fontweight = 'bold')

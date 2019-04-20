@@ -13,7 +13,7 @@ filename = common_path + 'A170712_160219.adr_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['chA']
+typesOfData = ['chA', 'chB']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
@@ -482,35 +482,20 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
     # *** Dynamic spectrum of initial signal***
 
-    plt.figure(1, figsize=(16.0, 7.0))
-    ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=Vmin, vmax=Vmax, cmap=colormap)
-    plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
-    plt.suptitle('Dynamic spectrum starting from file '+str(df_filename[0:18])+' '+nameAdd+
-                '\n Initial parameters: dt = '+str(round(TimeRes,3))+
+    Suptitle = ('Dynamic spectrum starting from file '+str(df_filename[0:18])+
+                ' '+nameAdd+'\n Initial parameters: dt = '+str(round(TimeRes,3))+
                 ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)\n'+
-                ' Receiver: '+str(df_system_name)+
-                ', Place: '+str(df_obs_place) +
-                ', Description: '+str(df_description),
-                fontsize=10, fontweight='bold', x = 0.46, y = 0.96)
-    plt.yticks(fontsize=8, fontweight='bold')
-    if (ColorBarSwitch == 1):
-        rc('font', weight='bold')
-        cbar = plt.colorbar(ImA, pad=0.005)
-        cbar.set_label(YaxName, fontsize=9, fontweight='bold')
-        cbar.ax.tick_params(labelsize=8)
-    ax1 = plt.figure(1).add_subplot(1,1,1)
-    a = ax1.get_xticks().tolist()
-    for i in range(len(a)-1):
-        k = int(a[i])
-        a[i] = str(dateTimeNew[k][0:11]+'\n'+dateTimeNew[k][11:23])
-    ax1.set_xticklabels(a)
-    plt.xticks(fontsize=8, fontweight='bold')
-    plt.xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fontsize=10, fontweight='bold')
-    plt.text(0.74, 0.035,'Processed '+currentDate+ ' at '+currentTime, fontsize=6, transform=plt.gcf().transFigure)
-    pylab.savefig('DAT_Results/' +fileNameAdd+ df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')                                    #filename[-7:-4:]
-    
+                ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
+                ' sec.)\n'+' Receiver: '+str(df_system_name)+
+                ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
+    fig_file_name = ('DAT_Results/' +fileNameAdd+ df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum.png')
+
+    OneDynSpectraPlot(array, Vmin, Vmax, Suptitle,
+                    'Intensity, dB', len(dateTimeNew),
+                    TimeScaleFig, freqLine,
+                    len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
+                    currentDate, currentTime, Software_version, customDPI)
+
 
     if (typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm'):
 
@@ -536,39 +521,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
                         len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
                         currentDate, currentTime, Software_version, customDPI)
 
-        '''
-        plt.figure(2, figsize=(16.0, 7.0))
-        ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
-        plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
-        plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+nameAdd+
-                    '\n Initial parameters: dt = '+str(round(TimeRes,3))+
-                    ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                    ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)\n'+
-                    ' Receiver: '+str(df_system_name)+
-                    ', Place: '+str(df_obs_place) +
-                    ', Description: '+str(df_description),
-                    fontsize=10, fontweight='bold', x = 0.46, y = 0.96)
-        plt.yticks(fontsize=8, fontweight='bold')
-        if (ColorBarSwitch == 1):
-            rc('font', weight='bold')
-            cbar = plt.colorbar(ImA, pad=0.005)
-            cbar.set_label('Intensity, dB', fontsize=9, fontweight='bold')
-            cbar.ax.tick_params(labelsize=8)
-        ax1 = plt.figure(2).add_subplot(1,1,1)
-        a = ax1.get_xticks().tolist()
-        for i in range(len(a)-1):   #a-1
-            k = int(a[i])
-            a[i] = str(dateTimeNew[k][0:11]+'\n'+dateTimeNew[k][11:23])
-            a[i] = str(dateTimeNew[k][11:23])
-        ax1.set_xticklabels(a)
-        plt.xticks(fontsize=8, fontweight='bold')
-        plt.xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fontsize=10, fontweight='bold')
-        plt.text(0.72, 0.04,'Processed '+currentDate+ ' at '+currentTime, fontsize=6, transform=plt.gcf().transFigure)
-        pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = customDPI)
-        #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
-                                                                             #filename[-7:-4:]
-        plt.close('all')
-        '''
+
 
         '''
         # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
