@@ -131,7 +131,7 @@ for fileNo in range (len(fileList)):   # loop by files
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum] = FileHeaderReaderDSP(fname, 0)
+        df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderDSP(fname, 0)
 
     # *** Saving main parameters from header to LOG FILE ***
     Log_File.write(' Initial data file name:         %s \n' % df_filename)

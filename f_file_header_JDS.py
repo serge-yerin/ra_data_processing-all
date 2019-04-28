@@ -136,7 +136,13 @@ def FileHeaderReaderDSP(filepath, start_byte):
     if ExtSyn == 0:  print (' Synchronization:                Internal')
     if ExtSyn == 1:  print (' Synchronization:                External')
     print (' GPS synchronization (0-On):    ', Synch)
-    print (' Number of averaged spectra:    ', Navr, '\n\n')
+    if Mode == 0:
+        if Navr == 2:
+            print (' Data records:                   without time gaps \n\n')
+        else:
+            print (' Data records:                   probable time gaps \n\n')
+    else:
+        print (' Number of averaged spectra:    ', Navr, '\n\n')
     print (' Snap shot Mode (always 1):     ', SSht)
     print (' Smd:                           ', Smd)
     print (' Offt:                          ', Offt)
@@ -193,6 +199,7 @@ def FileHeaderReaderDSP(filepath, start_byte):
     file.close()
 
     if Mode == 0:
+        SpInFile = Wch
         ReceiverMode = 'Waveform mode'
     if Mode == 1:
         SpInFile = int(df_filesize - 1024)/(2*4*FreqPointsNum)    # Number of frequency points in specter
@@ -204,10 +211,7 @@ def FileHeaderReaderDSP(filepath, start_byte):
         print ('')
         print (' Number of spectra in file:     ', SpInFile, '\n\n')
 
-    if ((Mode == 1) or (Mode == 2)):
-        return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb
-    if Mode == 0:
-        return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb, Wch
+    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb, dataBlockSize
 
 
 
