@@ -246,9 +246,8 @@ with open(fname, 'rb') as file:
                                         ', Place: '+str(df_obs_place) +
                                         '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+' hour '+solar_culm[2:4]+' min, UTC')
 
-            TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminL, VmaxL, VminR, VmaxR,
-                        Suptitle,
-                        'Intensity, dB', 'Intensity, dB', Nsp,
+            TwoDynSpectraPlot(dataLHP, dataRHP, VminL, VmaxL, VminR, VmaxR,
+                        Suptitle, 'Intensity, dB', 'Intensity, dB', Nsp,
                         TimeFigureScaleFig, TimeScaleFig, frequency,
                         FreqPointsNum, colormap,
                         'Left-hand circular polarization', 'Right-hand circular polarization',
@@ -278,7 +277,7 @@ with open(fname, 'rb') as file:
                             '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
                             ' hour '+solar_culm[2:4]+' min, UTC')
 
-                TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm,
+                TwoDynSpectraPlot(dataLHP, dataRHP, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
                                 Suptitle, 'Intensity, dB', 'Intensity, dB', Nsp,
                                 TimeFigureScaleFig, TimeScaleFig, frequency,
                                 FreqPointsNum, colormap,
@@ -317,7 +316,7 @@ with open(fname, 'rb') as file:
                             '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
                             ' hour '+solar_culm[2:4]+' min, UTC')
 
-                TwoDynSpectraPlot(TotalIntensity.transpose(), LevelCirculPol.transpose(), VminNorm, VmaxNormTotal, -1, 1,
+                TwoDynSpectraPlot(TotalIntensity, LevelCirculPol, VminNorm, VmaxNormTotal, -1, 1,
                                 Suptitle, 'Intensity, dB', 'Relative units', Nsp,
                                 TimeFigureScaleFig, TimeScaleFig, frequency,
                                 FreqPointsNum, colormap,
@@ -484,7 +483,7 @@ with open(fname, 'rb') as file:
                     '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
                     ' hour '+solar_culm[2:4]+' min, UTC')
 
-        TwoDynSpectraPlot(dataLHP, dataRHP, VminL, VmaxL, VminR, VmaxR,
+        TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminL, VmaxL, VminR, VmaxR,
                                 Suptitle, 'Intensity, dB', 'Intensity, dB', blockNum,
                                 TimeFigureScaleFig, TimeScaleFig, frequency,
                                 FreqPointsNum, colormap,
@@ -515,7 +514,7 @@ with open(fname, 'rb') as file:
                     '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
                     ' hour '+solar_culm[2:4]+' min, UTC')
 
-            TwoDynSpectraPlot(dataLHP, dataRHP, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
+            TwoDynSpectraPlot(dataLHP.transpose(), dataRHP.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm,
                                 Suptitle, 'Intensity, dB', 'Intensity, dB', blockNum,
                                 TimeFigureScaleFig, TimeScaleFig, frequency,
                                 FreqPointsNum, colormap,
@@ -565,7 +564,7 @@ with open(fname, 'rb') as file:
                     '\n'+ReceiverMode+ ' Local solar culmination at '+solar_culm[0:2]+
                     ' hour '+solar_culm[2:4]+' min, UTC')
 
-            TwoDynSpectraPlot(TotalIntensity, LevelCirculPol, VminNorm, VmaxNormTotal, -1, 1,
+            TwoDynSpectraPlot(TotalIntensity.transpose(), LevelCirculPol.transpose(), VminNorm, VmaxNormTotal, -1, 1,
                                 Suptitle, 'Intensity, dB', 'Intensity, dB', blockNum,
                                 TimeFigureScaleFig, TimeScaleFig, frequency,
                                 FreqPointsNum, colormap,

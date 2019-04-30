@@ -129,7 +129,7 @@ def OneDynSpectraPlot(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, Time
     axarr.set_yticklabels(axarr.get_yticks(), fontsize = 8, fontweight = 'bold')
     axarr.set_xlabel(Xlabel, fontsize=10, fontweight='bold')
     fig.text(0.72, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=6, fontweight = 'bold', transform=plt.gcf().transFigure)
-    fig.text(0.09,  0.04, 'Software version: '+Software_version+' yerin.serge@gmail.com, IRA NASU', fontsize=6, fontweight = 'bold', transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=6, fontweight = 'bold', transform=plt.gcf().transFigure)
     pylab.savefig(fig_file_name, bbox_inches='tight', dpi = customDPI)
     plt.close('all')
     return
@@ -144,7 +144,7 @@ def TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminA, VmaxA, VminB, VmaxB, Suptitle
 
     fig, axarr = plt.subplots(2, 1, figsize=(16.0, 9.0))
     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.08)
-    im0 = axarr[0].imshow(np.flipud(Data_Ch_A.transpose()), aspect='auto', vmin=VminA, vmax=VmaxA, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
+    im0 = axarr[0].imshow(np.flipud(Data_Ch_A), aspect='auto', vmin=VminA, vmax=VmaxA, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
     rc('font', size = 8, weight = 'bold')
     axarr[0].set_ylabel('Frequency, MHz', fontweight='bold', fontsize=10)
     fig.suptitle(Suptitle, fontsize = 10, fontweight = 'bold', x = 0.46, y = 1.01)
@@ -165,7 +165,7 @@ def TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminA, VmaxA, VminB, VmaxB, Suptitle
         text[i] = TimeFigureScale[k]
     axis_copy.set_xticklabels(text, fontsize=8, fontweight='bold')
     axarr[0].set_title(TitleA, fontsize=10, fontweight='bold', style='italic', y=1.05)
-    im1 = axarr[1].imshow(np.flipud(Data_Ch_B.transpose()), aspect='auto', vmin=VminB, vmax=VmaxB, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap) #
+    im1 = axarr[1].imshow(np.flipud(Data_Ch_B), aspect='auto', vmin=VminB, vmax=VmaxB, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap) #
     axarr[1].set_xlabel('UTC Time, HH:MM:SS.msec', fontsize=10, fontweight='bold')
     axarr[1].set_ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
     cbar = fig.colorbar(im1, ax = axarr[1], pad=0.005)
@@ -180,7 +180,7 @@ def TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminA, VmaxA, VminB, VmaxB, Suptitle
     axarr[1].set_title(TitleB, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.00)
     fig.subplots_adjust(top = 0.91)
     fig.text(0.72, 0.065, 'Processed '+currentDate+ ' at '+currentTime, fontsize=6, transform=plt.gcf().transFigure)
-    fig.text(0.1,  0.065, 'Software version: '+Software_version+' yerin.serge@gmail.com, IRA NASU', fontsize=6, transform=plt.gcf().transFigure)
+    fig.text(0.1,  0.065, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=6, transform=plt.gcf().transFigure)
     pylab.savefig(fig_file_name, bbox_inches='tight', dpi = customDPI)
     plt.close('all')
     return

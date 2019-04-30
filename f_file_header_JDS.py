@@ -143,6 +143,11 @@ def FileHeaderReaderDSP(filepath, start_byte):
             print (' Data records:                   probable time gaps \n\n')
     else:
         print (' Number of averaged spectra:    ', Navr, '\n\n')
+
+    if Mode == 0:
+        print(' IN WAVEFORM MODE FREQUENCY AND TIME PARAMETERS DO NOT HAVE SENSE !')
+        print(' They are listed here just to show all possible parameters of file \n\n')
+
     print (' Snap shot Mode (always 1):     ', SSht)
     print (' Smd:                           ', Smd)
     print (' Offt:                          ', Offt)

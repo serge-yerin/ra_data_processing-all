@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.04.13'
+Software_version = '2019.04.30'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files for further processing
 
@@ -7,9 +7,9 @@ Software_version = '2019.04.13'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'           #'i:/2017.08.25_GURT_Sun_ADR1/'
+directory = 'DATA/'           # 'h:/2019.03.25_GURT_Sun_SA10/' #'DATA/'
 
-MaxNim = 1024                 # Number of data chunks for one figure
+MaxNim = 8192                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
@@ -18,7 +18,7 @@ VminNorm = 0                  # Lower limit of figure dynamic range for normaliz
 VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
-customDPI = 300               # Resolution of images of dynamic spectra
+customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 Sum_Diff_Calculate = 0        # Calculate sum and diff of A & B channels?
@@ -610,7 +610,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 '\n'+ReceiverMode+', Description: '+str(df_description))
 
 
-                    TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, Vmin, Vmax, Vmin, Vmax, Suptitle,
+                    TwoDynSpectraPlot(Data_Ch_A.transpose(), Data_Ch_B.transpose(), Vmin, Vmax, Vmin, Vmax, Suptitle,
                                             'Intensity, dB', 'Intensity, dB', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
@@ -627,7 +627,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
                                 '\n'+ReceiverMode+', Description: '+str(df_description))
 
-                    TwoDynSpectraPlot(CorrModule, CorrPhase, VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
+                    TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Correlation module', 'Correlation phase',
@@ -774,7 +774,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+
                                 str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+
                                 str(df_description))
-                    TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
+                    TwoDynSpectraPlot(Data_Ch_A.transpose(), Data_Ch_B.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
                                             'Intensity, dB', 'Intensity, dB', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
@@ -786,7 +786,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
                     Suptitle = 'Correlation dynamic spectrum (nolmalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
                     fig_file_name = 'ADR_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
-                    TwoDynSpectraPlot(CorrModule, CorrPhase, VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
+                    TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency, FreqPointsNum, colormap,
                                             'Normalized and cleaned correlation module', 'Correlation phase',
