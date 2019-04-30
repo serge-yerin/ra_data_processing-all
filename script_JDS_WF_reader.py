@@ -9,7 +9,7 @@ Software_version = '2019.04.29'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-fname = 'DATA/E160419_014948_WF_1ch_Jup.jds'
+fname = 'DATA/E251015_050029 - wf.jds'
 no_of_spectra_to_average = 32   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
@@ -36,7 +36,7 @@ from f_file_header_JDS import FileHeaderReaderDSP
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, OneDynSpectraPlot, TwoDynSpectraPlot
-
+from f_plot_formats import TwoValuePlot_semitransparent
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -172,6 +172,9 @@ with open(fname, 'rb') as file:
         # Nulling the time blocks in waveform data
         wf_data[data_block_size-4 : data_block_size, :] = 0
 
+        # Scaling of the data
+        wf_data = wf_data / 32768.0
+
         if Channel == 0 or Channel == 1:    # Single channel mode
             wf_data_chA = wf_data           # All the data is channel A data
             del wf_data                     # Deleting unnecessary array to free the memory
@@ -223,31 +226,48 @@ with open(fname, 'rb') as file:
         # Plotting first waveform block and first immediate spectrum in a file
         if av_sp == 0:      # First data block in a file
             i = 0           # First immediate spectrum in a block
-            fig = plt.figure(figsize = (16,12))
-            ax1 = fig.add_subplot(211)
-            ax1.plot(wf_data_chA[:,i], label = 'Channel A')
-            ax1.set_ylim(-3500, 3500)
-            ax1.legend(loc = 'upper right', fontsize = 10)
-            if Channel == 2:
-                ax2 = fig.add_subplot(212)
-                ax2.plot(wf_data_chB[:,i], label = 'Channel B')
-                ax2.set_ylim(-3500, 3500)
-                ax2.legend(loc = 'upper right', fontsize = 10)
-            pylab.savefig(newpath+'/'+ df_filename[0:14] +' Waveform first data block '+str(i)+'.png', bbox_inches='tight', dpi = 300)
-            plt.close('all')
 
-            fig = plt.figure(figsize = (16,12))
-            ax1 = fig.add_subplot(211)
-            ax1.plot(spectra_chA[:, i], label = 'Channel A')
-            ax1.set_ylim(10, 150)
-            ax1.legend(loc = 'upper right', fontsize = 10)
+            # Prepare parameters for plot
+            data_1 = wf_data_chA[:,i]
+            if Channel == 0 or Channel == 1: # Single channel mode
+                no_of_sets = 1
+                data_2 = []
             if Channel == 2:
-                ax2 = fig.add_subplot(212)
-                ax2.plot(spectra_chB[:, i], label = 'Channel B')
-                ax2.set_ylim(10, 150)
-                ax2.legend(loc = 'upper right', fontsize = 10)
-            pylab.savefig(newpath+'/'+ df_filename[0:14] +' Immediate spectrum first data block '+str(i)+'.png', bbox_inches='tight', dpi = 300)
-            plt.close('all')
+                no_of_sets = 2
+                data_2 = wf_data_chB[:,i]
+
+            Suptitle = ('Waveform data, first block in file ' + str(df_filename))
+            Title = (ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
+                ' MHz, Description: '+str(df_description))
+            A = np.linspace(1, data_block_size, data_block_size)
+
+            TwoValuePlot_semitransparent(no_of_sets, np.linspace(no_of_sets, data_block_size, data_block_size), data_1, data_2,
+                                            'Channel A', 'Channel B', 1, data_block_size,
+                                            -0.6, 0.6, 'ADC clock counts', 'Amplitude, V',
+                                            Suptitle, Title,
+                                            newpath+'/'+ df_filename[0:14] +' Waveform first data block.png',
+                                            currentDate, currentTime, Software_version)
+
+            # Prepare parameters for plot
+            data_1 = spectra_chA[:, i]
+            if Channel == 0 or Channel == 1: # Single channel mode
+                no_of_sets = 1
+                data_2 = []
+            if Channel == 2:
+                no_of_sets = 2
+                data_2 = spectra_chB[:, i]
+
+            Suptitle = ('Immediate spectrum, first in file ' + str(df_filename))
+            Title = (ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
+                    ' MHz, Description: '+str(df_description))
+
+
+            TwoValuePlot_semitransparent(no_of_sets, frequency, data_1, data_2,
+                                            'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
+                                            -80, 60, 'Frequency, MHz', 'Intensity, dB',
+                                            Suptitle, Title,
+                                            newpath+'/'+ df_filename[0:14] +' Immediate spectrum first in file.png',
+                                            currentDate, currentTime, Software_version)
 
         del wf_data_chA
         if Channel == 2: del wf_data_chB
@@ -260,21 +280,30 @@ with open(fname, 'rb') as file:
 
         # Plotting only first averaged spectrum
         if av_sp == 0:
-            fig = plt.figure(figsize = (16,12))
-            ax1 = fig.add_subplot(211)
-            ax1.plot(aver_spectra_chA, label = 'Channel A')
-            ax1.set_ylim(10, 150)
-            ax1.legend(loc = 'upper right', fontsize = 10)
+
+            # Prepare parameters for plot
+            data_1 = aver_spectra_chA
+            if Channel == 0 or Channel == 1: # Single channel mode
+                no_of_sets = 1
+                data_2 = []
             if Channel == 2:
-                ax2 = fig.add_subplot(212)
-                ax2.plot(aver_spectra_chB, label = 'Channel B')
-                ax2.set_ylim(10, 150)
-                ax2.legend(loc = 'upper right', fontsize = 10)
-            pylab.savefig(newpath+'/'+ df_filename[0:14] +' Average spectrum first data block '+str(av_sp)+'.png', bbox_inches='tight', dpi = 300)
-            plt.close('all')
+                no_of_sets = 2
+                data_2 = aver_spectra_chB
+
+            Suptitle = ('Average spectrum, first data block in file ' + str(df_filename))
+            Title = (ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
+                    ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+
+                    ', Description: '+str(df_description))
+
+            TwoValuePlot_semitransparent(no_of_sets, frequency, data_1, data_2,
+                        'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
+                        -80, 60, 'Frequency, MHz', 'Intensity, dB',
+                        Suptitle, Title,
+                        newpath+'/'+ df_filename[0:14] +' Average spectrum first data block in file.png',
+                        currentDate, currentTime, Software_version)
 
 
-            # Adding calculated averaged spectrum to dynamic spectra array
+        # Adding calculated averaged spectrum to dynamic spectra array
         dyn_spectra_chA[:, av_sp] = aver_spectra_chA[:]
         if Channel == 2: dyn_spectra_chB[:, av_sp] = aver_spectra_chB[:]
 
@@ -365,6 +394,11 @@ if Channel == 2:
 
 
 
-endTime = time.time()    # Time of calculations
-print ('\n\n\n The program execution lasted for ', round((endTime - startTime),2), 'seconds')
-print ('\n\n    *** Program JDS_WF_reader has finished! *** \n\n\n')
+#endTime = time.time()    # Time of calculations
+#print ('\n\n\n The program execution lasted for ', round((endTime - startTime),2), 'seconds')
+
+
+endTime = time.time()
+print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+                                                round((endTime - startTime)/60, 2), 'min. ) \n')
+print ('\n           *** Program JDS_WF_reader has finished! *** \n\n\n')

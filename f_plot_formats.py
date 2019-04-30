@@ -1,6 +1,7 @@
 '''
 '''
 import matplotlib.pyplot as plt
+#import matplotlib.gridspec as gridspec
 from matplotlib import rc
 import numpy as np
 import pylab
@@ -56,7 +57,6 @@ def plot2Da(data, fig_name, frequency_list, min_limit, max_limit, colormap, Titl
     plt.close('all')
 
 
-
 # *** Plot 2D plot with one data set ***
 def OneImmedSpecterPlot(Xax, Ydat, Label, xmin, xmax, ymin, ymax, XLab, YLab,
                         SupTitle, Title, FileName, currentDate, currentTime, Software_version):
@@ -106,6 +106,57 @@ def TwoImmedSpectraPlot(Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, yma
     plt.close('all')
     return
 
+
+# *** Plot 2D plot with two data sets ***
+def TwoValuePlot_semitransparent(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, ymax,
+                        XLab, YLab, SupTitle, Title, FileName, currentDate, currentTime, Software_version):
+    '''
+    Plots 2D plot of two immediate scpectra
+    '''
+    rc('font', size = 6, weight='bold')
+    if no_of_sets == 1:
+        fig = plt.figure(figsize = (7, 4))
+        ax1 = fig.add_subplot(111)
+    elif no_of_sets == 2:
+        fig = plt.figure(figsize = (7, 6))
+        ax1 = fig.add_subplot(211)
+    else:
+        print(' ERROR !!!')
+    if no_of_sets == 2: ax1.plot(Xax, Ydat2, color =u'#ff7f0e', linestyle = '-', alpha=0.4, linewidth = '1.00')
+    ax1.plot(Xax, Ydat1, color = u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '1.00', label = Label1)
+    ax1.legend(loc = 'upper right', fontsize = 6)
+    ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+    ax1.axis([xmin, xmax, ymin, ymax])
+    ax1.set_ylabel(YLab, fontsize=6, fontweight='bold')
+    ax1.set_title(Title, fontsize = 6)
+    if no_of_sets == 2:
+        ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+        ax2 = fig.add_subplot(212)
+        if no_of_sets == 2: ax2.plot(Xax, Ydat1, color = u'#1f77b4', linestyle = '-', alpha=0.4, linewidth = '1.00')
+        ax2.plot(Xax, Ydat2, color = u'#ff7f0e', linestyle = '-', alpha=1.0, linewidth = '1.00', label = Label2)
+        ax2.legend(loc = 'upper right', fontsize = 6)
+        ax2.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+        ax2.axis([xmin, xmax, ymin, ymax])
+        ax2.set_xlabel(XLab, fontsize=6, fontweight='bold')
+        ax2.set_ylabel(YLab, fontsize=6, fontweight='bold')
+        fig.subplots_adjust(hspace=0.05, top=0.92)
+    elif no_of_sets == 1:
+        ax1.set_xlabel(XLab, fontsize=6, fontweight='bold')
+        fig.subplots_adjust(top=0.9)
+    else:
+        print(' ERROR !!!')
+    fig.suptitle(SupTitle, fontsize = 8, fontweight='bold')
+    if no_of_sets == 2:
+        fig.text(0.73, 0.05, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+        fig.text(0.09, 0.05, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    elif no_of_sets == 1:
+        fig.text(0.73, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+        fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    else:
+        print(' ERROR !!!')
+    pylab.savefig(FileName, bbox_inches = 'tight', dpi = 160)
+    plt.close('all')
+    return
 
 
 #   *** Plot dynamic spectra of one data set ***
