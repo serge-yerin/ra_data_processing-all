@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.04.30'
+Software_version = '2019.05.03'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files for further processing
 
@@ -22,12 +22,12 @@ customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 Sum_Diff_Calculate = 0        # Calculate sum and diff of A & B channels?
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveSSD = 0           # Save sum / diff data to a long file?
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveInitial = 1        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
@@ -57,6 +57,7 @@ from f_file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 from f_FPGA_to_PC_array import FPGAtoPCarrayADR
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
+from f_plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot
 from f_spectra_normalization import Normalization_dB
 
 ################################################################################
@@ -472,32 +473,43 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
                 # *** Plotting immediate spectra before cleaning and normalizing ***
-                if ADRmode == 3 and figID == 0:   # Immediate spectrum channel A
-                    OneImmedSpecterPlot(frequency, Data_Ch_A[0][:], 'Channel A',
-                                        frequency[0], frequency[FreqPointsNum-1], -120.0, -40.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channel A',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel A Immediate Spectrum before cleaning and normalizing.png',
-                                        currentDate, currentTime, Software_version)
 
-                if ADRmode == 4 and figID == 0:   # Immediate spectrum channel B
-                    OneImmedSpecterPlot(frequency, Data_Ch_B[0][:], 'Channel B',
-                                        frequency[0], frequency[FreqPointsNum-1], -120.0, -40.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channel B',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel B Immediate Spectrum before cleaning and normalizing.png',
-                                        currentDate, currentTime, Software_version)
+                if figID == 0:
+                    if ADRmode == 3:
+                        Data_1 = Data_Ch_A[0][:]
+                        Data_2 = []
+                        Legend_1 = 'Channel A'
+                    if ADRmode == 4:
+                        Data_1 = Data_Ch_B[0][:]
+                        Data_2 = []
+                        Legend_1 = 'Channel B'
+
+                    Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' ' + Legend_1)
+                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                                ' kHz'+sumDifMode + ', Description: '+str(df_description))
+                    Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
+                                Legend_1 + ' Immediate Spectrum before cleaning and normalizing.png')
+
+                    TwoOrOneValuePlot(1, frequency, Data_1, Data_2,
+                                        Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                                        -120, -40, 'Frequency, MHz', 'Intensity, dB',
+                                        Suptitle, Title, Filename, currentDate, currentTime, Software_version)
+
+
 
                 if (ADRmode == 5 or ADRmode == 6) and figID == 0: # Immediate spectrum channels A & B
-                    TwoImmedSpectraPlot(frequency, Data_Ch_A[0][:], Data_Ch_B[0][:], 'Channel A', 'Channel B',
-                                        frequency[0], frequency[FreqPointsNum-1], -120, -20.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/' + df_filename[0:14] + ' Channels A and B Immediate Spectrum before cleaning and normalizing.png',
-                                        currentDate, currentTime, Software_version)
+
+                    Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                            ' kHz,'+sumDifMode + ' Description: '+str(df_description))
+                    Filename = ('ADR_Results/Service/' + df_filename[0:14] +
+                                ' Channels A and B Immediate Spectrum before cleaning and normalizing.png')
+
+                    TwoOrOneValuePlot(2, frequency, Data_Ch_A[0][:], Data_Ch_B[0][:],
+                                'Channel A', 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                                -120, -20, 'Frequency, MHz', 'Intensity, dB',
+                                Suptitle, Title, Filename,
+                                currentDate, currentTime, Software_version)
 
                 if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):   #  Immediate correlation spectrum channels A & B
                     OneImmedSpecterPlot(frequency, CorrModule[0][:], 'Correlation module',
@@ -518,87 +530,33 @@ for fileNo in range (len(fileList)):   # loop by files
                                         currentDate, currentTime, Software_version)
 
 
-                # Initial dynamic specter channel A
-                if (ADRmode == 3 and DynSpecSaveInitial == 1):
-                    plt.figure(4, figsize=(16.0, 6.0))
-                    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-                    ImA = plt.imshow(np.flipud(Data_Ch_A.transpose()), aspect='auto', vmin=-120, vmax=-30, extent=[0,SpectrNum,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
-                    plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
-                    plt.title('Channel A', fontsize=10, fontweight='bold', style='italic', y = 1.025)
-                    plt.suptitle('Dynamic spectrum (initial) '+str(df_filename[0:18])+
+                # *** FIGURE Initial dynamic specter channel A or B ***
+                if (DynSpecSaveInitial == 1):
+                    if ADRmode == 3:
+                        Data = Data_Ch_A.transpose()
+                    if ADRmode == 4:
+                        Data = Data_Ch_B.transpose()
+
+                    Suptitle = ('Dynamic spectrum (initial) '+str(df_filename[0:18])+
                                 ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
                                 '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
                                 ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+
                                 ' Receiver: '+str(df_system_name)+
                                 ', Place: '+str(df_obs_place) +
-                                '\n Description: '+str(df_description),
-                                fontsize=10, fontweight='bold', x = 0.46, y = 1.01)
-                    plt.yticks(fontsize=8, fontweight='bold')
-                    rc('font', weight='bold')
-                    cbar = plt.colorbar(ImA, pad=0.005)
-                    cbar.set_label('Intensity, dB', fontsize=9, fontweight='bold')
-                    cbar.ax.tick_params(labelsize=8)
-                    ax1 = plt.figure(4).add_subplot(1,1,1)
-                    a = ax1.get_xticks().tolist()
-                    for i in range(len(a)-1):
-                        k = int(a[i])
-                        a[i] = TimeScale[k][11:23]
-                    ax1.set_xticklabels(a)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    plt.xlabel('UTC Time, HH:MM:SS.msec', fontsize=10, fontweight='bold')
-                    ax2 = ax1.twiny()
-                    ax2.set_xlim(0, Nim*SpInFrame*FrameInChunk)
-                    b = ax2.get_xticks().tolist()
-                    for i in range(len(b)-1):
-                        k = int(b[i])
-                        b[i] = TimeFigureScale[k][0:12]
-                    ax2.set_xticklabels(b)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    pylab.savefig('ADR_Results/Initial_spectra/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png', bbox_inches='tight', dpi = customDPI)
-                    plt.close('all')
+                                '\n Description: '+str(df_description))
+
+                    fig_file_name = ('ADR_Results/Initial_spectra/' + df_filename[0:14] +
+                                        ' Initial dynamic spectrum fig.' + str(figID+1) + '.png')
+
+                    OneDynSpectraPlot(Data, -120, -30, Suptitle,
+                        'Intensity, dB', Nim * SpInFrame * FrameInChunk, TimeScaleFig,
+                        frequency, FreqPointsNum, colormap, 'UTC Time, HH:MM:SS.msec',
+                        fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
 
-                # Initial dynamic specter channel B
-                if (ADRmode == 4 and DynSpecSaveInitial == 1):
-                    plt.figure(4, figsize=(16.0, 6.0))
-                    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-                    ImA = plt.imshow(np.flipud(Data_Ch_B.transpose()), aspect='auto', vmin=-120, vmax=-30, extent=[0,SpectrNum,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
-                    plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
-                    plt.title('Channel B', fontsize=10, fontweight='bold', style='italic', y=1.025)
-                    plt.suptitle('Dynamic spectrum (initial) '+str(df_filename[0:18])+
-                                ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
-                                '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
-                                ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+
-                                ' Receiver: '+str(df_system_name)+
-                                ', Place: '+str(df_obs_place) +
-                                '\n Description: '+str(df_description),
-                                fontsize=10, fontweight='bold', x = 0.46, y = 1.01)
-                    plt.yticks(fontsize=8, fontweight='bold')
-                    rc('font', weight='bold')
-                    cbar = plt.colorbar(ImA, pad=0.005)
-                    cbar.set_label('Intensity, dB', fontsize=9, fontweight='bold')
-                    cbar.ax.tick_params(labelsize=8)
-                    ax1 = plt.figure(4).add_subplot(1,1,1)
-                    a = ax1.get_xticks().tolist()
-                    for i in range(len(a)-1):
-                        k = int(a[i])
-                        a[i] = TimeScale[k][11:23]
-                    ax1.set_xticklabels(a)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    plt.xlabel('UTC Time, HH:MM:SS.msec', fontsize=10, fontweight='bold')
-                    ax2 = ax1.twiny()
-                    ax2.set_xlim(0, Nim*SpInFrame*FrameInChunk)
-                    b = ax2.get_xticks().tolist()
-                    for i in range(len(b)-1):
-                        k = int(b[i])
-                        b[i] = TimeFigureScale[k][0:12]
-                    ax2.set_xticklabels(b)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    pylab.savefig('ADR_Results/Initial_spectra/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' + str(figID+1) + '.png', bbox_inches='tight', dpi = customDPI)
-                    plt.close('all')
 
 
-                # *** FIGURE Initial dynamic spectrum channels A and B (python 3 new version) ***
+                # *** FIGURE Initial dynamic spectrum channels A and B ***
                 if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveInitial == 1):
 
                     fig_file_name = ('ADR_Results/Initial_spectra/' + df_filename[0:14] +
@@ -607,7 +565,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+
                                 str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+
                                 sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
-                                '\n'+ReceiverMode+', Description: '+str(df_description))
+                                +ReceiverMode+', Description: '+str(df_description))
 
 
                     TwoDynSpectraPlot(Data_Ch_A.transpose(), Data_Ch_B.transpose(), Vmin, Vmax, Vmin, Vmax, Suptitle,
@@ -654,114 +612,65 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
                 #   *** Immediate spectra of normalyzed data ***    (only for first figure in data file)
+                if figID == 0 and DynSpecSaveCleaned == 1:
+                    if ADRmode == 3:
+                        Data_1 = Data_Ch_A[0][:]
+                        Data_2 = []
+                        Legend_1 = 'Channel A'
+                    if ADRmode == 4:
+                        Data_1 = Data_Ch_B[0][:]
+                        Data_2 = []
+                        Legend_1 = 'Channel B'
 
-                if ADRmode == 3 and figID == 0 and DynSpecSaveCleaned == 1:   # Immediate spectrum channel A
-                    OneImmedSpecterPlot(frequency, Data_Ch_A[0][:], 'Channel A',
-                                        frequency[0], frequency[FreqPointsNum-1], -10.0, 40.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channel A',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel A Immediate Spectrum after cleaning and normalizing.png')
+                    Suptitle = ('Normalized immediate spectrum '+str(df_filename[0:18])+ ' ' + Legend_1)
+                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                                ' kHz'+sumDifMode + ', Description: '+str(df_description))
+                    Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
+                                Legend_1 + ' Immediate Spectrum after cleaning and normalizing.png')
 
-                if ADRmode == 4 and figID == 0 and DynSpecSaveCleaned == 1:   # Immediate spectrum channel B
-                    OneImmedSpecterPlot(frequency, Data_Ch_B[0][:], 'Channel B',
-                                        frequency[0], frequency[FreqPointsNum-1], -10.0, 40.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channel B',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channel B Immediate Spectrum after cleaning and normalizing.png')
+                    TwoOrOneValuePlot(1, frequency, Data_1, Data_2,
+                                        Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                                        -10, 40, 'Frequency, MHz', 'Intensity, dB',
+                                        Suptitle, Title, Filename, currentDate, currentTime, Software_version)
+
+
 
                 if (ADRmode == 5 or ADRmode == 6) and figID == 0 and DynSpecSaveCleaned == 1:   # Immediate spectrum channels A & B
-                    TwoImmedSpectraPlot(frequency, Data_Ch_A[0][:], Data_Ch_B[0][:], 'Channel A', 'Channel B',
-                                        frequency[0], frequency[FreqPointsNum-1], -10.0, 40.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Channels A and B Immediate Spectrum after cleaning and normalizing.png',
-                                        currentDate, currentTime, Software_version)
+                    Suptitle = ('Normalized immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                                ' kHz'+sumDifMode + ', Description: '+str(df_description))
+                    Filename = ('ADR_Results/Service/'+df_filename[0:14]+
+                                ' Channels A and B Immediate Spectrum after cleaning and normalizing.png')
 
+                    TwoOrOneValuePlot(2, frequency, Data_Ch_A[0][:], Data_Ch_B[0][:],
+                                        'Channel A', 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                                        -10, 40, 'Frequency, MHz', 'Intensity, dB',
+                                        Suptitle, Title, Filename, currentDate, currentTime, Software_version)
 
+                # Cleaned and normalized dynamic spectrum channel A or B
 
-                # Dynamic specter channel A
-                if (ADRmode == 3 and DynSpecSaveCleaned == 1):
-                    plt.figure(4, figsize=(16.0, 6.0))
-                    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-                    ImA = plt.imshow(np.flipud(Data_Ch_A.transpose()), aspect='auto', vmin=Vmin, vmax=Vmax, extent=[0,SpectrNum,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
-                    plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
-                    plt.title('Channel A', fontsize=10, fontweight='bold', style='italic', y=1.025)
-                    plt.suptitle('Dynamic spectrum (normalized) '+str(df_filename[0:18])+
+                if (DynSpecSaveInitial == 1):
+                    if ADRmode == 3:
+                        Data = Data_Ch_A.transpose()
+                    if ADRmode == 4:
+                        Data = Data_Ch_B.transpose()
+
+                    Suptitle = ('Dynamic spectrum (normalized) '+str(df_filename[0:18])+
                                 ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
                                 '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
                                 ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+
                                 ' Receiver: '+str(df_system_name)+
                                 ', Place: '+str(df_obs_place) +
-                                '\n Description: '+str(df_description),
-                                fontsize=10, fontweight='bold', x = 0.46, y = 1.01)
-                    plt.yticks(fontsize=8, fontweight='bold')
-                    rc('font', weight='bold')
-                    cbar = plt.colorbar(ImA, pad = 0.005)
-                    cbar.set_label('Intensity, dB', fontsize=9, fontweight='bold')
-                    cbar.ax.tick_params(labelsize=8)
-                    ax1 = plt.figure(4).add_subplot(1,1,1)
-                    a = ax1.get_xticks().tolist()
-                    for i in range(len(a)-1):
-                        k = int(a[i])
-                        a[i] = TimeScale[k][11:23]
-                    ax1.set_xticklabels(a)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    plt.xlabel('UTC Time, HH:MM:SS.msec', fontsize=10, fontweight='bold')
-                    ax2 = ax1.twiny()
-                    ax2.set_xlim(0, Nim*SpInFrame*FrameInChunk)
-                    b = ax2.get_xticks().tolist()
-                    for i in range(len(b)-1):
-                        k = int(b[i])
-                        b[i] = TimeFigureScale[k][0:12]
-                    ax2.set_xticklabels(b)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    pylab.savefig('ADR_Results/' + df_filename[0:14] + ' Dynamic spectrum fig.' + str(figID+1) + '.png', bbox_inches='tight', dpi = customDPI)
-                    plt.close('all')
+                                '\n Description: '+str(df_description))
+
+                    fig_file_name = ('ADR_Results/' + df_filename[0:14] +
+                                        ' Dynamic spectrum fig.' + str(figID+1) + '.png')
 
 
-
-                # Dynamic specter channel B
-                if (ADRmode == 4 and DynSpecSaveCleaned == 1):
-                    plt.figure(4, figsize=(16.0, 6.0))
-                    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-                    ImA = plt.imshow(np.flipud(Data_Ch_B.transpose()), aspect='auto', vmin=Vmin, vmax=Vmax, extent=[0,SpectrNum,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
-                    plt.ylabel('Frequency, MHz', fontsize=10, fontweight='bold')
-                    plt.title('Channel B', fontsize=10, fontweight='bold', style='italic', y=1.025)
-                    plt.suptitle('Dynamic spectrum (normalized) '+str(df_filename[0:18])+
-                                ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
-                                '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
-                                ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+
-                                ' Receiver: '+str(df_system_name)+
-                                ', Place: '+str(df_obs_place) +
-                                '\n Description: '+str(df_description),
-                                fontsize=10, fontweight='bold', x = 0.46, y = 1.01)
-                    plt.yticks(fontsize=8, fontweight='bold')
-                    rc('font', weight='bold')
-                    cbar = plt.colorbar(ImA, pad=0.005)
-                    cbar.set_label('Intensity, dB', fontsize=9, fontweight='bold')
-                    cbar.ax.tick_params(labelsize=8)
-                    ax1 = plt.figure(4).add_subplot(1,1,1)
-                    a = ax1.get_xticks().tolist()
-                    for i in range(len(a)-1):
-                        k = int(a[i])
-                        a[i] = TimeScale[k][11:23]
-                    ax1.set_xticklabels(a)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    plt.xlabel('UTC Time, HH:MM:SS.msec', fontsize=10, fontweight='bold')
-                    ax2 = ax1.twiny()
-                    ax2.set_xlim(0, Nim*SpInFrame*FrameInChunk)
-                    b = ax2.get_xticks().tolist()
-                    for i in range(len(b)-1):
-                        k = int(b[i])
-                        b[i] = TimeFigureScale[k][0:12]
-                    ax2.set_xticklabels(b)
-                    plt.xticks(fontsize=8, fontweight='bold')
-                    pylab.savefig('ADR_Results/' + df_filename[0:14] + ' Dynamic spectrum fig.' + str(figID+1) + '.png', bbox_inches='tight', dpi = customDPI)
-                    plt.close('all')
-
+                    OneDynSpectraPlot(Data, VminNorm, VmaxNorm, Suptitle,
+                        'Intensity, dB', Nim * SpInFrame * FrameInChunk, TimeScaleFig,
+                        frequency, FreqPointsNum, colormap, 'UTC Time, HH:MM:SS.msec',
+                        fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
 
                 # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***

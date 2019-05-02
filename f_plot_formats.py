@@ -108,7 +108,7 @@ def TwoImmedSpectraPlot(Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, yma
 
 
 # *** Plot 2D plot with two data sets ***
-def TwoValuePlot_semitransparent(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, ymax,
+def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, ymax,
                         XLab, YLab, SupTitle, Title, FileName, currentDate, currentTime, Software_version):
     '''
     Plots 2D plot of two immediate scpectra
@@ -139,7 +139,7 @@ def TwoValuePlot_semitransparent(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, 
         ax2.axis([xmin, xmax, ymin, ymax])
         ax2.set_xlabel(XLab, fontsize=6, fontweight='bold')
         ax2.set_ylabel(YLab, fontsize=6, fontweight='bold')
-        fig.subplots_adjust(hspace=0.05, top=0.92)
+        fig.subplots_adjust(hspace=0.05, top=0.93)
     elif no_of_sets == 1:
         ax1.set_xlabel(XLab, fontsize=6, fontweight='bold')
         fig.subplots_adjust(top=0.9)

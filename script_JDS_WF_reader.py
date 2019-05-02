@@ -10,11 +10,11 @@ Software_version = '2019.04.29'
 #*******************************************************************************
 # Directory of files to be analyzed:
 fname = 'DATA/E251015_050029 - wf.jds'
-no_of_spectra_to_average = 32   # Number of spectra to average for dynamic spectra
+no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 30                   # Upper limit of figure dynamic range for normalized spectra
-colormap = 'jet'                # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+VmaxNorm = 6                    # Upper limit of figure dynamic range for normalized spectra
+colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300                 # Resolution of images of dynamic spectra
 
 
@@ -36,7 +36,7 @@ from f_file_header_JDS import FileHeaderReaderDSP
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, OneDynSpectraPlot, TwoDynSpectraPlot
-from f_plot_formats import TwoValuePlot_semitransparent
+from f_plot_formats import TwoOrOneValuePlot
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -203,11 +203,13 @@ with open(fname, 'rb') as file:
         spectra_chA = np.zeros_like(wf_data_chA)
         if Channel == 2: spectra_chB = np.zeros_like(wf_data_chB)
 
+
         for i in range (no_of_spectra_to_average):
             with np.errstate(invalid='ignore', divide='ignore'):
                 spectra_chA[:,i] = 10 * np.log10(np.power(np.abs(np.fft.fft(wf_data_chA[:,i])), 2))
                 if Channel == 2: # Two cahnnels mode
                     spectra_chB[:,i] = 10 * np.log10(np.power(np.abs(np.fft.fft(wf_data_chB[:,i])), 2))
+
 
         # Storing only second (right) mirror part of spectra
         spectra_chA = spectra_chA[int(data_block_size/2): data_block_size, :]
@@ -241,7 +243,7 @@ with open(fname, 'rb') as file:
                 ' MHz, Description: '+str(df_description))
             A = np.linspace(1, data_block_size, data_block_size)
 
-            TwoValuePlot_semitransparent(no_of_sets, np.linspace(no_of_sets, data_block_size, data_block_size), data_1, data_2,
+            TwoOrOneValuePlot(no_of_sets, np.linspace(no_of_sets, data_block_size, data_block_size), data_1, data_2,
                                             'Channel A', 'Channel B', 1, data_block_size,
                                             -0.6, 0.6, 'ADC clock counts', 'Amplitude, V',
                                             Suptitle, Title,
@@ -262,13 +264,13 @@ with open(fname, 'rb') as file:
                     ' MHz, Description: '+str(df_description))
 
 
-            TwoValuePlot_semitransparent(no_of_sets, frequency, data_1, data_2,
+            TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2,
                                             'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
                                             -80, 60, 'Frequency, MHz', 'Intensity, dB',
                                             Suptitle, Title,
                                             newpath+'/'+ df_filename[0:14] +' Immediate spectrum first in file.png',
                                             currentDate, currentTime, Software_version)
-
+        # Deleting the unnecessary matrices
         del wf_data_chA
         if Channel == 2: del wf_data_chB
 
@@ -295,7 +297,7 @@ with open(fname, 'rb') as file:
                     ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+
                     ', Description: '+str(df_description))
 
-            TwoValuePlot_semitransparent(no_of_sets, frequency, data_1, data_2,
+            TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2,
                         'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
                         -80, 60, 'Frequency, MHz', 'Intensity, dB',
                         Suptitle, Title,
@@ -390,12 +392,6 @@ if Channel == 2:
                 FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                 currentDate, currentTime, Software_version, customDPI)
 
-
-
-
-
-#endTime = time.time()    # Time of calculations
-#print ('\n\n\n The program execution lasted for ', round((endTime - startTime),2), 'seconds')
 
 
 endTime = time.time()
