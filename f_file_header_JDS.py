@@ -5,12 +5,13 @@ import os
 import numpy as np
 
 
-def FileHeaderReaderDSP(filepath, start_byte):
+def FileHeaderReaderDSP(filepath, start_byte, print_or_not):
     '''
     Reads info from DSP (.jds) data file header and returns needed parameters to main script
     Input parameters:
         filepath - a path to the file to read data
         start_byte - number of byte from which start reading
+        print_or_not - to print the parameters to terminal or to real silently
     Output parameters:
         TimeRes - temporal resolution of data in the file in seconds
         fmin - minimal frequency of observations in MHz
@@ -33,19 +34,18 @@ def FileHeaderReaderDSP(filepath, start_byte):
     df_system_time = file.read(16).decode('utf-8').rstrip('\x00')        # System (receiver) time UTC
     df_obs_place = file.read(96).decode('utf-8').rstrip('\x00')          # place of observations
     df_description = file.read(256).decode('utf-8').rstrip('\x00')       # File description
-
-    print ('')
-    print (' Initial data file name:        ', df_filename)
-    print (' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (', df_filesize, ' bytes )')
-    print (' Creation time in local time:   ', str(df_creation_timeLOC.rstrip()))
-    print (' Creation time in UTC time:     ', df_creation_timeUTC)
-    print (' System (receiver) name:        ', df_system_name)
-    print (' System (receiver) UTC:         ', df_UTC_time[0],'/',df_UTC_time[1],'/',df_UTC_time[3],' ', df_UTC_time[4],':',df_UTC_time[5],':',df_UTC_time[6],',',df_UTC_time[7])
-    print (' System (receiver) time:        ', df_system_time)
-    print (' Place of observations:         ', df_obs_place)
-    print (' File description:              ', df_description)
-
-    print ('')
+    if (print_or_not == 1):
+        print ('')
+        print (' Initial data file name:        ', df_filename)
+        print (' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (', df_filesize, ' bytes )')
+        print (' Creation time in local time:   ', str(df_creation_timeLOC.rstrip()))
+        print (' Creation time in UTC time:     ', df_creation_timeUTC)
+        print (' System (receiver) name:        ', df_system_name)
+        print (' System (receiver) UTC:         ', df_UTC_time[0],'/',df_UTC_time[1],'/',df_UTC_time[3],' ', df_UTC_time[4],':',df_UTC_time[5],':',df_UTC_time[6],',',df_UTC_time[7])
+        print (' System (receiver) time:        ', df_system_time)
+        print (' Place of observations:         ', df_obs_place)
+        print (' File description:              ', df_description)
+        print ('')
 
     # *** Parameters that are poor descibed in file description ***
     # reading FHEADER PP and DSPP0 ((16+5)*32 bit)
@@ -65,7 +65,7 @@ def FileHeaderReaderDSP(filepath, start_byte):
     DMAinter = np.right_shift ((DSPmode & 2147483648), 31)
 
     dataBlockSize = struct.unpack('i', file.read(4))[0] # No info
-    print (' Data block size:               ', dataBlockSize)
+    if (print_or_not == 1): print (' Data block size:               ', dataBlockSize)
 
     prcMode       = struct.unpack('i', file.read(4))[0]
 
@@ -83,7 +83,6 @@ def FileHeaderReaderDSP(filepath, start_byte):
     DMASize    = struct.unpack('i', file.read(4))[0] #
     temp = file.read(2)       # Skipping
 
-    print ('')
 
     # *** Parameters that are well descibed in file description ***
 
@@ -117,76 +116,76 @@ def FileHeaderReaderDSP(filepath, start_byte):
     df_softvers = file.read(16).decode('utf-8').rstrip('\x00')       #
     df_DSP_vers = file.read(32).decode('utf-8').rstrip('\x00')       #
 
+    if (print_or_not == 1):
+        print ('')
+        if Mode == 0:
+            print (' Mode:                           Waveform')
+            if Wch == 0:
+                print (' Channel:                        A')
+            if Wch == 1:
+                print (' Channel:                        B')
+            if Wch == 2:
+                print (' Channels                        A & B')
+        if Mode == 1:
+            print (' Mode:                           Spectra A & B')
+        if Mode == 2:
+            print (' Mode:                           Correlation A & B')
 
-    if Mode == 0:
-        print (' Mode:                           Waveform')
-        if Wch == 0:
-            print (' Channel:                        A')
-        if Wch == 1:
-            print (' Channel:                        B')
-        if Wch == 2:
-            print (' Channels                        A & B')
-    if Mode == 1:
-        print (' Mode:                           Spectra A & B')
-    if Mode == 2:
-        print (' Mode:                           Correlation A & B')
 
-
-    print (' Sampling ADC frequency:        ', CLCfrq/10**6, ' MHz')
-    if ExtSyn == 0:  print (' Synchronization:                Internal')
-    if ExtSyn == 1:  print (' Synchronization:                External')
-    print (' GPS synchronization (0-On):    ', Synch)
-    if Mode == 0:
-        if Navr == 2:
-            print (' Data records:                   without time gaps \n\n')
+        print (' Sampling ADC frequency:        ', CLCfrq/10**6, ' MHz')
+        if ExtSyn == 0:  print (' Synchronization:                Internal')
+        if ExtSyn == 1:  print (' Synchronization:                External')
+        print (' GPS synchronization (0-On):    ', Synch)
+        if Mode == 0:
+            if Navr == 2:
+                print (' Data records:                   without time gaps \n\n')
+            else:
+                print (' Data records:                   probable time gaps \n\n')
         else:
-            print (' Data records:                   probable time gaps \n\n')
-    else:
-        print (' Number of averaged spectra:    ', Navr, '\n\n')
+            print (' Number of averaged spectra:    ', Navr, '\n\n')
 
-    if Mode == 0:
-        print(' IN WAVEFORM MODE FREQUENCY AND TIME PARAMETERS DO NOT HAVE SENSE !')
-        print(' They are listed here just to show all possible parameters of file \n\n')
+        if Mode == 0:
+            print(' IN WAVEFORM MODE FREQUENCY AND TIME PARAMETERS DO NOT HAVE SENSE !')
+            print(' They are listed here just to show all possible parameters of file \n\n')
 
-    print (' Snap shot Mode (always 1):     ', SSht)
-    print (' Smd:                           ', Smd)
-    print (' Offt:                          ', Offt)
-    print (' Lowest channel number:         ', Lb)
-    print (' Highest channel number:        ', Hb)
-    print (' Number of channels:            ', Wb)
-    print (' CAvr:                          ', CAvr)
-    if Weight == 0:  print (' Weightning window:              On')
-    if Weight == 1:  print (' Weightning window:              Off')
-    if DCRem == 0:   print (' DC removing:                    No')
-    if DCRem == 1:   print (' DC removing:                    Yes')
-    if Ch1 == 0:     print (' Channel 1:                      On')
-    if Ch1 == 1:     print (' Channel 1:                      Off')
-    if Ch2 == 0:     print (' Channel 2:                      On')
-    if Ch2 == 1:     print (' Channel 2:                      Off')
-    if ExtWin == 0:  print (' External FFT window:            No')
-    if ExtWin == 1:  print (' External FFT window:            Yes')
-    print (' Clip:                          ', Clip)
-    print (' HPF0:                          ', HPF0)
-    print (' HPF1:                          ', HPF1)
-    print (' LPF0:                          ', LPF0)
-    print (' LPF1:                          ', LPF1)
-    print (' ATT0:                          ', ATT0)
-    print (' ATT1:                          ', ATT1)
+        print (' Snap shot Mode (always 1):     ', SSht)
+        print (' Smd:                           ', Smd)
+        print (' Offt:                          ', Offt)
+        print (' Lowest channel number:         ', Lb)
+        print (' Highest channel number:        ', Hb)
+        print (' Number of channels:            ', Wb)
+        print (' CAvr:                          ', CAvr)
+        if Weight == 0:  print (' Weightning window:              On')
+        if Weight == 1:  print (' Weightning window:              Off')
+        if DCRem == 0:   print (' DC removing:                    No')
+        if DCRem == 1:   print (' DC removing:                    Yes')
+        if Ch1 == 0:     print (' Channel 1:                      On')
+        if Ch1 == 1:     print (' Channel 1:                      Off')
+        if Ch2 == 0:     print (' Channel 2:                      On')
+        if Ch2 == 1:     print (' Channel 2:                      Off')
+        if ExtWin == 0:  print (' External FFT window:            No')
+        if ExtWin == 1:  print (' External FFT window:            Yes')
+        print (' Clip:                          ', Clip)
+        print (' HPF0:                          ', HPF0)
+        print (' HPF1:                          ', HPF1)
+        print (' LPF0:                          ', LPF0)
+        print (' LPF1:                          ', LPF1)
+        print (' ATT0:                          ', ATT0)
+        print (' ATT1:                          ', ATT1)
 
-    print (' Softvare name:                 ', df_softname)
-    print (' Softvare version:              ', df_softvers)
-    print (' DSP soft version:              ', df_DSP_vers)
-
-
-    print ('\n')
+        print (' Softvare name:                 ', df_softname)
+        print (' Softvare version:              ', df_softvers)
+        print (' DSP soft version:              ', df_DSP_vers)
+        print ('\n')
 
 
     # *** Temporal and frequency resolutions ***
     Sfft = 8192.0
     TimeRes = Navr * (Sfft / CLCfrq);
     df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
-    print (' Temporal resolution:           ', round((TimeRes*1000), 3), '  ms')
-    print (' Real frequency resolution:     ', round((df/1000), 3), ' kHz')
+    if (print_or_not == 1):
+        print (' Temporal resolution:           ', round((TimeRes*1000), 3), '  ms')
+        print (' Real frequency resolution:     ', round((df/1000), 3), ' kHz')
 
 
     # *** Frequncy calculation (in MHz) ***
@@ -198,8 +197,8 @@ def FileHeaderReaderDSP(filepath, start_byte):
 
     fmin = round(frequency[0], 3)
     fmax = round(frequency[FreqPointsNum-1] + (df/pow(10,6)), 3)
-    print (' Frequency band:                ', fmin, ' - ', fmax, ' MHz')
-    print ('')
+    if (print_or_not == 1):
+        print (' Frequency band:                ', fmin, ' - ', fmax, ' MHz \n')
 
     file.close()
 
@@ -213,8 +212,8 @@ def FileHeaderReaderDSP(filepath, start_byte):
         SpInFile = int(df_filesize - 1024)/(4*4*FreqPointsNum)    # Number of frequency points in specter
         ReceiverMode = 'Correlation mode'
     if ((Mode == 1) or (Mode == 2)):
-        print ('')
-        print (' Number of spectra in file:     ', SpInFile, '\n\n')
+        if (print_or_not == 1):
+            print ('\n Number of spectra in file:     ', SpInFile, '\n\n')
 
     return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb, dataBlockSize
 
@@ -227,4 +226,4 @@ if __name__ == '__main__':
 
     print('\n\n Parameters of the file: ')
 
-    FileHeaderReaderDSP(filename, 0)
+    FileHeaderReaderDSP(filename, 0, 1)

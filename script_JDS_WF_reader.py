@@ -13,8 +13,8 @@ fname = 'DATA/E251015_050029 - wf.jds'
 no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 6                    # Upper limit of figure dynamic range for normalized spectra
-colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+VmaxNorm = 15                   # Upper limit of figure dynamic range for normalized spectra
+colormap = 'jet'                # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300                 # Resolution of images of dynamic spectra
 
 
@@ -35,8 +35,7 @@ from datetime import datetime, timedelta
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
-from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, OneDynSpectraPlot, TwoDynSpectraPlot
-from f_plot_formats import TwoOrOneValuePlot
+from f_plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -91,7 +90,7 @@ for fileNo in range (len(fileList)):   # loop by files
 # *** Data file header read ***
 [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
     CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-    df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderDSP(fname, 0)
+    df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderDSP(fname, 0, 1)
 
 # !!! Make automatic calculations of time and frequency resolutions for waveform mode!!!
 # Manually set frequencies
@@ -245,7 +244,7 @@ with open(fname, 'rb') as file:
 
             TwoOrOneValuePlot(no_of_sets, np.linspace(no_of_sets, data_block_size, data_block_size), data_1, data_2,
                                             'Channel A', 'Channel B', 1, data_block_size,
-                                            -0.6, 0.6, 'ADC clock counts', 'Amplitude, V',
+                                            -0.6, 0.6, -0.6, 0.6, 'ADC clock counts', 'Amplitude, V', 'Amplitude, V',
                                             Suptitle, Title,
                                             newpath+'/'+ df_filename[0:14] +' Waveform first data block.png',
                                             currentDate, currentTime, Software_version)
@@ -266,7 +265,7 @@ with open(fname, 'rb') as file:
 
             TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2,
                                             'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
-                                            -80, 60, 'Frequency, MHz', 'Intensity, dB',
+                                            -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                             Suptitle, Title,
                                             newpath+'/'+ df_filename[0:14] +' Immediate spectrum first in file.png',
                                             currentDate, currentTime, Software_version)
@@ -299,7 +298,7 @@ with open(fname, 'rb') as file:
 
             TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2,
                         'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
-                        -80, 60, 'Frequency, MHz', 'Intensity, dB',
+                        -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                         Suptitle, Title,
                         newpath+'/'+ df_filename[0:14] +' Average spectrum first data block in file.png',
                         currentDate, currentTime, Software_version)

@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.05.03'
+Software_version = '2019.05.06'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files for further processing
 
@@ -7,7 +7,7 @@ Software_version = '2019.05.03'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'h:/2019.04.01_GURT_Sun_SA10/'      #'DATA/'
+directory = 'DATA/'           #'h:/2019.04.01_GURT_Sun_SA10/'
 
 MaxNim = 8192                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning
@@ -22,14 +22,14 @@ customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 Sum_Diff_Calculate = 0        # Calculate sum and diff of A & B channels?
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveSSD = 0           # Save sum / diff data to a long file?
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveInitial = 1        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveInitial = 1       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
@@ -56,8 +56,7 @@ warnings.filterwarnings("ignore")
 from f_file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 from f_FPGA_to_PC_array import FPGAtoPCarrayADR
 from f_ra_data_clean import simple_channel_clean
-from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
-from f_plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot
+from f_plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 from f_spectra_normalization import Normalization_dB
 
 ################################################################################
@@ -134,11 +133,13 @@ for fileNo in range (len(fileList)):   # loop by files
     fname = ''
     if len(fname) < 1 : fname = fileList[fileNo]
 
+    # Reading the file header
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode,
             sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency,
-            FFT_Size, SLine, Width, BlockSize] = FileHeaderReaderADR(fname, 0)
+            FFT_Size, SLine, Width, BlockSize] = FileHeaderReaderADR(fname, 0, 1)
 
+    # Reading the chunk header
     [SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,
             frm_sec, frm_phase] = ChunkHeaderReaderADR(fname, 0, BlockSize)
 
@@ -316,7 +317,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 # *** TimeLine calculations ***
                 for i in range (Nim):
 
-                # *** DSP_INF ***
+                    # *** DSP_INF ***
                     frm_count = headers[3][i]
                     frm_sec = headers[4][i]
                     frm_phase = headers[5][i]
@@ -418,18 +419,6 @@ for fileNo in range (len(fileList)):   # loop by files
                             TLfile.write((TimeScale[i][:])+' \n')   # str
 
 
-                '''
-                # *** Plotting Im and Re parts of correlation (before logarythm) ***
-                if (ADRmode == 6) and figID == 0:   #  Immediate correlation spectrum channels A & B
-                    TwoImmedSpectraPlot(frequency, Data_C_Re[1][:], Data_C_Im[1][:], 'Channel A', 'Channel B',
-                                        frequency[0], frequency[wb-1], -0.001, 0.001,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                        'Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000.,3))+' kHz',
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Correlation Spectrum Re and Im before log.png')
-                '''
-
-
                 # *** Converting to logarythmic scale matrices ***
                 if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
                     with np.errstate(divide='ignore'):
@@ -473,7 +462,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
 
-                # *** Plotting immediate spectra before cleaning and normalizing ***
+                # *** FIGURE Immediate spectra before cleaning and normalizing ***
                 if figID == 0:
                     if ADRmode == 3:
                         Data_1 = Data_Ch_A[0][:]
@@ -490,7 +479,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
                                     Legend_1 + ' Immediate Spectrum before cleaning and normalizing.png')
 
-                    if (ADRmode == 5 or ADRmode == 6) : # Immediate spectrum channels A & B
+                    if (ADRmode == 5 or ADRmode == 6) :     # Immediate spectrum channels A & B
                         Data_1 = Data_Ch_A[0][:]
                         Data_2 = Data_Ch_B[0][:]
                         Legend_1 = 'Channel A'
@@ -503,32 +492,28 @@ for fileNo in range (len(fileList)):   # loop by files
 
                     TwoOrOneValuePlot(no_of_sets, frequency,  Data_1, Data_2,
                                 Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
-                                -120, -20, 'Frequency, MHz', 'Intensity, dB',
+                                -120, -20, -120, -20, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
+                                Suptitle, Title, Filename,
+                                currentDate, currentTime, Software_version)
+
+                # *** FIGURE Correlation amplitude and phase immediate spectrum ***
+                if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):   #  Immediate correlation spectrum channels A & B
+
+                    Suptitle = ('Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                                ' kHz,'+sumDifMode + ' Description: '+str(df_description))
+                    Filename = ('ADR_Results/Service/' + df_filename[0:14] +
+                                ' Channels A and B Correlation module and phase spectrum.png')
+
+                    TwoOrOneValuePlot(2, frequency,   CorrModule[0][:], CorrPhase[0][:],
+                                'Correlation module', 'Correlation phase', frequency[0], frequency[FreqPointsNum-1],
+                                -150, -20, -4, 4, 'Frequency, MHz', 'Intensity, dB', 'Phase, rad',
                                 Suptitle, Title, Filename,
                                 currentDate, currentTime, Software_version)
 
 
-                if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):   #  Immediate correlation spectrum channels A & B
-                    OneImmedSpecterPlot(frequency, CorrModule[0][:], 'Correlation module',
-                                        frequency[0], frequency[FreqPointsNum-1], -150.0, -20.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/'+df_filename[0:14]+' Correlation module spectrum.png',
-                                        currentDate, currentTime, Software_version)
-
-                if ADRmode == 6 and CorrelationProcess == 1:
-                    OneImmedSpecterPlot(frequency, CorrPhase[0][:], 'Correlation phase',
-                                        frequency[0], frequency[FreqPointsNum-1], -4, 4,
-                                        'Frequency, MHz', 'Phase, rad',
-                                        'Immediate correlation phase spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                        'Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz'+sumDifMode + '\nDescription: '+str(df_description),
-                                        'ADR_Results/Service/' + df_filename[0:14] + ' Correlation phase spectrum.png',
-                                        currentDate, currentTime, Software_version)
-
-
-                # *** FIGURE Initial dynamic specter channel A or B ***
-                if (DynSpecSaveInitial == 1):
+                # *** FIGURE Initial dynamic spectrum of 1 channel (A or B) ***
+                if ((ADRmode == 3 or ADRmode == 4) and DynSpecSaveInitial == 1):
                     if ADRmode == 3:
                         Data = Data_Ch_A.transpose()
                     if ADRmode == 4:
@@ -552,17 +537,16 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
 
-
                 # *** FIGURE Initial dynamic spectrum channels A and B ***
                 if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveInitial == 1):
 
                     fig_file_name = ('ADR_Results/Initial_spectra/' + df_filename[0:14] +
                                     ' Initial dynamic spectrum fig.' + str(figID+1) + '.png')
-                    Suptitle = ('Dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+
-                                str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+
-                                str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+
-                                sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
-                                +ReceiverMode+', Description: '+str(df_description))
+                    Suptitle = ('Dynamic spectrum (initial) ' + str(df_filename) + ' - Fig. ' +
+                                str(figID+1) + ' of ' + str(figMAX) + '\n Initial parameters: dt = ' +
+                                str(round(TimeRes*1000,3)) + ' ms, df = ' + str(round(df/1000.,3)) + ' kHz, ' +
+                                sumDifMode + ' Receiver: ' + str(df_system_name)+', Place: '+str(df_obs_place) +
+                                '\n' + ReceiverMode + ', Description: ' + str(df_description))
 
 
                     TwoDynSpectraPlot(Data_Ch_A.transpose(), Data_Ch_B.transpose(), Vmin, Vmax, Vmin, Vmax, Suptitle,
@@ -571,7 +555,8 @@ for fileNo in range (len(fileList)):   # loop by files
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                                             currentDate, currentTime, Software_version, customDPI)
 
-                # *** FIGURE Initial correlation spectrum module and phase (python 3 new version) ***
+
+                # *** FIGURE Initial correlation spectrum module and phase ***
                 if (ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1):
 
                     fig_file_name = ('ADR_Results/Correlation_spectra/' + df_filename[0:14] +
@@ -639,15 +624,14 @@ for fileNo in range (len(fileList)):   # loop by files
 
                     TwoOrOneValuePlot(no_of_sets, frequency,  Data_1,  Data_2,
                                         Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
-                                        -10, 40, 'Frequency, MHz', 'Intensity, dB',
+                                        -10, 40, -10, 40, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                         Suptitle, Title, Filename, currentDate, currentTime, Software_version)
 
 
 
+                # *** FIGURE Cleaned and normalized dynamic spectrum of 1 channel A or B
 
-                # Cleaned and normalized dynamic spectrum channel A or B
-
-                if (DynSpecSaveInitial == 1):
+                if ((ADRmode == 3 or ADRmode == 4) and DynSpecSaveCleaned == 1):
                     if ADRmode == 3:
                         Data = Data_Ch_A.transpose()
                     if ADRmode == 4:
@@ -664,7 +648,6 @@ for fileNo in range (len(fileList)):   # loop by files
                     fig_file_name = ('ADR_Results/' + df_filename[0:14] +
                                         ' Dynamic spectrum fig.' + str(figID+1) + '.png')
 
-
                     OneDynSpectraPlot(Data, VminNorm, VmaxNorm, Suptitle,
                         'Intensity, dB', Nim * SpInFrame * FrameInChunk, TimeScaleFig,
                         frequency, FreqPointsNum, colormap, 'UTC Time, HH:MM:SS.msec',
@@ -672,6 +655,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
                 # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
+
                 if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1):
 
                     fig_file_name = ('ADR_Results/' + df_filename[0:14] + ' Dynamic spectrum fig.' +
@@ -693,20 +677,14 @@ for fileNo in range (len(fileList)):   # loop by files
                 if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
 
                     Suptitle = 'Correlation dynamic spectrum (nolmalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+
                     fig_file_name = 'ADR_Results/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
+
                     TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency, FreqPointsNum, colormap,
                                             'Normalized and cleaned correlation module', 'Correlation phase',
                                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
-
-            # Check of second counter data for linearity
-            #OneImmedSpecterPlot(list(range(ChunksInFile)), timeLineSecond, 'timeLineSecond',
-            #                    0, ChunksInFile, 0, 2000,
-            #                    'Time, sec', 'Second counter, sec',
-            #                    'Second counter',
-            #                    ' ',
-            #                    'ADR_Results/Service/' + df_filename[0:14] + ' Second counter fig.' + str(figID+1) + '.png')
 
             gc.collect()
         del timeLineSecond

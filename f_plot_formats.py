@@ -1,7 +1,6 @@
 '''
 '''
 import matplotlib.pyplot as plt
-#import matplotlib.gridspec as gridspec
 from matplotlib import rc
 import numpy as np
 import pylab
@@ -108,8 +107,10 @@ def TwoImmedSpectraPlot(Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, yma
 
 
 # *** Plot 2D plot with two data sets ***
-def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax, ymin, ymax,
-                        XLab, YLab, SupTitle, Title, FileName, currentDate, currentTime, Software_version):
+def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2,
+                        xmin, xmax, ymin_1, ymax_1, ymin_2, ymax_2,
+                        XLab, YLab_1, YLab_2, SupTitle, Title, FileName,
+                        currentDate, currentTime, Software_version):
     '''
     Plots 2D plot of two immediate scpectra
     '''
@@ -126,8 +127,8 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax,
     ax1.plot(Xax, Ydat1, color = u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '1.00', label = Label1)
     ax1.legend(loc = 'upper right', fontsize = 6)
     ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-    ax1.axis([xmin, xmax, ymin, ymax])
-    ax1.set_ylabel(YLab, fontsize=6, fontweight='bold')
+    ax1.axis([xmin, xmax, ymin_1, ymax_1])
+    ax1.set_ylabel(YLab_1, fontsize=6, fontweight='bold')
     ax1.set_title(Title, fontsize = 6)
     if no_of_sets == 2:
         ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
@@ -136,9 +137,9 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax,
         ax2.plot(Xax, Ydat2, color = u'#ff7f0e', linestyle = '-', alpha=1.0, linewidth = '1.00', label = Label2)
         ax2.legend(loc = 'upper right', fontsize = 6)
         ax2.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-        ax2.axis([xmin, xmax, ymin, ymax])
+        ax2.axis([xmin, xmax, ymin_2, ymax_2])
         ax2.set_xlabel(XLab, fontsize=6, fontweight='bold')
-        ax2.set_ylabel(YLab, fontsize=6, fontweight='bold')
+        ax2.set_ylabel(YLab_2, fontsize=6, fontweight='bold')
         fig.subplots_adjust(hspace=0.05, top=0.94)
     elif no_of_sets == 1:
         ax1.set_xlabel(XLab, fontsize=6, fontweight='bold')

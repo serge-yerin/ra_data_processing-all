@@ -6,14 +6,14 @@ Software_version = '2018.02.27'
 #                        PARAMETERS                          *
 #*************************************************************
 # Path to data files
-common_path = 'e:/PYTHON/ra_data_processing-all/'          # 'DATA/'
+common_path = 'd:/PYTHON/ra_data_processing-all/'          # 'DATA/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A190401_011128.adr_Data_chA.dat'
+filename = common_path + '-141119_165243.adr_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['chA', 'chB']
+typesOfData = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
@@ -29,7 +29,7 @@ RFImeanConst = 6               # Constant of RFI mitigation (usually = 8)
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'jet'               # Colormap of images of dynamic spectra ('jet' or 'Greys')
 ColorBarSwitch = 1             # Add colorbar to dynamic spectrum picture? (1 = yes, 0 = no)
-ChannelSaveTXT = 0             # Save intensities at specified frequencies to TXT file
+ChannelSaveTXT = 1             # Save intensities at specified frequencies to TXT file
 ChannelSavePNG = 0             # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0              # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 2000 * 10**(-12) # Colour range of Re and Im dynamic spectra
@@ -204,7 +204,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
                 NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine,
-                Width, BlockSize] = FileHeaderReaderADR(filename, 0)
+                Width, BlockSize] = FileHeaderReaderADR(filename, 0, 1)
 
         FreqPointsNum = len(frequency)
 
@@ -214,7 +214,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-                df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderDSP(filename, 0)
+                df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderDSP(filename, 0, 1)
 
         sumDifMode = ''
 
