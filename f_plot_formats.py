@@ -118,7 +118,7 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax,
         fig = plt.figure(figsize = (7, 4))
         ax1 = fig.add_subplot(111)
     elif no_of_sets == 2:
-        fig = plt.figure(figsize = (7, 6))
+        fig = plt.figure(figsize = (7, 7))
         ax1 = fig.add_subplot(211)
     else:
         print(' ERROR !!!')
@@ -139,7 +139,7 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax,
         ax2.axis([xmin, xmax, ymin, ymax])
         ax2.set_xlabel(XLab, fontsize=6, fontweight='bold')
         ax2.set_ylabel(YLab, fontsize=6, fontweight='bold')
-        fig.subplots_adjust(hspace=0.05, top=0.93)
+        fig.subplots_adjust(hspace=0.05, top=0.94)
     elif no_of_sets == 1:
         ax1.set_xlabel(XLab, fontsize=6, fontweight='bold')
         fig.subplots_adjust(top=0.9)
@@ -147,8 +147,8 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2, xmin, xmax,
         print(' ERROR !!!')
     fig.suptitle(SupTitle, fontsize = 8, fontweight='bold')
     if no_of_sets == 2:
-        fig.text(0.73, 0.05, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
-        fig.text(0.09, 0.05, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+        fig.text(0.73, 0.06, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+        fig.text(0.09, 0.06, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
     elif no_of_sets == 1:
         fig.text(0.73, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
         fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)

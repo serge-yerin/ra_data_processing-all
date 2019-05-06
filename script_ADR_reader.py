@@ -7,7 +7,7 @@ Software_version = '2019.05.03'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'           # 'h:/2019.03.25_GURT_Sun_SA10/' #'DATA/'
+directory = 'h:/2019.04.01_GURT_Sun_SA10/'      #'DATA/'
 
 MaxNim = 8192                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning
@@ -22,16 +22,16 @@ customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 Sum_Diff_Calculate = 0        # Calculate sum and diff of A & B channels?
-longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveSSD = 0           # Save sum / diff data to a long file?
-DynSpecSaveInitial = 1        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
+SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
 
 ################################################################################
@@ -472,44 +472,41 @@ for fileNo in range (len(fileList)):   # loop by files
                     SpFile.close()
 
 
-                # *** Plotting immediate spectra before cleaning and normalizing ***
 
+                # *** Plotting immediate spectra before cleaning and normalizing ***
                 if figID == 0:
                     if ADRmode == 3:
                         Data_1 = Data_Ch_A[0][:]
-                        Data_2 = []
                         Legend_1 = 'Channel A'
                     if ADRmode == 4:
                         Data_1 = Data_Ch_B[0][:]
-                        Data_2 = []
                         Legend_1 = 'Channel B'
-
-                    Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' ' + Legend_1)
-                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                    if ADRmode == 3 or ADRmode == 4:
+                        no_of_sets = 1
+                        Data_2 = []
+                        Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' ' + Legend_1)
+                        Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
                                 ' kHz'+sumDifMode + ', Description: '+str(df_description))
-                    Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
-                                Legend_1 + ' Immediate Spectrum before cleaning and normalizing.png')
+                        Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
+                                    Legend_1 + ' Immediate Spectrum before cleaning and normalizing.png')
 
-                    TwoOrOneValuePlot(1, frequency, Data_1, Data_2,
-                                        Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
-                                        -120, -40, 'Frequency, MHz', 'Intensity, dB',
-                                        Suptitle, Title, Filename, currentDate, currentTime, Software_version)
+                    if (ADRmode == 5 or ADRmode == 6) : # Immediate spectrum channels A & B
+                        Data_1 = Data_Ch_A[0][:]
+                        Data_2 = Data_Ch_B[0][:]
+                        Legend_1 = 'Channel A'
+                        no_of_sets = 2
+                        Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                        Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                                ' kHz,'+sumDifMode + ' Description: '+str(df_description))
+                        Filename = ('ADR_Results/Service/' + df_filename[0:14] +
+                                    ' Channels A and B Immediate Spectrum before cleaning and normalizing.png')
 
-
-
-                if (ADRmode == 5 or ADRmode == 6) and figID == 0: # Immediate spectrum channels A & B
-
-                    Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
-                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
-                            ' kHz,'+sumDifMode + ' Description: '+str(df_description))
-                    Filename = ('ADR_Results/Service/' + df_filename[0:14] +
-                                ' Channels A and B Immediate Spectrum before cleaning and normalizing.png')
-
-                    TwoOrOneValuePlot(2, frequency, Data_Ch_A[0][:], Data_Ch_B[0][:],
-                                'Channel A', 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                    TwoOrOneValuePlot(no_of_sets, frequency,  Data_1, Data_2,
+                                Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
                                 -120, -20, 'Frequency, MHz', 'Intensity, dB',
                                 Suptitle, Title, Filename,
                                 currentDate, currentTime, Software_version)
+
 
                 if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):   #  Immediate correlation spectrum channels A & B
                     OneImmedSpecterPlot(frequency, CorrModule[0][:], 'Correlation module',
@@ -611,41 +608,42 @@ for fileNo in range (len(fileList)):   # loop by files
                     simple_channel_clean(CorrModule, 2 * RFImeanConst)
 
 
+
                 #   *** Immediate spectra of normalyzed data ***    (only for first figure in data file)
                 if figID == 0 and DynSpecSaveCleaned == 1:
                     if ADRmode == 3:
                         Data_1 = Data_Ch_A[0][:]
-                        Data_2 = []
                         Legend_1 = 'Channel A'
                     if ADRmode == 4:
                         Data_1 = Data_Ch_B[0][:]
-                        Data_2 = []
                         Legend_1 = 'Channel B'
-
-                    Suptitle = ('Normalized immediate spectrum '+str(df_filename[0:18])+ ' ' + Legend_1)
-                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                    if ADRmode == 3 or ADRmode == 4:
+                        no_of_sets = 1
+                        Data_2 = []
+                        Suptitle = ('Normalized immediate spectrum '+str(df_filename[0:18])+ ' ' + Legend_1)
+                        Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
                                 ' kHz'+sumDifMode + ', Description: '+str(df_description))
-                    Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
+                        Filename = ('ADR_Results/Service/'+df_filename[0:14]+' '+
                                 Legend_1 + ' Immediate Spectrum after cleaning and normalizing.png')
 
-                    TwoOrOneValuePlot(1, frequency, Data_1, Data_2,
+                    if (ADRmode == 5 or ADRmode == 6):   # Immediate spectrum channels A & B
+                        no_of_sets = 2
+                        Data_1 = Data_Ch_A[0][:]
+                        Data_2 = Data_Ch_B[0][:]
+                        Legend_1 = 'Channel A'
+                        Suptitle = ('Normalized immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                        Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                                ' kHz'+sumDifMode + ', Description: '+str(df_description))
+                        Filename = ('ADR_Results/Service/'+df_filename[0:14]+
+                                ' Channels A and B Immediate Spectrum after cleaning and normalizing.png')
+
+                    TwoOrOneValuePlot(no_of_sets, frequency,  Data_1,  Data_2,
                                         Legend_1, 'Channel B', frequency[0], frequency[FreqPointsNum-1],
                                         -10, 40, 'Frequency, MHz', 'Intensity, dB',
                                         Suptitle, Title, Filename, currentDate, currentTime, Software_version)
 
 
 
-                if (ADRmode == 5 or ADRmode == 6) and figID == 0 and DynSpecSaveCleaned == 1:   # Immediate spectrum channels A & B
-                    Suptitle = ('Normalized immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
-                    Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
-                                ' kHz'+sumDifMode + ', Description: '+str(df_description))
-                    Filename = ('ADR_Results/Service/'+df_filename[0:14]+
-                                ' Channels A and B Immediate Spectrum after cleaning and normalizing.png')
-
-                    TwoOrOneValuePlot(2, frequency, Data_Ch_A[0][:], Data_Ch_B[0][:],
-                                        'Channel A', 'Channel B', frequency[0], frequency[FreqPointsNum-1],
-                                        -10, 40, 'Frequency, MHz', 'Intensity, dB',
-                                        Suptitle, Title, Filename, currentDate, currentTime, Software_version)
 
                 # Cleaned and normalized dynamic spectrum channel A or B
 
@@ -683,6 +681,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+
                                 str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+
                                 str(df_description))
+
                     TwoDynSpectraPlot(Data_Ch_A.transpose(), Data_Ch_B.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
                                             'Intensity, dB', 'Intensity, dB', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
