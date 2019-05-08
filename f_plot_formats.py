@@ -112,7 +112,8 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2,
                         XLab, YLab_1, YLab_2, SupTitle, Title, FileName,
                         currentDate, currentTime, Software_version):
     '''
-    Plots 2D plot of two immediate scpectra
+    Plots 2D plot of one or two immediate scpectra - univrsal plot for immediate spectra
+
     '''
     rc('font', size = 6, weight='bold')
     if no_of_sets == 1:
@@ -158,6 +159,42 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2,
     pylab.savefig(FileName, bbox_inches = 'tight', dpi = 160)
     plt.close('all')
     return
+
+
+def OneValueWithTimePlot(timeline, Ydat1, Label1, xmin, xmax, ymin, ymax, xy_auto,
+                        XLabel, YLabel, SupTitle, Title, FileName,
+                        currentDate, currentTime, Software_version):
+    '''
+    Plots 2D plot of one datase with time
+    '''
+
+    rc('font', size = 6, weight='bold')
+    fig = plt.figure(figsize = (9, 5))
+    ax1 = fig.add_subplot(111)
+    ax1.plot(Ydat1, linestyle = '-', linewidth = '1.00', label = Label1)
+    ax1.legend(loc = 'upper right', fontsize = 6)
+    ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+    #ax1.axis([xmin, xmax, ymin, ymax])
+    if xy_auto == 1:
+        ax1.set_xlim([xmin, xmax])
+        ax1.set_ylim([ymin, ymax])
+    ax1.set_ylabel(YLabel, fontsize=6, fontweight='bold')
+    ax1.set_title(Title, fontsize = 6)
+    ax1.set_xlabel(XLabel, fontsize=6, fontweight='bold')
+    text = ax1.get_xticks().tolist()
+    for i in range(len(text)-1):
+        k = int(text[i])
+        text[i] = timeline[i]
+    ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
+    fig.subplots_adjust(top=0.92)
+    fig.suptitle(SupTitle, fontsize = 8, fontweight='bold')
+    fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    pylab.savefig(FileName, bbox_inches = 'tight', dpi = 160)
+    plt.close('all')
+    return
+
+
 
 
 #   *** Plot dynamic spectra of one data set ***
