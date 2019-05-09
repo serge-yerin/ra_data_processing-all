@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.04.13'
+Software_version = '2019.05.09'
 # Program intended to read, show and analyze data from DSPZ receivers
 
 #*******************************************************************************
@@ -14,7 +14,7 @@ RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 30                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 40                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -52,19 +52,15 @@ from f_file_header_JDS import FileHeaderReaderDSP
 from f_FPGA_to_PC_array import FPGAtoPCarrayDSP
 from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
-from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot
+from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot, TwoOrOneValuePlot
 
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
 #*******************************************************************************
-
-for i in range(8): print (' ')
-print ('   ****************************************************')
+print ('\n\n\n\n\n\n\n\n   ****************************************************')
 print ('   *      JDS data files reader  v.', Software_version,'       *      (c) YeS 2019')
-print ('   ****************************************************')
-for i in range(3): print (' ')
-
+print ('   **************************************************** \n\n\n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
@@ -86,18 +82,15 @@ if (CorrSpecSaveCleaned == 1  and CorrelationProcess == 1):
 
 # *** Creating a TXT logfile ***
 Log_File = open("JDS_Results/Service/Log.txt", "w")
-
-
 Log_File.write('\n\n    ****************************************************\n' )
 Log_File.write('    *     JDS data files reader  v.%s LOG      *      (c) YeS 2019\n' %Software_version )
 Log_File.write('    ****************************************************\n\n' )
-
 Log_File.write('  Date of data processing: %s   \n' %currentDate )
 Log_File.write('  Time of data processing: %s \n\n' %currentTime )
 
 
 # *** Search JDS files in the directory ***
-fileList=[]
+fileList = []
 i = 0
 print ('  Directory: ', directory, '\n')
 Log_File.write('  Directory: %s \n' %directory )
@@ -114,8 +107,7 @@ Log_File.close()
 
 
 for fileNo in range (len(fileList)):   # loop by files
-    for i in range(3): print (' ')
-    print ('  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
+    print ('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
     print ('  *  File path: ', str(fileList[fileNo]))
     Log_File = open("JDS_Results/Service/Log.txt", "a")
     Log_File.write('\n\n\n  * File '+str(fileNo+1)+' of %s \n' %str(len(fileList)))
@@ -148,7 +140,6 @@ for fileNo in range (len(fileList)):   # loop by files
     Log_File.write(' Minimal frequency:              %s MHz \n' % fmin)
     Log_File.write(' Maximal frequency:              %s MHz \n' % fmax)
     Log_File.write(' Number of frequency channels:   %s \n' % FreqPointsNum)
-
     Log_File.close()
 
     # Initial time line settings
@@ -201,22 +192,18 @@ for fileNo in range (len(fileList)):   # loop by files
                 Data_CpFile.write(file_header)
                 Data_CpFile.close()
 
-
             del file_header
-
         Log_File.close()
-        print (' ')
-        print ('  *** Reading data from file ***')
-        print (' ')
 
 
-        #************************************************************************************
-        #                            R E A D I N G   D A T A                                *
-        #************************************************************************************
-
-        file.seek(1024)  # Jumping to 1024 byte from file beginning #+ (sizeOfChunk+8) * chunkSkip
-
-
+#*******************************************************************************
+#                         R E A D I N G   D A T A                              *
+#*******************************************************************************
+        print ('\n  *** Reading data from file *** \n')
+        file.seek(1024)  # Jumping to 1024 byte from file beginning
+        if Mode == 0:
+            print('\n\n  Data in waveform mode, use appropriate program!!! \n\n\n')
+        
         if Mode > 0 and Mode < 3:           # Spectra modes
             figID = -1
             figMAX = int(math.ceil((SpInFile - spSkip)/MaxNsp))
@@ -368,7 +355,6 @@ for fileNo in range (len(fileList)):   # loop by files
                     Data_CpFile.close()
 
 
-
                 # *** Saving immediate spectrum to file ***
                 if(SpecterFileSaveSwitch == 1 and figID == 0):
                     SpFile = open('JDS_Results/Service/Specter_'+df_filename[0:14]+'.txt', 'w')
@@ -383,41 +369,40 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
 
-    #************************************************************************************
-    #                                  F I G U R E S
-    #************************************************************************************
-
-
+#*******************************************************************************
+#                                  F I G U R E S                               *
+#*******************************************************************************
 
                 # *** Plotting immediate spectra before cleaning and normalizing ***
                 if (Mode == 1 or Mode == 2) and figID == 0:
-                    TwoImmedSpectraPlot(frequency, Data_ChA[0][:], Data_ChB[0][:], 'Channel A', 'Channel B',
-                                                frequency[0], frequency[FreqPointsNum-1], -120, -20,
-                                                'Frequency, MHz', 'Amplitude, dB',
-                                                'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                                'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Immediate Spectrum before cleaning and normalizing.png',
-                                                currentDate, currentTime, Software_version)
+
+                    Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    Title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+
+                            '. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
+                            str(round(df/1000,3))+' kHz '+'Description: '+str(df_description))
+                    Filename = ('JDS_Results/Service/' + df_filename[0:14] +
+                                ' Channels A and B Immediate Spectrum before cleaning and normalizing.png')
+
+                    TwoOrOneValuePlot(2, frequency,  Data_ChA[0][:], Data_ChB[0][:],
+                                    'Channel A', 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                                    -120, -20, -120, -20, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
+                                    Suptitle, Title, Filename,
+                                    currentDate, currentTime, Software_version)
 
                 if Mode == 2 and CorrelationProcess == 1 and figID == 0:
-                    OneImmedSpecterPlot(frequency, CorrModule[0][:], 'Correlation module',
-                                                frequency[0], frequency[FreqPointsNum-1], -140, -20,
-                                                'Frequency, MHz', 'Amplitude, dB',
-                                                'Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                                'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Correlation Immedaiate Spectrum before cleaning and normalizing.png',
-                                                currentDate, currentTime, Software_version)
 
-                if Mode == 2 and CorrelationProcess == 1 and figID == 0:
-                    OneImmedSpecterPlot(frequency, CorrPhase[0][:], 'Correlation phase',
-                                                frequency[0], frequency[FreqPointsNum-1], -4, 4,
-                                                'Frequency, MHz', 'Phase, deg',
-                                                'Immediate correlation phase spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                                'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                                'JDS_Results/Service/' + df_filename[0:14] + ' Channels A and B Correlation Immedaiate phase before cleaning and normalizing.png',
-                                                currentDate, currentTime, Software_version)
+                    Suptitle = ('Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    Title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+
+                                '. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
+                                str(round(df/1000,3))+' kHz '+'Description: '+str(df_description))
+                    Filename = ('JDS_Results/Service/' + df_filename[0:14] +
+                                ' Channels A and B Correlation Immedaiate Spectrum before cleaning and normalizing.png')
 
-
+                    TwoOrOneValuePlot(2, frequency,  CorrModule[0][:], CorrPhase[0][:],
+                                    'Correlation module', 'Correlation phase', frequency[0], frequency[FreqPointsNum-1],
+                                    -120, -20, -4, 4, 'Frequency, MHz', 'Amplitude, dB', 'Phase, deg',
+                                    Suptitle, Title, Filename,
+                                    currentDate, currentTime, Software_version)
 
 
                 # *** FIGURE Initial dynamic spectrum channels A and B ***
@@ -477,13 +462,18 @@ for fileNo in range (len(fileList)):   # loop by files
 
                 #   *** Immediate spectra ***    (only for first figure in data file)
                 if (Mode == 1 or Mode == 2) and figID == 0:   # Immediate spectrum channels A & B
-                    TwoImmedSpectraPlot(frequency, Data_ChA[1][:], Data_ChB[1][:], 'Channel A', 'Channel B',
-                                        frequency[0], frequency[FreqPointsNum-1], -10.0, 40.0,
-                                        'Frequency, MHz', 'Amplitude, dB',
-                                        'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
-                                        'Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+'. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+'\n Description: '+str(df_description),
-                                        'JDS_Results/Service/'+df_filename[0:14]+' Channels A and B Immediate Spectrum after cleaning and normalizing.png', currentDate, currentTime, Software_version)
 
+                    Suptitle = ('Cleaned and normalized immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    Title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+
+                            '. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
+                            str(round(df/1000,3))+' kHz '+'Description: '+str(df_description))
+                    Filename = ('JDS_Results/Service/'+df_filename[0:14]+
+                                ' Channels A and B Immediate Spectrum after cleaning and normalizing.png')
+
+                    TwoOrOneValuePlot(2, frequency,  Data_ChA[1][:], Data_ChB[1][:],
+                                    'Channel A', 'Channel B', frequency[0], frequency[FreqPointsNum-1],
+                                    VminNorm, VmaxNorm, VminNorm, VmaxNorm, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
+                                    Suptitle, Title, Filename, currentDate, currentTime, Software_version)
 
 
                 # *** FIGURE Normalized dynamic spectrum channels A and B ***
@@ -503,17 +493,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                                             currentDate, currentTime, Software_version, customDPI)
-                    '''
-                    TwoDynSpectraPlot(Data_ChA, Data_ChB, VminNorm, VmaxNorm, VminNorm, VmaxNorm,
-                        'Dynamic spectrum (normalized) ',
-                        figID, figMAX, TimeRes, df, '', df_system_name, df_obs_place,
-                        df_filename, df_description, 'Intensity, dB', 'Intensity, dB', Nsp,
-                        1, 1, ReceiverMode, TimeFigureScale, TimeScale,
-                        Nsp, frequency, FreqPointsNum, colormap,
-                        'Channel A', 'Channel B',
-                        'JDS_Results/',
-                        ' Dynamic spectra fig.', currentDate, currentTime, Software_version, customDPI)
-                    '''
+
 
                 # *** FIGURE Normalized correlation spectrum Module and Phase ***
                 if (Mode == 2 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
@@ -553,14 +533,10 @@ for fileNo in range (len(fileList)):   # loop by files
             print ('    The difference is ', (df_filesize - file.tell()), ' bytes')
             print ('\n  File was NOT read till the end!!! ERROR')
 
-    file.close()  #Here we close the file
+    file.close()  #Here we close the data file
 
 
-endTime = time.time()    # Time of calculations
-
-
-print (' ')
-print ('  The program execution lasted for ', round((endTime - startTime),2), 'seconds')
-for i in range (0,2) : print (' ')
-print ('    *** Program JDS_reader has finished! ***')
-for i in range (0,3) : print (' ')
+endTime = time.time()
+print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+                                                round((endTime - startTime)/60, 2), 'min. ) \n')
+print ('\n           *** Program JDS reader has finished! *** \n\n\n')
