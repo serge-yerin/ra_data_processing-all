@@ -161,12 +161,25 @@ with open(fname, 'rb') as file:
         new_2 = [bin(x)[2:].zfill(32) for x in word_2]
         for i in range(len(new_1)):
             print(new_1[i], '  ', new_2[i])
+
+        % EXAMPLE FROM NASTIA IN MATLAB data without markers of seconds 
+        sec = double( (uint32(data(end - 1)) + 2^16 * uint32(data(end))) ); % absolut second
+        phase = double( (uint32(data(end - 3)) + 2^16 * uint32(data(end-2))) ) / clock; % phase of second
+        tm = double(sec) + double(phase) / clock * 60;
+        h = floor(sec / 3600); % hours
+        m = floor(mod(sec / 3600, 1) * 60); % minutes
+        s = (mod(sec / 3600, 1) * 60) - (floor(mod(sec / 3600, 1) * 60)) + phase * 60;
+         disp([ 'time marker is: ' int2str(h) 'h ' int2str( m) 'm ' num2str( s) 's '  ' ----------- ' num2str( tm )] );
         '''
 
         phase_of_second = np.uint32(wf_data[data_block_size - 3, :])
         second_of_day = np.uint32(wf_data[data_block_size - 2, :])
         #print ('  Sec of day:', second_of_day)
         #print ('  Phase of sec:', phase_of_second)
+
+
+
+
 
         # Nulling the time blocks in waveform data
         wf_data[data_block_size-4 : data_block_size, :] = 0
