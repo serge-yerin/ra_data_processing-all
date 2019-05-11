@@ -6,18 +6,19 @@ Software_version = '2019.05.08'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path = 'DATA/' # 'd:/PYTHON/ra_data_processing-all/'
+common_path = 'e:/PYTHON/ra_data_processing-all/' #'DATA/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A170712_160219.adr_Data_chA.dat'
+filename = common_path + 'C020419_082413.jds_Data_CIm.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['chA']
+typesOfData = ['C_m', 'C_p', 'CRe', 'CIm']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
-freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
+#freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
+freqList = [18.0,18.005,18.01,18.015,18.020,18.025]
 
 StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
@@ -28,7 +29,7 @@ VmaxNormMan = 10                 # Manual upper limit of normalized dynamic spec
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
-ChannelSaveTXT = 0               # Save intensities at specified frequencies to TXT file
+ChannelSaveTXT = 1               # Save intensities at specified frequencies to TXT file
 ChannelSavePNG = 1               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 2000 * 10**(-12) # Colour range of Re and Im dynamic spectra

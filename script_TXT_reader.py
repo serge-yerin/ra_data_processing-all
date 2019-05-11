@@ -6,17 +6,20 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path = 'd:/PYTHON/ra_data_processing-all/DATA/'          # 'DATA/'
+common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/' 
 filename = []
 
+Vmin = -500 * 10**(-12)
+Vmax =  500 * 10**(-12)
+
 # TXT files to be analyzed:
-filename.append(common_path + 'A170712_160219_chA Intensity variation at 9.014 MHz.txt')
-filename.append(common_path + 'A170712_160219_chA Intensity variation at 10.01 MHz.txt')
-filename.append(common_path + 'A170712_160219_chA Intensity variation at 11.006 MHz.txt')
-filename.append(common_path + 'A170712_160219_chA Intensity variation at 12.012 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 13.008 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 14.014 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 15.01 MHz.txt')
+filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.003 MHz.txt')
+filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.011 MHz.txt')
+filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.015 MHz.txt')
+filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.019 MHz.txt')
+filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.023 MHz.txt')
+#filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.031 MHz.txt')
+
 
 customDPI = 300                     # Resolution of images of dynamic spectra
 
@@ -65,6 +68,15 @@ text_freqs = []
 for i in range (len(filename)):
     text_freqs.append(find_between(filename[i], 'at ', '.txt'))
 
+list_text_freqs = ''
+for i in range (len(filename)):
+    list_text_freqs = list_text_freqs + find_between(filename[i], 'at ', ' MHz')
+    if i < len(filename) - 1: list_text_freqs = list_text_freqs + ', '
+
+print (list_text_freqs)
+
+parent_filename = find_between(filename[0], common_path, ' Intensity')
+
 #*******************************************************************************
 #                                F I G U R E S                                 *
 #*******************************************************************************
@@ -79,9 +91,9 @@ for i in range (a):
     ax1.plot(y_value[i, :], linestyle = '-', linewidth = '1.00', label = text_freqs[i])
 ax1.legend(loc = 'upper right', fontsize = 6)
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-#ax1.axis([xmin, xmax, ymin_1, ymax_1])
+ax1.set_ylim([Vmin, Vmax])
 ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-ax1.set_title('Title', fontsize = 6)
+ax1.set_title('   ', fontsize = 6)
 ax1.set_xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', fontsize=6, fontweight='bold')
 text = ax1.get_xticks().tolist()
 for i in range(len(text)-1):
@@ -89,10 +101,10 @@ for i in range(len(text)-1):
     text[i] = str(date_time[i][0:11] + '\n' + date_time[i][11:23])
 ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
 fig.subplots_adjust(top=0.92)
-fig.suptitle('Suptitle', fontsize = 8, fontweight='bold')
+fig.suptitle('File: '+parent_filename, fontsize = 8, fontweight='bold')
 fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
-pylab.savefig(newpath + '/01 - All txt data.png', bbox_inches = 'tight', dpi = 160)
+pylab.savefig(newpath + '/' + parent_filename + ' 01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 
 
@@ -109,10 +121,10 @@ timeline = []
 for i in range(len(date_time)):
     timeline.append(str(date_time[i][0:11] + '\n' + date_time[i][11:23]))
 
-FileName = newpath + '/02 - Averaged data.png'
-OneValueWithTimePlot(timeline, average, 'Averaged values', 0, 1, 0, 1, 0,
+FileName = (newpath + '/' + parent_filename + ' 02 - Averaged data.png')
+OneValueWithTimePlot(timeline, average, 'Averaged values', 0, 1, Vmin, Vmax, 1, 0,
                         'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', 'Intensity, dB',
-                        'Suptitle', 'Title', FileName,
+                        'File: '+parent_filename+' at '+ list_text_freqs +' MHz', '  ', FileName,
                         currentDate, currentTime, Software_version)
 
 

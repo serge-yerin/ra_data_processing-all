@@ -117,10 +117,10 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2,
     '''
     rc('font', size = 6, weight='bold')
     if no_of_sets == 1:
-        fig = plt.figure(figsize = (7, 4))
+        fig = plt.figure(figsize = (9, 5))
         ax1 = fig.add_subplot(111)
     elif no_of_sets == 2:
-        fig = plt.figure(figsize = (7, 7))
+        fig = plt.figure(figsize = (9, 9))
         ax1 = fig.add_subplot(211)
     else:
         print(' ERROR !!!')
@@ -144,7 +144,7 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2,
         fig.subplots_adjust(hspace=0.05, top=0.94)
     elif no_of_sets == 1:
         ax1.set_xlabel(XLab, fontsize=6, fontweight='bold')
-        fig.subplots_adjust(top=0.9)
+        fig.subplots_adjust(top=0.92)
     else:
         print(' ERROR !!!')
     fig.suptitle(SupTitle, fontsize = 8, fontweight='bold')
@@ -161,7 +161,7 @@ def TwoOrOneValuePlot(no_of_sets, Xax, Ydat1, Ydat2, Label1, Label2,
     return
 
 
-def OneValueWithTimePlot(timeline, Ydat1, Label1, xmin, xmax, ymin, ymax, xy_auto,
+def OneValueWithTimePlot(timeline, Ydat1, Label1, xmin, xmax, ymin, ymax, x_auto, y_auto,
                         XLabel, YLabel, SupTitle, Title, FileName,
                         currentDate, currentTime, Software_version):
     '''
@@ -174,10 +174,8 @@ def OneValueWithTimePlot(timeline, Ydat1, Label1, xmin, xmax, ymin, ymax, xy_aut
     ax1.plot(Ydat1, linestyle = '-', linewidth = '1.00', label = Label1)
     ax1.legend(loc = 'upper right', fontsize = 6)
     ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-    #ax1.axis([xmin, xmax, ymin, ymax])
-    if xy_auto == 1:
-        ax1.set_xlim([xmin, xmax])
-        ax1.set_ylim([ymin, ymax])
+    if x_auto == 0: ax1.set_xlim([xmin, xmax])
+    if y_auto == 0: ax1.set_ylim([ymin, ymax])
     ax1.set_ylabel(YLabel, fontsize=6, fontweight='bold')
     ax1.set_title(Title, fontsize = 6)
     ax1.set_xlabel(XLabel, fontsize=6, fontweight='bold')
