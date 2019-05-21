@@ -15,8 +15,8 @@ import os
 #*******************************************************************************
 
 frequency = 18                                   # Frequency, MHz
-ku = np.array([0, 1, 0, 1, 0, 1, 0, 0, 0, 0])    # U-code (binary)
-kv = np.array([0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0]) # V-code (binary)
+ku = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # U-code (binary)
+kv = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) # V-code (binary)
 n_points = 501                                   # Number of points to model along each axes
 plot_3D = 1                                      # To plot 3D plots which take much time?
 

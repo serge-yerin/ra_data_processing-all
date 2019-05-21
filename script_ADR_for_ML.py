@@ -338,7 +338,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
             gc.collect()
-        del timeLineSecond
+
         print ('\n  Position in file: ', file.tell(), ' File size: ', df_filesize)
         if (file.tell() == df_filesize): print ('\n  File was read till the end')
         if (file.tell() < df_filesize):  print ('\n  File was NOT read till the end!!! ERROR')

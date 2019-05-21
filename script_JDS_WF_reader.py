@@ -9,7 +9,8 @@ Software_version = '2019.04.29'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-fname = 'DATA/E251015_050029 - wf.jds'
+fname = 'DATA/E160419_015005_WF_1ch_Jup.jds'
+
 no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
@@ -162,7 +163,7 @@ with open(fname, 'rb') as file:
         for i in range(len(new_1)):
             print(new_1[i], '  ', new_2[i])
 
-        % EXAMPLE FROM NASTIA IN MATLAB data without markers of seconds 
+        % EXAMPLE FROM NASTIA IN MATLAB data without markers of seconds
         sec = double( (uint32(data(end - 1)) + 2^16 * uint32(data(end))) ); % absolut second
         phase = double( (uint32(data(end - 3)) + 2^16 * uint32(data(end-2))) ) / clock; % phase of second
         tm = double(sec) + double(phase) / clock * 60;
