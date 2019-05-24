@@ -21,10 +21,13 @@ def JDS_WF_time(wf_data, clock_frequency, data_block_size):
     for i in range (len(hour)):
         seconds[i] = second_of_day[i] - (hour[i] * 3600) - (minutes[i] * 60) + (np.float(phase_of_second[i]) / clock_frequency)
 
+    timeline_block_str = ['' for x in range(len(hour))]
+    for i in range (len(hour)):
+        timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + ':' + ''.join("{:02.0f}".format(seconds[i])) + '.' + ''.join("{:3.0f}".format(phase_of_second[i]))
     #for i in range (len(hour)):
-    #    print(int(hour[i]),':', int(minutes[i]),':', round(seconds[i],6))
+    #    print(timeline_block_str[i])
 
-    return
+    return timeline_block_str
 
 
 
@@ -32,7 +35,7 @@ def JDS_WF_time(wf_data, clock_frequency, data_block_size):
 
 if __name__ == '__main__':
 
-    fname = 'DATA/E220213_201439.jds'
+    fname = 'DATA/E251015_050029 - wf.jds'
 
     print('\n\n Parameters of the file: ')
 
