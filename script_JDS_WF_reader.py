@@ -37,6 +37,7 @@ from f_spectra_normalization import Normalization_dB
 from f_ra_data_clean import simple_channel_clean
 from f_plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 from f_file_manipulations import find_files_in_folder
+from f_time_JDS_waveform import JDS_WF_time
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -160,13 +161,13 @@ for fileNo in range (len(fileList)):   # loop by files
              disp([ 'time marker is: ' int2str(h) 'h ' int2str( m) 'm ' num2str( s) 's '  ' ----------- ' num2str( tm )] );
             '''
 
-            phase_of_second = np.uint32(wf_data[data_block_size - 3, :])
-            second_of_day = np.uint32(wf_data[data_block_size - 2, :])
+            #phase_of_second = np.uint32(wf_data[data_block_size - 3, :])
+            #second_of_day = np.uint32(wf_data[data_block_size - 2, :])
             #print ('  Sec of day:', second_of_day)
             #print ('  Phase of sec:', phase_of_second)
 
 
-
+            JDS_WF_time(wf_data, CLCfrq, data_block_size)
 
 
             # Nulling the time blocks in waveform data

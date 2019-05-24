@@ -3,7 +3,7 @@
 import numpy as np
 from f_file_header_JDS import FileHeaderReaderDSP
 
-def JDS_time(wf_data, clock_frequency):
+def JDS_WF_time(wf_data, clock_frequency, data_block_size):
     '''
     '''
 
@@ -21,8 +21,8 @@ def JDS_time(wf_data, clock_frequency):
     for i in range (len(hour)):
         seconds[i] = second_of_day[i] - (hour[i] * 3600) - (minutes[i] * 60) + (np.float(phase_of_second[i]) / clock_frequency)
 
-    for i in range (len(hour)):
-        print(int(hour[i]),':', int(minutes[i]),':', round(seconds[i],6))
+    #for i in range (len(hour)):
+    #    print(int(hour[i]),':', int(minutes[i]),':', round(seconds[i],6))
 
     return
 
@@ -56,4 +56,4 @@ if __name__ == '__main__':
             wf_data = np.fromfile(file, dtype='i2', count = no_of_spectra_to_average * data_block_size)
             wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_to_average], order='F')
 
-            JDS_time(wf_data, CLCfrq)
+            JDS_WF_time(wf_data, CLCfrq, data_block_size)
