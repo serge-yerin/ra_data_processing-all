@@ -87,21 +87,6 @@ if not os.path.exists(newpath):
 
 # *** Search ADR files in the directory ***
 
-#fileList=[]
-#i = 0
-#print ('  Directory: ', directory, '\n')
-#Log_File.write('  Directory: %s \n' %directory )
-#print ('  List of files to be analyzed: ')
-#Log_File.write('  List of files to be analyzed: \n')
-#for root, dirs, files in os.walk(directory):
-#    for file in files:#
-#        if file.endswith('.adr'):
-#            i = i + 1
-#            print ('         ', i, ') ', file)
-#            Log_File.write('           '+str(i)+') %s \n' %file )
-#            fileList.append(str(os.path.join(root, file)))
-#Log_File.close()
-
 fileList = find_files_in_folder(directory, '.adr')
 
 
