@@ -56,9 +56,15 @@ print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-newpath = "JDS_WF_Results"
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
+result_folder = 'JDS_WF_Results'
+if not os.path.exists(result_folder):
+    os.makedirs(result_folder)
+service_folder = 'JDS_WF_Results/Service'
+if not os.path.exists(service_folder):
+    os.makedirs(service_folder)
+initial_spectra_folder = 'JDS_WF_Results/Initial spectra'
+if not os.path.exists(initial_spectra_folder):
+    os.makedirs(initial_spectra_folder)
 
 
 # *** Search JDS files in the directory ***
@@ -126,9 +132,9 @@ for fileNo in range (len(fileList)):   # loop by files
         TimeFigureScaleFig = np.linspace(0, no_of_av_spectra_per_file, no_of_av_spectra_per_file+1)
         for i in range(no_of_av_spectra_per_file):
             TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
-        TimeScaleFig = TimeFigureScaleFig
 
 
+        TimeScaleFig = []
         for av_sp in range (no_of_av_spectra_per_file):
 
             # Reading and reshaping all data with readers
@@ -145,7 +151,7 @@ for fileNo in range (len(fileList)):   # loop by files
             '''
 
             timeline_block_str = JDS_WF_time(wf_data, CLCfrq, data_block_size)
-
+            TimeScaleFig.append(timeline_block_str[-1][0:12])
 
             # Nulling the time blocks in waveform data
             wf_data[data_block_size-4 : data_block_size, :] = 0
@@ -225,7 +231,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                                 'Channel A', 'Channel B', 1, data_block_size,
                                                 -0.6, 0.6, -0.6, 0.6, 'ADC clock counts', 'Amplitude, V', 'Amplitude, V',
                                                 Suptitle, Title,
-                                                newpath+'/'+ df_filename[0:14] +' Waveform first data block.png',
+                                                service_folder+'/'+ df_filename[0:14] +' Waveform first data block.png',
                                                 currentDate, currentTime, Software_version)
 
                 # Prepare parameters for plot
@@ -246,7 +252,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                                 'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
                                                 -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                                 Suptitle, Title,
-                                                newpath+'/'+ df_filename[0:14] +' Immediate spectrum first in file.png',
+                                                service_folder+'/'+ df_filename[0:14] +' Immediate spectrum first in file.png',
                                                 currentDate, currentTime, Software_version)
             # Deleting the unnecessary matrices
             del wf_data_chA
@@ -279,7 +285,7 @@ for fileNo in range (len(fileList)):   # loop by files
                             'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
                             -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                             Suptitle, Title,
-                            newpath+'/'+ df_filename[0:14] +' Average spectrum first data block in file.png',
+                            service_folder+'/'+ df_filename[0:14] +' Average spectrum first data block in file.png',
                             currentDate, currentTime, Software_version)
 
 
@@ -318,7 +324,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 str(df_obs_place)+'\n'+ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
                 ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+', Description: '+str(df_description))
 
-    fig_file_name = (newpath + '/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' +
+    fig_file_name = (initial_spectra_folder + '/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' +
                     str(0+1) + '.png')
 
     if Channel == 0 or Channel == 1: # Single channel mode
@@ -331,7 +337,7 @@ for fileNo in range (len(fileList)):   # loop by files
         TwoDynSpectraPlot(dyn_spectra_chA, dyn_spectra_chB,
                         VminA, VmaxA, VminB, VmaxB, Suptitle,
                         'Intensity, dB', 'Intensity, dB', no_of_av_spectra_per_file,
-                        TimeFigureScaleFig, TimeScaleFig, frequency,
+                        TimeScaleFig, TimeScaleFig, frequency,
                         FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                         currentDate, currentTime, Software_version, customDPI)
 
@@ -354,7 +360,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+
                 ', Description: '+str(df_description))
 
-    fig_file_name = (newpath + '/' + df_filename[0:14] + ' Normalized and cleaned dynamic spectrum fig.' +
+    fig_file_name = (result_folder + '/' + df_filename[0:14] + ' Normalized and cleaned dynamic spectrum fig.' +
                     str(0+1) + '.png')
 
     if Channel == 0 or Channel == 1: # Single channel mode
@@ -366,7 +372,7 @@ for fileNo in range (len(fileList)):   # loop by files
         TwoDynSpectraPlot(dyn_spectra_chA, dyn_spectra_chB,
                     VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
                     'Intensity, dB', 'Intensity, dB', no_of_av_spectra_per_file,
-                    TimeFigureScaleFig, TimeScaleFig, frequency,
+                    TimeScaleFig, TimeScaleFig, frequency,
                     FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                     currentDate, currentTime, Software_version, customDPI)
 

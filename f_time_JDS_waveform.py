@@ -13,7 +13,7 @@ def JDS_WF_time(wf_data, clock_frequency, data_block_size):
     clock_frequency = int(clock_frequency/10**6) * 10**6
 
     second_of_day = np.uint32(wf_data[data_block_size - 2, :]) + np.power(2, 16) * np.uint32(wf_data[data_block_size - 1, :])
-    phase_of_second = np.uint32(wf_data[data_block_size - 4, :]) + np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
+    phase_of_second = (np.uint32(wf_data[data_block_size - 4, :]) + np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :]))
 
     hour = np.floor(second_of_day[:] / 3600)
     minutes = np.floor(((second_of_day[:] / 3600) % 1) * 60)
@@ -23,9 +23,9 @@ def JDS_WF_time(wf_data, clock_frequency, data_block_size):
 
     timeline_block_str = ['' for x in range(len(hour))]
     for i in range (len(hour)):
-        timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + ':' + ''.join("{:02.0f}".format(seconds[i])) + '.' + ''.join("{:3.0f}".format(phase_of_second[i]))
+        timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + ':' + ''.join("{:02.6f}".format(seconds[i]))
     #for i in range (len(hour)):
-    #    print(timeline_block_str[i])
+    #    print(timeline_block_str[i], '    ', phase_of_second[i])
 
     return timeline_block_str
 
