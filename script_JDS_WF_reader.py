@@ -110,7 +110,16 @@ for fileNo in range (len(fileList)):   # loop by files
     print (' Number of spectra to average:         ', no_of_spectra_to_average)
     print (' Number of averaged spectra in file:   ', no_of_av_spectra_per_file)
 
+
+
     no_of_av_spectra_per_file = int(no_of_av_spectra_per_file)
+    fine_CLCfrq = (int(CLCfrq/1000000.0) * 1000000.0)
+
+    # Real time resolution of averaged spectra
+    real_av_spectra_dt = (1 / fine_CLCfrq) * (data_block_size-4) * no_of_spectra_to_average
+    print (' Time resultion of averaged spectrum:  ', round(real_av_spectra_dt*1000, 3), ' ms.')
+
+
 
     #*******************************************************************************
     #                          R E A D I N G   D A T A                             *
@@ -146,10 +155,8 @@ for fileNo in range (len(fileList)):   # loop by files
                 wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_to_average], order='F')
 
 
-            '''
-            !!! *** TO BE COMPLETED *** !!!
-            '''
 
+            # Timing aquirement
             timeline_block_str = JDS_WF_time(wf_data, CLCfrq, data_block_size)
             TimeScaleFig.append(timeline_block_str[-1][0:12])
 
@@ -299,6 +306,7 @@ for fileNo in range (len(fileList)):   # loop by files
     dyn_spectra_chA[np.isinf(dyn_spectra_chA)] = 40
     if Channel == 2: dyn_spectra_chB[np.isinf(dyn_spectra_chB)] = 40
 
+
     #*******************************************************************************
     #            P L O T T I N G    D Y N A M I C    S P E C T R A                 *
     #*******************************************************************************
@@ -322,7 +330,8 @@ for fileNo in range (len(fileList)):   # loop by files
                 str(1)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+
                 str(round(df/1000.,3))+' kHz, Receiver: '+str(df_system_name)+', Place: '+
                 str(df_obs_place)+'\n'+ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
-                ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+', Description: '+str(df_description))
+                ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+
+                ' ('+str(round(no_of_spectra_to_average*TimeRes, 3))+' sec.), Description: '+str(df_description))
 
     fig_file_name = (initial_spectra_folder + '/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' +
                     str(0+1) + '.png')
@@ -357,8 +366,8 @@ for fileNo in range (len(fileList)):   # loop by files
                 str(1)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+
                 str(round(df/1000.,3))+' kHz, Receiver: '+str(df_system_name)+', Place: '+
                 str(df_obs_place)+'\n'+ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
-                ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+
-                ', Description: '+str(df_description))
+                ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+' ('+str(round(no_of_spectra_to_average*TimeRes, 3))+
+                ' sec.), Description: '+str(df_description))
 
     fig_file_name = (result_folder + '/' + df_filename[0:14] + ' Normalized and cleaned dynamic spectrum fig.' +
                     str(0+1) + '.png')
