@@ -7,7 +7,7 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'h:/!!! Radioastronomical observations/2019.04.02_UTR2_3C461_interferometer/'  #'DATA/'
+directory = 'DATA/'  #'DATA/'
 
 MaxNim = 8192                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning
