@@ -64,7 +64,7 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import pulsar_data_clean
+from f_ra_data_clean import array_clean_by_lines_and_STD
 
 
 #*************************************************************
@@ -153,7 +153,10 @@ for j in range(1):  # Main loop by types of data to analyze
 
         Normalization_lin(data, num_frequencies, num_spectra)
 
-        pulsar_data_clean(data)
+        #pulsar_data_clean(data)
+
+        data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 2, 4)
+
 
 
         nowTime = time.time()

@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pylab
 import math
+import time
 
 # *** Deleting cahnnels with strong RFI ***
 def simple_channel_clean(Data, RFImeanConst):
@@ -28,6 +29,8 @@ def array_clean_by_lines_and_STD(array, theshold_sigm, min_line_length):
     # Takes an arra and cleans lines and columns of specified lengths where all elements
     # are greater than specified number of STDs of array
     '''
+    startTime = time.time()
+    previousTime = startTime
 
     no_of_lines, no_of_columns = array.shape
     init_sigm = np.std(array)
@@ -53,43 +56,61 @@ def array_clean_by_lines_and_STD(array, theshold_sigm, min_line_length):
 
     mask = np.zeros_like(array) # mask for cleaning the data
 
-    # Vertical lines cleaning
+    # Vertical lines mapping
     for line_len in column_len_list:
         for j in range (no_of_columns):
             for i in range (no_of_lines - line_len * min_line_length):
                 if all(array[i : i + line_len * min_line_length, j] > theshold_sigm * init_sigm):
                     mask[i : i + line_len * min_line_length, j] = 1
 
-    # Horizontal lines cleaning
+    # Horizontal lines mapping
     for line_len in column_len_list:
         for j in range (no_of_lines):
             for i in range (no_of_columns - line_len * min_line_length):
                 if all(array[j, i : i + line_len * min_line_length] > theshold_sigm * init_sigm):
                     mask[j, i : i + line_len * min_line_length] = 1
 
-    '''
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    ImA = plt.imshow(mask, aspect='auto', vmin=0, vmax=1, cmap='Greys')
-    plt.title('Full log initial data', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-    plt.ylabel('One dimension', fontsize = 10, fontweight='bold')
-    plt.xlabel('Second dimensions', fontsize = 10, fontweight='bold')
-    plt.colorbar()
-    plt.yticks(fontsize = 8, fontweight = 'bold')
-    plt.xticks(fontsize = 8, fontweight = 'bold')
-    pylab.savefig("RFI_mitigation_try"+'/00 - mask.png', bbox_inches='tight', dpi = 300)
-    plt.close('all')
-    '''
+    nowTime = time.time()
+    print ('\n  *** Making the mask took                    ', round((nowTime - previousTime), 2), 'seconds ')
+    previousTime = nowTime
 
     array = np.ma.array(array, mask = mask)
     mean_new = np.mean(array)
+    cleaned_pixels_num = np.sum(mask)
+
     print(' * New mean value of array:                   ', mean_new)
-    print(' * New standard deviation value of array:     ', np.std(array),'\n')
+    print(' * New standard deviation value of array:     ', np.std(array))
+    print(' * Number of cleaned pixels:                  ', int(cleaned_pixels_num))
+    print(' * In percent to the array dimensions:        ', np.round(100 * (cleaned_pixels_num / (no_of_lines * no_of_columns)), 2),' % \n')
+
+    nowTime = time.time()
+    print ('\n  *** Making mask and printing took           ', round((nowTime - previousTime), 2), 'seconds ')
+    previousTime = nowTime
 
     array.mask = False
     array = array * np.abs(mask - 1) + mask * mean_new
 
-    return array
+    nowTime = time.time()
+    print ('\n  *** Cleaning took                           ', round((nowTime - previousTime), 2), 'seconds ')
+    previousTime = nowTime
+
+    return array, cleaned_pixels_num
+
+'''
+plt.figure(1, figsize=(10.0, 6.0))
+plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+ImA = plt.imshow(mask, aspect='auto', vmin=0, vmax=1, cmap='Greys')
+plt.title('Full log initial data', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+plt.ylabel('One dimension', fontsize = 10, fontweight='bold')
+plt.xlabel('Second dimensions', fontsize = 10, fontweight='bold')
+plt.colorbar()
+plt.yticks(fontsize = 8, fontweight = 'bold')
+plt.xticks(fontsize = 8, fontweight = 'bold')
+pylab.savefig("RFI_mitigation_try"+'/00 - mask.png', bbox_inches='tight', dpi = 300)
+plt.close('all')
+'''
+
+
 
 '''
 def pulsar_data_clean(Data):

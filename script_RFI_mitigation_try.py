@@ -65,7 +65,7 @@ plt.close('all')
 
 
 
-array = array_clean_by_lines_and_STD(array, 2, 4)
+array, cleaned_pixels_num = array_clean_by_lines_and_STD(array, 2, 4)
 
 
 
