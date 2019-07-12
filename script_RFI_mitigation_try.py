@@ -43,10 +43,12 @@ print('Mean = ', np.mean(array))
 print('STD = ', np.std(array),'\n')
 
 
-array[10:25, 10] = 25.0
-array[15:45, 56] = 25.0
-array[36, 48:96] = 3.5
-array[87, 28:56] = 3.5
+array[10:25, 10] = 3.0
+array[15:124, 56] = 3.0
+array[36, 48:96] = 3.0
+array[87, 28:56] = 3.0
+array[127, 38:96] = 3.0
+array[10:90, 250] = 3.0
 
 
 plt.figure(1, figsize=(10.0, 6.0))
@@ -63,7 +65,7 @@ plt.close('all')
 
 
 
-array = array_clean_by_lines_and_STD(array, 3, 4)
+array = array_clean_by_lines_and_STD(array, 2, 4)
 
 
 

@@ -54,19 +54,20 @@ def array_clean_by_lines_and_STD(array, theshold_sigm, min_line_length):
     mask = np.zeros_like(array) # mask for cleaning the data
 
     # Vertical lines cleaning
-    for line_len in line_len_list:
+    for line_len in column_len_list:
         for j in range (no_of_columns):
-            for i in range (no_of_lines - line_len):
-                if all(array[i : i + line_len, j] > theshold_sigm * init_sigm):
-                    mask[i : i + line_len, j] = 1
+            for i in range (no_of_lines - line_len * min_line_length):
+                if all(array[i : i + line_len * min_line_length, j] > theshold_sigm * init_sigm):
+                    mask[i : i + line_len * min_line_length, j] = 1
 
     # Horizontal lines cleaning
     for line_len in column_len_list:
         for j in range (no_of_lines):
-            for i in range (no_of_columns - line_len):
-                if all(array[j, i : i + line_len] > theshold_sigm * init_sigm):
-                    mask[j, i : i + line_len] = 1
+            for i in range (no_of_columns - line_len * min_line_length):
+                if all(array[j, i : i + line_len * min_line_length] > theshold_sigm * init_sigm):
+                    mask[j, i : i + line_len * min_line_length] = 1
 
+    '''
     plt.figure(1, figsize=(10.0, 6.0))
     plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
     ImA = plt.imshow(mask, aspect='auto', vmin=0, vmax=1, cmap='Greys')
@@ -78,7 +79,7 @@ def array_clean_by_lines_and_STD(array, theshold_sigm, min_line_length):
     plt.xticks(fontsize = 8, fontweight = 'bold')
     pylab.savefig("RFI_mitigation_try"+'/00 - mask.png', bbox_inches='tight', dpi = 300)
     plt.close('all')
-
+    '''
 
     array = np.ma.array(array, mask = mask)
     mean_new = np.mean(array)
