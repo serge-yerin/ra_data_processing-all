@@ -64,7 +64,7 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import array_clean_by_lines_and_STD
+from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD
 
 
 #*************************************************************
@@ -151,16 +151,25 @@ for j in range(1):  # Main loop by types of data to analyze
             data[num_frequencies-4:num_frequencies-1, :] = mean_data
 
 
+        nowTime = time.time()
+        print ('\n  * Preparation of data took:            ', round((nowTime - previousTime), 2), 'seconds ')
+        previousTime = nowTime
+
+        #plot2Da(data_log, newpath+'/02 - Full log initial data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
+
+
         Normalization_lin(data, num_frequencies, num_spectra)
 
-        #pulsar_data_clean(data)
+        data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 2, 1, 4)
 
-        data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 2, 4)
+        #print('\n  STEP 2 \n')
+        #data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 4)
 
+        # data, cleaned_pixels_num = array_clean_by_STD_value (data, 0.5)
 
 
         nowTime = time.time()
-        print ('\n  * Normalization and cleaning      took ', round((nowTime - previousTime), 2), 'seconds ')
+        print ('\n  * Normalization and cleaning took:     ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
 
@@ -168,9 +177,6 @@ for j in range(1):  # Main loop by types of data to analyze
         #if receiver_type == '.jds':
             # mean_data = np.mean(data)
             # data[num_frequencies-4:num_frequencies-1, :] = mean_data
-
-
-        #plot2Da(data, newpath+'/02 - Cleaned data.png', frequencyList0, np.min(data), np.max(data), colormap, 'Cleaned data', customDPI)
 
 
 
@@ -187,9 +193,10 @@ for j in range(1):  # Main loop by types of data to analyze
 
 
 
+    plot2Da(data_log, newpath+'/03 - Full log cleaned data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
 
 
-    #plot2Da(data_log, newpath+'/03 - Full log cleaned data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
+    '''
     plt.figure(1, figsize=(10.0, 6.0))
     plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
     ImA = plt.imshow(np.flipud(data_log), aspect='auto', vmin=np.min(data_log), vmax=np.max(data_log), cmap=colormap, extent=[0,num_spectra,frequencyList0[0],frequencyList0[len(frequencyList0)-1]])
@@ -201,11 +208,9 @@ for j in range(1):  # Main loop by types of data to analyze
     plt.xticks(fontsize = 8, fontweight = 'bold')
     pylab.savefig(newpath+'/03 - Full log cleaned data.png', bbox_inches='tight', dpi = customDPI)
     plt.close('all')
-
+    '''
     plot1D(data_log[:,1], newpath+'/04a - Cleaned data single specter.png', 'Label', 'Initial data specter', 'Frequency, MHz', 'Amplitude, AU', customDPI)
     plot1D(data_log[1,:], newpath+'/04b - Cleaned data single channel.png', 'Label', 'Initial data channel', 'Time, spectra counts', 'Amplitude, AU', customDPI)
-
-    pause
 
 
 
