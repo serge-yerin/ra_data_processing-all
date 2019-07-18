@@ -160,7 +160,21 @@ for j in range(1):  # Main loop by types of data to analyze
 
         Normalization_lin(data, num_frequencies, num_spectra)
 
-        data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 2, 1, 4)
+
+
+
+        data_log = np.empty((num_frequencies, num_spectra), float)
+        # Average and log data
+        with np.errstate(invalid='ignore'):
+            data_log[:,:] = 10 * np.log10(data[:,:])
+        data_log[np.isnan(data_log)] = 0
+        plot2Da(data_log, newpath+'/02 - Full log initial data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
+        del data_log
+
+
+
+
+        data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 0.8, 4)
 
         #print('\n  STEP 2 \n')
         #data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 4)

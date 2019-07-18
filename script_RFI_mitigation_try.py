@@ -49,7 +49,8 @@ array[36, 48:96] = 3.5
 array[87, 28:56] = 3.5
 array[127, 38:96] = 3.5
 array[10:90, 250] = 3.5
-
+array[91:126, 33] = -3.5
+array[10:90, 240] = -3.5
 
 plt.figure(1, figsize=(10.0, 6.0))
 plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)

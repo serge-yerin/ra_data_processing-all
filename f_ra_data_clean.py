@@ -123,6 +123,8 @@ def array_clean_by_lines_and_STD(array, num_of_iterations, theshold_sigm, min_li
             for i in range (no_of_lines - line_len * min_line_length):
                 if all(array[i : i + line_len * min_line_length, j] > theshold_sigm * init_sigm):
                     mask[i : i + line_len * min_line_length, j] = 1
+                if all(array[i : i + line_len * min_line_length, j] < - theshold_sigm * init_sigm):
+                    mask[i : i + line_len * min_line_length, j] = 1
 
         nowTime = time.time()
         print ('\n  *** Half of mask making took                ', round((nowTime - previousTime), 2), 'seconds ')
@@ -135,6 +137,9 @@ def array_clean_by_lines_and_STD(array, num_of_iterations, theshold_sigm, min_li
             for i in range (no_of_columns - line_len * min_line_length):
                 if all(array[j, i : i + line_len * min_line_length] > theshold_sigm * init_sigm):
                     mask[j, i : i + line_len * min_line_length] = 1
+                if all(array[j, i : i + line_len * min_line_length] < - theshold_sigm * init_sigm):
+                    mask[j, i : i + line_len * min_line_length] = 1
+
 
         nowTime = time.time()
         print ('\n  *** Making the mask took                    ', round((nowTime - previousTime), 2), 'seconds ')
