@@ -64,7 +64,7 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD
+from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD, clean_try
 
 
 #*************************************************************
@@ -146,9 +146,13 @@ for j in range(1):  # Main loop by types of data to analyze
         data = np.reshape(data, [num_frequencies, num_spectra], order='F')
 
         # To mask the last channels of DSP where exact time is stored
+        '''
         if receiver_type == '.jds':
             mean_data = np.mean(data)
-            data[num_frequencies-4:num_frequencies-1, :] = mean_data
+            data[num_frequencies-4 : num_frequencies-1, :] = mean_data
+        '''
+        num_frequencies = num_frequencies -4
+        data = data[ : num_frequencies, :]
 
 
         nowTime = time.time()
@@ -163,34 +167,28 @@ for j in range(1):  # Main loop by types of data to analyze
 
 
 
+        # Log data to examine it in a plot
         data_log = np.empty((num_frequencies, num_spectra), float)
-        # Average and log data
+
         with np.errstate(invalid='ignore'):
             data_log[:,:] = 10 * np.log10(data[:,:])
         data_log[np.isnan(data_log)] = 0
+
         plot2Da(data_log, newpath+'/02 - Full log initial data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
         del data_log
 
 
 
 
-        data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 0.8, 4)
+        #data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 0.8, 4)
+        data, cleaned_pixels_num = clean_try(data, 3, 1, 3)
+        data, cleaned_pixels_num = array_clean_by_STD_value(data, 2.8)
 
-        #print('\n  STEP 2 \n')
-        #data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 4)
-
-        # data, cleaned_pixels_num = array_clean_by_STD_value (data, 0.5)
 
 
         nowTime = time.time()
         print ('\n  * Normalization and cleaning took:     ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
-
-
-        # To mask the last channels of DSP where exact time is stored
-        #if receiver_type == '.jds':
-            # mean_data = np.mean(data)
-            # data[num_frequencies-4:num_frequencies-1, :] = mean_data
 
 
 
@@ -263,7 +261,10 @@ endTime = time.time()    # Time of calculations
 
 
 for i in range (0,2) : print (' ')
-print ('   The program execution lasted for ', round((endTime - startTime),3), 'seconds')
+#print ('   The program execution lasted for ', round((endTime - startTime),3), 'seconds')
+print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+                                                round((endTime - startTime)/60, 2), 'min. ) \n')
+
 for i in range (0,2) : print (' ')
 print ('                 *** Program PULSAR_single_pulse_reader has finished! ***')
 for i in range (0,3) : print (' ')

@@ -18,7 +18,7 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD   # pulsar_data_clean
+from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD, clean_try   # pulsar_data_clean
 
 
 
@@ -67,8 +67,8 @@ plt.close('all')
 
 
 # array, cleaned_pixels_num = array_clean_by_lines_and_STD(array, 2, 4)
-array, cleaned_pixels_num =  array_clean_by_lines_and_STD(array, 3, 3, 4)
-
+#array, cleaned_pixels_num =  array_clean_by_lines_and_STD(array, 3, 3, 4)
+array, cleaned_pixels_num = clean_try(array, 3, 3, 4)
 
 plt.figure(1, figsize=(10.0, 6.0))
 plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)

@@ -3,7 +3,7 @@
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 foldpath = 'DATA/'
-filename = '20190710_211300_BST.fits'
+filename = '20190718_210100_BST.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot
