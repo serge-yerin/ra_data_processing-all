@@ -64,7 +64,8 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD, clean_try
+from f_ra_data_clean import array_clean_by_STD_value, clean_lines_of_pixels
+from f_data_manipulations import average_some_lines_of_array, DM_compensation_with_indices_changes
 
 
 #*************************************************************
@@ -110,7 +111,7 @@ for j in range(1):  # Main loop by types of data to analyze
     receiver_type = df_filename[-4:]
 
 
-
+    # Reading file header to obtain main parameters of the file
     if receiver_type == '.adr':
         [TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderADR(filename, 0)
     if receiver_type == '.jds':
@@ -161,10 +162,8 @@ for j in range(1):  # Main loop by types of data to analyze
 
         #plot2Da(data_log, newpath+'/02 - Full log initial data.png', frequencyList0, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
 
-
+        # Normalization of data
         Normalization_lin(data, num_frequencies, num_spectra)
-
-
 
 
         # Log data to examine it in a plot
@@ -179,17 +178,39 @@ for j in range(1):  # Main loop by types of data to analyze
 
 
 
+        # Cleaning vertical and horizontal lines of RFI
+        data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, 3, 1, 3)
 
-        #data, cleaned_pixels_num = array_clean_by_lines_and_STD(data, 1, 0.8, 4)
-        data, cleaned_pixels_num = clean_try(data, 3, 1, 3)
-        data, cleaned_pixels_num = array_clean_by_STD_value(data, 2.8)
+        plt.figure(1, figsize=(10.0, 6.0))
+        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+        ImA = plt.imshow(mask, aspect='auto', vmin=0, vmax=1, cmap='Greys')
+        plt.title('Full log initial data', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+        plt.ylabel('One dimension', fontsize = 10, fontweight='bold')
+        plt.xlabel('Second dimensions', fontsize = 10, fontweight='bold')
+        plt.colorbar()
+        plt.yticks(fontsize = 8, fontweight = 'bold')
+        plt.xticks(fontsize = 8, fontweight = 'bold')
+        pylab.savefig(newpath+'/00_10 - Result mask after lines cleaning.png', bbox_inches='tight', dpi = 300)
+        plt.close('all')
+
+        data, mask, cleaned_pixels_num = array_clean_by_STD_value(data, 2.8)
 
 
+        plt.figure(1, figsize=(10.0, 6.0))
+        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+        ImA = plt.imshow(mask, aspect='auto', vmin=0, vmax=1, cmap='Greys')
+        plt.title('Full log initial data', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+        plt.ylabel('One dimension', fontsize = 10, fontweight='bold')
+        plt.xlabel('Second dimensions', fontsize = 10, fontweight='bold')
+        plt.colorbar()
+        plt.yticks(fontsize = 8, fontweight = 'bold')
+        plt.xticks(fontsize = 8, fontweight = 'bold')
+        pylab.savefig(newpath+'/00_11 - Mask after fine STD cleaning.png', bbox_inches='tight', dpi = 300)
+        plt.close('all')
 
         nowTime = time.time()
         print ('\n  * Normalization and cleaning took:     ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
-
 
 
         data_log = np.empty((num_frequencies, num_spectra), float)
@@ -229,9 +250,15 @@ for j in range(1):  # Main loop by types of data to analyze
     temp_array = np.zeros((num_frequencies, 4 * max_shift))
 
     temp_array[:, 4 * max_shift - num_spectra : 4 * max_shift] = data_log[:,:]
+    del data_log
 
+    '''
     for i in range (num_frequencies):
         temp_array[i] = np.roll(temp_array[i], shift_vector[i])
+    '''
+    temp_array = DM_compensation_with_indices_changes(temp_array, shift_vector[0: num_frequencies])
+
+
 
     plot2Da(temp_array, newpath+'/05 - DM compensated data.png', frequencyList0, np.min(temp_array), np.max(temp_array), colormap, 'DM compensated data', customDPI)
 
@@ -249,11 +276,37 @@ for j in range(1):  # Main loop by types of data to analyze
 
     spectrum = array_compensated_DM.mean(axis=1)[:]
     profile = array_compensated_DM.mean(axis=0)[:]
+    profile = profile - np.mean(profile)
 
     plot1D(spectrum, newpath+'/08 - Averaged spectrum.png', 'Label', 'Averaged spectrum', 'x_label', 'y_label', customDPI)
-    plot1D(profile,  newpath+'/09 - Temporal profile of pulses.png', 'Label', 'Temporal profile of pulses', 'x_label', 'y_label', customDPI)
+    #plot1D(profile,  newpath+'/09 - Temporal profile of pulses.png', 'Label', 'Temporal profile of pulses', 'x_label', 'y_label', customDPI)
 
 
+    averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/192))
+
+    no_of_lines, no_of_columns = averaged_array.shape
+    print(' * Array shape:                               ', no_of_lines,' * ', no_of_columns)
+
+
+    fig = plt.figure(figsize = (9, 6))
+    ax1 = fig.add_subplot(211)
+    ax1.plot(profile, color =u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '1.00', label = 'Pulses time profile')
+    ax1.legend(loc = 'upper right', fontsize = 6)
+    ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+    ax1.axis([0, len(profile), -0.1, 0.5])
+    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+    ax1.set_title('Average profile of pulses in time', fontsize = 6)
+    ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+    ax2 = fig.add_subplot(212)
+    ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap='Greys') # vmin=-4, vmax=4,
+    ax2.set_xlabel('Time, counts', fontsize=6, fontweight='bold')
+    ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
+    fig.subplots_adjust(hspace=0.05, top=0.94)
+    fig.suptitle('SupTitle', fontsize = 8, fontweight='bold')
+    fig.text(0.73, 0.06, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.06, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    pylab.savefig(newpath+'/10 - Combined picture.png', bbox_inches = 'tight', dpi = 300)
+    plt.close('all')
 
 
 

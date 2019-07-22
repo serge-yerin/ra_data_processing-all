@@ -27,7 +27,6 @@ def simple_channel_clean(Data, RFImeanConst):
 
 
 
-
 def array_clean_by_STD_value(array, theshold_sigm):
 
     startTime = time.time()
@@ -43,8 +42,7 @@ def array_clean_by_STD_value(array, theshold_sigm):
     print(' * Initial mean value of array:               ', init_mean)
     print(' * Initial standard deviation value of array: ', init_sigm,'\n')
 
-    #ma.masked_outside(x, -0.3, 0.3)
-
+    # Masking the initial array outside the value interval
     array = np.ma.masked_outside(array, init_mean - theshold_sigm * init_sigm, init_mean + theshold_sigm * init_sigm)
 
     nowTime = time.time()
@@ -68,7 +66,7 @@ def array_clean_by_STD_value(array, theshold_sigm):
     print ('\n  *** Applying mask and printing took        ', round((nowTime - previousTime), 2), 'seconds ')
     previousTime = nowTime
 
-    return array, cleaned_pixels_num
+    return array, mask, cleaned_pixels_num
 
 
 
@@ -167,19 +165,6 @@ def array_clean_by_lines_and_STD(array, num_of_iterations, theshold_sigm, min_li
 
     return array, cleaned_pixels_num
 
-'''
-plt.figure(1, figsize=(10.0, 6.0))
-plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-ImA = plt.imshow(mask, aspect='auto', vmin=0, vmax=1, cmap='Greys')
-plt.title('Full log initial data', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-plt.ylabel('One dimension', fontsize = 10, fontweight='bold')
-plt.xlabel('Second dimensions', fontsize = 10, fontweight='bold')
-plt.colorbar()
-plt.yticks(fontsize = 8, fontweight = 'bold')
-plt.xticks(fontsize = 8, fontweight = 'bold')
-pylab.savefig("RFI_mitigation_try"+'/00 - mask.png', bbox_inches='tight', dpi = 300)
-plt.close('all')
-'''
 
 
 '''
@@ -258,19 +243,25 @@ def pulsar_data_clean(Data):
 
     return Data
 '''
-def clean_try(array, num_of_iterations, theshold_sigm, min_line_length):
+def clean_lines_of_pixels(array, num_of_iterations, theshold_sigm, min_line_length):
 
     line_len = 1
 
     startTime = time.time()
     previousTime = startTime
+
+    # Preparing mask array for all iterations
+    mask_full = np.zeros_like(array, dtype = bool) # mask for cleaning the data
+
+    # Making numpy array able to be masked
     array = np.ma.array(array, mask = False)
+
+    no_of_lines, no_of_columns = array.shape
 
     for iter in range(num_of_iterations):
         print ('\n * Iteration # ', iter+1, ' of ', num_of_iterations)
         print (' ****************************************************************** \n')
 
-        no_of_lines, no_of_columns = array.shape
         init_sigm = np.std(array)
 
         print(' * Array shape:                               ', no_of_lines,' * ', no_of_columns)
@@ -287,6 +278,7 @@ def clean_try(array, num_of_iterations, theshold_sigm, min_line_length):
         mask_array = masked_array.mask
         del masked_array
 
+        # Preparing mask array for current iteration
         mask_result = np.zeros_like(mask_array) # mask for cleaning the data
 
         for j in range (no_of_lines):
@@ -324,7 +316,7 @@ def clean_try(array, num_of_iterations, theshold_sigm, min_line_length):
         previousTime = nowTime
 
 
-
+        '''
         plt.figure(1, figsize=(10.0, 6.0))
         plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
         ImA = plt.imshow(mask_result, aspect='auto', vmin=0, vmax=1, cmap='Greys')
@@ -349,9 +341,12 @@ def clean_try(array, num_of_iterations, theshold_sigm, min_line_length):
         pylab.savefig("PULSAR_single_pulses"+'/00_'+str(iter)+' - mask_sigm.png', bbox_inches='tight', dpi = 300)
         plt.close('all')
 
-
         nowTime = time.time()
         print ('\n  *** Making the picture took                 ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
+        '''
 
-    return array, cleaned_pixels_num
+        mask_full = np.logical_xor(mask_full, mask_result)
+
+
+    return array, mask_full, cleaned_pixels_num
