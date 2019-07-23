@@ -52,6 +52,9 @@ array[127, 38:96] = 3.5
 array[10:90, 250] = 3.5
 array[91:126, 33] = -3.5
 array[10:90, 240] = -3.5
+array[40:44, 120] = 3.5
+array[42, 118:124] = 3.5
+
 
 plt.figure(1, figsize=(10.0, 6.0))
 plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
@@ -67,15 +70,6 @@ plt.close('all')
 
 # array, cleaned_pixels_num = array_clean_by_lines_and_STD(array, 3, 3, 4)
 array, mask, cleaned_pixels_num = clean_lines_of_pixels(array, 3, 3, 4)
-
-
-
-reduced_array = average_some_lines_of_array(array, 8)
-
-
-
-no_of_lines, no_of_columns = reduced_array.shape
-print(' * Array shape:                               ', no_of_lines,' * ', no_of_columns)
 
 
 
@@ -102,17 +96,4 @@ plt.colorbar()
 plt.yticks(fontsize = 8, fontweight = 'bold')
 plt.xticks(fontsize = 8, fontweight = 'bold')
 pylab.savefig(newpath+'/02 - Cleaned array.png', bbox_inches='tight', dpi = 300)
-plt.close('all')
-
-
-plt.figure(1, figsize=(10.0, 6.0))
-plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-ImA = plt.imshow(reduced_array, aspect='auto', vmin=-4, vmax=4, cmap='Greys')
-plt.title('Full log initial data', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-plt.ylabel('One dimension', fontsize = 10, fontweight='bold')
-plt.xlabel('Second dimensions', fontsize = 10, fontweight='bold')
-plt.colorbar()
-plt.yticks(fontsize = 8, fontweight = 'bold')
-plt.xticks(fontsize = 8, fontweight = 'bold')
-pylab.savefig(newpath+'/03 - Reduced array.png', bbox_inches='tight', dpi = 300)
 plt.close('all')

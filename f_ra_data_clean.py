@@ -293,7 +293,7 @@ def clean_lines_of_pixels(array, num_of_iterations, theshold_sigm, min_line_leng
 
 
         nowTime = time.time()
-        print ('\n  *** Making the mask took                    ', round((nowTime - previousTime), 2), 'seconds ')
+        print ('\n  *** Making the mask took                    ', round((nowTime - previousTime), 2), 'seconds \n')
         previousTime = nowTime
 
 
