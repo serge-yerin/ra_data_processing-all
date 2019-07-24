@@ -11,7 +11,7 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 filename = 'E300117_180000.jds_Data_chA.dat'
 
-Cleaning = 1                   # Apply cleaning to data (1) or skip it (0)
+Cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
 StartStopSwitch = 1            # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
 VminMan = -110                 # Manual lower limit of immediate spectrum figure color range
@@ -154,7 +154,7 @@ for j in range(1):  # Main loop by           of data to analyze
         # Normalization of data
         Normalization_lin(data, num_frequencies, num_spectra)
 
-
+        '''
         # Log data to examine it in a plot
         data_log = np.empty((num_frequencies, num_spectra), float)
 
@@ -164,7 +164,7 @@ for j in range(1):  # Main loop by           of data to analyze
 
         plot2Da(data_log, newpath+'/02'+ ' fig. ' +str(block+1)+' - Full log initial data.png', frequency_list, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
         del data_log
-
+        '''
 
         if Cleaning > 0:
 
@@ -245,10 +245,11 @@ for j in range(1):  # Main loop by           of data to analyze
             temp_array[:, 3 * max_shift : ] = 0
             buffer_array += temp_array
         else:
+            temp_array = DM_compensation_with_indices_changes(temp_array, np.full(num_frequencies, - max_shift) )
             buffer_array += temp_array
             #buffer_array[:] = np.roll(buffer_array[:], - max_shift)
-            buffer_array = DM_compensation_with_indices_changes(buffer_array, np.full(num_frequencies, - max_shift) )
-            buffer_array[:, 3 * max_shift : ] = 0
+
+
 
         plot2Da(temp_array, newpath+'/06'+ ' fig. ' +str(block+1)+' - DM compensated data.png', frequency_list, np.min(temp_array), np.max(temp_array), colormap, 'Shifted compensated full data', customDPI)
 
@@ -258,18 +259,26 @@ for j in range(1):  # Main loop by           of data to analyze
 
 
         # Making and filling the array with fully ready data for plotting and saving to a file
-        array_compensated_DM = np.zeros((num_frequencies, max_shift), float)
-        array_compensated_DM = buffer_array[:, 0 : max_shift]
+        if block == 0:
+            array_compensated_DM = np.zeros((num_frequencies, max_shift), float)
+            array_compensated_DM = buffer_array[:, 0 : max_shift]
+            buffer_array = DM_compensation_with_indices_changes(buffer_array, np.full(num_frequencies, - max_shift) )
+            buffer_array[:, 3 * max_shift : ] = 0
+        else:
+            array_compensated_DM = np.zeros((num_frequencies, num_spectra), float)
+            array_compensated_DM = buffer_array[:, 0 : num_spectra]
+            buffer_array = DM_compensation_with_indices_changes(buffer_array, np.full(num_frequencies, - num_spectra) )
+            buffer_array[:, max_shift : ] = 0
 
         #del temp_array
 
-        plot2Da(array_compensated_DM, newpath+'/07 '+ ' fig. ' +str(block+1)+'- Only full ready data.png', frequency_list, np.min(array_compensated_DM), np.max(array_compensated_DM), colormap, 'Only full ready data', customDPI)
+        plot2Da(array_compensated_DM, newpath+'/07' + ' fig. ' +str(block+1)+'- Only full ready data.png', frequency_list, np.min(array_compensated_DM), np.max(array_compensated_DM), colormap, 'Only full ready data', customDPI)
 
         spectrum = array_compensated_DM.mean(axis=1)[:]
         profile = array_compensated_DM.mean(axis=0)[:]
         profile = profile - np.mean(profile)
 
-        plot1D(spectrum, newpath+'/08 - Averaged spectrum.png', 'Label', 'Averaged spectrum', 'x_label', 'y_label', customDPI)
+        plot1D(spectrum, newpath+'/08' + ' fig. ' +str(block+1)+' - Averaged spectrum.png', 'Label', 'Averaged spectrum', 'x_label', 'y_label', customDPI)
         #plot1D(profile,  newpath+'/09 - Temporal profile of pulses.png', 'Label', 'Temporal profile of pulses', 'x_label', 'y_label', customDPI)
 
 
