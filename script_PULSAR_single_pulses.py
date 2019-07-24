@@ -11,7 +11,9 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 filename = 'E300117_180000.jds_Data_chA.dat'
 
-Cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
+cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
+average_const = 192            # Number of frequency channels in result picture
+
 StartStopSwitch = 1            # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
 VminMan = -110                 # Manual lower limit of immediate spectrum figure color range
@@ -91,7 +93,7 @@ if not os.path.exists(newpath):
     os.makedirs(newpath)
 
 
-for j in range(1):  # Main loop by           of data to analyze
+for type in range(1):  # Main loop by           of data to analyze
 
     # *** Opening DAT datafile ***
 
@@ -127,7 +129,6 @@ for j in range(1):  # Main loop by           of data to analyze
     print (' Maximal shift is:              ', max_shift, ' pixels \n')
 
     num_spectra = 2 * max_shift
-
     buffer_array = np.zeros((num_frequencies, 4 * max_shift))
 
 
@@ -135,7 +136,7 @@ for j in range(1):  # Main loop by           of data to analyze
     dat_file.seek(1024)                     # Jumping to 1024 byte from file beginning
 
     # Calculate the number of blocks in file
-    numOfBlocks = 4
+    numOfBlocks = 3
     for block in range (numOfBlocks):
 
         print ('\n * Data block # ', block + 1, '\n ****************************************************************** \n')
@@ -166,10 +167,10 @@ for j in range(1):  # Main loop by           of data to analyze
         del data_log
         '''
 
-        if Cleaning > 0:
+        if cleaning > 0:
 
             # Cleaning vertical and horizontal lines of RFI
-            data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, 3, 1, 3)
+            data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, 2, 1, 3)
 
             plt.figure(1, figsize=(10.0, 6.0))
             plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
@@ -204,7 +205,7 @@ for j in range(1):  # Main loop by           of data to analyze
 
 
 
-        # Averaging and logging data
+        # Logging the data
         data_log = np.empty((num_frequencies, num_spectra), float)
         with np.errstate(invalid='ignore'):
             data_log[:,:] = 10 * np.log10(data[:,:])
@@ -213,11 +214,13 @@ for j in range(1):  # Main loop by           of data to analyze
 
 
 
+        data_log = data_log - np.mean(data_log)
 
-        plot2Da(data_log, newpath+'/03 '+ ' fig. ' +str(block+1)+'- Full log cleaned data.png', frequency_list, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
 
-        plot1D(data_log[:,1], newpath+'/04a '+ ' fig. ' +str(block+1)+'- Cleaned data single specter.png', 'Label', 'Initial data specter', 'Frequency, MHz', 'Amplitude, AU', customDPI)
-        plot1D(data_log[1,:], newpath+'/04b '+ ' fig. ' +str(block+1)+'- Cleaned data single channel.png', 'Label', 'Initial data channel', 'Time, spectra counts', 'Amplitude, AU', customDPI)
+
+        #plot2Da(data_log, newpath+'/03 '+ ' fig. ' +str(block+1)+'- Full log cleaned data.png', frequency_list, np.min(data_log), np.max(data_log), colormap, 'Full log initial data', customDPI)
+        #plot1D(data_log[:,1], newpath+'/04a '+ ' fig. ' +str(block+1)+'- Cleaned data single specter.png', 'Label', 'Initial data specter', 'Frequency, MHz', 'Amplitude, AU', customDPI)
+        #plot1D(data_log[1,:], newpath+'/04b '+ ' fig. ' +str(block+1)+'- Cleaned data single channel.png', 'Label', 'Initial data channel', 'Time, spectra counts', 'Amplitude, AU', customDPI)
 
 
         nowTime = time.time() #                            '
@@ -240,15 +243,12 @@ for j in range(1):  # Main loop by           of data to analyze
 
         # Rolling temp_array to put current data first
         if block == 0:
-            #temp_array[:] = np.roll(temp_array[:], - num_spectra)
-            temp_array = DM_compensation_with_indices_changes(temp_array, np.full(num_frequencies, - num_spectra) )
-            temp_array[:, 3 * max_shift : ] = 0
+            temp_array = np.roll(temp_array, - num_spectra)
+            #temp_array[:, 3 * max_shift : ] = 0
             buffer_array += temp_array
         else:
-            temp_array = DM_compensation_with_indices_changes(temp_array, np.full(num_frequencies, - max_shift) )
+            temp_array = np.roll(temp_array, - max_shift)
             buffer_array += temp_array
-            #buffer_array[:] = np.roll(buffer_array[:], - max_shift)
-
 
 
         plot2Da(temp_array, newpath+'/06'+ ' fig. ' +str(block+1)+' - DM compensated data.png', frequency_list, np.min(temp_array), np.max(temp_array), colormap, 'Shifted compensated full data', customDPI)
@@ -257,33 +257,35 @@ for j in range(1):  # Main loop by           of data to analyze
         print ('\n  * Data rolling took:                   ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
+        del temp_array
 
         # Making and filling the array with fully ready data for plotting and saving to a file
         if block == 0:
             array_compensated_DM = np.zeros((num_frequencies, max_shift), float)
             array_compensated_DM = buffer_array[:, 0 : max_shift]
-            buffer_array = DM_compensation_with_indices_changes(buffer_array, np.full(num_frequencies, - max_shift) )
-            buffer_array[:, 3 * max_shift : ] = 0
+            buffer_array = np.roll(buffer_array, - max_shift)
+            #buffer_array[:, max_shift : ] = 0
         else:
             array_compensated_DM = np.zeros((num_frequencies, num_spectra), float)
             array_compensated_DM = buffer_array[:, 0 : num_spectra]
-            buffer_array = DM_compensation_with_indices_changes(buffer_array, np.full(num_frequencies, - num_spectra) )
-            buffer_array[:, max_shift : ] = 0
+            buffer_array = np.roll(buffer_array, - num_spectra)
 
-        #del temp_array
+        buffer_array[:, max_shift : ] = 0
+
 
         plot2Da(array_compensated_DM, newpath+'/07' + ' fig. ' +str(block+1)+'- Only full ready data.png', frequency_list, np.min(array_compensated_DM), np.max(array_compensated_DM), colormap, 'Only full ready data', customDPI)
 
-        spectrum = array_compensated_DM.mean(axis=1)[:]
+        #spectrum = array_compensated_DM.mean(axis=1)[:]
         profile = array_compensated_DM.mean(axis=0)[:]
         profile = profile - np.mean(profile)
 
-        plot1D(spectrum, newpath+'/08' + ' fig. ' +str(block+1)+' - Averaged spectrum.png', 'Label', 'Averaged spectrum', 'x_label', 'y_label', customDPI)
+        #plot1D(spectrum, newpath+'/08' + ' fig. ' +str(block+1)+' - Averaged spectrum.png', 'Label', 'Averaged spectrum', 'x_label', 'y_label', customDPI)
         #plot1D(profile,  newpath+'/09 - Temporal profile of pulses.png', 'Label', 'Temporal profile of pulses', 'x_label', 'y_label', customDPI)
 
 
         # Averaging of the array with pulses for picture
-        averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/192))
+        averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
+        del array_compensated_DM
 
         # Plotting picture
 
@@ -307,15 +309,12 @@ for j in range(1):  # Main loop by           of data to analyze
         pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = 300)
         plt.close('all')
 
+
+
 dat_file.close()
 endTime = time.time()    # Time of calculations
 
 
-for i in range (0,2) : print (' ')
-#print ('   The program execution lasted for ', round((endTime - startTime),3), 'seconds')
 print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                 round((endTime - startTime)/60, 2), 'min. ) \n')
-
-for i in range (0,2) : print (' ')
-print ('                 *** Program PULSAR_single_pulse_reader has finished! ***')
-for i in range (0,3) : print (' ')
+print ('\n\n                 *** Program PULSAR_single_pulse_reader has finished! *** \n\n\n')
