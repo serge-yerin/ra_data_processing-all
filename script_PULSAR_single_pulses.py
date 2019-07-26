@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.07.23' # !!!!!!!   NOT FINISHED   !!!!!!!
+Software_version = '2019.07.23'
 # Program intended to read and show individual pulses of pulsars from DAT files
 
 #*************************************************************
@@ -12,9 +12,10 @@ common_path = 'DATA/'
 filename = 'E300117_180000.jds_Data_chA.dat'
 
 cleaning = 1                   # Apply cleaning to data (1) or skip it (0)
-no_of_iterations = 2
-stand_deviation = 1
-pic_in_line = 3
+# Parameters of vertical and horizontal lines cleaning
+no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
+stand_deviation = 1            # Limit in StD of pixels in line to clean
+pic_in_line = 3                # Number of pixels in line
 
 average_const = 192            # Number of frequency channels in result picture
 prifile_pic_min = -0.1         # Minimum limit of profile picture
@@ -77,7 +78,7 @@ if not os.path.exists(newpath):
     os.makedirs(newpath)
 
 
-for type in range(1):  # Main loop by           of data to analyze
+for type in range(1):  # Main loop by       of data to analyze (may be not neccesary)
 
     # *** Opening DAT datafile ***
 
@@ -155,7 +156,6 @@ for type in range(1):  # Main loop by           of data to analyze
 
             # Cleaning vertical and horizontal lines of RFI
             data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, no_of_iterations, stand_deviation, pic_in_line)
-
 
             plt.figure(1, figsize=(10.0, 6.0))
             plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
@@ -270,7 +270,7 @@ for type in range(1):  # Main loop by           of data to analyze
         averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
         del array_compensated_DM
 
-        # Plotting picture
+        # Making result picture
 
         fig = plt.figure(figsize = (9, 6))
         ax1 = fig.add_subplot(211)
