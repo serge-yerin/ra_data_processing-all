@@ -11,34 +11,18 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 filename = 'E300117_180000.jds_Data_chA.dat'
 
-cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
-average_const = 192            # Number of frequency channels in result picture
+cleaning = 1                   # Apply cleaning to data (1) or skip it (0)
+no_of_iterations = 2
+stand_deviation = 1
+pic_in_line = 3
 
-StartStopSwitch = 1            # Read the whole file (0) or specified time limits (1)
-SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
-VminMan = -110                 # Manual lower limit of immediate spectrum figure color range
-VmaxMan = -60                  # Manual upper limit of immediate spectrum figure color range
-VminNormMan = 0                # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 15               # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
-RFImeanConst = 6               # Constant of RFI mitigation (usually = 8)
+average_const = 192            # Number of frequency channels in result picture
+prifile_pic_min = -0.1         # Minimum limit of profile picture
+prifile_pic_max = 0.5          # Maximum limit of profile picture
+
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
-ColorBarSwitch = 1             # Add colorbar to dynamic spectrum picture? (1 = yes, 0 = no)
-ChannelSaveTXT = 0             # Save intensities at specified frequencies to TXT file
-ChannelSavePNG = 0             # Save intensities at specified frequencies to PNG file
-ListOrAllFreq = 0              # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 
-# Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 0.0
-freqStop =  80.0
-
-# Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2017-04-18 09:34:00'
-dateTimeStop =  '2017-04-18 09:35:20'
-
-# Begin and end frequency of TXT files to save (MHz)
-freqStartTXT = 0.0
-freqStopTXT = 80.0
 
 DM = 5.750   #PSRname='B0809+74'
 
@@ -136,7 +120,7 @@ for type in range(1):  # Main loop by           of data to analyze
     dat_file.seek(1024)                     # Jumping to 1024 byte from file beginning
 
     # Calculate the number of blocks in file
-    numOfBlocks = 3
+    numOfBlocks = 4
     for block in range (numOfBlocks):
 
         print ('\n * Data block # ', block + 1, '\n ****************************************************************** \n')
@@ -148,7 +132,7 @@ for type in range(1):  # Main loop by           of data to analyze
 
 
         nowTime = time.time()
-        print ('  * Preparation of data took:            ', round((nowTime - previousTime), 2), 'seconds ')
+        print ('  *** Preparation of data took:               ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
 
@@ -170,7 +154,8 @@ for type in range(1):  # Main loop by           of data to analyze
         if cleaning > 0:
 
             # Cleaning vertical and horizontal lines of RFI
-            data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, 2, 1, 3)
+            data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, no_of_iterations, stand_deviation, pic_in_line)
+
 
             plt.figure(1, figsize=(10.0, 6.0))
             plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
@@ -200,7 +185,7 @@ for type in range(1):  # Main loop by           of data to analyze
             plt.close('all')
 
             nowTime = time.time()
-            print ('\n  * Normalization and cleaning took:     ', round((nowTime - previousTime), 2), 'seconds ')
+            print ('\n  *** Normalization and cleaning took:       ', round((nowTime - previousTime), 2), 'seconds ')
             previousTime = nowTime
 
 
@@ -223,8 +208,8 @@ for type in range(1):  # Main loop by           of data to analyze
         #plot1D(data_log[1,:], newpath+'/04b '+ ' fig. ' +str(block+1)+'- Cleaned data single channel.png', 'Label', 'Initial data channel', 'Time, spectra counts', 'Amplitude, AU', customDPI)
 
 
-        nowTime = time.time() #                            '
-        print ('\n  * Time before dispersion compensation: ', round((nowTime - previousTime), 2), 'seconds ')
+        nowTime = time.time() #                                '
+        print ('\n  *** Time before dispersion compensation:   ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
 
@@ -234,8 +219,8 @@ for type in range(1):  # Main loop by           of data to analyze
         del data_log
         temp_array = DM_compensation_with_indices_changes(temp_array, shift_vector[0: num_frequencies])
 
-        nowTime = time.time() #                            '
-        print ('\n  * Dispersion compensation took:        ', round((nowTime - previousTime), 2), 'seconds ')
+        nowTime = time.time()
+        print ('\n  *** Dispersion compensation took:          ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
 
@@ -244,7 +229,6 @@ for type in range(1):  # Main loop by           of data to analyze
         # Rolling temp_array to put current data first
         if block == 0:
             temp_array = np.roll(temp_array, - num_spectra)
-            #temp_array[:, 3 * max_shift : ] = 0
             buffer_array += temp_array
         else:
             temp_array = np.roll(temp_array, - max_shift)
@@ -254,7 +238,7 @@ for type in range(1):  # Main loop by           of data to analyze
         plot2Da(temp_array, newpath+'/06'+ ' fig. ' +str(block+1)+' - DM compensated data.png', frequency_list, np.min(temp_array), np.max(temp_array), colormap, 'Shifted compensated full data', customDPI)
 
         nowTime = time.time() #                            '
-        print ('\n  * Data rolling took:                   ', round((nowTime - previousTime), 2), 'seconds ')
+        print ('\n  *** Data rolling took:                     ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
         del temp_array
@@ -264,7 +248,6 @@ for type in range(1):  # Main loop by           of data to analyze
             array_compensated_DM = np.zeros((num_frequencies, max_shift), float)
             array_compensated_DM = buffer_array[:, 0 : max_shift]
             buffer_array = np.roll(buffer_array, - max_shift)
-            #buffer_array[:, max_shift : ] = 0
         else:
             array_compensated_DM = np.zeros((num_frequencies, num_spectra), float)
             array_compensated_DM = buffer_array[:, 0 : num_spectra]
@@ -294,21 +277,20 @@ for type in range(1):  # Main loop by           of data to analyze
         ax1.plot(profile, color =u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '1.00', label = 'Pulses time profile')
         ax1.legend(loc = 'upper right', fontsize = 6)
         ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-        ax1.axis([0, len(profile), -0.1, 0.5])
+        ax1.axis([0, len(profile), prifile_pic_min, prifile_pic_max])
         ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
         ax1.set_title('Data from file: '+ filename + ', description: ' + df_description, fontsize = 6)
         ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         ax2 = fig.add_subplot(212)
-        ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap='Greys', extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]]) # vmin=-4, vmax=4,
+        ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
         ax2.set_xlabel('Time, counts', fontsize=6, fontweight='bold')
         ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
         fig.subplots_adjust(hspace=0.05, top=0.92)
         fig.suptitle('Single pulses of pulsar, fig. ' + str(block+1), fontsize = 8, fontweight='bold')
         fig.text(0.77, 0.06, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
         fig.text(0.09, 0.06, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
-        pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = 300)
+        pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
         plt.close('all')
-
 
 
 dat_file.close()
