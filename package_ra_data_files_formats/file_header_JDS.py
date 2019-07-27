@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 
-def FileHeaderReaderDSP(filepath, start_byte, print_or_not):
+def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
     '''
     Reads info from DSP (.jds) data file header and returns needed parameters to main script
     Input parameters:
@@ -226,4 +226,4 @@ if __name__ == '__main__':
 
     print('\n\n Parameters of the file: ')
 
-    FileHeaderReaderDSP(filename, 0, 1)
+    FileHeaderReaderJDS(filename, 0, 1)

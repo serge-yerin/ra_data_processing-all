@@ -4,7 +4,7 @@
 
 path = 'DATA/'
 
-filename = 'ADR_A150221_013718_PSRB1133+16.gcd.smd'
+filename = 'ADR_A150221_211250_PSRB0834+06.gcd.smd'
 
 no_of_DM_steps = 721             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
@@ -44,12 +44,12 @@ freqStopArray =  30.0
 #DM = 5.750   #PSRname='B0809+74'    oldDM = 5.754    5.762  5.750-interpulse
 #DM = 23.73   #PSRname='B0820+02'
 #DM = 19.4751 #PSRname='B0823+26'
-#DM = 12.8579  #PSRname='B0834+06'     12.8579 - from catalogue
+DM = 12.8579  #PSRname='B0834+06'     12.8579 - from catalogue
 #DM = 27.27   #PSRname='B0919+06'
 #DM = 15.33   #PSRname='B0943+10'    oldDM = 15.3500
 #DM = 2.9730  #PSRname='B0950+08'    oldDM = 2.9702   2.9902
 #DM = 9.195   #PSRname='B1112+50'
-DM = 4.8471  #PSRname='B1133+16'
+#DM = 4.8471  #PSRname='B1133+16'
 #DM = 9.2755  #PSRname='B1237+25'
 #DM = 19.623  #PSRname='B1508+55'
 #DM = 14.6100 #PSRname='B1530+27'

@@ -11,8 +11,8 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 filename = 'E300117_180000.jds_Data_chA.dat'
 
-num_of_blocks = 4              # Specify number of blocks to read (to be done automatically)
-cleaning = 1                   # Apply cleaning to data (1) or skip it (0)
+num_of_blocks = 3              # Specify number of blocks to read (to be done automatically)
+cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
 # Parameters of vertical and horizontal lines cleaning
 no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
 std_lines_clean = 1            # Limit in StD of pixels in line to clean
@@ -48,13 +48,14 @@ from matplotlib import rc
 
 from f_spectra_normalization import Normalization_lin
 from f_plot_formats import plot1D, plot2Da
-from f_pulsar_DM_shift_calculation import DM_shift_calc
-from f_file_header_JDS import FileHeaderReaderDSP
-from f_file_header_ADR import FileHeaderReaderADR
+from f_data_manipulations import average_some_lines_of_array
+
+from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
+from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_cleaning import clean_lines_of_pixels
 from package_cleaning import array_clean_by_STD_value
-from f_data_manipulations import average_some_lines_of_array, DM_compensation_with_indices_changes
-
 
 #*************************************************************
 #                       MAIN PROGRAM                         *
@@ -101,7 +102,7 @@ for type in range(1):  # Main loop by       of data to analyze (may be not necce
     if receiver_type == '.jds':
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr,
-        TimeRes, fmin, fmax, df, frequency_list, FFTsize, dataBlockSize] = FileHeaderReaderDSP(data_filename, 0, 1)
+        TimeRes, fmin, fmax, df, frequency_list, FFTsize, dataBlockSize] = FileHeaderReaderJDS(data_filename, 0, 1)
 
 
     #************************************************************************************
@@ -110,7 +111,7 @@ for type in range(1):  # Main loop by       of data to analyze (may be not necce
     if receiver_type == '.jds':
         num_frequencies = len(frequency_list)-4
 
-    shift_vector = DM_shift_calc(len(frequency_list), fmin, fmax, df / pow(10,6), TimeRes, DM, receiver_type)
+    shift_vector = DM_full_shift_calc(len(frequency_list), fmin, fmax, df / pow(10,6), TimeRes, DM, receiver_type)
 
     #plot1D(shift_vector, newpath+'/01 - Shift parameter.png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
 
@@ -221,7 +222,7 @@ for type in range(1):  # Main loop by       of data to analyze (may be not necce
         temp_array = np.zeros((num_frequencies, 4 * max_shift))
         temp_array[:, 4 * max_shift - num_spectra : 4 * max_shift] = data_log[:,:]
         del data_log
-        temp_array = DM_compensation_with_indices_changes(temp_array, shift_vector[0: num_frequencies])
+        temp_array = pulsar_DM_compensation_with_indices_changes(temp_array, shift_vector[0: num_frequencies])
 
         nowTime = time.time()
         print ('\n  *** Dispersion compensation took:          ', round((nowTime - previousTime), 2), 'seconds ')

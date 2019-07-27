@@ -2,10 +2,11 @@
 '''
 
 import numpy as np
-from f_pulsar_DM_compensation import DM_compensation
+#from f_pulsar_DM_compensation import DM_compensation
+from package_pulsar_processing.pulsar_DM_compensation_roll import pulsar_DM_compensation_roll
 
 
-def DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI):
+def pulsar_DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI):
     '''
     Variation of DM for average pulsar profile with defined step and number of steps
     '''
@@ -27,7 +28,7 @@ def DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df,
         inter_matrix = np.zeros((FFTsize, samplesPerPeriod))
         inter_matrix[:,:] = array.transpose()[:,:]
         # DM compensation
-        matrix, shiftPar = DM_compensation(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], save_intermediate_data, customDPI)
+        matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], save_intermediate_data, customDPI)
         del inter_matrix
         # Averaging in frequency
         reducedMatrix = np.array([[0.0 for col in range(samplesPerPeriod)] for row in range(int(FFTsize/AverageChannelNumber))])

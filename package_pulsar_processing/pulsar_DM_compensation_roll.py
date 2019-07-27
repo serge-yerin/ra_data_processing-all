@@ -6,7 +6,7 @@ import math
 from f_plot_formats import plot1D
 
 
-def DM_compensation(matrix_0, freq_points, fmin, fmax, df, TimeRes, pulsarPeriod, DM0, save_intermediate_data, customDPI):
+def pulsar_DM_compensation_roll(matrix_0, freq_points, fmin, fmax, df, TimeRes, pulsarPeriod, DM0, save_intermediate_data, customDPI):
     '''
     Plots 1D plots of variable
     '''

@@ -29,11 +29,20 @@ import time
 
 # My functions
 from f_plot_formats import plot1D, plot2D
-from f_pulsar_DM_compensation import DM_compensation
-from f_pulsar_DM_variation import DM_variation
+#from f_pulsar_DM_compensation import DM_compensation
+#from f_pulsar_DM_variation import DM_variation
 from f_choose_frequency_range import chooseFreqRange
-from f_file_header_ADR import FileHeaderReaderADR
-from f_file_header_JDS import FileHeaderReaderDSP
+
+from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
+from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+
+from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
+from package_pulsar_processing.pulsar_DM_compensation_roll import pulsar_DM_compensation_roll
+
+
+#from f_file_header_ADR import FileHeaderReaderADR
+#from f_file_header_JDS import FileHeaderReaderJDS
+
 from f_SMD_analyzer_param_reader import SMD_analyzer_param_reader
 
 
@@ -42,11 +51,9 @@ from f_SMD_analyzer_param_reader import SMD_analyzer_param_reader
 # *                          MAIN PROGRAM                          *
 # ******************************************************************
 
-for i in range (8): print (' ')
-print ('   ****************************************************')
+print ('\n\n\n\n\n\n\n\n   ****************************************************')
 print ('   *      Pulsar data processing v.',Software_version,'       *      (c) YeS 2019')
-print ('   ****************************************************')
-for i in range (3): print (' ')
+print ('   **************************************************** \n\n\n')
 
 
 # Reading parameters of analysis
@@ -195,7 +202,7 @@ if save_intermediate_data == 1:
 
 # *** Compensation of DM (dispersion delay) ***
 
-matrix, shiftPar = DM_compensation(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
+matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
 del inter_matrix
 
 
@@ -473,7 +480,7 @@ startTime = time.time()
 # Integrated profiles with DM variation calculation
 inter_matrix = np.zeros((freq_num, samplesPerPeriod))
 inter_matrix[:,:] = initial_matrix[:,:]
-profiles_varDM, DM_vector = DM_variation(inter_matrix.transpose(), no_of_DM_steps, frequencyList0, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI)
+profiles_varDM, DM_vector = pulsar_DM_variation(inter_matrix.transpose(), no_of_DM_steps, frequencyList0, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI)
 del inter_matrix
 
 
@@ -585,7 +592,7 @@ if optimization_switch == 1:
 
     # *** Compensation of DM (dispersion delay) ***
 
-    matrix, shiftPar = DM_compensation(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
+    matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
     del inter_matrix
 
 
@@ -827,7 +834,7 @@ if optimization_switch == 1:
 
 
     # Integrated profiles with DM variation calculation
-    profiles_varDM, DM_vector = DM_variation(initial_matrix.transpose(), no_of_DM_steps, frequencyList0, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI)
+    profiles_varDM, DM_vector = pulsar_DM_variation(initial_matrix.transpose(), no_of_DM_steps, frequencyList0, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI)
 
     # Preparing indexes for showing the maximal SNR value and its coordinates
     freq_channels, time_points = profiles_varDM.shape
