@@ -11,13 +11,16 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 filename = 'E300117_180000.jds_Data_chA.dat'
 
+num_of_blocks = 4              # Specify number of blocks to read (to be done automatically)
 cleaning = 1                   # Apply cleaning to data (1) or skip it (0)
 # Parameters of vertical and horizontal lines cleaning
 no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
-stand_deviation = 1            # Limit in StD of pixels in line to clean
+std_lines_clean = 1            # Limit in StD of pixels in line to clean
 pic_in_line = 3                # Number of pixels in line
+# Parameter of pixels cleaning based on StD value estimation
+std_pixels_clean = 2.8
 
-average_const = 192            # Number of frequency channels in result picture
+average_const = 192            # Number of frequency channels to average in result picture
 prifile_pic_min = -0.1         # Minimum limit of profile picture
 prifile_pic_max = 0.5          # Maximum limit of profile picture
 
@@ -48,7 +51,8 @@ from f_plot_formats import plot1D, plot2Da
 from f_pulsar_DM_shift_calculation import DM_shift_calc
 from f_file_header_JDS import FileHeaderReaderDSP
 from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import array_clean_by_STD_value, clean_lines_of_pixels
+from package_cleaning import clean_lines_of_pixels
+from package_cleaning import array_clean_by_STD_value
 from f_data_manipulations import average_some_lines_of_array, DM_compensation_with_indices_changes
 
 
@@ -121,8 +125,8 @@ for type in range(1):  # Main loop by       of data to analyze (may be not necce
     dat_file.seek(1024)                     # Jumping to 1024 byte from file beginning
 
     # Calculate the number of blocks in file
-    numOfBlocks = 4
-    for block in range (numOfBlocks):
+
+    for block in range (num_of_blocks):
 
         print ('\n * Data block # ', block + 1, '\n ****************************************************************** \n')
 
@@ -155,7 +159,7 @@ for type in range(1):  # Main loop by       of data to analyze (may be not necce
         if cleaning > 0:
 
             # Cleaning vertical and horizontal lines of RFI
-            data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, no_of_iterations, stand_deviation, pic_in_line)
+            data, mask, cleaned_pixels_num = clean_lines_of_pixels(data, no_of_iterations, std_lines_clean, pic_in_line)
 
             plt.figure(1, figsize=(10.0, 6.0))
             plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
@@ -170,7 +174,7 @@ for type in range(1):  # Main loop by       of data to analyze (may be not necce
             plt.close('all')
 
             # Cleaning remaining 1 pixel splashes of RFI
-            data, mask, cleaned_pixels_num = array_clean_by_STD_value(data, 2.8)
+            data, mask, cleaned_pixels_num = array_clean_by_STD_value(data, std_pixels_clean)
 
             plt.figure(1, figsize=(10.0, 6.0))
             plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
