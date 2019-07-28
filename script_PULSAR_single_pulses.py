@@ -46,16 +46,15 @@ import time
 from datetime import datetime, timedelta
 from matplotlib import rc
 
-from f_spectra_normalization import Normalization_lin
-from f_plot_formats import plot1D, plot2Da
-from f_data_manipulations import average_some_lines_of_array
-
+from package_ra_data_processing.spectra_normalization import Normalization_lin
+from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
-from package_cleaning import clean_lines_of_pixels
-from package_cleaning import array_clean_by_STD_value
+from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
+from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value
+from package_plot_formats.plot_formats import plot1D, plot2Da
 
 #*************************************************************
 #                       MAIN PROGRAM                         *

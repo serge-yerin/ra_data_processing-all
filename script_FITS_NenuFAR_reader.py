@@ -1,9 +1,10 @@
 # Python3
+Software_version = '2019.04.13'
 #*******************************************************************************
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 foldpath = 'DATA/'
-filename = '20190718_210100_BST.fits'
+filename = '20190407_094300_BST.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot
@@ -22,22 +23,18 @@ from astropy.io import fits
 from astropy.time import Time
 import matplotlib.pyplot as plt
 
-from f_spectra_normalization import Normalization_dB
-from f_plot_formats import plot2D, TwoDynSpectraPlot, TwoOrOneValuePlot #, OneImmedSpecterPlot
-from f_file_header_FITS import FileHeaderReaderFITS
+from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_plot_formats.plot_formats import plot2D, TwoDynSpectraPlot, TwoOrOneValuePlot #, OneImmedSpecterPlot
+from package_ra_data_files_formats.file_header_FITS import FileHeaderReaderFITS
 
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
 #*******************************************************************************
 
-Software_version = '2019.04.13'
-
-for i in range(8): print (' ')
-print ('   ****************************************************')
+print ('\n\n\n\n\n\n\n\n   ****************************************************')
 print ('   *      FITS data files reader  v.', Software_version,'      *      (c) YeS 2019')
-print ('   ****************************************************')
-for i in range(3): print (' ')
+print ('   **************************************************** \n\n\n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
@@ -111,16 +108,6 @@ Vmin = np.min([np.min(dynamic_spectra1[0, 0:FreqPointsNum]), np.min(dynamic_spec
 Vmax = np.max([np.max(dynamic_spectra1[0, 0:FreqPointsNum]), np.max(dynamic_spectra2[0, 0:FreqPointsNum])])
 
 # *** FIGURE Immediate spectra of initial data ***
-'''
-TwoImmedSpectraPlot(frequency[0,:], dynamic_spectra1[0, 0:FreqPointsNum], dynamic_spectra2[0, 0:FreqPointsNum],
-                    Label01, Label02,
-                    frequency[0,0], frequency[0, FreqPointsNum-1], Vmin-3, Vmax+3,
-                    'Frequency, MHz', 'Intensity, dB',
-                    'Immediate spectrum', 'for file ' + filename + ', Description: ' + df_description,
-                    'FITS_Results/' + filename[0:19] + ' ' + str(df_description).replace('"','') + ' Immediate spectrum.png',
-                    currentDate, currentTime, Software_version)
-'''
-
 TwoOrOneValuePlot(2, frequency[0,:],  dynamic_spectra1[0, 0:FreqPointsNum],  dynamic_spectra2[0, 0:FreqPointsNum],
                     Label01, Label02, frequency[0,0], frequency[0, FreqPointsNum-1],
                     Vmin-3, Vmax+3, Vmin-3, Vmax+3, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',

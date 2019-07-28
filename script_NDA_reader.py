@@ -55,9 +55,9 @@ import datetime
 from datetime import datetime, timedelta
 from matplotlib import rc
 
-from f_spectra_normalization import Normalization_dB
-from f_ra_data_clean import simple_channel_clean
-from f_plot_formats import TwoImmedSpectraPlot, TwoDynSpectraPlot
+from package_plot_formats.plot_formats import TwoImmedSpectraPlot, TwoDynSpectraPlot
+from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_cleaning.simple_channel_clean import simple_channel_clean
 
 
 #*************************************************************
@@ -65,18 +65,15 @@ from f_plot_formats import TwoImmedSpectraPlot, TwoDynSpectraPlot
 #*************************************************************
 
 
-for i in range(8): print (' ')
-print ('   ****************************************************')
+print ('\n\n\n\n\n\n\n\n   ****************************************************')
 print ('   *      NDA data files reader  v.',Software_version,'       *      (c) YeS 2018')
-print ('   ****************************************************')
-for i in range(3): print (' ')
+print ('   **************************************************** \n\n\n')
 
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
-print (' ')
+print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***

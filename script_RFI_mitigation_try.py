@@ -13,14 +13,13 @@ import time
 from datetime import datetime, timedelta
 from matplotlib import rc
 
-from f_spectra_normalization import Normalization_lin
-from f_plot_formats import plot1D, plot2Da
-from f_pulsar_DM_shift_calculation import DM_shift_calc
-from f_file_header_JDS import FileHeaderReaderDSP
-from f_file_header_ADR import FileHeaderReaderADR
-from f_ra_data_clean import array_clean_by_STD_value, array_clean_by_lines_and_STD, clean_lines_of_pixels   # pulsar_data_clean
-from f_data_manipulations import average_some_lines_of_array
-from f_data_manipulations import average_some_lines_of_array, DM_compensation_with_indices_changes
+from package_ra_data_processing.spectra_normalization import Normalization_lin
+from package_plot_formats.plot_formats import plot1D, plot2Da
+from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
+from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value
+from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
+from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
+
 
 
 startTime = time.time()
@@ -76,7 +75,7 @@ plt.close('all')
 '''
 
 # array, cleaned_pixels_num = array_clean_by_lines_and_STD(array, 3, 3, 4)
-# array, mask, cleaned_pixels_num = clean_lines_of_pixels(array, 3, 3, 4)
+array, mask, cleaned_pixels_num = clean_lines_of_pixels(array, 3, 3, 4)
 
 nowTime = time.time() #                            '
 print ('\n  * Preparation took:                    ', round((nowTime - previousTime), 2), 'seconds ')

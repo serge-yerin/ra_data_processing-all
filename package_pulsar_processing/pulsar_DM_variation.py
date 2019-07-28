@@ -2,8 +2,8 @@
 '''
 
 import numpy as np
-#from f_pulsar_DM_compensation import DM_compensation
-from package_pulsar_processing.pulsar_DM_compensation_roll import pulsar_DM_compensation_roll
+from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
+from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
 
 
 def pulsar_DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI):
@@ -28,7 +28,10 @@ def pulsar_DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fm
         inter_matrix = np.zeros((FFTsize, samplesPerPeriod))
         inter_matrix[:,:] = array.transpose()[:,:]
         # DM compensation
-        matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, DM_vector[step], save_intermediate_data, customDPI)
+        shiftPar = pulsar_DM_shift_calculation_aver_pulse(FFTsize, fmin, fmax, df, TimeRes, DM_vector[step], pulsarPeriod)
+        matrix = pulsar_DM_compensation_with_indices_changes (inter_matrix, shiftPar)
+
+
         del inter_matrix
         # Averaging in frequency
         reducedMatrix = np.array([[0.0 for col in range(samplesPerPeriod)] for row in range(int(FFTsize/AverageChannelNumber))])

@@ -13,7 +13,6 @@ Software_version = '2019.04.06'
 # SMD file is a result of data processing by the pipeline written in IDL by V. V. Zakharenko
 
 
-
 #*************************************************************
 #                   IMPORT LIBRARIES                         *
 #*************************************************************
@@ -29,22 +28,14 @@ import time
 
 # My functions
 from f_plot_formats import plot1D, plot2D
-#from f_pulsar_DM_compensation import DM_compensation
-#from f_pulsar_DM_variation import DM_variation
 from f_choose_frequency_range import chooseFreqRange
+from f_SMD_analyzer_param_reader import SMD_analyzer_param_reader
 
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
-from package_pulsar_processing.pulsar_DM_compensation_roll import pulsar_DM_compensation_roll
-
-
-#from f_file_header_ADR import FileHeaderReaderADR
-#from f_file_header_JDS import FileHeaderReaderJDS
-
-from f_SMD_analyzer_param_reader import SMD_analyzer_param_reader
-
+from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
+from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
 
 
 # ******************************************************************
@@ -54,6 +45,13 @@ from f_SMD_analyzer_param_reader import SMD_analyzer_param_reader
 print ('\n\n\n\n\n\n\n\n   ****************************************************')
 print ('   *      Pulsar data processing v.',Software_version,'       *      (c) YeS 2019')
 print ('   **************************************************** \n\n\n')
+
+startTime = time.time()
+previousTime = startTime
+currentTime = time.strftime("%H:%M:%S")
+currentDate = time.strftime("%d.%m.%Y")
+print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
+
 
 
 # Reading parameters of analysis
@@ -83,11 +81,9 @@ if not os.path.exists(newpath):
     os.makedirs(newpath)
 
 
-
 #**************************************************************
 # ***              Reading data file header                 ***
 #**************************************************************
-
 
 # Jumping to the end of the file to read the data file header with parameters of data record
 
@@ -116,7 +112,6 @@ print (' Pulsar period =                ', pulsarPeriod, ' s')
 samplesPerPeriod = struct.unpack('h', file.read(2))[0]
 print (' Number of frequency channels = ', freq_num)
 print (' Number of samples in time =    ', samplesPerPeriod)
-
 
 
 #**************************************************************
@@ -202,7 +197,8 @@ if save_intermediate_data == 1:
 
 # *** Compensation of DM (dispersion delay) ***
 
-matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
+shiftPar = pulsar_DM_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
+matrix = pulsar_DM_compensation_with_indices_changes (inter_matrix, shiftPar)
 del inter_matrix
 
 
@@ -548,12 +544,7 @@ plt.show()
 plt.close('all')
 
 
-
-
-for i in range (2): print (' ')
-print ('  In band calculations and DM variation lasted for ', round((endTime - startTime),3), 'seconds')
-for i in range (2): print (' ')
-
+print ('\n\n  In band calculations and DM variation lasted for ', round((endTime - startTime),3), 'seconds \n\n')
 
 
 
@@ -592,9 +583,10 @@ if optimization_switch == 1:
 
     # *** Compensation of DM (dispersion delay) ***
 
-    matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
+    #matrix, shiftPar = pulsar_DM_compensation_roll(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
+    shiftPar = pulsar_DM_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
+    matrix = pulsar_DM_compensation_with_indices_changes (inter_matrix, shiftPar)
     del inter_matrix
-
 
     # *** Plot of the data with DM compensation but without data reduction ***
 

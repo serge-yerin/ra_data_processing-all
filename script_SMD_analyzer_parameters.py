@@ -6,12 +6,12 @@ path = 'DATA/'
 
 filename = 'ADR_A150221_211250_PSRB0834+06.gcd.smd'
 
-no_of_DM_steps = 721             # Number of DM steps to plot 361
+no_of_DM_steps = 361             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
-save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
+save_intermediate_data = 0       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 32        # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time
-frequency_band_cut = 1           # Plot profiles in small frequency bands?
+frequency_band_cut = 0           # Plot profiles in small frequency bands?
 specify_freq_range = 0           # Specify particular frequency range (1) or whole range (0)
 
 

@@ -32,12 +32,13 @@ import datetime
 from datetime import datetime, timedelta
 
 # My functions
-from f_file_header_JDS import FileHeaderReaderDSP
-from f_spectra_normalization import Normalization_dB
-from f_ra_data_clean import simple_channel_clean
-from f_plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
-from f_file_manipulations import find_files_in_folder
-from f_time_JDS_waveform import JDS_WF_time
+from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_cleaning.simple_channel_clean import simple_channel_clean
+from package_common_modules.find_files_in_folder import find_files_in_folder
+from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
+
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -85,7 +86,7 @@ for fileNo in range (len(fileList)):   # loop by files
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderDSP(fname, 0, 1)
+        df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(fname, 0, 1)
 
     # !!! Make automatic calculations of time and frequency resolutions for waveform mode!!!
     # Manually set frequencies
@@ -157,7 +158,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
             # Timing aquirement
-            timeline_block_str = JDS_WF_time(wf_data, CLCfrq, data_block_size)
+            timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
             TimeScaleFig.append(timeline_block_str[-1][0:12])
 
             # Nulling the time blocks in waveform data

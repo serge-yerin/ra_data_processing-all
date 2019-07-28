@@ -6,14 +6,14 @@ Software_version = '2019.05.08'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path = 'e:/PYTHON/ra_data_processing-all/' #'DATA/'
+common_path = 'DATA/'  #'e:/PYTHON/ra_data_processing-all/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'C020419_082413.jds_Data_CIm.dat'
+filename = common_path + 'A170712_160219.adr_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['C_m', 'C_p', 'CRe', 'CIm']
+typesOfData = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
@@ -62,11 +62,11 @@ from datetime import datetime, timedelta
 from matplotlib import rc
 
 # My functions
-from f_file_header_JDS import FileHeaderReaderDSP
-from f_file_header_ADR import FileHeaderReaderADR
-from f_plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
-from f_spectra_normalization import Normalization_dB
-from f_ra_data_clean import simple_channel_clean
+from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
+from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
+from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_cleaning.simple_channel_clean import simple_channel_clean
 
 ################################################################################
 #*******************************************************************************
@@ -205,7 +205,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-                df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderDSP(filename, 0, 1)
+                df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(filename, 0, 1)
 
         sumDifMode = ''
 
@@ -425,7 +425,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
                             ' Intensity variation at '+str(round(frequency[index],3))+'.png')
 
                 OneValueWithTimePlot(timeline, array[[index],:].transpose(), Label,
-                                        0, len(dateTimeNew), Vmin, Vmax, 1,
+                                        0, len(dateTimeNew), Vmin, Vmax, 0, 0,
                                         'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
                                         Suptitle, Title, FileName,
                                         currentDate, currentTime, Software_version)

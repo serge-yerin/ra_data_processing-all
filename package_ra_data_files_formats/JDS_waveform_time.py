@@ -1,9 +1,9 @@
 '''
 '''
 import numpy as np
-from f_file_header_JDS import FileHeaderReaderDSP
+from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 
-def JDS_WF_time(wf_data, clock_frequency, data_block_size):
+def JDS_waveform_time(wf_data, clock_frequency, data_block_size):
     '''
     '''
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderDSP(fname, 0, 1)
+        df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(fname, 0, 1)
 
     #*******************************************************************************
     #                          R E A D I N G   D A T A                             *

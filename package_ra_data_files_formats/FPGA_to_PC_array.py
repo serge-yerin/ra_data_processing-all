@@ -1,9 +1,9 @@
 '''
 '''
 
-import numpy as np        
+import numpy as np
 
-def FPGAtoPCarrayDSP (FPGAdata, NAvr):
+def FPGAtoPCarrayJDS (FPGAdata, NAvr):
     '''
     FPGAtoPCarrayDSP Transforms FPGA array data format of DSP receiver to ordinary PC numbers
     Input parameters:
@@ -13,8 +13,8 @@ def FPGAtoPCarrayDSP (FPGAdata, NAvr):
         PCdata - result arra in ordinary PC format (numpy float64 array)
     '''
     FPGAdata = np.uint64(FPGAdata)
-    B = np.uint64(int('00000000000000000000000000011111', 2)) 
-    expn = np.uint64(np.bitwise_and (FPGAdata, B))                     # exponent 
+    B = np.uint64(int('00000000000000000000000000011111', 2))
+    expn = np.uint64(np.bitwise_and (FPGAdata, B))                     # exponent
     A = np.uint64(int('11111111111111111111111111000000', 2))
     mant = np.uint32(np.bitwise_and (FPGAdata, A))
     C = np.uint64(int('00000000000000000000000000100000', 2))
@@ -22,14 +22,14 @@ def FPGAtoPCarrayDSP (FPGAdata, NAvr):
     C0 = np.empty_like(mant)
     C0 = np.uint64(C0)
     C0[:] = np.uint64(1)
-    C1 = np.left_shift(C0, (expn+14)) 
+    C1 = np.left_shift(C0, (expn+14))
     C1 = np.float64(C1)
     PCdata = np.float64(sign * np.float64(np.float32(mant) / C1 / NAvr))
-    del A, B, 
+    del A, B,
     return PCdata
 
 
-# *** FPGAtoPC Transforms FPGA array data format to ordinary PC numbers ***    
+# *** FPGAtoPC Transforms FPGA array data format to ordinary PC numbers ***
 def FPGAtoPCarrayADR (FPGAdata, NAvr):
     '''
     FPGAtoPCarrayADR Transforms FPGA array data format of ADR receiver to ordinary PC numbers
@@ -39,12 +39,12 @@ def FPGAtoPCarrayADR (FPGAdata, NAvr):
     Output parameters:
         PCdata - result arra in ordinary PC format (numpy float64 array)
     '''
-    temp_float = np.uint32(FPGAdata)  
-    temp = np.int64(FPGAdata)         
-    A = np.int64(int('11111111111111111111111111000000', 2)) 
+    temp_float = np.uint32(FPGAdata)
+    temp = np.int64(FPGAdata)
+    A = np.int64(int('11111111111111111111111111000000', 2))
     temp_mantissa = np.int32(np.bitwise_and (temp, A))
     temp_mantissa = np.float32(temp_mantissa)/64
-    B = np.uint32(int('00000000000000000000000000111111', 2))   
+    B = np.uint32(int('00000000000000000000000000111111', 2))
     temp_exponent = np.uint8(np.bitwise_and (temp_float, B))
     C0 = np.empty_like(temp_mantissa)
     C0 = np.uint64(C0)

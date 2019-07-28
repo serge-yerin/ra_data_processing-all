@@ -6,18 +6,18 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/' 
+common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
 filename = []
 
 Vmin = -500 * 10**(-12)
 Vmax =  500 * 10**(-12)
 
 # TXT files to be analyzed:
-filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.003 MHz.txt')
-filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.011 MHz.txt')
-filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.015 MHz.txt')
-filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.019 MHz.txt')
-filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.023 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 9.014 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 10.01 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 11.006 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 12.012 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 13.008 MHz.txt')
 #filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.031 MHz.txt')
 
 
@@ -33,8 +33,9 @@ import pylab
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import time
-from f_text_manipulations import find_between, read_date_time_and_one_value_txt
-from f_plot_formats import OneValueWithTimePlot
+
+from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
+from package_plot_formats.plot_formats import OneValueWithTimePlot
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *

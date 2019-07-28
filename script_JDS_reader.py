@@ -48,11 +48,11 @@ import datetime
 from datetime import datetime, timedelta
 
 # My functions
-from f_file_header_JDS import FileHeaderReaderDSP
-from f_FPGA_to_PC_array import FPGAtoPCarrayDSP
-from f_spectra_normalization import Normalization_dB
-from f_ra_data_clean import simple_channel_clean
-from f_plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot, TwoOrOneValuePlot
+from package_plot_formats.plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot, TwoOrOneValuePlot
+from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
+from package_cleaning.simple_channel_clean import simple_channel_clean
 
 ################################################################################
 #*******************************************************************************
@@ -123,7 +123,7 @@ for fileNo in range (len(fileList)):   # loop by files
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderDSP(fname, 0, 1)
+        df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(fname, 0, 1)
 
     # *** Saving main parameters from header to LOG FILE ***
     Log_File.write(' Initial data file name:         %s \n' % df_filename)
@@ -287,11 +287,11 @@ for fileNo in range (len(fileList)):   # loop by files
 
                 # *** Converting from FPGA to PC float format ***
                 if Mode == 1 or Mode == 2:
-                    Data_ChA = FPGAtoPCarrayDSP(Data_ChA, Navr)
-                    Data_ChB = FPGAtoPCarrayDSP(Data_ChB, Navr)
+                    Data_ChA = FPGAtoPCarrayJDS(Data_ChA, Navr)
+                    Data_ChB = FPGAtoPCarrayJDS(Data_ChB, Navr)
                 if (Mode == 2 and CorrelationProcess == 1):
-                    Data_CRe = FPGAtoPCarrayDSP(Data_CRe, Navr)
-                    Data_CIm = FPGAtoPCarrayDSP(Data_CIm, Navr)
+                    Data_CRe = FPGAtoPCarrayJDS(Data_CRe, Navr)
+                    Data_CIm = FPGAtoPCarrayJDS(Data_CIm, Navr)
 
 
                 '''
