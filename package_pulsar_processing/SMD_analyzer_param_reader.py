@@ -1,7 +1,8 @@
 '''
 '''
 
-from f_text_manipulations import find_between
+from package_common_modules.text_manipulations import find_between
+
 
 def SMD_analyzer_param_reader():
     '''
@@ -20,7 +21,7 @@ def SMD_analyzer_param_reader():
                 path = find_between(line.split()[2], "'", "'")
                 print (' File path:  ', path, '\n')
 
-            if line.startswith('filename ='): 
+            if line.startswith('filename ='):
                 filename = find_between(line.split()[2], "'", "'")
                 print (' File name:  ', filename, '\n')
 

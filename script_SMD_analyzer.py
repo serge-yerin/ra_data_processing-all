@@ -27,15 +27,14 @@ import numpy as np
 import time
 
 # My functions
-from f_plot_formats import plot1D, plot2D
-from f_choose_frequency_range import chooseFreqRange
-from f_SMD_analyzer_param_reader import SMD_analyzer_param_reader
-
+from package_plot_formats.plot_formats import plot1D, plot2D
+from package_ra_data_processing.choose_frequency_range import choose_frequency_range
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
+from package_pulsar_processing.SMD_analyzer_param_reader import SMD_analyzer_param_reader
 
 
 # ******************************************************************
@@ -151,7 +150,7 @@ inter_matrix[:,:] = initial_matrix[:,:]
 
 # *** Cutting the array inside frequency range specified by user ***
 if specify_freq_range == 1:
-    frequencyList0, initial_matrix, freq_num, fmin, fmax = chooseFreqRange (frequencyList0, inter_matrix, freqStartArray, freqStopArray, freq_num, fmin, fmax)
+    frequencyList0, initial_matrix, freq_num, fmin, fmax = choose_frequency_range (frequencyList0, inter_matrix, freqStartArray, freqStopArray, freq_num, fmin, fmax)
 
 # *** To save initial matrix for further processing with the same name with or without cut of frequencies
 del inter_matrix
@@ -238,8 +237,6 @@ print ('    Length of new frequency axis:     ', len(frequencyList1), ' \n')
 
 if save_intermediate_data == 1:
     plot2D(reducedMatrix, filename + '_results/03 - Dedispersed integrated data.png', frequencyList1, colormap, 'Dedispersed and averaged in frequency pulsar pulse \n File: '+filename, customDPI)
-
-
 
 
 #   *** Integrated over band temporal profile ***
@@ -463,8 +460,6 @@ SNRinitDMtimeAver = np.max(integrProfileTimeAver)
 
 # ***   Plotting and saving the integrated in time SNR curve  ***
 plot1D(integrProfileTimeAver, filename + '_results/06 - Averaged SNR.png', 'Averaged profile', 'Averaged (in frequency and time) pulse profile in band ' + str(round(frequencyList0[0],3)) + ' - ' + str(round(frequencyList0[len(frequencyList0)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Samples in pulsar period', customDPI)
-
-
 
 
 #*****************************************************************
