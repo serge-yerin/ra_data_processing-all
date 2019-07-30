@@ -64,12 +64,9 @@ from package_ra_data_processing.spectra_normalization import Normalization_dB
 #                          M A I N    P R O G R A M                            *
 #*******************************************************************************
 
-for i in range(8): print (' ')
-print ('   ****************************************************')
+print ('\n\n\n\n\n\n\n\n   ****************************************************')
 print ('   *      ADR data files reader  v.',Software_version,'       *      (c) YeS 2018')
-print ('   ****************************************************')
-for i in range(3): print (' ')
-
+print ('   **************************************************** \n\n\n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
