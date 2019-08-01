@@ -3,7 +3,7 @@ import os
 '''
 '''
 
-def find_files_in_folder(path, extension, print_or_not):
+def find_all_files_in_folder_and_subfolders(path, extension, print_or_not):
     '''
     Searching of files in the specified directory with specified file extension
     '''

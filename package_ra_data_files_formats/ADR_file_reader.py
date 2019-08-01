@@ -679,8 +679,8 @@ def ADR_file_reader()
             if (file.tell() < df_filesize):  print ('\n  File was NOT read till the end!!! ERROR')
 
         # Here we close the data file
-
-    return
+    ok = 1
+    return ok
 
 
 

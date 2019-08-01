@@ -39,29 +39,13 @@ ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
 #*******************************************************************************
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
-#import os
-#import struct
-#import math
-#import numpy as np
-#import pylab
-#import matplotlib.pyplot as plt
-import time
-#import sys
-#import gc
-#import datetime
-#from datetime import datetime, timedelta
-#from matplotlib import rc
-#import warnings
-#warnings.filterwarnings("ignore")
 
-#from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
-#from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
-#from package_cleaning.simple_channel_clean import simple_channel_clean
-#from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
-#from package_ra_data_processing.spectra_normalization import Normalization_dB
-from package_common_modules.find_files_in_folder import find_files_in_folder
+import time
+from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
 from package_common_modules.find_unique_strings_in_list import find_unique_strings_in_list
-#from package_common_modules.text_manipulations import find_between
+from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
+from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
+from package_ra_data_files_formats.chaeck_if_ADR_files_of_equal_parameters import chaeck_if_ADR_files_of_equal_parameters
 
 ################################################################################
 #*******************************************************************************
@@ -80,7 +64,7 @@ print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 #      *** Making a list of folders with ADR files ***
 
 # Search needed files in the directory and subdirectories
-file_path_list, file_name_list = find_files_in_folder(common_path, '.adr', 0)
+file_path_list, file_name_list = find_all_files_in_folder_and_subfolders(common_path, '.adr', 0)
 
 # Making all slashes in paths of the same type
 for i in range (len(file_path_list)):
@@ -99,14 +83,36 @@ for i in range (len(list_of_folder_names)):
     print('         ',  i+1 ,') ', list_of_folder_names[i])
 
 
-# Check if all files in each folder have the same parameters in headers
+# Take only one folder, find all files
+num_of_folders = len(list_of_folder_names)
+for folder_no in range (num_of_folders):
+    file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
+    print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no])
+    for i in range (len(file_name_list_current)):
+        print('         ',  i+1 ,') ', file_name_list_current[i])
+
+    # Check if all files in this folder have the same parameters in headers
+    equal_or_not = chaeck_if_ADR_files_of_equal_parameters(list_of_folder_names[folder_no], file_name_list_current)
+
+
+
+
+
+
+
+'''
+        newpath = "ADR_Results/Service"
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
+        if DynSpecSaveInitial == 1:
+            if not os.path.exists('ADR_Results/Initial_spectra'):
+                os.makedirs('ADR_Results/Initial_spectra')
+        if (DynSpecSaveCleaned == 1 and CorrelationProcess == 1):
+            if not os.path.exists('ADR_Results/Correlation_spectra'):
+                os.makedirs('ADR_Results/Correlation_spectra')
+'''
 
 # In loop take a folder, make a result folder and process the data
-
-
-
-
-
 
 
 
