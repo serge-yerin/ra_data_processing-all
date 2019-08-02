@@ -1,22 +1,18 @@
 '''
 '''
-#import struct
-#import os
-#import sys
-#import math
 import numpy as np
-#import datetime
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 
 ################################################################################
 
-def chaeck_if_ADR_files_of_equal_parameters(folder_path, file_list):
+def check_if_ADR_files_of_equal_parameters(folder_path, file_list):
     '''
-
+    The function checks if main parameters of the ADR files are equal (are they from the same observation)
     Input parameters:
-        i - i
+        folder_path - path to folder with files
+        file_list - list of files in the folder to check
     Output parameters:
-        o - o
+        equal_or_not - "1" if files have equal parameters, "0" - otherwise
     '''
     df_system_name_list = []
     df_obs_place_list = []
@@ -61,10 +57,10 @@ def chaeck_if_ADR_files_of_equal_parameters(folder_path, file_list):
 
     if i == 10:
         equal_or_not = 1
-        print('\n All files have the same parameters')
+        print('\n OK! All files have the same parameters')
     else:
         equal_or_not = 0
-        print('\n Parameters of files in folder differ!!! \n')
+        print('\n **********************************************************\n !!!   WARNING: Parameters of files in folder differ    !!! \n **********************************************************')
         print('\n   * Check letteral parameters of the files in list: \n')
         for file_no in range (len(file_list)):
             print('   ',  file_no+1 ,') ', df_system_name_list[file_no], '  ', df_obs_place_list[file_no], '  ', df_description_list[file_no])
@@ -84,4 +80,6 @@ def chaeck_if_ADR_files_of_equal_parameters(folder_path, file_list):
 
 if __name__ == '__main__':
 
-    filename = 'DATA/A170712_160219.adr'
+    folder_path = 'DATA/'
+    file_list = ['A170712_160219.adr', 'File 10 2048FFT A 100 ms 141119_164450.adr']
+    equal_or_not = chaeck_if_ADR_files_of_equal_parameters(folder_path, file_list)

@@ -23,8 +23,8 @@ customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 Sum_Diff_Calculate = 0        # Calculate sum and diff of A & B channels?
-longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveSSD = 0           # Save sum / diff data to a long file?
@@ -32,7 +32,7 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
+SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
 
 ################################################################################
@@ -41,11 +41,14 @@ ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
 #*******************************************************************************
 
 import time
+import sys
+import numpy as np
 from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
 from package_common_modules.find_unique_strings_in_list import find_unique_strings_in_list
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
-from package_ra_data_files_formats.chaeck_if_ADR_files_of_equal_parameters import chaeck_if_ADR_files_of_equal_parameters
+from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import check_if_ADR_files_of_equal_parameters
+from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 
 ################################################################################
 #*******************************************************************************
@@ -77,7 +80,7 @@ for i in range (len(file_path_list)):
 list_of_folder_names = find_unique_strings_in_list(file_path_list)
 
 
-print('\n  Number of files ADR found: ', len(file_name_list))
+print('\n  Number of ADR files found: ', len(file_name_list))
 print('\n  List of folders to be analyzed: \n')
 for i in range (len(list_of_folder_names)):
     print('         ',  i+1 ,') ', list_of_folder_names[i])
@@ -85,63 +88,60 @@ for i in range (len(list_of_folder_names)):
 
 # Take only one folder, find all files
 num_of_folders = len(list_of_folder_names)
+equal_or_not = np.zeros(num_of_folders)
 for folder_no in range (num_of_folders):
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
-    print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no])
+    print ('\n\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n **********************************************************')
     for i in range (len(file_name_list_current)):
         print('         ',  i+1 ,') ', file_name_list_current[i])
 
     # Check if all files in this folder have the same parameters in headers
-    equal_or_not = chaeck_if_ADR_files_of_equal_parameters(list_of_folder_names[folder_no], file_name_list_current)
+    equal_or_not[folder_no] = check_if_ADR_files_of_equal_parameters(list_of_folder_names[folder_no], file_name_list_current)
+
+
+if np.sum(equal_or_not[:]) == num_of_folders:
+    print('\n\n\n   :-) All folder seem to be ready for reading! :-) \n\n\n')
+if np.sum(equal_or_not[:]) != num_of_folders:
+    print('\n\n\n ************************************************************************************* \n *                                                                                   *')
+    print(' *   Seems files in folders are different check the errors and restart the script!   *')
+    print(' *                                                                                   *  \n ************************************************************************************* \n\n\n')
+
+
+decision  = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
+if decision != 1:
+    sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
 
 
 
+print ('\n\n\n   **************************************************************')
+print ('   *               D A T A   P R O C E S S I N G                *')
+print ('   **************************************************************')
 
-
-
-
-'''
-        newpath = "ADR_Results/Service"
-        if not os.path.exists(newpath):
-            os.makedirs(newpath)
-        if DynSpecSaveInitial == 1:
-            if not os.path.exists('ADR_Results/Initial_spectra'):
-                os.makedirs('ADR_Results/Initial_spectra')
-        if (DynSpecSaveCleaned == 1 and CorrelationProcess == 1):
-            if not os.path.exists('ADR_Results/Correlation_spectra'):
-                os.makedirs('ADR_Results/Correlation_spectra')
-'''
 
 # In loop take a folder, make a result folder and process the data
+for folder_no in range (num_of_folders):
+
+    # Find all files in folder once more:
+    file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
+
+    print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
+
+    # Making a name of folder for storing the result figures and txt files
+    result_path = 'ADR_Results_'+list_of_folder_names[folder_no].replace('/','_')
+
+    for file in range (len(file_name_list_current)):
+        file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
+
+    done_or_not, TL_file_name = ADR_file_reader(file_name_list_current, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                    VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, Sum_Diff_Calculate,
+                    longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
+                    DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
+                    SpecterFileSaveSwitch, ImmediateSpNo)
 
 
+# Open DAT ant timeline TXT files and process them with DAR_Reader!
 
 
-
-'''
-# *** Creating a TXT logfile ***
-Log_File = open("ADR_Results/Service/Log.txt", "w")
-
-Log_File.write('\n\n    ****************************************************\n' )
-Log_File.write('    *     ADR data files reader  v.%s LOG      *      (c) YeS 2018\n' %Software_version )
-Log_File.write('    ****************************************************\n\n' )
-Log_File.write('  Date of data processing: %s   \n' %currentDate )
-Log_File.write('  Time of data processing: %s \n\n' %currentTime )
-
-
-
-# *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-newpath = "ADR_Results/Service"
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
-if DynSpecSaveInitial == 1:
-    if not os.path.exists('ADR_Results/Initial_spectra'):
-        os.makedirs('ADR_Results/Initial_spectra')
-if (DynSpecSaveCleaned == 1 and CorrelationProcess == 1):
-    if not os.path.exists('ADR_Results/Correlation_spectra'):
-        os.makedirs('ADR_Results/Correlation_spectra')
-
-'''
 
 
 

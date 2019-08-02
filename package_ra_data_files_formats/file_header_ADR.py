@@ -155,7 +155,7 @@ def FileHeaderReaderADR(filepath, start_byte, print_or_not):
 
 ################################################################################
 
-def ChunkHeaderReaderADR(filepath, start_byte, BlockSize):
+def ChunkHeaderReaderADR(filepath, start_byte, BlockSize, print_or_not):
     '''
     Reads info from ADR (.adr) data file from chunk headerand returns parameters to the main script
     Input parameters:
@@ -185,26 +185,26 @@ def ChunkHeaderReaderADR(filepath, start_byte, BlockSize):
     frm_phase = struct.unpack('i', file.read(4))[0]
     AligningDSPINFtag = file.read(4072)
 
-    print ('')
-    print (' Data header:                   ', temp)
-    print (' Size of data chunk:            ', sizeOfChunk, ' bytes')
-    print (' Frame size:                    ', frm_size, ' bytes')
-    print (' Frame count:                   ', frm_count)
-    print (' Frame second:                  ', frm_sec)
-    print (' Frame phase:                   ', frm_phase)
-    print ('')
+    if (print_or_not == 1): print ('')
+    if (print_or_not == 1): print (' Data header:                   ', temp)
+    if (print_or_not == 1): print (' Size of data chunk:            ', sizeOfChunk, ' bytes')
+    if (print_or_not == 1): print (' Frame size:                    ', frm_size, ' bytes')
+    if (print_or_not == 1): print (' Frame count:                   ', frm_count)
+    if (print_or_not == 1): print (' Frame second:                  ', frm_sec)
+    if (print_or_not == 1): print (' Frame phase:                   ', frm_phase)
+    if (print_or_not == 1): print ('')
 
     SpInFrame = int(frm_size / BlockSize)
     FrameInChunk = int(sizeOfChunk / frm_size)
     ChunksInFile = int(((df_filesize - 1024) / (sizeOfChunk+8)))
     FramesInFile = int(ChunksInFile * FrameInChunk)
     SpInFile = FramesInFile * SpInFrame
-    print (' Number of spectra in frame:    ', SpInFrame)
-    print (' Number of frames in chunk:     ', FrameInChunk)
-    print (' Number of chunks in file:      ', ChunksInFile)
-    print (' Number of frames in file:      ', FramesInFile)
-    print (' Number of spectra in file:     ', SpInFile)
-    print('\n')
+    if (print_or_not == 1): print (' Number of spectra in frame:    ', SpInFrame)
+    if (print_or_not == 1): print (' Number of frames in chunk:     ', FrameInChunk)
+    if (print_or_not == 1): print (' Number of chunks in file:      ', ChunksInFile)
+    if (print_or_not == 1): print (' Number of frames in file:      ', FramesInFile)
+    if (print_or_not == 1): print (' Number of spectra in file:     ', SpInFile)
+    if (print_or_not == 1): print('\n')
     file.close()
 
     return SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk, frm_sec, frm_phase
