@@ -51,6 +51,8 @@ import sys
 import numpy as np
 from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
 from package_common_modules.find_unique_strings_in_list import find_unique_strings_in_list
+from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
+
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import check_if_ADR_files_of_equal_parameters
@@ -95,6 +97,7 @@ for i in range (len(list_of_folder_names)):
 
 # Take only one folder, find all files
 num_of_folders = len(list_of_folder_names)
+same_or_not = np.zeros(num_of_folders)
 equal_or_not = np.zeros(num_of_folders)
 for folder_no in range (num_of_folders):
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
@@ -102,13 +105,15 @@ for folder_no in range (num_of_folders):
     for i in range (len(file_name_list_current)):
         print('         ',  i+1 ,') ', file_name_list_current[i])
 
+    # Check if all files (except the last) have same size
+    same_or_not[folder_no] = check_if_all_files_of_same_size(list_of_folder_names[folder_no], file_name_list_current, 1)
+
     # Check if all files in this folder have the same parameters in headers
     equal_or_not[folder_no] = check_if_ADR_files_of_equal_parameters(list_of_folder_names[folder_no], file_name_list_current)
 
-
-if np.sum(equal_or_not[:]) == num_of_folders:
+if int(np.sum((equal_or_not[:])) == num_of_folders) and (int(np.sum(same_or_not[:])) == num_of_folders):
     print('\n\n\n   :-) All folder seem to be ready for reading! :-) \n\n\n')
-if np.sum(equal_or_not[:]) != num_of_folders:
+else:
     print('\n\n\n ************************************************************************************* \n *                                                                                   *')
     print(' *   Seems files in folders are different check the errors and restart the script!   *')
     print(' *                                                                                   *  \n ************************************************************************************* \n\n\n')
