@@ -9,6 +9,7 @@ Software_version = '2019.05.06'
 common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
 filename = []
 
+y_auto = 1
 Vmin = -500 * 10**(-12)
 Vmax =  500 * 10**(-12)
 
@@ -18,6 +19,8 @@ filename.append(common_path + 'A170712_160219_chA Intensity variation at 10.01 M
 filename.append(common_path + 'A170712_160219_chA Intensity variation at 11.006 MHz.txt')
 filename.append(common_path + 'A170712_160219_chA Intensity variation at 12.012 MHz.txt')
 filename.append(common_path + 'A170712_160219_chA Intensity variation at 13.008 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 14.014 MHz.txt')
+filename.append(common_path + 'A170712_160219_chA Intensity variation at 15.01 MHz.txt')
 #filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.031 MHz.txt')
 
 
@@ -92,7 +95,7 @@ for i in range (a):
     ax1.plot(y_value[i, :], linestyle = '-', linewidth = '1.00', label = text_freqs[i])
 ax1.legend(loc = 'upper right', fontsize = 6)
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-ax1.set_ylim([Vmin, Vmax])
+if y_auto == 0: ax1.set_ylim([Vmin, Vmax])
 ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
 ax1.set_title('   ', fontsize = 6)
 ax1.set_xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', fontsize=6, fontweight='bold')
@@ -123,7 +126,7 @@ for i in range(len(date_time)):
     timeline.append(str(date_time[i][0:11] + '\n' + date_time[i][11:23]))
 
 FileName = (newpath + '/' + parent_filename + ' 02 - Averaged data.png')
-OneValueWithTimePlot(timeline, average, 'Averaged values', 0, 1, Vmin, Vmax, 1, 0,
+OneValueWithTimePlot(timeline, average, 'Averaged values', 0, 1, Vmin, Vmax, 1, y_auto,
                         'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', 'Intensity, dB',
                         'File: '+parent_filename+' at '+ list_text_freqs +' MHz', '  ', FileName,
                         currentDate, currentTime, Software_version)

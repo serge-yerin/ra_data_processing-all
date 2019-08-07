@@ -183,7 +183,7 @@ def OneValueWithTimePlot(timeline, Ydat1, Label1, xmin, xmax, ymin, ymax, x_auto
     text = ax1.get_xticks().tolist()
     for i in range(len(text)-1):
         k = int(text[i])
-        text[i] = timeline[i]
+        text[i] = timeline[k]  # text[i] = timeline[i] ???
     ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
     fig.subplots_adjust(top=0.92)
     fig.suptitle(SupTitle, fontsize = 8, fontweight='bold')
