@@ -1,6 +1,7 @@
 '''
 '''
 import time
+import pylab
 import numpy as np
 import astropy.units as u
 from astropy.coordinates import EarthLocation, AltAz
@@ -39,7 +40,7 @@ def astroplan_test(start_time, end_time):
                timezone=timezone('Europe/Kiev'),
                description="UTR-2 radio telescope (Volokhiv Yar village, Kharkiv region, Ukraine)")
 
-    print(' Observer:', observer.name)
+    print('  Observer:', observer.name)
 
 
     # Coordinates of celestial body
@@ -54,6 +55,7 @@ def astroplan_test(start_time, end_time):
     frame = AltAz(obstime=time_window, location=utr2_location)
     sun_alt_az = get_sun(time_window).transform_to(frame)
 
+    from astropy.coordinates import get_jupiter
 
 
     ticks_list = [0, 24, 48, 72, 96, 120, 144]
@@ -68,20 +70,22 @@ def astroplan_test(start_time, end_time):
     #ax1.scatter(j, altazs.alt, c=altazs.az, label='Deneb', lw=0, s=8, cmap='viridis')
     ax1.plot(altazs.alt, label='Deneb')
     ax1.plot(sun_alt_az.alt, label='Sun')
-    plt.fill_between(np.linspace(0, 145, 145), 0, 30, color='0.5')
-    plt.fill_between(np.linspace(0, 145, 145), -30, 0, color='0.0')
+    plt.fill_between(np.linspace(0, 145, 145), 0, 10, color='0.6')
+    plt.fill_between(np.linspace(0, 145, 145), 10, 20, color='0.7')
+    plt.fill_between(np.linspace(0, 145, 145), 20, 30, color='0.8')
+    plt.fill_between(np.linspace(0, 145, 145), -10, 0, color='0.3')
     ax1.set_xlim([0, 144])
-    ax1.set_ylim([-30, 90])
+    ax1.set_ylim([-10, 90])
     ax1.xaxis.set_major_locator(mtick.LinearLocator(7))
     ax1.xaxis.set_minor_locator(mtick.LinearLocator(13))
     plt.xticks(ticks_list, time_ticks_list)
-    plt.yticks([-30,-20,-10,0,10,20,30,40,50,60,70,80,90])
-    #ax1.tick_params(axis='x', which='minor', bottom=True)
-
+    plt.yticks([-10,0,10,20,30,40,50,60,70,80,90])
     ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-    #ax1.grid(b = True, which = 'minor', color = 'silver', linestyle = '-')
-    ax1.legend(loc = 'upper right', fontsize = 10)
-    plt.show()
+    ax1.legend(loc='center right', fontsize = 10, bbox_to_anchor=(1.2, 0.5))
+    plt.ylabel('Altitude above horizon, deg', fontsize = 10, fontweight='bold')
+    plt.xlabel('UTC time', fontsize = 10, fontweight='bold')
+    pylab.savefig('multiple sources.png', bbox_inches='tight', dpi = 300)
+    #plt.show()
 
 
     #utr2 = Observer.at_site(observer)
