@@ -138,7 +138,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
     # Reading the chunk header
     [SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,
-            frm_sec, frm_phase] = ChunkHeaderReaderADR(fname, 0, BlockSize)
+            frm_sec, frm_phase] = ChunkHeaderReaderADR(fname, 0, BlockSize, 1)
 
     FreqPointsNum = int(Width * 1024)
     Log_File.close()

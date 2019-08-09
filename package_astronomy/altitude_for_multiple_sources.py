@@ -30,8 +30,8 @@ def astroplan_test(start_time, end_time, pulsar_list, sources_list):
     currentDate = time.strftime("%Y-%m-%d")
     currentTime = time.strftime("%H:%M:%S")
     print ('\n  Today is ', currentDate, ', local time is ', currentTime, '\n')
-
-    time_window = start_time + (end_time - start_time) * np.linspace(0, 1, 145)
+    n_points = 1441
+    time_window = start_time + (end_time - start_time) * np.linspace(0, 1, n_points)
 
     # Coordinates of UTR-2 radio telescope
     # longUTR= 2.46273 ;36.941  ;36 56 27.56 E
@@ -52,7 +52,7 @@ def astroplan_test(start_time, end_time, pulsar_list, sources_list):
 
     # Coordinates of Deneb
     deneb_coordinates = SkyCoord('20h41m25.9s', '+45d16m49.3s', frame='icrs')
-    #deneb = FixedTarget(name = 'Deneb', coord = deneb_coordinates)
+    deneb = FixedTarget(name = 'Deneb', coord = deneb_coordinates)
     deneb_alt_az = deneb_coordinates.transform_to(frame)
 
     # Coordiantes of Sun
@@ -61,20 +61,24 @@ def astroplan_test(start_time, end_time, pulsar_list, sources_list):
 
     # Coordinates of pulsar
     pulsar_alt_az = []
+    pulsars = []
     for i in range (len(pulsar_list)):
         alt, az, DM = catalogue_pulsar(pulsar_list[i])
         coordinates = SkyCoord(alt, az, frame='icrs')
+        pulsars.append(FixedTarget(name = pulsar_list[i], coord = coordinates))
         pulsar_alt_az.append(coordinates.transform_to(frame))
 
     # Coordinates of sources
     sources_alt_az = []
+    sources = []
     for i in range (len(sources_list)):
         alt, az = catalogue_sources(sources_list[i])
         coordinates = SkyCoord(alt, az, frame='icrs')
+        sources.append(FixedTarget(name = sources_list[i], coord = coordinates))
         sources_alt_az.append(coordinates.transform_to(frame))
 
 
-    ticks_list = [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144]
+    ticks_list = [0, 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320, 1440]
     time_ticks_list = []
     for i in range(len(ticks_list)):
         time_ticks_list.append(str(time_window[ticks_list[i]])[10:16])
@@ -121,11 +125,11 @@ def astroplan_test(start_time, end_time, pulsar_list, sources_list):
         ax1.plot(xmax, ymax, marker='o', markersize = 3, color = color[i])
         del xmax, ymax
 
-    plt.fill_between(np.linspace(0, 145, 145), 0, 10, color='0.7')
-    plt.fill_between(np.linspace(0, 145, 145), 10, 20, color='0.8')
-    plt.fill_between(np.linspace(0, 145, 145), 20, 30, color='0.9')
-    plt.fill_between(np.linspace(0, 145, 145), -10, 0, color='0.4')
-    ax1.set_xlim([0, 144])
+    plt.fill_between(np.linspace(0, n_points, n_points), 0, 10, color='0.7')
+    plt.fill_between(np.linspace(0, n_points, n_points), 10, 20, color='0.8')
+    plt.fill_between(np.linspace(0, n_points, n_points), 20, 30, color='0.9')
+    plt.fill_between(np.linspace(0, n_points, n_points), -10, 0, color='0.4')
+    ax1.set_xlim([0, n_points-1])
     ax1.set_ylim([-10, 95])
     ax1.xaxis.set_major_locator(mtick.LinearLocator(15))
     ax1.xaxis.set_minor_locator(mtick.LinearLocator(25))
@@ -143,11 +147,40 @@ def astroplan_test(start_time, end_time, pulsar_list, sources_list):
     ax2.set_xticks(ax1.get_xticks())
     ax2.set_xticklabels(ax1.get_xticklabels())
 
-    fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
-    fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.79, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.11, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
 
-    pylab.savefig('multiple sources.png', bbox_inches='tight', dpi = 300)
+    pylab.savefig(str(start_time)[0:11] + ' sources elevation.png', bbox_inches='tight', dpi = 300)
     #plt.show()
+
+
+
+    # Sky figure
+
+    rc('font', size = 6, weight='bold')
+    fig = plt.figure(figsize = (9, 6))
+    for i in range (len(sources_list)):
+        plot_sky(sources[i], observer, time_window, style_kwargs={'color': color[i], 's': 2}) #style_kwargs=deneb_style
+    for i in range (len(pulsar_list)):
+        plot_sky(pulsars[i], observer, time_window, style_kwargs={'color': color[i], 's': 0.1}) #style_kwargs=deneb_style
+
+    plt.legend(loc='upper right', bbox_to_anchor=(1.10, 0.20)) #
+    fig.text(0.20, 0.90, 'Position of sources in the sky', fontsize=8, transform=plt.gcf().transFigure)
+    fig.text(0.20, 0.88, 'Observatory: ' + observer.name, fontsize=6, transform=plt.gcf().transFigure)
+    fig.text(0.65, 0.88, 'From: \nTill:', fontsize=6, transform=plt.gcf().transFigure)
+    fig.text(0.685, 0.88, str(start_time)[0:19] + '\n' + str(end_time)[0:19], fontsize=6, transform=plt.gcf().transFigure)
+
+    pylab.savefig(str(start_time)[0:11] + ' sky map.png', bbox_inches='tight', dpi = 300)
+    #plt.show()
+
+
+
+
+
+
+
+
+
 
     return
 
@@ -156,9 +189,9 @@ def astroplan_test(start_time, end_time, pulsar_list, sources_list):
 
 if __name__ == '__main__':
 
-    start_time = Time('2019-08-07 12:00:00')
-    end_time = Time('2019-08-08 12:00:00')
-    pulsar_list = [] #['B0329+54', 'B0031-07', 'B0320+39', 'B0450+55']
-    sources_list = ['Cas A', 'Syg A', 'Crab']
+    start_time = Time('2019-08-07 00:00:00')
+    end_time = Time('2019-08-08 00:00:00')
+    pulsar_list = ['B0329+54', 'B1133+16', 'B1508+55']
+    sources_list = ['Cas A', 'Syg A', 'Vir A', 'Crab'] #
 
     astroplan_test(start_time, end_time, pulsar_list, sources_list)

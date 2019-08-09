@@ -22,14 +22,10 @@ from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_cleaning.simple_channel_clean import simple_channel_clean
-
 ################################################################################
 #*******************************************************************************
 #                         M A I N    F U N C T I O N                           *
 #*******************************************************************************
-
-
-
 
 def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan,
                     VminNormMan, VmaxNormMan, RFImeanConst, customDPI, colormap,

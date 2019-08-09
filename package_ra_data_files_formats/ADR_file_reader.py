@@ -24,7 +24,6 @@ from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 from package_ra_data_processing.spectra_normalization import Normalization_dB
-
 ################################################################################
 
 # *** Search ADR files in the directory ***
@@ -272,6 +271,7 @@ def ADR_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
 
                     # *** Deleting matrices which were nessesary for index changes ***
                     del n
+
                     if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
                         del Data_Ch_A0
                     if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:

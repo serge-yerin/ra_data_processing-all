@@ -159,10 +159,6 @@ for folder_no in range (num_of_folders):
                                 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                 RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
-# Open DAT ant timeline TXT files and process them with DAR_Reader!
-
-
-
 
 
 endTime = time.time()    # Time of calculations
