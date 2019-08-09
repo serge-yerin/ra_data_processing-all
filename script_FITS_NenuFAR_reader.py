@@ -4,7 +4,7 @@ Software_version = '2019.04.13'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 foldpath = 'DATA/'
-filename = '20190407_094300_BST.fits'
+filename = '20190805_055900_BST.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot
@@ -105,7 +105,11 @@ no_of_spectra, pol, freq_num = dynamic_spectra.shape
 
 # Calculation of min and max values in both channels
 Vmin = np.min([np.min(dynamic_spectra1[0, 0:FreqPointsNum]), np.min(dynamic_spectra2[0, 0:FreqPointsNum])])
+if Vmin == float('-inf') or Vmin == float('inf'): Vmin = -50
 Vmax = np.max([np.max(dynamic_spectra1[0, 0:FreqPointsNum]), np.max(dynamic_spectra2[0, 0:FreqPointsNum])])
+if Vmax == float('-inf') or Vmax == float('inf'): Vmax = 250
+
+print (frequency[0,0], frequency[0, FreqPointsNum-1],Vmin-3, Vmax+3, Vmin-3, Vmax+3)
 
 # *** FIGURE Immediate spectra of initial data ***
 TwoOrOneValuePlot(2, frequency[0,:],  dynamic_spectra1[0, 0:FreqPointsNum],  dynamic_spectra2[0, 0:FreqPointsNum],
