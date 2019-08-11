@@ -195,7 +195,6 @@ if save_intermediate_data == 1:
 
 
 # *** Compensation of DM (dispersion delay) ***
-
 shiftPar = pulsar_DM_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
 matrix = pulsar_DM_compensation_with_indices_changes (inter_matrix, shiftPar)
 del inter_matrix
@@ -446,6 +445,10 @@ if frequency_band_cut == 1:     # Plot profiles in small frequency bands?
     pylab.savefig(filename + '_results/06.5 - SNR per MHz value vs. subbands.png', bbox_inches='tight', dpi = customDPI)
     plt.close('all')
 
+nowTime = time.time() #                               '
+print ('\n  Preparing of data for SNR vs DM plot took ', round((nowTime - previousTime), 2), 'seconds ')
+previousTime = nowTime
+
 
 print('\n  * Calculation of SNR vs. DM plot... ')
 
@@ -474,7 +477,9 @@ inter_matrix[:,:] = initial_matrix[:,:]
 profiles_varDM, DM_vector = pulsar_DM_variation(inter_matrix.transpose(), no_of_DM_steps, frequencyList0, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, beginIndex, endIndex, DM_var_step, roll_number, save_intermediate_data, customDPI)
 del inter_matrix
 
-
+nowTime = time.time() #                               '
+print ('\n  DM variation                         took ', round((nowTime - previousTime), 2), 'seconds ')
+previousTime = nowTime
 
 # Preparing indexes for showing the maximal SNR value and its coordinates
 DM_steps_real, time_points = profiles_varDM.shape

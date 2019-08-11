@@ -1,7 +1,6 @@
 '''
 '''
 import numpy as np
-
 def pulsar_DM_compensation_with_indices_changes (array, shift_vector):
 
     rows, column_indices = np.ogrid[:array.shape[0], :array.shape[1]]
