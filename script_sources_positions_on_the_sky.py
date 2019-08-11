@@ -25,6 +25,7 @@ from matplotlib import rc
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_astronomy.catalogue_sources import catalogue_sources
 from package_astronomy.find_max_altitude import find_max_altitude
+from package_astronomy.find_rize_and_set_points import find_rize_and_set_points
 ################################################################################
 
 def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_list):
@@ -63,7 +64,6 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     # Coordinates of Jupiter
     with solar_system_ephemeris.set('builtin'):
         jupiter_alt_az = get_body('jupiter', time_window, utr2_location).transform_to(frame)
-
 
     # Coordinates of pulsars
     pulsars_alt_az = []
@@ -236,13 +236,145 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     fig.text(0.682, 0.875, str(end_time)[0:19] + ' UTC', fontsize=5, transform=plt.gcf().transFigure)
     fig.text(0.640, 0.860, 'Markers:', fontsize=5, transform=plt.gcf().transFigure)
     fig.text(0.682, 0.860, str(time_window[center])[0:19] + ' UTC', fontsize=5, transform=plt.gcf().transFigure)
-    fig.text(0.640, 0.845, '(for middle time of observations)', fontsize=5, transform=plt.gcf().transFigure)
+    fig.text(0.640, 0.845, '(for middle of predefined time window)', fontsize=5, transform=plt.gcf().transFigure)
 
     fig.text(0.210, 0.080, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
     fig.text(0.210, 0.070, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
 
     pylab.savefig(newpath + '/'+ str(start_time)[0:10] + ' sky map.png', bbox_inches='tight', dpi = 300)
     #plt.show()
+
+
+
+
+    # Plot of culmination times
+    objects = ['', 'Sun', 'Jupiter']
+    for i in range (len(sources_list)):
+        objects.append(sources_list[i])
+    for i in range (len(pulsars_list)):
+        objects.append(pulsars_list[i])
+    objects.append('')
+
+
+    rc('font', size = 6, weight='bold')
+    fig, ax1 = plt.subplots(figsize=(9, 6))
+
+
+    # Sun
+    xmax, ymax = find_max_altitude(sun_alt_az) # Sun
+    x_rise, x_set = find_rize_and_set_points(sun_alt_az)
+    plt.axvline(x=xmax, linewidth = '0.8' , color = 'C1', alpha=0.7)
+    if x_rise < xmax and xmax < x_set:
+        plt.barh(1, x_set-x_rise, left = x_rise, height = 0.5, color = 'C1', alpha = 0.4)
+    plt.barh(1, 241, left = xmax-120, height = 0.5, color = 'C1', alpha = 0.7)
+    plt.barh(1, 121, left = xmax-60,  height = 0.5, color = 'C1')
+    plt.barh(1, 3,   left = xmax-1,   height = 0.5, color = 'r')
+    plt.annotate(str(time_window[int(xmax)])[11:19], xy=(xmax, 1 + 0.3), fontsize = 6, ha='center')
+    if x_rise > 0: plt.annotate(str(time_window[x_rise])[11:19], xy=(x_rise, 1 + 0.3), fontsize = 6, ha='left')
+    if x_set < n_points-1: plt.annotate(str(time_window[x_set])[11:19], xy=(x_set, 1 + 0.3), fontsize = 6, ha='right')
+
+    # Jupiter`
+    xmax, ymax = find_max_altitude(jupiter_alt_az) # Jupiter`
+    x_rise, x_set = find_rize_and_set_points(jupiter_alt_az)
+    if x_rise < xmax and xmax < x_set:
+        plt.barh(2, x_set-x_rise, left = x_rise, height = 0.5, color = 'C4', alpha = 0.4)
+    if x_rise > xmax and xmax > x_set:
+        plt.barh(2, x_set, left = 0, height = 0.5, color = 'C4', alpha = 0.4)
+    plt.axvline(x=xmax, linewidth = '0.8' , color = 'C4', alpha=0.7)
+    plt.barh(2, 241, left = xmax-120, height = 0.5, color = 'C4', alpha = 0.7)
+    plt.barh(2, 121, left = xmax-60,  height = 0.5, color = 'C4')
+    plt.barh(2, 3,   left = xmax-1,   height = 0.5, color = 'r')
+    plt.annotate(str(time_window[int(xmax)])[11:19], xy=(xmax, 2 + 0.3), fontsize = 6, ha='center')
+    if x_rise > 0: plt.annotate(str(time_window[x_rise])[11:19], xy=(x_rise, 2 + 0.3), fontsize = 6, ha='left')
+    if x_set < n_points-1: plt.annotate(str(time_window[x_set])[11:19], xy=(x_set, 2 + 0.3), fontsize = 6, ha='right')
+
+
+
+    '''
+    # Jupiter`
+    xmax, ymax = find_max_altitude(jupiter_alt_az) # Jupiter`
+    x_rise, x_set = find_rize_and_set_points(jupiter_alt_az, 0)
+
+    print(x_rise, xmax, x_set)
+
+    k_rize = 0
+    k_sets = 0
+    if len(x_rise) == 0 and len(x_set) == 0 and ymax > 0:
+        plt.barh(2, n_points, left = 0, height = 0.5, color = 'C4', alpha = 0.4)
+    if len(x_rise) > len(x_set):
+        k_rize = 1
+        plt.barh(2, n_points-x_rise[-1], left = x_rise[-1], height = 0.5, color = 'C4', alpha = 0.4)
+    if len(x_rise) < len(x_set):
+        k_sets = 1
+        plt.barh(2, x_set[-1], left = 0, height = 0.5, color = 'C4', alpha = 0.4)
+
+    num = np.min([len(x_rise) - k_rize, len(x_set) - k_sets])
+    for i in range (num):
+        plt.barh(2, x_set[i]-x_rise[i], left = x_rise[i], height = 0.5, color = 'C4', alpha = 0.4)
+
+    plt.axvline(x=xmax, linewidth = '0.8' , color = 'C4', alpha=0.7)
+    plt.barh(2, 241, left = xmax-120, height = 0.5, color = 'C4', alpha = 0.7)
+    plt.barh(2, 121, left = xmax-60,  height = 0.5, color = 'C4')
+    plt.barh(2, 3,   left = xmax-1,   height = 0.5, color = 'r')
+    plt.annotate(str(time_window[int(xmax)])[11:19], xy=(xmax, 2 + 0.3), fontsize = 6, ha='center')
+    if len(x_rise) > 0:
+        if x_rise[0] > 0: plt.annotate(str(time_window[x_rise[0]])[11:19], xy=(x_rise[0], 2 + 0.3), fontsize = 6, ha='left')
+    if len(x_set) > 0:
+        if x_set[0] < n_points-1: plt.annotate(str(time_window[x_set[0]])[11:19], xy=(x_set[0], 2 + 0.3), fontsize = 6, ha='right')
+    '''
+
+
+    for i in range (len(sources_list)):
+        n = i+3
+        xmax, ymax = find_max_altitude(sources_alt_az[i]) # Sources
+        x_rise, x_set = find_rize_and_set_points(sources_alt_az[i])
+        if x_rise < xmax and xmax < x_set:
+            plt.barh(n, x_set-x_rise, left = x_rise, height = 0.5, color = color[i], alpha = 0.4)
+        plt.axvline(x=xmax, linewidth = '0.8' , color = color[i], alpha=0.7)
+        plt.barh(n, 241, left = xmax-120, height = 0.5, color = color[i], alpha = 0.7)
+        plt.barh(n, 121, left = xmax-60,  height = 0.5, color = color[i])
+        plt.barh(n, 3,   left = xmax-1,   height = 0.5, color = 'r')
+        plt.annotate(str(time_window[int(xmax)])[11:19], xy=(xmax, n + 0.3), fontsize = 6, ha='center')
+        if x_rise > 0: plt.annotate(str(time_window[x_rise])[11:19], xy=(x_rise, n + 0.3), fontsize = 6, ha='left')
+        if x_set < n_points-1: plt.annotate(str(time_window[x_set])[11:19], xy=(x_set, n + 0.3), fontsize = 6, ha='right')
+
+
+    for i in range (len(pulsars_list)):
+        n = i+3 + len(sources_list)
+        xmax, ymax = find_max_altitude(pulsars_alt_az[i]) # Pulsars
+        x_rise, x_set = find_rize_and_set_points(pulsars_alt_az[i])
+        if x_rise < xmax and xmax < x_set:
+            plt.barh(n, x_set-x_rise, left = x_rise, height = 0.5, color = color[i], alpha = 0.4)
+        plt.axvline(x=xmax, linewidth = '0.8' , color = color[i], alpha=0.7)
+        plt.barh(n, 241, left = xmax-120, height = 0.5, color = color[i], alpha = 0.7)
+        plt.barh(n, 121, left = xmax-60,  height = 0.5, color = color[i])
+        plt.barh(n, 3,   left = xmax-1,   height = 0.5, color = 'r')
+        plt.annotate(str(time_window[int(xmax)])[11:19], xy=(xmax, n + 0.3), fontsize = 6, ha='center')
+        if x_rise > 0: plt.annotate(str(time_window[x_rise])[11:19], xy=(x_rise, n + 0.3), fontsize = 6, ha='left')
+        if x_set < n_points-1: plt.annotate(str(time_window[x_set])[11:19], xy=(x_set, n + 0.3), fontsize = 6, ha='right')
+
+
+    plt.xlabel('UTC time', fontsize = 8, fontweight='bold')
+    ax1.set_xlim([0, n_points-1])
+    ax1.yaxis.set_major_locator(mtick.LinearLocator(len(objects)))
+    ax1.set_ylim([0, len(objects) - 1])
+    ax1.set_yticklabels(objects[:])
+
+    ax1.xaxis.set_major_locator(mtick.LinearLocator(15))
+    ax1.xaxis.set_minor_locator(mtick.LinearLocator(25))
+    plt.xticks(ticks_list, time_ticks_list)
+    ax2 = ax1.twiny()
+    ax2.set_xlim(ax1.get_xlim())
+    ax2.set_xticks(ax1.get_xticks())
+    ax2.set_xticklabels(ax1.get_xticklabels())
+    fig.suptitle('Culmination and observation time of sources for ' + observatory, fontsize = 8, fontweight='bold')
+    ax1.set_title('Time period: '+ str(start_time)[0:19] + ' - ' + str(end_time)[0:19], fontsize = 7)
+    fig.subplots_adjust(top=0.9)
+    fig.text(0.79, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.11, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+
+
+    pylab.savefig(newpath + '/'+ str(start_time)[0:10] +' culmination times.png', bbox_inches='tight', dpi = 300)
 
 
     return
