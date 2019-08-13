@@ -6,7 +6,7 @@ Software_version = '2019.05.09'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'h:/DipLuna/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
+directory = 'h:/2019.05.17_UTR2_3C461_interf_sect_01-08/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -19,13 +19,13 @@ VminCorrMag = -150            # Lower limit of figure dynamic range for correlat
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
-CorrelationProcess = 0        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
-longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-DynSpecSaveInitial = 1        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
+CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
+longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
+longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
+DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
@@ -173,7 +173,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 Data_BFile = open(Data_B_name, 'wb')
                 Data_BFile.write(file_header)
                 Data_BFile.close()
-            if(longFileSaveCRI == 1 and Mode == 2):
+            if(longFileSaveCRI == 1 and CorrelationProcess == 1 and Mode == 2):
                 Data_CRe_name = df_filename+'_Data_CRe.dat'
                 Data_CReFile = open(Data_CRe_name, 'wb')
                 Data_CReFile.write(file_header)
@@ -182,7 +182,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 Data_CImFile = open(Data_CIm_name, 'wb')
                 Data_CImFile.write(file_header)
                 Data_CImFile.close()
-            if(longFileSaveCMP == 1 and Mode == 2):
+            if(longFileSaveCMP == 1 and CorrelationProcess == 1 and Mode == 2):
                 Data_Cm_name = df_filename+'_Data_C_m.dat'
                 Data_CmFile = open(Data_Cm_name, 'wb')
                 Data_CmFile.write(file_header)
@@ -316,7 +316,7 @@ for fileNo in range (len(fileList)):   # loop by files
                     Data_BFile = open(Data_B_name, 'ab')
                     Data_BFile.write(Data_ChB)
                     Data_BFile.close()
-                if  Mode == 2 and longFileSaveCRI == 1:
+                if  Mode == 2 and longFileSaveCRI == 1 and CorrelationProcess == 1:
                     Data_CReFile = open(Data_CRe_name, 'ab')
                     Data_CReFile.write(np.float64(Data_CRe))
                     Data_CReFile.close()

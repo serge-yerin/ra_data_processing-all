@@ -384,8 +384,8 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
 
 if __name__ == '__main__':
 
-    start_time = Time('2019-06-21 00:00:00')
-    end_time = Time('2019-06-22 00:00:00')
+    start_time = Time('2019-06-12 00:00:00')
+    end_time = Time('2019-06-13 00:00:00')
     pulsars_list = ['B0329+54', 'B1133+16', 'B1508+55']
     sources_list = ['Cas A', 'Syg A', 'Vir A', 'Crab'] #
 
