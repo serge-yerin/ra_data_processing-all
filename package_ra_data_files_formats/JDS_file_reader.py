@@ -131,7 +131,7 @@ def JDS_file_reader(fileList, result_path, MaxNsp, spSkip, RFImeanConst,
     #*******************************************************************************
     #                         R E A D I N G   D A T A                              *
     #*******************************************************************************
-            print ('\n  *** Reading data from file *** \n')
+            #print ('\n  *** Reading data from file *** \n')
             file.seek(1024)  # Jumping to 1024 byte from file beginning
             if Mode == 0:
                 print('\n\n  Data in waveform mode, use appropriate program!!! \n\n\n')

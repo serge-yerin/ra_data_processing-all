@@ -8,7 +8,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data =  'DATA/'
+path_to_data =  '/media/data/DATA/Interferometers_temp/' #'DATA/'
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
@@ -24,8 +24,8 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
@@ -36,14 +36,12 @@ SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 
 
-
-
 averOrMin = 1                    # Use average value (0) per data block or minimum value (1)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
-AmplitudeReIm = 2000 * 10**(-12) # Colour range of Re and Im dynamic spectra
+VmaxNormMan = 20                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+AmplitudeReIm = 20000 * 10**(-12) # Colour range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 

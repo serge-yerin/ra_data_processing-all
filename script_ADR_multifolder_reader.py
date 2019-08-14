@@ -36,7 +36,7 @@ VminMan = -120                   # Manual lower limit of immediate spectrum figu
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
 VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
-AmplitudeReIm = 2000 * 10**(-12) # Colour range of Re and Im dynamic spectra
+AmplitudeReIm = 2000 * 10**(-12) # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 

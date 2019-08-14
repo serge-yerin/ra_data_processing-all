@@ -49,7 +49,7 @@ def check_if_JDS_files_of_equal_parameters(folder_path, file_list):
     if FreqPointsNum_list.count(FreqPointsNum_list[0]) == len(FreqPointsNum_list):  i = i + 1
     if dataBlockSize_list.count(dataBlockSize_list[0]) == len(dataBlockSize_list):  i = i + 1
 
-    if i == 10:
+    if i == 8:
         equal_or_not = 1
         print('\n OK! All files have the same parameters')
     else:
