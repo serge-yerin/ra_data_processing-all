@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import time
 from datetime import datetime, timedelta
 from matplotlib import rc
+import warnings
+warnings.filterwarnings("ignore")
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
