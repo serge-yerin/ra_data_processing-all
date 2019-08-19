@@ -53,7 +53,7 @@ from matplotlib import rc
 import warnings
 warnings.filterwarnings("ignore")
 
-from package_common_modules.find_files_in_folder import find_files_in_folder
+from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
@@ -85,11 +85,11 @@ if not os.path.exists(newpath):
 
 # *** Search ADR files in the directory ***
 
-fileList = find_files_in_folder(directory, '.adr')
+fileList, file_name_list = find_all_files_in_folder_and_subfolders(directory, '.adr', 1)
 
 
 for fileNo in range (len(fileList)):   # loop by files
-    for i in range(3): print (' ')
+    print ('\n\n\n')
     print ('  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
     print ('  *  File path: ', str(fileList[fileNo]))
 
@@ -98,8 +98,7 @@ for fileNo in range (len(fileList)):   # loop by files
 #*********************************************************************************
 
     # *** Opening datafile ***
-    fname = ''
-    if len(fname) < 1 : fname = fileList[fileNo]
+    fname = fileList[fileNo]
 
     # Reading the file header
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -109,19 +108,16 @@ for fileNo in range (len(fileList)):   # loop by files
 
     # Reading the chunk header
     [SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,
-            frm_sec, frm_phase] = ChunkHeaderReaderADR(fname, 0, BlockSize)
+            frm_sec, frm_phase] = ChunkHeaderReaderADR(fname, 0, BlockSize, 1)
 
     FreqPointsNum = int(Width * 1024)
-
-
-
 
     with open(fname, 'rb') as file:
 
 
         # *** Reading indexes of data from index file '*.fft' ***
         indexes = []
-        ifname = str(int(FFT_Size/2)) + '.fft'
+        ifname = 'package_ra_data_files_formats/' + str(int(FFT_Size/2)) + '.fft'
         indexfile = open(ifname, 'r')
         num = 0
         for line in indexfile:
@@ -133,7 +129,6 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
         print ('\n  *** Reading data from file *** \n')
-
 
 
         #************************************************************************************

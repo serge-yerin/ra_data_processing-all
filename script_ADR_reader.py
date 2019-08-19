@@ -155,7 +155,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
         # *** Reading indexes of data from index file '*.fft' ***
         indexes = []
-        ifname = str(int(FFT_Size/2)) + '.fft'
+        ifname = 'package_ra_data_files_formats/' + str(int(FFT_Size/2)) + '.fft'
         indexfile = open(ifname, 'r')
         num = 0
         for line in indexfile:

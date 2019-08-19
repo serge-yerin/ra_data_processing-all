@@ -200,13 +200,13 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
             dt_dateTimeStop = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]), int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
 
             # *** Showing the time limits of file and time limits of chosen part
-            print ('\n\n                               Start                         End \n')
-            print ('  File time limits:   ', dt_timeline[0],' ', dt_timeline[len(timeline)-1], '\n')
-            print ('  Chosen time limits: ', dt_dateTimeStart, '        ', dt_dateTimeStop, '\n')
+            if print_or_not == 1: print ('\n\n                               Start                         End \n')
+            if print_or_not == 1: print ('  File time limits:   ', dt_timeline[0],' ', dt_timeline[len(timeline)-1], '\n')
+            if print_or_not == 1: print ('  Chosen time limits: ', dt_dateTimeStart, '        ', dt_dateTimeStop, '\n')
 
             # Verifying that chosen time limits are inside file and are correct
             if (dt_timeline[len(timeline)-1]>=dt_dateTimeStart>dt_timeline[0])and(dt_timeline[len(timeline)-1]>dt_dateTimeStop>=dt_timeline[0])and(dt_dateTimeStop>dt_dateTimeStart):
-                print ('  Time is chosen correctly! \n\n')
+                if print_or_not == 1:  print ('  Time is chosen correctly! \n\n')
             else:
                 print ('  ERROR! Time is chosen out of file limits!!! \n\n')
                 sys.exit('           Program stopped')
@@ -222,9 +222,9 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
 
             istart = A.index(min(A))
             istop = B.index(min(B))
-            print ('\n Start specter number is:          ', istart)
-            print ('\n Stop specter number is:           ', istop)
-            print ('\n Total number of spectra to read:  ', istop - istart)
+            if print_or_not == 1: print ('\n Start specter number is:          ', istart)
+            if print_or_not == 1: print ('\n Stop specter number is:           ', istop)
+            if print_or_not == 1: print ('\n Total number of spectra to read:  ', istop - istart)
 
 
         # *** Calculation of the dimensions of arrays to read ***

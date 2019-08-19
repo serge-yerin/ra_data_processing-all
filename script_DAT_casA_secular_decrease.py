@@ -19,10 +19,12 @@ typesOfData = ['CRe', 'CIm']
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 #freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
-freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
+freqList = [10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
+StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
+AutoStartStop = 1
+AutoSourceSwitch = 1
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
@@ -34,7 +36,7 @@ colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' 
 ChannelSaveTXT = 0               # Save intensities at specified frequencies to TXT file
 ChannelSavePNG = 0               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
-AmplitudeReIm = 200000 * 10**(-12) # Color range of Re and Im dynamic spectra
+AmplitudeReIm = 20000 * 10**(-12) # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 # Begin and end frequency of dynamic spectrum (MHz)
@@ -44,6 +46,9 @@ freqStop = 10.0
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
 dateTimeStart = '2019-07-19 00:00:00'
 dateTimeStop =  '2019-07-23 04:00:00'
+
+# Source to calculate culmination time
+source = '3C461'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 0.0
@@ -79,8 +84,7 @@ print ('   **************************************************** \n\n\n')
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
-print (' ')
+print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
 
 # Search needed files in the directory and subdirectories
@@ -132,35 +136,32 @@ for type_of_data in typesOfData:
                     CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
                     df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(path_to_data + dat_files_list[file_no], 0, 0)
 
-        if ('3c461' in df_description.lower()) or ('cas' in df_description.lower()):
-            source = '3C461'
-        elif '3c405' in df_description.lower() or 'cyg' in df_description.lower():
-            source = '3C405'
-        else:
-            print('  Source not detected !!!')
-            source  = str(input(' * Enter source name like 3C405 or 3C461:    '))
+        if AutoSourceSwitch == 1:
+            if ('3c461' in df_description.lower()) or ('cas' in df_description.lower()):
+                source = '3C461'
+            elif '3c405' in df_description.lower() or 'cyg' in df_description.lower():
+                source = '3C405'
+            else:
+                print('  Source not detected !!!')
+                source  = str(input(' * Enter source name like 3C405 or 3C461:    '))
 
-        print('  File: ', dat_files_list[file_no])
-        print('  Detected source: ', source, ' Description: ', df_description)
+        print('\n\n * File:            ', dat_files_list[file_no])
+        print('   Detected source: ', source, '\n   Description:     ', df_description)
 
 
         # Take the date of the file and find the culmination time of the source
 
-        if df_filename[-4:] == '.jds':
-            date = '20'+df_filename[5:7]+'-'+df_filename[3:5]+'-'+df_filename[1:3]
-        if df_filename[-4:] == '.adr':
-            date = '20'+df_filename[1:3]+'-'+df_filename[3:5]+'-'+df_filename[5:7]
+        if AutoStartStop == 1:
+            if df_filename[-4:] == '.jds':
+                date = '20'+df_filename[5:7]+'-'+df_filename[3:5]+'-'+df_filename[1:3]
+            if df_filename[-4:] == '.adr':
+                date = '20'+df_filename[1:3]+'-'+df_filename[3:5]+'-'+df_filename[5:7]
 
-        culm_time = culmination_time_utc(source, date, 0)
-        #culm_time = date + ' 23:00:00'
+            culm_time = culmination_time_utc(source, date, 0)
 
-        culm_time = Time(culm_time)
-        start_time = culm_time - TimeDelta(3600, format = 'sec')
-        end_time  = culm_time + TimeDelta(3600, format = 'sec')
-
-        #start_time_str = str(start_time)[0:19]
-        #end_time_str = str(end_time)[0:19]
-        #print(start_time_str, end_time_str)
+            culm_time = Time(culm_time)
+            start_time = culm_time - TimeDelta(3600, format = 'sec')
+            end_time  = culm_time + TimeDelta(3600, format = 'sec')
 
 
         # *** Reading timeline file ***
@@ -181,35 +182,38 @@ for type_of_data in typesOfData:
 
             dt_timeline.append(datetime(int(timeline[i][0:4]), int(timeline[i][5:7]), int(timeline[i][8:10]), int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]), int(uSecond)))
 
-        #dt_dateTimeStart = datetime(int(start_time_str[0:4]), int(start_time_str[5:7]), int(start_time_str[8:10]), int(start_time_str[11:13]), int(start_time_str[14:16]), int(start_time_str[17:19]), 0)
-        #dt_dateTimeStop = datetime(int(end_time_str[0:4]), int(end_time_str[5:7]), int(end_time_str[8:10]), int(end_time_str[11:13]), int(end_time_str[14:16]), int(end_time_str[17:19]), 0)
+
+        if AutoStartStop == 0: # If switch is off - use manually set time and date
+            start_time = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]), int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]), 0)
+            end_time = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]), int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
 
         # *** Showing the time limits of file and time limits of chosen part
-        print ('\n\n                               Start                         End \n')
-        print ('  File time limits:   ', dt_timeline[0],' ', dt_timeline[len(timeline)-1], '\n')
-        print ('  Chosen time limits: ', start_time, '    ', end_time, '\n')
+        print ('\n                                Start                         End \n')
+        print ('   File time limits:   ', dt_timeline[0],' ', dt_timeline[len(timeline)-1], '\n')
+        print ('   Chosen time limits: ', start_time, '    ', end_time, '\n')
 
         # Verifying that chosen time limits are inside file and are correct
         if (dt_timeline[len(timeline)-1]>=start_time>dt_timeline[0]) and (dt_timeline[len(timeline)-1]>end_time>=dt_timeline[0]) and (end_time>start_time):
-            print ('  Time is chosen correctly! \n\n')
+            print ('   Time is chosen correctly! \n\n')
         elif(dt_timeline[len(timeline)-1] >= start_time + TimeDelta(86400, format = 'sec') > dt_timeline[0]) and (dt_timeline[len(timeline)-1] > end_time + TimeDelta(86400, format = 'sec') >= dt_timeline[0]) and (end_time>start_time):
             start_time = start_time + TimeDelta(86400, format = 'sec')
             end_time = end_time + TimeDelta(86400, format = 'sec')
-            print ('  Time is chosen correctly but adjusted for 1 day behind! \n\n')
+            print ('   Time is chosen correctly but adjusted for 1 day ahead! \n')
         else:
-            print ('  ERROR! Culmination time is calculated chosen out of file limits!!! \n\n')
-            sys.exit('         Program stopped')
+            print ('   ERROR! Culmination time is calculated chosen out of file limits!!! \n\n')
+            sys.exit('           Program stopped! \n\n')
+
+        #DAT_result_path = 'DAT_Results_' + data_files_name_list[file_no]
+        if AutoStartStop == 1:
+            dateTimeStart = str(start_time)[0:19]
+            dateTimeStop = str(end_time)[0:19]
 
 
-
-
-        '''
-        done_or_not = DAT_file_reader(path_to_results, DAT_file_name, type_of_data, DAT_result_path, averOrMin,
+        done_or_not = DAT_file_reader(path_to_data, data_files_name_list[file_no], [type_of_data], data_files_name_list[file_no], averOrMin,
                                 StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                 RFImeanConst, customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
                                 AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
                                 freqStopTXT, freqList, 0)
-        '''
 
 
 
