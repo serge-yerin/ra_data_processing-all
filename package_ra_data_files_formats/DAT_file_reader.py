@@ -397,7 +397,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
 
                 # *** Saving value changes at particular frequency to TXT file ***
                 if ChannelSaveTXT == 1:
-                    SingleChannelData = open('DAT_Results/'+df_filename[0:14]+'_'+filename[-7:-4:]+' Intensity variation at '+str(round(frequency[index],3))+' MHz.txt', "w")
+                    SingleChannelData = open(newpath + '/' + df_filename[0:14]+'_'+filename[-7:-4:]+' Intensity variation at '+str(round(frequency[index],3))+' MHz.txt', "w")
                     for i in range(len(dateTimeNew)):
                         SingleChannelData.write(str(dateTimeNew[i]).rstrip()+'   '+str(array.transpose()[i, index])+' \n' )
                     SingleChannelData.close()

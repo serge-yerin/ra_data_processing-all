@@ -33,8 +33,8 @@ VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spec
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
-ChannelSaveTXT = 0               # Save intensities at specified frequencies to TXT file
-ChannelSavePNG = 0               # Save intensities at specified frequencies to PNG file
+ChannelSaveTXT = 1               # Save intensities at specified frequencies to TXT file
+ChannelSavePNG = 1               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 20000 * 10**(-12) # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
