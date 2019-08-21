@@ -9,7 +9,7 @@ Software_version = '2019.04.29'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'
+directory = 'i:/2019.08.01_UTR2_Jupiter_Juno_WF_beam_3/' # 'DATA/'
 
 no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading
@@ -35,7 +35,7 @@ from datetime import datetime, timedelta
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_cleaning.simple_channel_clean import simple_channel_clean
-from package_common_modules.find_files_in_folder import find_files_in_folder
+from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 
@@ -70,7 +70,7 @@ if not os.path.exists(initial_spectra_folder):
 
 # *** Search JDS files in the directory ***
 
-fileList = find_files_in_folder(directory, '.jds')
+fileList = find_files_only_in_current_folder(directory, '.jds', 1)
 
 for fileNo in range (len(fileList)):   # loop by files
     for i in range(3): print (' ')
@@ -78,7 +78,7 @@ for fileNo in range (len(fileList)):   # loop by files
     print ('  *  File path: ', str(fileList[fileNo]))
 
     # *** Opening datafile ***
-    fname = fileList[fileNo]
+    fname = directory + fileList[fileNo]
 
 
     #*********************************************************************************
