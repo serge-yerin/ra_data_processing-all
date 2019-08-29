@@ -32,7 +32,7 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan,
                     VminNormMan, VmaxNormMan, RFImeanConst, customDPI, colormap,
                     ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
-                    freqStart, freqStop, dateTimeStart,dateTimeStop, freqStartTXT,
+                    freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
                     freqStopTXT, freqList, print_or_not):
 
     startTime = time.time()
@@ -385,8 +385,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
                                 ' MHz '+sumDifMode+' Processing: Averaging '+str(averageConst)+
                                 ' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
 
-                    FileName = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j]+
-                                ' Intensity variation at '+str(round(frequency[index],3))+'.png')
+                    FileName = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j]+ df_filename[-4:]+
+                                ' variation at '+str(round(frequency[index],3))+' MHz.png')
 
                     OneValueWithTimePlot(timeline, array[[index],:].transpose(), Label,
                                             0, len(dateTimeNew), Vmin, Vmax, 0, 0,
@@ -397,7 +397,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
 
                 # *** Saving value changes at particular frequency to TXT file ***
                 if ChannelSaveTXT == 1:
-                    SingleChannelData = open(newpath + '/' + df_filename[0:14]+'_'+filename[-7:-4:]+' Intensity variation at '+str(round(frequency[index],3))+' MHz.txt', "w")
+                    SingleChannelData = open(newpath + '/' + df_filename[0:14]+'_'+filename[-7:-4:]+ df_filename[-4:]+' variation at '+str(round(frequency[index],3))+' MHz.txt', "w")
                     for i in range(len(dateTimeNew)):
                         SingleChannelData.write(str(dateTimeNew[i]).rstrip()+'   '+str(array.transpose()[i, index])+' \n' )
                     SingleChannelData.close()

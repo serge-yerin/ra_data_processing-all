@@ -6,14 +6,14 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-path_to_data =  'DATA_for_DAT_reader_development/DAT_Results_E280719_225850.jds/'
+path_to_data =  'DATA_for_DAT_reader_development/DAT_Results_D280719_225845.jds_3C461/'
 y_auto = 1
 Vmin = -500 * 10**(-12)
 Vmax =  500 * 10**(-12)
 
-interferometer_base = 900
-amplitude = 0.021 * 10**-8
-vertical_offset = -0.002 * 10**-8
+interferometer_base = 400 #900
+#amplitude = 0.021 * 10**-8
+#vertical_offset = -0.002 * 10**-8
 
 customDPI = 300                     # Resolution of images of dynamic spectra
 
@@ -50,7 +50,7 @@ print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 file_name_list = find_files_only_in_current_folder(path_to_data, '.txt', 1)
 
 
-for file_no in range (1): #len(file_name_list)
+for file_no in range (len(file_name_list)):
 
     # *** Reading files ***
     [x_value, y_value] = read_date_time_and_one_value_txt ([path_to_data + file_name_list[file_no]])
@@ -61,7 +61,7 @@ for file_no in range (1): #len(file_name_list)
 
     text_freq = find_between(file_name_list[file_no], 'at ', ' MHz')
     num_freq = np.float(text_freq)
-    parent_filename = find_between(path_to_data + file_name_list[0], path_to_data, ' Intensity')
+    parent_filename = find_between(path_to_data + file_name_list[0], path_to_data, ' variation')
 
     x_center = int(b/2) # Central point in time axis
     theta = np.linspace(90-15, 90+15, num = b) * np.pi / 180 # Angle of wave coming
@@ -75,6 +75,8 @@ for file_no in range (1): #len(file_name_list)
 
     theory = np.zeros(b)
 
+    amplitude = (np.max(y_value[0, :]) + np.abs(np.min(y_value[0, :])))/2
+
     if 'CRe' in parent_filename:
         theory[:] = amplitude * np.cos(1 * np.pi * num_freq * 10**6 * interferometer_base * np.cos(theta[:]) / c ) * pattern
     elif 'CIm' in parent_filename:
@@ -83,10 +85,11 @@ for file_no in range (1): #len(file_name_list)
         print ('\n          Error detecting type of data! \n')
 
 
+
+
     #*******************************************************************************
     #                                F I G U R E S                                 *
     #*******************************************************************************
-
 
     rc('font', size = 6, weight='bold')
     fig = plt.figure(figsize = (9, 5))
@@ -94,6 +97,7 @@ for file_no in range (1): #len(file_name_list)
     plt.axvline(x = x_center, linewidth = '0.5' , color = 'r') #, alpha=0.5
     for i in range (a):
         ax1.plot(theory[:], linestyle = '--', linewidth = '1.50', alpha = 0.5, label = 'Theory')
+        vertical_offset = - np.mean(y_value[i, :])
         ax1.plot(y_value[i, :] + vertical_offset, linestyle = '-', linewidth = '1.00', label = 'Measured')
     ax1.legend(loc = 'upper right', fontsize = 6)
     ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
@@ -107,13 +111,13 @@ for file_no in range (1): #len(file_name_list)
     text = ax1.get_xticks().tolist()
     for i in range(len(text)):
         k = int(text[i])
-        text[i] = str(date_time[i][0:11] + '\n' + date_time[i][11:23])
+        text[i] = str(date_time[k][0:11] + '\n' + date_time[k][11:23])
     ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
     fig.subplots_adjust(top=0.92)
     fig.suptitle('File: ' + parent_filename + ' at ' + str(num_freq) + ' MHz', fontsize = 8, fontweight='bold')
     fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
     fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
-    pylab.savefig(path_to_data + parent_filename + ' 01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
+    pylab.savefig(path_to_data + parent_filename + ' interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
     #pylab.show()
     plt.close('all')
 
@@ -139,7 +143,7 @@ for file_no in range (1): #len(file_name_list)
     ax4.plot(np.abs(np.fft.fft(y_value[0, :])), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
     ax4.set_xlim([0, int(len(theory)/2)])
     #ax4.set_xlim([0, 125])
-    pylab.savefig(path_to_data + parent_filename + ' 01 - All txt data used_add.png', bbox_inches = 'tight', dpi = 160)
+    pylab.savefig(path_to_data + parent_filename + ' additional parameters at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
     #pylab.show()
     plt.close('all')
     #'''

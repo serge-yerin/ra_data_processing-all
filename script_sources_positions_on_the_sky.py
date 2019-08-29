@@ -5,7 +5,10 @@ import os
 import time
 import pylab
 import numpy as np
-
+import matplotlib.pyplot as plt
+from matplotlib import ticker as mtick
+from matplotlib import rc
+from pytz import timezone
 import astropy.units as u
 from astropy.coordinates import EarthLocation, AltAz
 from astropy.coordinates import SkyCoord
@@ -14,13 +17,6 @@ from astropy.coordinates import get_body_barycentric
 from astropy.coordinates import get_body
 from astropy.coordinates import get_sun
 from astropy.time import Time
-
-from astroplan import FixedTarget
-
-from pytz import timezone
-import matplotlib.pyplot as plt
-from matplotlib import ticker as mtick
-from matplotlib import rc
 
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_astronomy.catalogue_sources import catalogue_sources
@@ -55,7 +51,6 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     print('  Coordinates: \n  * Longitude: ', str(utr2_location.lon).replace("d", "\u00b0 " ).replace("m", "\' " ).replace("s", "\'\' " ),' \n  * Latitude:   '+ str(utr2_location.lat).replace("d", "\u00b0 " ).replace("m", "\' " ).replace("s", "\'\' " ) + '\n')
     print('  Plot time window: \n  * From: ', str(start_time)[0:19],' UTC \n  * Till:  '+ str(end_time)[0:19] + '  UTC \n')
 
-
     frame = AltAz(obstime = time_window, location = utr2_location)
 
     # Coordiantes of Sun
@@ -67,20 +62,16 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
 
     # Coordinates of pulsars
     pulsars_alt_az = []
-    pulsars = []
     for i in range (len(pulsars_list)):
         alt, az, DM = catalogue_pulsar(pulsars_list[i])
         coordinates = SkyCoord(alt, az, frame='icrs')
-        pulsars.append(FixedTarget(name = pulsars_list[i], coord = coordinates))
         pulsars_alt_az.append(coordinates.transform_to(frame))
 
     # Coordinates of sources
     sources_alt_az = []
-    sources = []
     for i in range (len(sources_list)):
         alt, az = catalogue_sources(sources_list[i])
         coordinates = SkyCoord(alt, az, frame='icrs')
-        sources.append(FixedTarget(name = sources_list[i], coord = coordinates))
         sources_alt_az.append(coordinates.transform_to(frame))
 
 
@@ -89,7 +80,6 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     for i in range(len(ticks_list)):
         time_ticks_list.append(str(time_window[ticks_list[i]])[10:16])
     color = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
-
 
 
     # *** Sources elevation above horizon with time plot figure ***
@@ -245,8 +235,6 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     #plt.show()
 
 
-
-
     # Plot of culmination times
     objects = ['', 'Sun', 'Jupiter']
     for i in range (len(sources_list)):
@@ -373,9 +361,7 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     fig.text(0.79, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
     fig.text(0.11, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
 
-
     pylab.savefig(newpath + '/'+ str(start_time)[0:10] +' culmination times.png', bbox_inches='tight', dpi = 300)
-
 
     return
 
