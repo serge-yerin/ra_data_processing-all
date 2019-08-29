@@ -22,25 +22,30 @@ def find_rize_and_set_points(alt_az_list):
     test_func = func[0 : int(xmax)]
     abs_func = np.abs(test_func)
     closest_to_zero_index = np.argmin(abs_func)
-    if (func[closest_to_zero_index-1] < 0) and (func[closest_to_zero_index+1] > 0):
-        x_rise = closest_to_zero_index
-    elif func[closest_to_zero_index-1] > 0 and func[closest_to_zero_index+1] < 0:
-        x_set = closest_to_zero_index
-    else:
+    if closest_to_zero_index == 0 or closest_to_zero_index == len(alt_az_list)-1:
         x_rise = 0
+    else:
+        if (func[closest_to_zero_index-1] < 0) and (func[closest_to_zero_index+1] > 0):
+            x_rise = closest_to_zero_index
+        elif func[closest_to_zero_index-1] > 0 and func[closest_to_zero_index+1] < 0:
+            x_set = closest_to_zero_index
+        else:
+            x_rise = 0
 
     # Finding the value closest to zero after culmination
 
     test_func = func[int(xmax) : len(alt_az_list)-1]
     abs_func = np.abs(test_func)
-    closest_to_zero_index = np.argmin(abs_func)
-    closest_to_zero_index = closest_to_zero_index + int(xmax)
+    if len(abs_func) > 0:
+        closest_to_zero_index = np.argmin(abs_func)
+        closest_to_zero_index = closest_to_zero_index + int(xmax)
 
-    if func[closest_to_zero_index-1] < 0 and func[closest_to_zero_index+1] > 0:
-        x_rise = closest_to_zero_index
-    elif func[closest_to_zero_index-1] > 0 and func[closest_to_zero_index+1] < 0:
-        x_set = closest_to_zero_index
+        if func[closest_to_zero_index-1] < 0 and func[closest_to_zero_index+1] > 0:
+            x_rise = closest_to_zero_index
+        elif func[closest_to_zero_index-1] > 0 and func[closest_to_zero_index+1] < 0:
+            x_set = closest_to_zero_index
+        else:
+            x_set = len(alt_az_list) - 1
     else:
         x_set = len(alt_az_list) - 1
-
     return x_rise, x_set
