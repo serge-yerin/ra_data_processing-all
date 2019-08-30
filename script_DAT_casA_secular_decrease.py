@@ -24,7 +24,7 @@ freqList = [12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0]
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
 AutoStartStop = 1                # 1 - calculte depending on source in comment, 0 - use manual values
-AutoSourceSwitch = 1             # 1 - find sourcs in comment, 0 - use manually set source
+AutoSourceSwitch = 0             # 1 - find sourcs in comment, 0 - use manually set source
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
@@ -48,7 +48,7 @@ dateTimeStart = '2019-07-19 00:00:00'
 dateTimeStop =  '2019-07-23 04:00:00'
 
 # Source to calculate culmination time (if AutoSourceSwitch = 0)
-source = '3C461'
+source = '3C405'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 0.0
@@ -146,7 +146,8 @@ for type_of_data in typesOfData:
                 source  = str(input(' * Enter source name like 3C405 or 3C461:    '))
 
         print('\n\n * File:            ', dat_files_list[file_no])
-        print('   Detected source: ', source, '\n   Description:     ', df_description)
+        if AutoSourceSwitch == 1: print('   Detected source: ', source, '\n   Description:     ', df_description)
+        if AutoSourceSwitch == 0: print('   Manual source:   ', source, '\n   Description:     ', df_description)
 
 
         # Take the date of the file and find the culmination time of the source
