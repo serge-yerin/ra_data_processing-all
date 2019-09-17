@@ -148,7 +148,26 @@ for file_no in range (len(file_name_list)):
     plt.close('all')
     #'''
 
-
+    #'''
+    fig = plt.figure(figsize = (12, 5))
+    fig.suptitle('Spectra of the interferometric responce', fontsize = 8, fontweight='bold')
+    ax1 = fig.add_subplot(121)
+    ax1.set_title('Spectra', fontsize = 6)
+    ax1.plot(np.abs(np.fft.fft(theory)), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Theory')
+    ax1.plot(np.abs(np.fft.fft(y_value[0, :])), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+    ymax = np.max(np.abs(np.fft.fft(y_value[0, :])))
+    ax1.annotate(str(ymax),  xy=(100, ymax), fontsize = 6, ha='center') # xy=(xmax, 2 + 0.3)
+    ax1.set_xlim([0, int(len(theory)/2)])
+    ax2 = fig.add_subplot(122)
+    ax2.set_title('Spectra', fontsize = 6)
+    ax2.plot(10 * np.log10(np.abs(np.fft.fft(theory))), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Theory')
+    ax2.plot(10 * np.log10(np.abs(np.fft.fft(y_value[0, :]))), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+    ax2.set_xlim([0, int(len(theory)/2)])
+    ax2.set_ylim([-100, -50])
+    pylab.savefig(path_to_data + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
+    #pylab.show()
+    plt.close('all')
+    #'''
 
 
 
