@@ -18,6 +18,7 @@ def find_files_only_in_current_folder(path, extension, print_or_not):
             i = i + 1
             if print_or_not == 1:  print ('         ', i, ') ', file)
             file_name_list.append(str(file))
+    file_name_list.sort()
     return file_name_list
 
 

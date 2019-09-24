@@ -7,7 +7,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-path_to_data = 'DATA_for_DAT_reader_development/'  # '/media/data/PYTHON/ra_data_processing-all/'
+path_to_data = 'DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
@@ -24,7 +24,7 @@ freqList = [12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0]
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
 AutoStartStop = 1                # 1 - calculte depending on source in comment, 0 - use manual values
-AutoSourceSwitch = 0             # 1 - find sourcs in comment, 0 - use manually set source
+AutoSourceSwitch = 1             # 1 - find sourcs in comment, 0 - use manually set source
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range

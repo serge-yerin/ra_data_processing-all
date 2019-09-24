@@ -6,7 +6,7 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-path_to_data =  'DATA_for_DAT_reader_development/DAT_Results_D280719_225845.jds_3C461/'
+path_to_data =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
 y_auto = 1
 Vmin = -500 * 10**(-12)
 Vmax =  500 * 10**(-12)
@@ -148,21 +148,26 @@ for file_no in range (len(file_name_list)):
     plt.close('all')
     #'''
 
+    experiment = np.abs(np.fft.fft(y_value[0, :]))
+    experiment[0] = np.nan
+
     #'''
     fig = plt.figure(figsize = (12, 5))
     fig.suptitle('Spectra of the interferometric responce', fontsize = 8, fontweight='bold')
     ax1 = fig.add_subplot(121)
     ax1.set_title('Spectra', fontsize = 6)
     ax1.plot(np.abs(np.fft.fft(theory)), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Theory')
-    ax1.plot(np.abs(np.fft.fft(y_value[0, :])), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
-    ymax = np.max(np.abs(np.fft.fft(y_value[0, :])))
-    ax1.annotate(str(ymax),  xy=(100, ymax), fontsize = 6, ha='center') # xy=(xmax, 2 + 0.3)
-    ax1.set_xlim([0, int(len(theory)/2)])
+    ax1.plot(experiment, linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+    ymax = np.max(experiment[1:])
+    ax1.annotate(str(ymax),  xy=(50, ymax), fontsize = 6, ha='center') # xy=(xmax, 2 + 0.3)
+    ax1.set_xlim([0, int(len(theory)/10)])
     ax2 = fig.add_subplot(122)
     ax2.set_title('Spectra', fontsize = 6)
     ax2.plot(10 * np.log10(np.abs(np.fft.fft(theory))), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Theory')
-    ax2.plot(10 * np.log10(np.abs(np.fft.fft(y_value[0, :]))), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
-    ax2.set_xlim([0, int(len(theory)/2)])
+    ax2.plot(10 * np.log10(experiment), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+    ymax = np.max(10 * np.log10(experiment[1:]))
+    ax2.annotate(str(ymax),  xy=(50, ymax), fontsize = 6, ha='center')
+    ax2.set_xlim([0, int(len(theory)/10)])
     ax2.set_ylim([-100, -50])
     pylab.savefig(path_to_data + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
     #pylab.show()
