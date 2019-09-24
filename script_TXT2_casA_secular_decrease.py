@@ -8,8 +8,12 @@ Software_version = '2019.09.24'
 #*******************************************************************************
 # Path to data files
 
-path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
+#path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
+#path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
+
+path_to_data_SygA =  'DATA/DAT_Results_D270719_171000.jds_3C405/'
+path_to_data_CasA =  'DATA/DAT_Results_D270719_230005.jds_3C461/'
+
 
 y_auto = 1
 Vmin = -500 * 10**(-12)
@@ -47,7 +51,11 @@ currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print ('  Today is ', currentDate, ' time is ', currentTime)
 
-result_path = 'CasA_decular_decrease' + find_between(path_to_data_SygA, 'Results_', '_3C') + '_' + find_between(path_to_data_CasA, 'Results_', '_3C')
+file_name_SygA = find_between(path_to_data_SygA, 'Results_', '_3C')
+file_name_CasA = find_between(path_to_data_CasA, 'Results_', '_3C')
+
+#result_path = 'CasA_secular_decrease_' + file_name_SygA + '_' + file_name_CasA
+result_path = 'CasA secular decrease measurements results'
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 
@@ -91,7 +99,7 @@ for source in ['SygA', 'CasA']:
         #*******************************************************************************
         #                                F I G U R E S                                 *
         #*******************************************************************************
-
+        '''
         rc('font', size = 6, weight='bold')
         fig = plt.figure(figsize = (9, 5))
         ax1 = fig.add_subplot(111)
@@ -122,14 +130,15 @@ for source in ['SygA', 'CasA']:
         #pylab.show()
         plt.close('all')
 
-
+        '''
         experiment = np.abs(np.fft.fft(y_value[0, :]))
         experiment[0] = np.nan
         ymax = np.max(experiment[1:])
         if source == 'SygA': ampl_list_SygA.append(ymax)
         if source == 'CasA': ampl_list_CasA.append(ymax)
 
-        #'''
+        '''
+        rc('font', size = 6, weight='bold')
         fig = plt.figure(figsize = (12, 5))
         fig.suptitle('Spectra of the interferometric responce', fontsize = 8, fontweight='bold')
         ax1 = fig.add_subplot(121)
@@ -146,7 +155,7 @@ for source in ['SygA', 'CasA']:
         ax2.set_ylim([-100, -50])
         pylab.savefig(result_path + '/' + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
         plt.close('all')
-        #'''
+        '''
 
 
 if freq_list_SygA != freq_list_CasA:
@@ -163,20 +172,23 @@ for i in range (len(freq_list_SygA)):
     print('   ', freq_list_SygA[i], '         ', np.round(flux_ratio[i], 3))    # , ampl_list_SygA[i], ampl_list_CasA[i]
 
 #'''
+rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (10, 5))
-fig.suptitle('Flux ratio with frequency', fontsize = 8, fontweight='bold')
+fig.suptitle('Flux ratio of Cas A and Syg A with frequency', fontsize = 8, fontweight='bold')
 ax1 = fig.add_subplot(111)
-ax1.set_title('Ratio of interferometric responces for files:', fontsize = 6)
+ax1.set_title('Ratio of interferometric responces for files: ' + file_name_SygA + ' and ' + file_name_CasA , fontsize = 6)
 ax1.plot(freq_list_SygA, flux_ratio, 'ro',  label = 'Measured points')
 for i in range (len(freq_list_SygA)):
     ax1.annotate(str(np.round(flux_ratio[i],3)),  xy=(freq_list_SygA[i], flux_ratio[i]+0.1), fontsize = 6, ha='center')
-ax1.set_xlim([6, 34])
+if file_name_SygA[-3:] == 'jds': ax1.set_xlim([6, 34])
+if file_name_SygA[-3:] == 'adr': ax1.set_xlim([8, 80])
 ax1.set_ylim([0, 2])
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 ax1.set_ylabel('Flux ratio', fontsize=6, fontweight='bold')
-plt.xticks([8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32])
-pylab.savefig(result_path + '/' + 'Flux ratio with frequency.png', bbox_inches = 'tight', dpi = 160)
+if file_name_SygA[-3:] == 'jds': plt.xticks([8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32])
+if file_name_SygA[-3:] == 'adr': plt.xticks([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75])
+pylab.savefig(result_path + '/' + 'Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 #'''
 
