@@ -11,8 +11,8 @@ Software_version = '2019.09.25'
 #path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
 #path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
 
-path_to_data_SygA =  'DATA/DAT_Results_B260719_164511.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_B260719_230333.jds_3C461/'
+path_to_data_SygA =  'DATA/DAT_Results_C280719_183727.jds_3C405/'
+path_to_data_CasA =  'DATA/DAT_Results_C280719_225841.jds_3C461/'
 
 
 y_auto = 1

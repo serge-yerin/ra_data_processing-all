@@ -135,6 +135,7 @@ for folder_no in range (num_of_folders):
 
     # Find all files in folder once more:
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
+    file_name_list_current.sort()
 
     print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
 

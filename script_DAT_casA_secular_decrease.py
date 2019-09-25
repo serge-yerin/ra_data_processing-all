@@ -13,7 +13,6 @@ path_to_data = 'DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
 # Types of data to get
-#typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
 typesOfData = ['CRe', 'CIm']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
@@ -24,7 +23,7 @@ freqList = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
 AutoStartStop = 1                # 1 - calculte depending on source in comment, 0 - use manual values
-AutoSourceSwitch = 1             # 1 - find sourcs in comment, 0 - use manually set source
+AutoSourceSwitch = 0             # 1 - find sourcs in comment, 0 - use manually set source
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
@@ -47,8 +46,6 @@ freqStop = 10.0
 dateTimeStart = '2019-07-19 00:00:00'
 dateTimeStop =  '2019-07-23 04:00:00'
 
-# Source to calculate culmination time (if AutoSourceSwitch = 0)
-source = '3C405'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 0.0
@@ -143,9 +140,17 @@ for type_of_data in typesOfData:
                 source = '3C405'
             else:
                 print('  Source not detected !!!')
-                source  = str(input(' * Enter source name like 3C405 or 3C461:    '))
+                source  = str(input(' * Enter source name like 3C405 or 3C461:         '))
 
-        print('\n\n * File:            ', dat_files_list[file_no])
+        if AutoSourceSwitch == 0:
+            print('\n   !!! Enter source name manually !!!')
+            print('   Filename:   ', dat_files_list[file_no])
+            source  = str(input('   Enter source name like 3C405 or 3C461:         '))
+
+        add = 0
+        if type_of_data == 'CIm': add = 2
+
+        print('\n\n * File', file_no+1+add, 'of 4:     ', dat_files_list[file_no])
         if AutoSourceSwitch == 1: print('   Detected source: ', source, '\n   Description:     ', df_description)
         if AutoSourceSwitch == 0: print('   Manual source:   ', source, '\n   Description:     ', df_description)
 

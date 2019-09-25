@@ -104,7 +104,7 @@ for root, dirs, files in os.walk(directory):
             Log_File.write('           '+str(i)+') %s \n' %file )
             fileList.append(str(os.path.join(root, file)))
 Log_File.close()
-
+fileList.sort()
 
 for fileNo in range (len(fileList)):   # loop by files
     print ('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
