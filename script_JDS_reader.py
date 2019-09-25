@@ -6,7 +6,7 @@ Software_version = '2019.05.09'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'h:/2019.05.17_UTR2_3C461_interf_sect_01-08/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
+directory = '/media/data/DATA/24_09_2019_3C274/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -20,8 +20,8 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
+longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
+longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?

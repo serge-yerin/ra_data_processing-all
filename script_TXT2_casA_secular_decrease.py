@@ -59,10 +59,16 @@ result_path = 'CasA secular decrease measurements results'
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 
-freq_list_CasA = []
-freq_list_SygA = []
-ampl_list_CasA = []
-ampl_list_SygA = []
+freq_list_CasA_CRe = []
+freq_list_SygA_CRe = []
+ampl_list_CasA_CRe = []
+ampl_list_SygA_CRe = []
+freq_list_CasA_CIm = []
+freq_list_SygA_CIm = []
+ampl_list_CasA_CIm = []
+ampl_list_SygA_CIm = []
+
+
 
 for source in ['SygA', 'CasA']:
 
@@ -72,9 +78,11 @@ for source in ['SygA', 'CasA']:
     # Finding TXT files in the folder
     print('')
     file_name_list = find_files_only_in_current_folder(path_to_data, '.txt', 1)
-    #file_name_list.sort()
 
     for file_no in range (len(file_name_list)):
+
+        data_type = find_between(file_name_list[file_no], '_', '.jds')[-3:]
+
 
         # *** Reading files ***
         [x_value, y_value] = read_date_time_and_one_value_txt ([path_to_data + file_name_list[file_no]])
@@ -85,8 +93,10 @@ for source in ['SygA', 'CasA']:
 
         text_freq = find_between(file_name_list[file_no], 'at ', ' MHz')
         num_freq = np.float(text_freq)
-        if source == 'SygA': freq_list_SygA.append(num_freq)
-        if source == 'CasA': freq_list_CasA.append(num_freq)
+        if data_type == 'CIm' and source == 'SygA': freq_list_SygA_CIm.append(num_freq)
+        if data_type == 'CRe' and source == 'SygA': freq_list_SygA_CRe.append(num_freq)
+        if data_type == 'CIm' and source == 'CasA': freq_list_CasA_CIm.append(num_freq)
+        if data_type == 'CRe' and source == 'CasA': freq_list_CasA_CRe.append(num_freq)
 
         parent_filename = find_between(path_to_data + file_name_list[0], path_to_data, ' variation')
 
@@ -134,8 +144,10 @@ for source in ['SygA', 'CasA']:
         experiment = np.abs(np.fft.fft(y_value[0, :]))
         experiment[0] = np.nan
         ymax = np.max(experiment[1:])
-        if source == 'SygA': ampl_list_SygA.append(ymax)
-        if source == 'CasA': ampl_list_CasA.append(ymax)
+        if data_type == 'CIm' and source == 'SygA': ampl_list_SygA_CIm.append(ymax)
+        if data_type == 'CRe' and source == 'SygA': ampl_list_SygA_CRe.append(ymax)
+        if data_type == 'CIm' and source == 'CasA': ampl_list_CasA_CIm.append(ymax)
+        if data_type == 'CRe' and source == 'CasA': ampl_list_CasA_CRe.append(ymax)
 
         '''
         rc('font', size = 6, weight='bold')
@@ -158,28 +170,35 @@ for source in ['SygA', 'CasA']:
         '''
 
 
-if freq_list_SygA != freq_list_CasA:
+if freq_list_SygA_CRe != freq_list_CasA_CRe:
     print ('   ERROR! Frequencies of analysis for two sources do not match!!! \n\n')
     sys.exit('           Program stopped! \n\n')
 
-#flux_ratio = np.zeros(len(ampl_list_CasA))
-flux_ratio = []
-for i in range(len(ampl_list_CasA)):
-    flux_ratio.append(ampl_list_CasA[i] / ampl_list_SygA[i])
 
-print('\n Frequency, MHz   Flux ratio')
-for i in range (len(freq_list_SygA)):
-    print('   ', freq_list_SygA[i], '         ', np.round(flux_ratio[i], 3))    # , ampl_list_SygA[i], ampl_list_CasA[i]
 
+# Calculating the flux ratio
+flux_ratio_CRe = []
+flux_ratio_CIm = []
+for i in range(len(ampl_list_CasA_CRe)):
+    flux_ratio_CIm.append(ampl_list_CasA_CIm[i] / ampl_list_SygA_CIm[i])
+    flux_ratio_CRe.append(ampl_list_CasA_CRe[i] / ampl_list_SygA_CRe[i])
+
+
+print('\n Frequency, MHz   Flux ratio Re    Flux ratio Im')
+for i in range (len(freq_list_SygA_CRe)):
+    print('   ', freq_list_SygA_CRe[i], '          ', np.round(flux_ratio_CRe[i], 3), '         ', np.round(flux_ratio_CIm[i], 3))    # , ampl_list_SygA[i], ampl_list_CasA[i]
+
+# Making a figure of flux ratio with frequency
 #'''
 rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (10, 5))
 fig.suptitle('Flux ratio of Cas A and Syg A with frequency', fontsize = 8, fontweight='bold')
 ax1 = fig.add_subplot(111)
 ax1.set_title('Ratio of interferometric responces for files: ' + file_name_SygA + ' and ' + file_name_CasA , fontsize = 6)
-ax1.plot(freq_list_SygA, flux_ratio, 'ro',  label = 'Measured points')
-for i in range (len(freq_list_SygA)):
-    ax1.annotate(str(np.round(flux_ratio[i],3)),  xy=(freq_list_SygA[i], flux_ratio[i]+0.1), fontsize = 6, ha='center')
+ax1.plot(freq_list_SygA_CRe, flux_ratio_CRe, 'ro',  label = 'Real part of correlation')
+ax1.plot(freq_list_SygA_CIm, flux_ratio_CIm, 'bo', alpha = 0.7, label = 'Imag part of correlation')
+#for i in range (len(freq_list_SygA)):
+#    ax1.annotate(str(np.round(flux_ratio[i],3)),  xy=(freq_list_SygA[i], flux_ratio[i]+0.1), fontsize = 6, ha='center')
 if file_name_SygA[-3:] == 'jds': ax1.set_xlim([6, 34])
 if file_name_SygA[-3:] == 'adr': ax1.set_xlim([8, 80])
 ax1.set_ylim([0, 2])
@@ -191,6 +210,15 @@ if file_name_SygA[-3:] == 'adr': plt.xticks([10, 15, 20, 25, 30, 35, 40, 45, 50,
 pylab.savefig(result_path + '/' + 'Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 #'''
+
+# Saving data on flux ratio to TXT file
+TXT_file = open(result_path + '/' + 'Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.txt', "w")
+for i in range(len(freq_list_SygA_CRe)):
+    TXT_file.write(str(freq_list_SygA_CRe[i]) + '   ' + str(np.round(flux_ratio_CRe[i], 5)) + '   ' + str(np.round(flux_ratio_CIm[i], 5)) + '\n' )
+TXT_file.close()
+
+
+
 
 endTime = time.time()
 print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',

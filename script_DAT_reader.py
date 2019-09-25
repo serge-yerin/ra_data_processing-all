@@ -6,19 +6,19 @@ Software_version = '2019.05.08'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path = 'e:/PYTHON/ra_data_processing-all/' # 'DATA/'
+common_path = '/media/data/PYTHON/ra_data_processing-all/' # 'DATA/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'D180519_033005.jds_Data_C_m.dat'
+filename = common_path + 'E230919_215141.jds_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['CRe', 'CIm']
+typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
-#freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
-freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
+freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
+#freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
@@ -26,12 +26,12 @@ SpecFreqRange = 0                # Specify particular frequency range (1) or who
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 15                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
-ChannelSaveTXT = 0               # Save intensities at specified frequencies to TXT file
-ChannelSavePNG = 0               # Save intensities at specified frequencies to PNG file
+ChannelSaveTXT = 1               # Save intensities at specified frequencies to TXT file
+ChannelSavePNG = 1               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 200000 * 10**(-12) # Colour range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
