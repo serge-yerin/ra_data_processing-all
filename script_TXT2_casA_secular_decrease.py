@@ -1,6 +1,6 @@
 # Python3
 Software_name = 'CasA secular decrease TXT reader'
-Software_version = '2019.09.24'
+Software_version = '2019.09.25'
 # Script intended to read, show and analyze data from
 
 #*******************************************************************************
@@ -11,8 +11,8 @@ Software_version = '2019.09.24'
 #path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
 #path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
 
-path_to_data_SygA =  'DATA/DAT_Results_D270719_171000.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_D270719_230005.jds_3C461/'
+path_to_data_SygA =  'DATA/DAT_Results_B260719_164511.jds_3C405/'
+path_to_data_CasA =  'DATA/DAT_Results_B260719_230333.jds_3C461/'
 
 
 y_auto = 1
@@ -68,17 +68,31 @@ freq_list_SygA_CIm = []
 ampl_list_CasA_CIm = []
 ampl_list_SygA_CIm = []
 
-
+file_text = []
 
 for source in ['SygA', 'CasA']:
 
     if source == 'SygA': path_to_data = path_to_data_SygA
     if source == 'CasA': path_to_data = path_to_data_CasA
 
-    # Finding TXT files in the folder
+
+    # Finding TXT files with interferometric responces in the folder
     print('')
     file_name_list = find_files_only_in_current_folder(path_to_data, '.txt', 1)
 
+
+    # Reading description of the observation from INFO file
+    info_txt_file = find_files_only_in_current_folder(path_to_data, '.info', 0)
+    TXT_file = open(path_to_data + info_txt_file[0], "r")
+    for line in TXT_file:                # Loop by all lines in file
+        file_text.append(line)
+        if line.startswith(" Description:"):  # Searching comments
+            words_in_line = line.split()
+            if source == 'SygA': description_SygA = words_in_line[1]    # reading description of data file
+            if source == 'CasA': description_CasA = words_in_line[1]    # reading description of data file
+    TXT_file.close()
+
+    # Loop by found TXT files in the folder
     for file_no in range (len(file_name_list)):
 
         data_type = find_between(file_name_list[file_no], '_', '.jds')[-3:]
@@ -183,10 +197,14 @@ for i in range(len(ampl_list_CasA_CRe)):
     flux_ratio_CIm.append(ampl_list_CasA_CIm[i] / ampl_list_SygA_CIm[i])
     flux_ratio_CRe.append(ampl_list_CasA_CRe[i] / ampl_list_SygA_CRe[i])
 
-
-print('\n Frequency, MHz   Flux ratio Re    Flux ratio Im')
+# Printing to terminal the calculated ratios
+print('\n Frequency, MHz  |  Flux ratio Re  |  Flux ratio Im')
 for i in range (len(freq_list_SygA_CRe)):
-    print('   ', freq_list_SygA_CRe[i], '          ', np.round(flux_ratio_CRe[i], 3), '         ', np.round(flux_ratio_CIm[i], 3))    # , ampl_list_SygA[i], ampl_list_CasA[i]
+    print('   ', freq_list_SygA_CRe[i], '          ', ''.join(format(np.round(flux_ratio_CRe[i], 5), "8.5f")), '        ', ''.join(format(np.round(flux_ratio_CIm[i], 5), "8.5f")))
+
+# Making string of observations start date
+date_of_experiment = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
+
 
 # Making a figure of flux ratio with frequency
 #'''
@@ -194,7 +212,7 @@ rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (10, 5))
 fig.suptitle('Flux ratio of Cas A and Syg A with frequency', fontsize = 8, fontweight='bold')
 ax1 = fig.add_subplot(111)
-ax1.set_title('Ratio of interferometric responces for files: ' + file_name_SygA + ' and ' + file_name_CasA , fontsize = 6)
+ax1.set_title('Ratio of interferometric responces for files: ' + file_name_SygA + ' and ' + file_name_CasA + '\n Syg A description: '+ description_SygA + ', Cas A description: '+ description_CasA, fontsize = 7)
 ax1.plot(freq_list_SygA_CRe, flux_ratio_CRe, 'ro',  label = 'Real part of correlation')
 ax1.plot(freq_list_SygA_CIm, flux_ratio_CIm, 'bo', alpha = 0.7, label = 'Imag part of correlation')
 #for i in range (len(freq_list_SygA)):
@@ -207,20 +225,26 @@ ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 ax1.set_ylabel('Flux ratio', fontsize=6, fontweight='bold')
 if file_name_SygA[-3:] == 'jds': plt.xticks([8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32])
 if file_name_SygA[-3:] == 'adr': plt.xticks([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75])
-pylab.savefig(result_path + '/' + 'Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.png', bbox_inches = 'tight', dpi = 160)
+fig.text(0.09, 0.95, date_of_experiment, fontsize = 8, fontweight='bold', transform=plt.gcf().transFigure)
+fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+pylab.savefig(result_path + '/' + date_of_experiment + ' Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 #'''
 
 # Saving data on flux ratio to TXT file
-TXT_file = open(result_path + '/' + 'Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.txt', "w")
+TXT_file = open(result_path + '/' + date_of_experiment + ' Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.txt', "w")
+TXT_file.write('#  Ratio of interferometric responces of Cas A and Syg A with frequency \n#\n')
+for i in range (len(file_text)):
+    TXT_file.write('# ' + file_text[i])
+TXT_file.write('# \n# Frequency, MHz | Flux ratio Re | Flux ratio Im \n')
 for i in range(len(freq_list_SygA_CRe)):
-    TXT_file.write(str(freq_list_SygA_CRe[i]) + '   ' + str(np.round(flux_ratio_CRe[i], 5)) + '   ' + str(np.round(flux_ratio_CIm[i], 5)) + '\n' )
+    TXT_file.write('     ' + str(freq_list_SygA_CRe[i]) + '          ' +''.join(format(np.round(flux_ratio_CRe[i], 5), "8.5f")) + '        ' + ''.join(format(np.round(flux_ratio_CIm[i], 5), "8.5f")) + '\n')
 TXT_file.close()
-
 
 
 
 endTime = time.time()
 print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                 round((endTime - startTime)/60, 2), 'min. ) \n')
-print ('\n           *** Program TXT reader has finished! *** \n\n\n')
+print ('\n           *** Program ' + Software_name + ' has finished! *** \n\n\n')

@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.08.29'  # !!! Not finished !!!
+Software_version = '2019.09.25'  # !!! Not finished !!!
 Software_name = 'DAT multifile data reader for CasA study'
 # Program intended to read and show data from DAT files
 import os
@@ -217,15 +217,19 @@ for type_of_data in typesOfData:
                                 freqStopTXT, freqList, 0)
 
 
-
-
-
-
-
-
-
-
-
+        # Saving TXT file with parameters from file header
+        path = path_to_data + 'DAT_Results_' + data_files_name_list[file_no]+'_'+source+'/'
+        TXT_file = open(path + data_files_name_list[file_no]+'_'+source + '_header.info', "w")
+        TXT_file.write(' Observatory:           ' + df_obs_place + '\n')
+        TXT_file.write(' Receiver:              ' + df_system_name + '\n')
+        TXT_file.write(' Initial filename:      ' + df_filename + '\n')
+        TXT_file.write(' Description:           ' + df_description + '\n')
+        TXT_file.write(' Source for processing: ' + source + '\n')
+        TXT_file.write(' Receiver mode:         ' + ReceiverMode + '\n')
+        TXT_file.write(' Time resolution:       ' + str(np.round(TimeRes, 6)) + ' s \n')
+        TXT_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax)+ ' MHz \n')
+        TXT_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
+        TXT_file.close()
 
 
 
