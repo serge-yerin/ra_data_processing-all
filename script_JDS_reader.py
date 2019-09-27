@@ -6,7 +6,7 @@ Software_version = '2019.05.09'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/data/DATA/24_09_2019_3C274/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
+directory = '/media/gurt/GURT_2019.09/2019.09.26_UTR2_Jupiter_beam3/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -14,7 +14,7 @@ RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 20                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 15                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -25,9 +25,9 @@ longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 

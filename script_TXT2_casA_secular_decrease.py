@@ -11,8 +11,8 @@ Software_version = '2019.09.25'
 #path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
 #path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
 
-path_to_data_SygA =  'DATA/DAT_Results_C280719_183727.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_C280719_225841.jds_3C461/'
+path_to_data_SygA =  'DATA/DAT_Results_D280719_183754.jds_3C405/'
+path_to_data_CasA =  'DATA/DAT_Results_D280719_225845.jds_3C461/'
 
 
 y_auto = 1
@@ -163,7 +163,7 @@ for source in ['SygA', 'CasA']:
         if data_type == 'CIm' and source == 'CasA': ampl_list_CasA_CIm.append(ymax)
         if data_type == 'CRe' and source == 'CasA': ampl_list_CasA_CRe.append(ymax)
 
-        '''
+        #'''
         rc('font', size = 6, weight='bold')
         fig = plt.figure(figsize = (12, 5))
         fig.suptitle('Spectra of the interferometric responce', fontsize = 8, fontweight='bold')
@@ -179,9 +179,11 @@ for source in ['SygA', 'CasA']:
         ax2.annotate(str(ymax),  xy=(50, ymax), fontsize = 6, ha='center')
         ax2.set_xlim([0, int(len(experiment)/10)])
         ax2.set_ylim([-100, -50])
-        pylab.savefig(result_path + '/' + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
+        if source == 'SygA': path = path_to_data_SygA
+        if source == 'CasA': path = path_to_data_CasA
+        pylab.savefig(path + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
         plt.close('all')
-        '''
+        #'''
 
 
 if freq_list_SygA_CRe != freq_list_CasA_CRe:
@@ -220,6 +222,7 @@ ax1.plot(freq_list_SygA_CIm, flux_ratio_CIm, 'bo', alpha = 0.7, label = 'Imag pa
 if file_name_SygA[-3:] == 'jds': ax1.set_xlim([6, 34])
 if file_name_SygA[-3:] == 'adr': ax1.set_xlim([8, 80])
 ax1.set_ylim([0, 2])
+ax1.legend(loc = 'upper left')
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 ax1.set_ylabel('Flux ratio', fontsize=6, fontweight='bold')
