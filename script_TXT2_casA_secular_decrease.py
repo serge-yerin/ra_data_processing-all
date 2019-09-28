@@ -11,8 +11,8 @@ Software_version = '2019.09.25'
 #path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
 #path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
 
-path_to_data_SygA =  'DATA/DAT_Results_D280719_183754.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_D280719_225845.jds_3C461/'
+path_to_data_SygA =  'DATA/DAT_Results_D270719_171000.jds_3C405/'
+path_to_data_CasA =  'DATA/DAT_Results_D270719_230005.jds_3C461/'
 
 
 y_auto = 1
@@ -153,37 +153,67 @@ for source in ['SygA', 'CasA']:
         pylab.savefig(result_path + '/' + parent_filename + ' interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
         #pylab.show()
         plt.close('all')
-
         '''
-        experiment = np.abs(np.fft.fft(y_value[0, :]))
-        experiment[0] = np.nan
-        ymax = np.max(experiment[1:])
+
+        experiment_spectra = np.abs(np.fft.fft(y_value[0, :]))
+        experiment_spectra[0] = 0.0000000001 #np.nan
+
+
+
+        max_index = np.argmax(experiment_spectra)
+
+        # For our baselines the main frequency of interferometric responce is low, so we
+        # try to find the maximum below frequency # 50
+
+        #print ('\n Position of the maximum:', max_index, ' length = ', len(experiment_spectra))
+        if max_index > 50:
+            count = 0
+            while max_index > 50:
+                count += 1
+                if count > 5: break
+
+                experiment_spectra[max_index] = 0.0000000001
+                max_index = np.argmax(experiment_spectra)
+
+                #print(max_index, experiment_spectra[max_index])
+
+            max_index = np.argmax(experiment_spectra)
+            #print (' Counts = ', count)
+            #print ('\n New position of the maximum:', max_index)
+
+
+        ymax = np.sum(experiment_spectra[max_index-2 : max_index+2]) # integration in the range +/- 2 frequencies from maximal point
+
+
         if data_type == 'CIm' and source == 'SygA': ampl_list_SygA_CIm.append(ymax)
         if data_type == 'CRe' and source == 'SygA': ampl_list_SygA_CRe.append(ymax)
         if data_type == 'CIm' and source == 'CasA': ampl_list_CasA_CIm.append(ymax)
         if data_type == 'CRe' and source == 'CasA': ampl_list_CasA_CRe.append(ymax)
 
-        #'''
+
+
+
+        '''
         rc('font', size = 6, weight='bold')
         fig = plt.figure(figsize = (12, 5))
         fig.suptitle('Spectra of the interferometric responce', fontsize = 8, fontweight='bold')
         ax1 = fig.add_subplot(121)
         ax1.set_title('Spectra', fontsize = 6)
-        ax1.plot(experiment, linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
-        ax1.annotate(str(ymax),  xy=(50, ymax), fontsize = 6, ha='center') # xy=(xmax, 2 + 0.3)
-        ax1.set_xlim([0, int(len(experiment)/10)])
+        ax1.plot(experiment_spectra, linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+        #ax1.annotate(str(ymax),  xy=(50, ymax), fontsize = 6, ha='center') # xy=(xmax, 2 + 0.3)
+        ax1.set_xlim([0, int(len(experiment_spectra)/10)])
         ax2 = fig.add_subplot(122)
         ax2.set_title('Spectra', fontsize = 6)
-        ax2.plot(10 * np.log10(experiment), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
-        ymax = np.max(10 * np.log10(experiment[1:]))
+        ax2.plot(10 * np.log10(experiment_spectra), linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+        ymax = np.max(10 * np.log10(experiment_spectra[1:]))
         ax2.annotate(str(ymax),  xy=(50, ymax), fontsize = 6, ha='center')
-        ax2.set_xlim([0, int(len(experiment)/10)])
+        ax2.set_xlim([0, int(len(experiment_spectra)/10)])
         ax2.set_ylim([-100, -50])
         if source == 'SygA': path = path_to_data_SygA
         if source == 'CasA': path = path_to_data_CasA
         pylab.savefig(path + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
         plt.close('all')
-        #'''
+        '''
 
 
 if freq_list_SygA_CRe != freq_list_CasA_CRe:
@@ -205,7 +235,7 @@ for i in range (len(freq_list_SygA_CRe)):
     print('   ', freq_list_SygA_CRe[i], '          ', ''.join(format(np.round(flux_ratio_CRe[i], 5), "8.5f")), '        ', ''.join(format(np.round(flux_ratio_CIm[i], 5), "8.5f")))
 
 # Making string of observations start date
-date_of_experiment = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
+date_of_experiment_spectra = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
 
 
 # Making a figure of flux ratio with frequency
@@ -228,15 +258,15 @@ ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 ax1.set_ylabel('Flux ratio', fontsize=6, fontweight='bold')
 if file_name_SygA[-3:] == 'jds': plt.xticks([8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32])
 if file_name_SygA[-3:] == 'adr': plt.xticks([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75])
-fig.text(0.09, 0.95, date_of_experiment, fontsize = 8, fontweight='bold', transform=plt.gcf().transFigure)
+fig.text(0.09, 0.95, date_of_experiment_spectra, fontsize = 8, fontweight='bold', transform=plt.gcf().transFigure)
 fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
-pylab.savefig(result_path + '/' + date_of_experiment + ' Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.png', bbox_inches = 'tight', dpi = 160)
+pylab.savefig(result_path + '/' + date_of_experiment_spectra + ' Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 #'''
 
 # Saving data on flux ratio to TXT file
-TXT_file = open(result_path + '/' + date_of_experiment + ' Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.txt', "w")
+TXT_file = open(result_path + '/' + date_of_experiment_spectra + ' Flux ratio with frequency for files '+file_name_SygA+'_'+file_name_CasA+'.txt', "w")
 TXT_file.write('#  Ratio of interferometric responces of Cas A and Syg A with frequency \n#\n')
 for i in range (len(file_text)):
     TXT_file.write('# ' + file_text[i])

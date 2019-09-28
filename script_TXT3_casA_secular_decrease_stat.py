@@ -7,7 +7,7 @@ Software_version = '2019.09.27'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-path_to_data =  'CasA secular decrease measurements results/'
+path_to_data =  'CasA secular decrease measurements results_sample test/'
 customDPI = 300                     # Resolution of images of dynamic spectra
 
 ################################################################################

@@ -9,11 +9,11 @@ Software_version = '2019.05.08'
 common_path = '/media/data/PYTHON/ra_data_processing-all/' # 'DATA/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A190818_093442.adr_Data_chA.dat'
+filename = common_path + 'C270919_142036.jds_Data_chA.dat'
 
 # Types of data to get
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm']
+typesOfData = ['chA', 'chB']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]

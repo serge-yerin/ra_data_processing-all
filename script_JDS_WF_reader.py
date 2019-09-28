@@ -9,7 +9,7 @@ Software_version = '2019.04.29'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = 'i:/2019.08.01_UTR2_Jupiter_Juno_WF_beam_3/' # 'DATA/'
+directory = '/media/gurt/GURT_2019.09-2/27.09.2019_UTR2_Jupiter_WF/' # 'DATA/'
 
 no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading

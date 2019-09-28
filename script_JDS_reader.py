@@ -6,7 +6,7 @@ Software_version = '2019.05.09'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/gurt/GURT_2019.09/2019.09.26_UTR2_Jupiter_beam3/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
+directory = '/media/gurt/GURT_2019.09/2019.09.27_UTR2_Jupiter_beam3/' #  'DATA/'         #'h:/2019.04.03_UTR2_3C405_interferometer/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
