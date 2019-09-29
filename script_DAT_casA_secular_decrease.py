@@ -18,12 +18,14 @@ typesOfData = ['CRe', 'CIm']
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 #freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
-freqList = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0]
+freqList_UTR2 = [12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,27.0,28.0,29.0,30.0,31.0,32.0]
+freqList_GURT = [12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,27.0,28.0,29.0,30.0,31.0,32.0,33.0,34.0,35.0,36.0,37.0,38.0,39.0,40.0,41.0,42.0,43.0,44.0,45.0,46.0,47.0,48.0,49.0,50.0,51.0,52.0,53.0,54.0,55.0,56.0,57.0,58.0,59.0,60.0,61.0,62.0,63.0,64.0,65.0,66.0,67.0,68.0,69.0,70.0,71.0,72.0,73.0,74.0,75.0]
+
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
 AutoStartStop = 1                # 1 - calculte depending on source in comment, 0 - use manual values
-AutoSourceSwitch = 0             # 1 - find sourcs in comment, 0 - use manually set source
+AutoSourceSwitch = 1             # 1 - find sourcs in comment, 0 - use manually set source
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
@@ -35,8 +37,11 @@ colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' 
 ChannelSaveTXT = 1               # Save intensities at specified frequencies to TXT file
 ChannelSavePNG = 1               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
-AmplitudeReIm = 20000 * 10**(-12) # Color range of Re and Im dynamic spectra
+AmplitudeReIm = 20 * 10**(-12)  # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
+AmplitudeReIm_UTR2 = 20000 * 10**(-12)
+AmplitudeReIm_GURT = 20 * 10**(-12)
+
 
 # Begin and end frequency of dynamic spectrum (MHz)
 freqStart = 0.0
@@ -48,8 +53,8 @@ dateTimeStop =  '2019-07-23 04:00:00'
 
 
 # Begin and end frequency of TXT files to save (MHz)
-freqStartTXT = 0.0
-freqStopTXT = 33.0
+freqStartTXT = 8.0
+freqStopTXT = 80.0
 
 ################################################################################
 #*******************************************************************************
@@ -93,13 +98,12 @@ for i in range (len(file_name_list)):
     if file_name_list[i].endswith('_Timeline.txt'):
         timeline_file_name_list.append(file_name_list[i])
 
+
 # Find original data file name from timeline file name
 data_files_name_list = []
 for i in range (len(timeline_file_name_list)):
     data_files_name_list.append(timeline_file_name_list[i][-31:-13])
 
-
-# Checking and printing
 
 
 # Loop by data types selected by user
@@ -122,30 +126,44 @@ for type_of_data in typesOfData:
 
         if df_filename[-4:] == '.adr':
 
+            freqList = freqList_GURT
+            AmplitudeReIm = AmplitudeReIm_GURT
             [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                     CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
                     NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine,
-                    Width, BlockSize] = FileHeaderReaderADR(dat_files_list[file_no], 0, 0)
+                    Width, BlockSize] = FileHeaderReaderADR(path_to_data + dat_files_list[file_no], 0, 0)
 
         if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
 
+            freqList = freqList_UTR2
+            AmplitudeReIm = AmplitudeReIm_GURT
             [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                     CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
                     df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(path_to_data + dat_files_list[file_no], 0, 0)
 
         if AutoSourceSwitch == 1:
-            if ('3c461' in df_description.lower()) or ('cas' in df_description.lower()):
-                source = '3C461'
-            elif '3c405' in df_description.lower() or 'cyg' in df_description.lower():
-                source = '3C405'
-            else:
-                print('  Source not detected !!!')
-                source  = str(input(' * Enter source name like 3C405 or 3C461:         '))
+            if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
+                if '3c461' in df_description.lower() or 'cas' in df_description.lower() or '461' in df_description.lower():
+                    source = '3C461'
+                elif '3c405' in df_description.lower() or 'cyg' in df_description.lower() or '405' in df_description.lower():
+                    source = '3C405'
+                else:
+                    print('  Source not detected !!!')
+                    source  = str(input(' * Enter source name like 3C405 or 3C461:            '))
+            if df_filename[-4:] == '.adr':
+                if file_no == 0:
+                    source = '3C405'
+                elif file_no == 1:
+                    source = '3C461'
+                else:
+                    print('  Source not detected !!!')
+                    source  = str(input(' * Enter source name like 3C405 or 3C461:            '))
+
 
         if AutoSourceSwitch == 0:
             print('\n   !!! Enter source name manually !!!')
             print('   Filename:   ', dat_files_list[file_no])
-            source  = str(input('   Enter source name like 3C405 or 3C461:         '))
+            source  = str(input('   Enter source name like 3C405 or 3C461:            '))
 
         add = 0
         if type_of_data == 'CIm': add = 2
@@ -164,11 +182,9 @@ for type_of_data in typesOfData:
                 date = '20'+df_filename[1:3]+'-'+df_filename[3:5]+'-'+df_filename[5:7]
 
             culm_time = culmination_time_utc(source, date, 0)
-
             culm_time = Time(culm_time)
             start_time = culm_time - TimeDelta(3600, format = 'sec')
             end_time  = culm_time + TimeDelta(3600, format = 'sec')
-
 
         # *** Reading timeline file ***
         name = path_to_data + data_files_name_list[file_no] + '_Timeline.txt'

@@ -1,6 +1,6 @@
 # Python3
 Software_version = '2019.07.30'
-Software_name = 'ADR multifolder data files reader'
+Software_name = 'JDS multifolder data files reader'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files for further processing
 import os
@@ -8,7 +8,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data =  '/media/data/DATA/Interferometers_temp/' #'DATA/'
+path_to_data =  '/media/data/PYTHON/ra_data_processing-all/DATA/Interf data/' #'DATA/'
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
@@ -36,7 +36,7 @@ SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 
 
-averOrMin = 1                    # Use average value (0) per data block or minimum value (1)
+averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)

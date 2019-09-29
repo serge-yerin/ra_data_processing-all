@@ -7,7 +7,7 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/gurt/GURT_2019.09/2019.08.19_int_sun_405_461_R'  #'DATA/'
+directory = 'DATA/2019.09.28_GURT_3C461_int_R'  #'DATA/'
 
 MaxNim = 8192                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning

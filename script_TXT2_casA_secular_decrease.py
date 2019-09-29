@@ -11,8 +11,8 @@ Software_version = '2019.09.25'
 #path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
 #path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
 
-path_to_data_SygA =  'DATA/DAT_Results_D270719_171000.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_D270719_230005.jds_3C461/'
+path_to_data_SygA =  'DATA/DAT_Results_A190928_141322.adr_3C405/'
+path_to_data_CasA =  'DATA/DAT_Results_A190928_185832.adr_3C461/'
 
 
 y_auto = 1
@@ -54,8 +54,14 @@ print ('  Today is ', currentDate, ' time is ', currentTime)
 file_name_SygA = find_between(path_to_data_SygA, 'Results_', '_3C')
 file_name_CasA = find_between(path_to_data_CasA, 'Results_', '_3C')
 
-#result_path = 'CasA_secular_decrease_' + file_name_SygA + '_' + file_name_CasA
-result_path = 'CasA secular decrease measurements results'
+if   '.jds' in path_to_data_SygA and '.jds' in path_to_data_CasA:
+    result_path = 'CasA secular decrease measurements results UTR2'
+elif '.adr' in path_to_data_SygA and '.adr' in path_to_data_CasA:
+    result_path = 'CasA secular decrease measurements results GURT'
+else:
+    print ('   ERROR! Cannot find the correct file extension in folder name!!! \n\n')
+    sys.exit('           Program stopped! \n\n')
+
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 
@@ -95,8 +101,11 @@ for source in ['SygA', 'CasA']:
     # Loop by found TXT files in the folder
     for file_no in range (len(file_name_list)):
 
-        data_type = find_between(file_name_list[file_no], '_', '.jds')[-3:]
 
+        if '.jds' in file_name_list[file_no]:
+            data_type = find_between(file_name_list[file_no], '_', '.jds')[-3:]
+        if '.adr' in file_name_list[file_no]:
+            data_type = find_between(file_name_list[file_no], '_', '.adr')[-3:]
 
         # *** Reading files ***
         [x_value, y_value] = read_date_time_and_one_value_txt ([path_to_data + file_name_list[file_no]])
@@ -170,7 +179,7 @@ for source in ['SygA', 'CasA']:
             count = 0
             while max_index > 50:
                 count += 1
-                if count > 5: break
+                if count > 10: break
 
                 experiment_spectra[max_index] = 0.0000000001
                 max_index = np.argmax(experiment_spectra)
@@ -182,7 +191,12 @@ for source in ['SygA', 'CasA']:
             #print ('\n New position of the maximum:', max_index)
 
 
-        ymax = np.sum(experiment_spectra[max_index-2 : max_index+2]) # integration in the range +/- 2 frequencies from maximal point
+        if   max_index == 1:
+            ymax = np.sum(experiment_spectra[max_index : max_index+2])
+        elif max_index == 2:
+            ymax = np.sum(experiment_spectra[max_index-1 : max_index+2])
+        else:
+            ymax = np.sum(experiment_spectra[max_index-2 : max_index+2]) # integration in the range +/- 2 frequencies from maximal point
 
 
         if data_type == 'CIm' and source == 'SygA': ampl_list_SygA_CIm.append(ymax)
@@ -235,7 +249,10 @@ for i in range (len(freq_list_SygA_CRe)):
     print('   ', freq_list_SygA_CRe[i], '          ', ''.join(format(np.round(flux_ratio_CRe[i], 5), "8.5f")), '        ', ''.join(format(np.round(flux_ratio_CIm[i], 5), "8.5f")))
 
 # Making string of observations start date
-date_of_experiment_spectra = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
+if '.jds' in file_name_list[file_no]:
+    date_of_experiment_spectra = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
+if '.adr' in file_name_list[file_no]:
+    date_of_experiment_spectra = '20' + file_name_SygA[1:3] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[5:7]
 
 
 # Making a figure of flux ratio with frequency
