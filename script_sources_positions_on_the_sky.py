@@ -372,7 +372,7 @@ if __name__ == '__main__':
 
     start_time = Time('2019-10-01 12:00:00')
     end_time = Time('2019-10-02 12:00:00')
-    pulsars_list = [] #['B0329+54', 'B1133+16', 'B1508+55']
+    pulsars_list = ['B0329+54', 'B0809+74', 'B1133+16', 'B1508+55', 'B1919+21']
     sources_list = ['Cas A', 'Syg A', 'Vir A', 'Crab'] #
 
     sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_list)

@@ -3,7 +3,7 @@
 ################################################################################
 
 def catalogue_pulsar(pulsar_name):
-    pulsar_name.upper()
+    pulsar_name = pulsar_name.upper()
 
     if   'J0006+1834' in pulsar_name: pulsar_ra = '00h06m04.8s';    pulsar_dec = '+18d34m59.0s';   pulsar_DM = 0
     elif 'J0007+7303' in pulsar_name: pulsar_ra = '00h07m0.5819s';  pulsar_dec = '73d3m6.964s';    pulsar_DM = 0
@@ -18,7 +18,7 @@ def catalogue_pulsar(pulsar_name):
     elif 'J0243+5267' in pulsar_name: pulsar_ra = '           ';    pulsar_dec = '            ';   pulsar_DM = 3.8214
     elif 'J0250+5854' in pulsar_name: pulsar_ra = '           ';    pulsar_dec = '            ';   pulsar_DM = 45.325
     elif 'B0301+19'   in pulsar_name: pulsar_ra = '03h04m33.115s';  pulsar_dec = '+19d32m51.4s';   pulsar_DM = 15.74
-    elif 'B0320+39',  in pulsar_name: pulsar_ra = '03h23m26.618s';  pulsar_dec = '+39d44m52.9s';   pulsar_DM = 26.01
+    elif 'B0320+39'   in pulsar_name: pulsar_ra = '03h23m26.618s';  pulsar_dec = '+39d44m52.9s';   pulsar_DM = 26.01
     elif 'B0329+54'   in pulsar_name: pulsar_ra = '03h32m59.37s';   pulsar_dec = '+54d34m44.9s';   pulsar_DM = 26.78
     elif 'B0355+54'   in pulsar_name: pulsar_ra = '03h58m53.7165s'; pulsar_dec = '+54d13m13.727s'; pulsar_DM = 57.14
     elif 'J0407+1607' in pulsar_name: pulsar_ra = '           ';    pulsar_dec = '            ';   pulsar_DM = 36.0
