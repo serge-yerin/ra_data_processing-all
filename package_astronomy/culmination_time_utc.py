@@ -7,10 +7,13 @@ from astropy.coordinates import EarthLocation, AltAz
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import get_sun
 from astropy.coordinates import get_body
+from astropy.coordinates import solar_system_ephemeris
 
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_astronomy.catalogue_sources import catalogue_sources
 from package_astronomy.find_max_altitude import find_max_altitude
+
+
 
 ################################################################################
 
@@ -65,6 +68,6 @@ def culmination_time_utc(source_name, date, print_or_not):
 if __name__ == '__main__':
 
     date = '2019-08-14'
-    source_name = 'Sun'
+    source_name = 'Jupiter'
 
-    culm_time = culmination_time_utc(source_name, date)
+    culm_time = culmination_time_utc(source_name, date, 1)
