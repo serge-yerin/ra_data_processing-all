@@ -143,7 +143,7 @@ for folder_no in range (num_of_folders):
     print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
 
     # Making a name of folder for storing the result figures and txt files
-    result_path = 'JDS_Results_'+list_of_folder_names[folder_no].replace('/','_')
+    result_path = 'JDS_Results_'+list_of_folder_names[folder_no].replace('/','_').replace(':','')[:-1]
 
     for file in range (len(file_name_list_current)):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
@@ -159,7 +159,7 @@ for folder_no in range (num_of_folders):
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
-    DAT_result_path = list_of_folder_names[folder_no].replace('/','_')
+    DAT_result_path = list_of_folder_names[folder_no].replace('/','_').replace(':','')[:-1]
 
     # Run DAT reader for the resuls of current folder
     done_or_not = DAT_file_reader(path_to_results, DAT_file_name, DAT_file_list, DAT_result_path, averOrMin,

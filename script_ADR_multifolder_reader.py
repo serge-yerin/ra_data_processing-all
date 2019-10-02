@@ -8,12 +8,11 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data =  'DATA/'
+path_to_data =  'h:/To_process/'
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
 MaxNim = 8192                 # Number of data chunks for one figure
-#chunkSkip = 0                 # Number of chunks to skip from data beginning
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
 Vmax = -50                    # Upper limit of figure dynamic range for initial spectra
@@ -31,7 +30,7 @@ CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures 
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
 
-averOrMin = 1                    # Use average value (0) per data block or minimum value (1)
+averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
@@ -140,7 +139,8 @@ for folder_no in range (num_of_folders):
     print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
 
     # Making a name of folder for storing the result figures and txt files
-    result_path = 'ADR_Results_'+list_of_folder_names[folder_no].replace('/','_')[:-1]
+    name = list_of_folder_names[folder_no]
+    result_path = 'ADR_Results_'+name.replace('/','_').replace(':','')[:-1]
 
     for file in range (len(file_name_list_current)):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
@@ -153,7 +153,7 @@ for folder_no in range (num_of_folders):
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
-    DAT_result_path = list_of_folder_names[folder_no].replace('/','_')[:-1]
+    DAT_result_path = list_of_folder_names[folder_no].replace('/','_').replace(':','')[:-1]
 
     # Run DAT reader for the resuls of current folder
     done_or_not = DAT_file_reader(path_to_results, DAT_file_name, DAT_file_list, DAT_result_path, averOrMin,
