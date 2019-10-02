@@ -9,8 +9,8 @@ Software_version = '2019.09.28'
 # Path to data files
 path_to_data =  'DATA/TEST/'
 file_name = 'D280719_183754_CIm.jds variation at 24.005 MHz.txt'
-Vmin = -14 * 10**-9
-Vmax =  14 * 10**-9
+Vmin = -15 * 10**-9
+Vmax =  15 * 10**-9
 customDPI = 300                     # Resolution of images of dynamic spectra
 
 ################################################################################
@@ -137,9 +137,9 @@ responce_plot(y_value[0, :], 'Interferometric responce initial experimental',
 
 # Specter of initial signal
 experiment_spectra = np.fft.fft(y_value[0, :])
-
+initial_spectra = experiment_spectra
 # Making mplitude of zero frequency eqal to zero
-experiment_spectra[0] = 0.000000001 #np.nan
+
 ampl_spectra = np.abs(experiment_spectra)
 ymax = np.max(ampl_spectra)
 max_index = np.argmax(ampl_spectra[0:50])
@@ -148,10 +148,20 @@ spectra_plot(ampl_spectra, max_index, ymax,
             'Spectra of the initial interferometric responce',
             '01 - Spectra of interferometric responce 01.png', path_to_data)
 
+#*******************************************************************************
+# The same signal after FFT and inverse FFT
+
+filtered_signal_im = np.imag(np.fft.ifft(initial_spectra))
+filtered_signal_re = np.real(np.fft.ifft(initial_spectra))
+
+responce_plot(1 * filtered_signal_re, 'Interferometric responce  after FFT and inverse FFT',
+            '02 - Interferometric responce 01a.png', path_to_data, Vmin, Vmax, date_time)
+
+
 
 #*******************************************************************************
 # Specter of signal without higher frequencies
-
+experiment_spectra[0] = 0.000000001 #np.nan
 experiment_spectra[50:] = 0.000000001
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
@@ -245,6 +255,31 @@ filtered_signal_re = np.real(np.fft.ifft(experiment_spectra))
 
 responce_plot(2 * filtered_signal_re, 'Interferometric responce only 5 harmonics',
             '02 - Interferometric responce 05.png', path_to_data, Vmin, Vmax, date_time)
+
+
+rc('font', size = 6, weight='bold')
+fig = plt.figure(figsize = (9, 5))
+fig.suptitle('Interferometric responce only 5 harmonics', fontsize = 8, fontweight='bold')
+ax1 = fig.add_subplot(111)
+plt.axvline(x = x_center, linewidth = '0.5' , color = 'r') #, alpha=0.5
+ax1.plot(2 * filtered_signal_re, linestyle = '-', linewidth = '1.00', label = 'Filtered')
+ax1.plot(y_value[0, :], linestyle = '-', linewidth = '1.00', label = 'Measured')
+ax1.legend(loc = 'upper right', fontsize = 6)
+ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+ax1.set_ylim([Vmin, Vmax])
+ax1.set_xlim([0, b-1])
+ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
+ax1.set_xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', fontsize=6, fontweight='bold')
+ax1.xaxis.set_major_locator(mtick.LinearLocator(7))
+text = ax1.get_xticks().tolist()
+for i in range(len(text)):
+    k = int(text[i])
+    text[i] = str(date_time[k][0:11] + '\n' + date_time[k][11:23])
+ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
+fig.subplots_adjust(top=0.92)
+pylab.savefig(path_to_data + '02 - Interferometric responce 05a.png', bbox_inches = 'tight', dpi = 160)
+plt.close('all')
+
 
 #*******************************************************************************
 # Signal without higher frequencies and filtered to 3 harmonics
