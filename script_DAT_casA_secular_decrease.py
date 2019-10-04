@@ -141,6 +141,7 @@ for type_of_data in typesOfData:
 
         if AutoSourceSwitch == 1:
             if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
+                '''
                 if '3c461' in df_description.lower() or 'cas' in df_description.lower() or '461' in df_description.lower():
                     source = '3C461'
                 elif '3c405' in df_description.lower() or 'cyg' in df_description.lower() or '405' in df_description.lower():
@@ -148,6 +149,15 @@ for type_of_data in typesOfData:
                 else:
                     print('  Source not detected !!!')
                     source  = str(input(' * Enter source name like 3C405 or 3C461:            '))
+                '''
+                if file_no == 0:
+                    source = '3C405'
+                elif file_no == 1:
+                    source = '3C461'
+                else:
+                    print('  Source not detected !!!')
+                    source  = str(input(' * Enter source name like 3C405 or 3C461:            '))
+
             if df_filename[-4:] == '.adr':
                 if file_no == 0:
                     source = '3C405'
