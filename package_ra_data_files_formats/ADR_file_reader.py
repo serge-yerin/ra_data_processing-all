@@ -563,7 +563,7 @@ def ADR_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
 
                     # *** FIGURE Correlation spectrum module and phase cleaned and normalized (python 3 new version) ***
                     if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
-                        Suptitle = 'Correlation dynamic spectrum (nolmalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                        Suptitle = 'Correlation dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
                         fig_file_name = result_path + '/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
                         TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
                                                 'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,

@@ -7,14 +7,14 @@ Software_version = '2019.09.27'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-path_to_data =  'CasA secular decrease measurements results_sample test/'
+path_to_data =  'CasA secular decrease measurements results UTR2/'
 customDPI = 300                     # Resolution of images of dynamic spectra
 
 ################################################################################
 #*******************************************************************************
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
-#import os
+import sys
 import numpy as np
 import pylab
 import matplotlib.pyplot as plt
@@ -23,9 +23,7 @@ import time
 import matplotlib
 matplotlib.rcParams.update({'errorbar.capsize': 3})
 
-
-#from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
-#from package_plot_formats.plot_formats import OneValueWithTimePlot
+from package_common_modules.math_linear_regression_least_squares import math_linear_regression_least_squares
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 ################################################################################
 #*******************************************************************************
@@ -47,7 +45,14 @@ print ('  Today is ', currentDate, ' time is ', currentTime)
 #*******************************************************************************
 
 # Search needed files in the directory and subdirectories
-file_name_list = find_files_only_in_current_folder(path_to_data, 'jds.txt', 1)
+
+if  path_to_data[-5:-1].upper() == 'UTR2':
+    file_name_list = find_files_only_in_current_folder(path_to_data, 'jds.txt', 1)
+elif path_to_data[-5:-1].upper() == 'GURT':
+    file_name_list = find_files_only_in_current_folder(path_to_data, 'adr.txt', 1)
+else:
+    print ('   ERROR! The data folder name has no name of the telescope in the end!!! \n\n')
+    sys.exit('           Program stopped! \n\n')
 
 frequency = []
 ratio_CRe = []
@@ -94,6 +99,15 @@ ratio_CRe_std = np.std(ratio_CRe, axis = 1)
 ratio_CIm_std = np.std(ratio_CIm, axis = 1)
 
 
+# Trying to calculate the linear regression for the data in normal values ranges:
+if path_to_data[-5:-1].upper() == 'UTR2':
+    frequency_regression = [16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,27.0,28.0,29.0,30.0,31.0]
+    values_regression = ratio_CRe_mean[4 : -1]
+    predict_CRe, weight_CRe, bias_CRe = math_linear_regression_least_squares(frequency_regression, values_regression)
+    values_regression = ratio_CIm_mean[4 : -1]
+    predict_CIm, weight_CIm, bias_CIm = math_linear_regression_least_squares(frequency_regression, values_regression)
+
+
 #*******************************************************************************
 #                                F I G U R E S                                 *
 #*******************************************************************************
@@ -111,12 +125,16 @@ ax1.set_title('Statistics calculated from ' + str(len(file_name_list)) + ' files
 
 ax1.errorbar(frequency, ratio_CRe_mean, yerr = ratio_CRe_std, ls='none', color = 'r', fmt='-o', label = 'Real part of correlation')
 ax1.errorbar(frequency, ratio_CIm_mean, yerr = ratio_CIm_std, ls='none', color = 'b', fmt='-o', alpha = 0.6, label = 'Imag part of correlation')
-#for i in range (len(freq_list_SygA)):
-#    ax1.annotate(str(np.round(flux_ratio[i],3)),  xy=(freq_list_SygA[i], flux_ratio[i]+0.1), fontsize = 6, ha='center')
-#if file_name_SygA[-3:] == 'jds': ax1.set_xlim([6, 34])
-#if file_name_SygA[-3:] == 'adr': ax1.set_xlim([8, 80])
-ax1.set_xlim([6, 34])
-ax1.set_ylim([0, 2])
+ax1.plot(frequency_regression, predict_CRe, color = 'r', linestyle = '--', label = 'Linear regression for real part')
+ax1.plot(frequency_regression, predict_CIm, color = 'b', linestyle = '--', label = 'Linear regression for imag part')
+ax1.annotate('Coefficients of linear regression (f in MHZ):',  xy=(7, 0.8), fontsize = 8, ha='left')
+ax1.annotate('Real : '+str(np.round(weight_CRe,6))+' * f + '+str(np.round(bias_CRe, 6)),  xy=(7, 0.6), fontsize = 8, ha='left')
+ax1.annotate('Imag: '+str(np.round(weight_CIm,6))+' * f + '+str(np.round(bias_CIm, 6)),  xy=(7, 0.7), fontsize = 8, ha='left')
+
+if path_to_data[-5:-1].upper() == 'UTR2': ax1.set_xlim([6, 34])
+if path_to_data[-5:-1].upper() == 'GURT': ax1.set_xlim([8, 80])
+if path_to_data[-5:-1].upper() == 'UTR2': ax1.set_ylim([0, 2.5])
+if path_to_data[-5:-1].upper() == 'GURT': ax1.set_ylim([0, 2.0])
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 ax1.set_ylabel('Flux ratio', fontsize=6, fontweight='bold')
