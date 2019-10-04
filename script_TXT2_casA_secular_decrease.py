@@ -8,11 +8,10 @@ Software_version = '2019.09.25'
 #*******************************************************************************
 # Path to data files
 
-#path_to_data_SygA =  'DATA/DAT_Results_D250719_165520.jds_3C405/'
-#path_to_data_CasA =  'DATA/DAT_Results_D250719_230437.jds_3C461/'
+path_to_data =  'DATA/'
 
-path_to_data_SygA =  'DATA/DAT_Results_C290919_142618.jds_3C405/'
-path_to_data_CasA =  'DATA/DAT_Results_C290919_185749.jds_3C461/'
+#path_to_data_SygA =  'DATA/DAT_Results_A190928_141322.adr_3C405/'
+#path_to_data_CasA =  'DATA/DAT_Results_A190928_185832.adr_3C461/'
 
 
 y_auto = 1
@@ -38,6 +37,7 @@ import time
 
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
+from package_common_modules.find_subfolders_in_folder import find_subfolders_in_folder
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -51,6 +51,34 @@ currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print ('  Today is ', currentDate, ' time is ', currentTime)
 
+# Searching of the directories with needed data in predefined directory
+
+folder_list =  find_subfolders_in_folder(path_to_data, 0)
+
+print(' Folder list:', folder_list)
+
+# Excluding the folders that are in subfolders of current folder
+only_subfolder_list = []
+for i in range(len(folder_list)):
+    temp = folder_list[i]
+    if ('/' not in temp.replace(path_to_data,'')) and ('\\' not in temp.replace(path_to_data,'')):
+        only_subfolder_list.append(folder_list[i])
+
+print(' Only Subolder list:', only_subfolder_list)
+
+# Finding the folder that ends with needed source names
+# !!! There should be only one subfolder with this source name !!!
+
+for i in range(len(only_subfolder_list)):
+    if only_subfolder_list[i].endswith('3C405'):
+        path_to_data_SygA = only_subfolder_list[i]+'/'
+    if only_subfolder_list[i].endswith('3C461'):
+        path_to_data_CasA = only_subfolder_list[i]+'/'
+
+print(path_to_data_SygA, path_to_data_CasA)
+
+
+# Finding the initial data files names in the folder names
 file_name_SygA = find_between(path_to_data_SygA, 'Results_', '_3C')
 file_name_CasA = find_between(path_to_data_CasA, 'Results_', '_3C')
 

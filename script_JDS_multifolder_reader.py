@@ -8,7 +8,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data =  '/media/data/PYTHON/ra_data_processing-all/DATA/Interf data/' #'DATA/'
+path_to_data =  'h:/To process/' #'DATA/'
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
