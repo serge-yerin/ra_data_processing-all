@@ -30,7 +30,7 @@ from package_common_modules.find_files_only_in_current_folder import find_files_
 #                          M A I N    P R O G R A M                            *
 #*******************************************************************************
 print ('\n\n\n\n\n\n\n\n   *********************************************************************')
-print ('   *        ', Software_name, '  v.', Software_version,'         *      (c) YeS 2019')
+print ('   *   ', Software_name, '  v.', Software_version,'    *      (c) YeS 2019')
 print ('   ********************************************************************* \n\n\n')
 
 startTime = time.time()
@@ -49,7 +49,7 @@ print ('  Today is ', currentDate, ' time is ', currentTime)
 if  path_to_data[-5:-1].upper() == 'UTR2':
     file_name_list = find_files_only_in_current_folder(path_to_data, 'jds.txt', 1)
 elif path_to_data[-5:-1].upper() == 'GURT':
-    file_name_list = find_files_only_in_current_folder(path_to_data, 'adr.txt', 1)
+    file_name_list = find_files_only_in_current_folder(path_to_data, '.txt', 1)
 else:
     print ('   ERROR! The data folder name has no name of the telescope in the end!!! \n\n')
     sys.exit('           Program stopped! \n\n')

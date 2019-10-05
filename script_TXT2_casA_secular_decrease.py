@@ -1,6 +1,6 @@
 # Python3
 Software_name = 'CasA secular decrease TXT reader'
-Software_version = '2019.09.25'
+Software_version = '2019.10.05'
 # Script intended to read, show and analyze data from
 
 #*******************************************************************************
@@ -55,8 +55,6 @@ print ('  Today is ', currentDate, ' time is ', currentTime)
 
 folder_list =  find_subfolders_in_folder(path_to_data, 0)
 
-print(' Folder list:', folder_list)
-
 # Excluding the folders that are in subfolders of current folder
 only_subfolder_list = []
 for i in range(len(folder_list)):
@@ -64,7 +62,6 @@ for i in range(len(folder_list)):
     if ('/' not in temp.replace(path_to_data,'')) and ('\\' not in temp.replace(path_to_data,'')):
         only_subfolder_list.append(folder_list[i])
 
-print(' Only Subolder list:', only_subfolder_list)
 
 # Finding the folder that ends with needed source names
 # !!! There should be only one subfolder with this source name !!!
@@ -74,8 +71,6 @@ for i in range(len(only_subfolder_list)):
         path_to_data_SygA = only_subfolder_list[i]+'/'
     if only_subfolder_list[i].endswith('3C461'):
         path_to_data_CasA = only_subfolder_list[i]+'/'
-
-print(path_to_data_SygA, path_to_data_CasA)
 
 
 # Finding the initial data files names in the folder names
@@ -103,6 +98,7 @@ ampl_list_CasA_CIm = []
 ampl_list_SygA_CIm = []
 
 file_text = []
+date_of_experiment_spectra = ''
 
 for source in ['SygA', 'CasA']:
 
@@ -124,6 +120,10 @@ for source in ['SygA', 'CasA']:
             words_in_line = line.split()
             if source == 'SygA': description_SygA = words_in_line[1]    # reading description of data file
             if source == 'CasA': description_CasA = words_in_line[1]    # reading description of data file
+        if line.startswith(" Culmination"):  # Searching comments
+            words_in_line = line.split()
+            if source == 'SygA':
+                date_of_experiment_spectra = words_in_line[2]
     TXT_file.close()
 
     # Loop by found TXT files in the folder
@@ -277,10 +277,14 @@ for i in range (len(freq_list_SygA_CRe)):
     print('   ', freq_list_SygA_CRe[i], '          ', ''.join(format(np.round(flux_ratio_CRe[i], 5), "8.5f")), '        ', ''.join(format(np.round(flux_ratio_CIm[i], 5), "8.5f")))
 
 # Making string of observations start date
-if '.jds' in file_name_list[file_no]:
-    date_of_experiment_spectra = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
-if '.adr' in file_name_list[file_no]:
-    date_of_experiment_spectra = '20' + file_name_SygA[1:3] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[5:7]
+if date_of_experiment_spectra == '':
+    print(' No')
+    if '.jds' in file_name_list[file_no]:
+        date_of_experiment_spectra = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
+    if '.adr' in file_name_list[file_no]:
+        date_of_experiment_spectra = '20' + file_name_SygA[1:3] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[5:7]
+
+date_of_experiment_spectra = date_of_experiment_spectra.replace('-','.')
 
 
 # Making a figure of flux ratio with frequency
@@ -294,15 +298,15 @@ ax1.plot(freq_list_SygA_CRe, flux_ratio_CRe, 'ro',  label = 'Real part of correl
 ax1.plot(freq_list_SygA_CIm, flux_ratio_CIm, 'bo', alpha = 0.7, label = 'Imag part of correlation')
 #for i in range (len(freq_list_SygA)):
 #    ax1.annotate(str(np.round(flux_ratio[i],3)),  xy=(freq_list_SygA[i], flux_ratio[i]+0.1), fontsize = 6, ha='center')
-if file_name_SygA[-3:] == 'jds': ax1.set_xlim([6, 34])
-if file_name_SygA[-3:] == 'adr': ax1.set_xlim([8, 80])
+if 'jds' in file_name_SygA: ax1.set_xlim([6, 34])
+if 'adr' in file_name_SygA: ax1.set_xlim([8, 80])
 ax1.set_ylim([0, 2])
 ax1.legend(loc = 'upper left')
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 ax1.set_ylabel('Flux ratio', fontsize=6, fontweight='bold')
-if file_name_SygA[-3:] == 'jds': plt.xticks([8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32])
-if file_name_SygA[-3:] == 'adr': plt.xticks([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75])
+if 'jds' in file_name_SygA: plt.xticks([8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32])
+if 'adr' in file_name_SygA: plt.xticks([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75])
 fig.text(0.09, 0.95, date_of_experiment_spectra, fontsize = 8, fontweight='bold', transform=plt.gcf().transFigure)
 fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)

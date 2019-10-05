@@ -1,7 +1,8 @@
 # Python3
-Software_version = '2019.09.25'  # !!! Not finished !!!
+Software_version = '2019.10.05'
 Software_name = 'DAT multifile data reader for CasA study'
-# Program intended to read and show data from DAT files
+# Program intended to read and show data from DAT files in special format for
+# Cas A secular flux decrease relative interferometric measurements
 import os
 #*******************************************************************************
 #                             P A R A M E T E R S                              *
@@ -70,7 +71,7 @@ from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_astronomy.culmination_time_utc import culmination_time_utc
+from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
 
 ################################################################################
 
@@ -189,7 +190,7 @@ for type_of_data in typesOfData:
             if df_filename[-4:] == '.adr':
                 date = '20'+df_filename[1:3]+'-'+df_filename[3:5]+'-'+df_filename[5:7]
 
-            culm_time = culmination_time_utc(source, date, 0)
+            culm_time = culmination_time_utc_astroplan(source, date, 0)
             culm_time = Time(culm_time)
             start_time = culm_time - TimeDelta(3600, format = 'sec')
             end_time  = culm_time + TimeDelta(3600, format = 'sec')
@@ -228,6 +229,7 @@ for type_of_data in typesOfData:
         elif(dt_timeline[len(timeline)-1] >= start_time + TimeDelta(86400, format = 'sec') > dt_timeline[0]) and (dt_timeline[len(timeline)-1] > end_time + TimeDelta(86400, format = 'sec') >= dt_timeline[0]) and (end_time>start_time):
             start_time = start_time + TimeDelta(86400, format = 'sec')
             end_time = end_time + TimeDelta(86400, format = 'sec')
+            culm_time = culm_time + TimeDelta(86400, format = 'sec')
             print ('   Time is chosen correctly but adjusted for 1 day ahead! \n')
         else:
             print ('   ERROR! Culmination time is calculated chosen out of file limits!!! \n\n')
@@ -254,6 +256,7 @@ for type_of_data in typesOfData:
         TXT_file.write(' Initial filename:      ' + df_filename + '\n')
         TXT_file.write(' Description:           ' + df_description + '\n')
         TXT_file.write(' Source for processing: ' + source + '\n')
+        TXT_file.write(' Culmination time:      ' + str(culm_time) + '\n')
         TXT_file.write(' Receiver mode:         ' + ReceiverMode + '\n')
         TXT_file.write(' Time resolution:       ' + str(np.round(TimeRes, 6)) + ' s \n')
         TXT_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax)+ ' MHz \n')
