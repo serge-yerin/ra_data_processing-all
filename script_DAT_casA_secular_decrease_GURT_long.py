@@ -70,7 +70,7 @@ from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_astronomy.culmination_time_utc import culmination_time_utc
+from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
 
 ################################################################################
 
@@ -144,16 +144,16 @@ no_of_days = int(abs(dt_period.days))
 # Find culminations of both sources within timeline of the file and check the 1 hour gap before and after
 culm_time_3C405 = []
 culm_time_3C461 = []
-print('\n * Calculations of culminations time for all days of observations... \n')
-for day in range(2):  #(no_of_days+1):
+#print('\n * Calculations of culminations time for all days of observations... \n')
+for day in range(no_of_days+1):
     currentTime = time.strftime("%H:%M:%S")
-    print (' Day # ', str(day+1), ' of ', str(no_of_days+1), '   started at: ', currentTime)
+    #print (' Day # ', str(day+1), ' of ', str(no_of_days+1), '   started at: ', currentTime)
 
     date = str((Time(dt_timeline[0]) + TimeDelta(day * 86400, format = 'sec')))[0:10]
-    culm_time = Time(culmination_time_utc('3C405', str(date), 0))
+    culm_time = Time(culmination_time_utc_astroplan('3C405', str(date), 0))
     if (culm_time > Time(dt_timeline[0]) + TimeDelta(3600, format = 'sec')) and (culm_time < Time(dt_timeline[-1]) - TimeDelta(3600, format = 'sec')):
         culm_time_3C405.append(culm_time)
-    culm_time = Time(culmination_time_utc('3C461', str(date), 0))
+    culm_time = Time(culmination_time_utc_astroplan('3C461', str(date), 0))
     if (culm_time > Time(dt_timeline[0]) + TimeDelta(3600, format = 'sec')) and (culm_time < Time(dt_timeline[-1]) - TimeDelta(3600, format = 'sec')):
         culm_time_3C461.append(culm_time)
 
@@ -161,6 +161,9 @@ print('\n * Culminations number: '+ str(len(culm_time_3C405)) +' for 3C405 and '
 
 
 # In a loop take a two-hour fragments of data and make text files with responces
+################################################################################
+#                               3C405 Sugnus A                                 #
+################################################################################
 print('\n * Saving responces for each culmination of 3C405... ')
 source = '3C405'
 for i in range (len(culm_time_3C405)):
@@ -203,8 +206,14 @@ for i in range (len(culm_time_3C405)):
     TXT_file.close()
 
 
+del start_time, end_time, dateTimeStart, dateTimeStop
+
 # In a loop take a two-hour fragments of data and make text files with responces
-print('\n * Saving responces for each culmination of 3C461... ')
+################################################################################
+#                            3C461 Cassiopeia A                                #
+################################################################################
+
+print('\n\n\n * Saving responces for each culmination of 3C461... ')
 source = '3C461'
 for i in range (len(culm_time_3C461)):
     currentTime = time.strftime("%H:%M:%S")

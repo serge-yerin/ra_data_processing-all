@@ -14,7 +14,6 @@ from package_astronomy.catalogue_sources import catalogue_sources
 from package_astronomy.find_max_altitude import find_max_altitude
 
 
-
 ################################################################################
 
 def culmination_time_utc(source_name, date, print_or_not):
@@ -67,7 +66,7 @@ def culmination_time_utc(source_name, date, print_or_not):
 
 if __name__ == '__main__':
 
-    date = '2019-08-14'
-    source_name = 'Jupiter'
+    date = '2019-10-05'
+    source_name = '3C461'
 
     culm_time = culmination_time_utc(source_name, date, 1)
