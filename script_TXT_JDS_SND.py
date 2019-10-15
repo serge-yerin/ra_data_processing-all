@@ -9,15 +9,15 @@ Software_version = '2019.05.06'
 common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
 filename = []
 
-y_auto = 1
-Vmin = -500 * 10**(-12)
-Vmax =  500 * 10**(-12)
+y_auto = 0
+Vmin = -110
+Vmax =  -30
 
 # TXT files to be analyzed:
-sky_file = common_path + 'Specter_C091019_125557.txt'
-off_file = common_path + 'Specter_C111019_080855.txt'
-open_file = common_path + 'Specter_C111019_065836.txt'
-short_file = common_path + 'Specter_C111019_081803.txt'
+sky_file = common_path + 'Specter_C141019_211935.txt'
+off_file = common_path + 'Specter_C141019_215835.txt'
+open_file = common_path + 'Specter_C141019_213054.txt'
+short_file = common_path + 'Specter_C141019_212543.txt'
 
 customDPI = 300                     # Resolution of images of dynamic spectra
 
@@ -110,10 +110,10 @@ print ('\n\n\n  *** Building images *** \n\n')
 rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (9, 5))
 ax1 = fig.add_subplot(111)
-ax1.plot(frequencies, sky_responce, label = 'Sky')
-ax1.plot(frequencies, off_responce, label = 'Power OFF')
-ax1.plot(frequencies, open_responce, label = 'Open circuit (XX)')
-ax1.plot(frequencies, short_responce, label = 'Short circuit (KZ)')
+ax1.plot(frequencies, sky_responce, color = 'C0', label = 'Sky')
+ax1.plot(frequencies, off_responce, color = 'C1', label = 'Power OFF')
+ax1.plot(frequencies, open_responce, color = 'C2', label = 'Open circuit (XX)')
+ax1.plot(frequencies, short_responce, color = 'C3', label = 'Short circuit (KZ)')
 ax1.legend(loc = 'upper right', fontsize = 6)
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
 if y_auto == 0: ax1.set_ylim([Vmin, Vmax])
@@ -131,12 +131,12 @@ plt.close('all')
 rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (9, 5))
 ax1 = fig.add_subplot(111)
-ax1.plot(frequencies, sky_responce - off_responce, label = 'Sky - Power OFF')
-ax1.plot(frequencies, sky_responce - open_responce, label = 'Sky - Open circuit (XX)')
-ax1.plot(frequencies, sky_responce - short_responce, label = 'Sky - Short circuit (KZ)')
+ax1.plot(frequencies, sky_responce - off_responce, color = 'C1', label = 'Sky - Power OFF')
+ax1.plot(frequencies, sky_responce - open_responce, color = 'C2', label = 'Sky - Open circuit (XX)')
+ax1.plot(frequencies, sky_responce - short_responce, color = 'C3', label = 'Sky - Short circuit (KZ)')
 ax1.legend(loc = 'upper right', fontsize = 6)
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-ax1.set_ylim([-20, 80])
+ax1.set_ylim([-10, 70])
 ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
 ax1.set_title('   ', fontsize = 6)
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
