@@ -14,7 +14,7 @@ Vmin = -500 * 10**(-12)
 Vmax =  500 * 10**(-12)
 
 # TXT files to be analyzed:
-filename.append(common_path + 'C091019_125557_chA Intensity variation at 31.002 MHz.txt')
+filename.append(common_path + 'C141019_055118_chB Intensity variation at 10.002 MHz.txt')
 #filename.append(common_path + 'A170712_160219_chA Intensity variation at 10.01 MHz.txt')
 #filename.append(common_path + 'A170712_160219_chA Intensity variation at 11.006 MHz.txt')
 #filename.append(common_path + 'A170712_160219_chA Intensity variation at 12.012 MHz.txt')
@@ -39,6 +39,7 @@ import time
 
 from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
 from package_plot_formats.plot_formats import OneValueWithTimePlot
+from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -77,7 +78,6 @@ for i in range (len(filename)):
     list_text_freqs = list_text_freqs + find_between(filename[i], 'at ', ' MHz')
     if i < len(filename) - 1: list_text_freqs = list_text_freqs + ', '
 
-print (list_text_freqs)
 
 parent_filename = find_between(filename[0], common_path, ' Intensity')
 
@@ -87,7 +87,18 @@ parent_filename = find_between(filename[0], common_path, ' Intensity')
 
 print ('\n\n\n  *** Building images *** \n\n')
 
+# Preparing the timeline
+timeline = []
+for i in range(len(date_time)):
+    timeline.append(str(date_time[i][0:11] + '\n' + date_time[i][11:23]))
 
+
+FileName = (newpath + '/' + parent_filename + ' 01 - All txt data used.png')
+MultipleValueWithTimePlot(timeline, y_value, text_freqs, 0, 1, Vmin, Vmax, 1, y_auto,
+                        'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', 'Intensity, dB',
+                        'File: '+parent_filename, '  ', FileName,
+                        currentDate, currentTime, Software_version)
+'''
 rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (9, 5))
 ax1 = fig.add_subplot(111)
@@ -102,7 +113,7 @@ ax1.set_xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', fontsize=6, fontweig
 text = ax1.get_xticks().tolist()
 for i in range(len(text)-1):
     k = int(text[i])
-    text[i] = str(date_time[i][0:11] + '\n' + date_time[i][11:23])
+    text[i] = timeline[k]
 ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
 fig.subplots_adjust(top=0.92)
 fig.suptitle('File: '+parent_filename, fontsize = 8, fontweight='bold')
@@ -110,7 +121,7 @@ fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, t
 fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
 pylab.savefig(newpath + '/' + parent_filename + ' 01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
-
+'''
 
 # Averaging the curves
 average = np.zeros(b)
@@ -121,9 +132,6 @@ average[:] = average[:] / a
 
 
 # Figure of averaged data
-timeline = []
-for i in range(len(date_time)):
-    timeline.append(str(date_time[i][0:11] + '\n' + date_time[i][11:23]))
 
 FileName = (newpath + '/' + parent_filename + ' 02 - Averaged data.png')
 OneValueWithTimePlot(timeline, average, 'Averaged values', 0, 1, Vmin, Vmax, 1, y_auto,
