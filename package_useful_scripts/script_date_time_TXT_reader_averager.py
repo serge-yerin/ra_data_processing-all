@@ -1,6 +1,7 @@
 # Python3
 Software_version = '2019.05.06'
-# Script intended to read, show and analyze data from
+# Script intended to read, show and average data from TXT files of
+# date-time-value format
 
 #*******************************************************************************
 #                             P A R A M E T E R S                              *
@@ -37,9 +38,21 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 import time
 
-from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
-from package_plot_formats.plot_formats import OneValueWithTimePlot
-from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
+
+if __package__ is None:
+    import sys
+    from os import path
+    sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+    from package_plot_formats.plot_formats import OneValueWithTimePlot
+    from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
+    from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
+else:
+    from package_plot_formats.plot_formats import OneValueWithTimePlot
+    from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
+    from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
+
+
+
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -92,36 +105,12 @@ timeline = []
 for i in range(len(date_time)):
     timeline.append(str(date_time[i][0:11] + '\n' + date_time[i][11:23]))
 
-
+# Figure of all data files
 FileName = (newpath + '/' + parent_filename + ' 01 - All txt data used.png')
 MultipleValueWithTimePlot(timeline, y_value, text_freqs, 0, 1, Vmin, Vmax, 1, y_auto,
                         'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', 'Intensity, dB',
                         'File: '+parent_filename, '  ', FileName,
                         currentDate, currentTime, Software_version)
-'''
-rc('font', size = 6, weight='bold')
-fig = plt.figure(figsize = (9, 5))
-ax1 = fig.add_subplot(111)
-for i in range (a):
-    ax1.plot(y_value[i, :], linestyle = '-', linewidth = '1.00', label = text_freqs[i])
-ax1.legend(loc = 'upper right', fontsize = 6)
-ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
-if y_auto == 0: ax1.set_ylim([Vmin, Vmax])
-ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-ax1.set_title('   ', fontsize = 6)
-ax1.set_xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', fontsize=6, fontweight='bold')
-text = ax1.get_xticks().tolist()
-for i in range(len(text)-1):
-    k = int(text[i])
-    text[i] = timeline[k]
-ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
-fig.subplots_adjust(top=0.92)
-fig.suptitle('File: '+parent_filename, fontsize = 8, fontweight='bold')
-fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
-fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
-pylab.savefig(newpath + '/' + parent_filename + ' 01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
-plt.close('all')
-'''
 
 # Averaging the curves
 average = np.zeros(b)
@@ -132,7 +121,6 @@ average[:] = average[:] / a
 
 
 # Figure of averaged data
-
 FileName = (newpath + '/' + parent_filename + ' 02 - Averaged data.png')
 OneValueWithTimePlot(timeline, average, 'Averaged values', 0, 1, Vmin, Vmax, 1, y_auto,
                         'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', 'Intensity, dB',
