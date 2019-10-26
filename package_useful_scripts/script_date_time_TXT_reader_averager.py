@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.05.06'
+Software_version = '2019.10.26'
 # Script intended to read, show and average data from TXT files of
 # date-time-value format
 
@@ -14,16 +14,9 @@ y_auto = 1
 Vmin = -500 * 10**(-12)
 Vmax =  500 * 10**(-12)
 
-# TXT files to be analyzed:
-filename.append(common_path + 'C141019_055118_chB Intensity variation at 10.002 MHz.txt')
+# Add files manually here, or use standard module to find all txt files in common_path
+#filename.append(common_path + 'C141019_055118_chB Intensity variation at 10.002 MHz.txt')
 #filename.append(common_path + 'A170712_160219_chA Intensity variation at 10.01 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 11.006 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 12.012 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 13.008 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 14.014 MHz.txt')
-#filename.append(common_path + 'A170712_160219_chA Intensity variation at 15.01 MHz.txt')
-#filename.append(common_path + 'C020419_082413_CRe Intensity variation at 18.031 MHz.txt')
-
 
 customDPI = 300                     # Resolution of images of dynamic spectra
 
@@ -32,33 +25,29 @@ customDPI = 300                     # Resolution of images of dynamic spectra
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
 import os
+import sys
+from os import path
 import numpy as np
 import pylab
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import time
 
-
+# To change system path to main directory of the project:
 if __package__ is None:
-    import sys
-    from os import path
-    sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
-    from package_plot_formats.plot_formats import OneValueWithTimePlot
-    from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
-    from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
-else:
-    from package_plot_formats.plot_formats import OneValueWithTimePlot
-    from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
-    from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-
+from package_plot_formats.plot_formats import OneValueWithTimePlot
+from package_common_modules.text_manipulations import find_between, read_date_time_and_one_value_txt
+from package_plot_formats.MultipleValueWithTimePlot import MultipleValueWithTimePlot
+from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
 #*******************************************************************************
 print ('\n\n\n\n\n\n\n\n   ****************************************************')
-print ('   *          TXT data files reader  v1.0             *      (c) YeS 2016')
+print ('   *          TXT data files reader  v1.0             *      (c) YeS 2019')
 print ('   ****************************************************      \n\n\n')
 
 startTime = time.time()
@@ -70,6 +59,10 @@ print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 newpath = "TXT_Results"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
+
+# TXT files to be analyzed: to find all files in directory
+filename = find_files_only_in_current_folder(common_path, '.txt', 1)
+for i in range(len(filename)):  filename[i] = common_path + filename[i]
 
 #*******************************************************************************
 #                          R E A D I N G   D A T A                             *

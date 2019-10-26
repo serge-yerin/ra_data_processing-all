@@ -33,33 +33,30 @@ customDPI = 200
 import os
 import struct
 import sys
+from os import path
 import numpy as np
 import pylab
 import matplotlib.pyplot as plt
 import time
 from datetime import datetime, timedelta
 
-
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 #*************************************************************
 #                       MAIN PROGRAM                         *
 #*************************************************************
-for i in range(8): print (' ')
-print ('   ****************************************************')
+print ('/n/n/n/n/n/n/n/n   ****************************************************')
 print ('   *         2DTXT data files reader  v1.0            *      (c) YeS 2019')
-print ('   ****************************************************')
-for i in range(3): print (' ')
-
+print ('   **************************************************** /n/n/n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
-print (' ')
+print ('  Today is ', currentDate, ' time is ', currentTime, ' /n')
 
 
-   
-    
 #************************************************************************************
 #                            R E A D I N G   D A T A                                *
 #************************************************************************************
@@ -83,7 +80,7 @@ print(y_central)
 
 plt.figure(1, figsize = (10.0, 6.0))
 plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-ImA = plt.imshow(data2D, aspect = 'auto', vmin = np.min(param), vmax = 100, extent=[0,1,y_value[0],y_value[len(y_value)-1]], cmap=colormap) 
+ImA = plt.imshow(data2D, aspect = 'auto', vmin = np.min(param), vmax = 100, extent=[0,1,y_value[0],y_value[len(y_value)-1]], cmap=colormap)
 plt.axhline(y = y_central,   color = 'r', linestyle = '-', linewidth = 0.4)
 plt.axvline(x = 0.5, color = 'r', linestyle = '-', linewidth = 0.4)
 plt.title('Pulse profile vs DM in band', fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
@@ -92,17 +89,6 @@ plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
 plt.ylabel('deltaDM', fontsize = 8, fontweight='bold')
 plt.colorbar()
 plt.xticks(fontsize = 8, fontweight = 'bold')
-pylab.savefig('SNR vs DM plot.png', bbox_inches='tight', dpi = customDPI) 
+pylab.savefig('SNR vs DM plot.png', bbox_inches='tight', dpi = customDPI)
 plt.show()
-plt.close('all')   
-
-
-
-
-
-
-
-
-
-
-
+plt.close('all')

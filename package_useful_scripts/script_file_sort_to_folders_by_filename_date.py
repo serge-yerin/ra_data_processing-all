@@ -16,9 +16,14 @@ extension = '.jds' # '.jds' or '.adr'
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
 import os
-import time
+from os import path
 import sys
+import time
 import shutil
+
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_common_modules.find_files_in_folder import find_files_in_folder
 ################################################################################

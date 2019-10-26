@@ -26,11 +26,17 @@ customDPI = 300                     # Resolution of images of dynamic spectra
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
 import os
+import sys
+from os import path
 import numpy as np
 import pylab
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import time
+
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_common_modules.text_manipulations import read_frequency_and_two_values_txt
 
