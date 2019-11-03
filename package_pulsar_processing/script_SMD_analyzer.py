@@ -23,8 +23,14 @@ import struct
 import math
 import pylab
 import os
+from os import path
+import sys
 import numpy as np
 import time
+
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
 from package_plot_formats.plot_formats import plot1D, plot2D
@@ -34,7 +40,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
-from package_pulsar_processing.SMD_analyzer_param_reader import SMD_analyzer_param_reader
+from package_pulsar_processing.f_SMD_analyzer_param_reader import f_SMD_analyzer_param_reader
 
 
 # ******************************************************************
@@ -59,7 +65,7 @@ print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
     save_intermediate_data, AverageChannelNumber,
     AverageTPointsNumber, frequency_band_cut,
     specify_freq_range, frequency_cuts,
-    colormap, customDPI, freqStartArray, freqStopArray] = SMD_analyzer_param_reader()
+    colormap, customDPI, freqStartArray, freqStopArray] = f_SMD_analyzer_param_reader()
 
 
 filepath = path + filename
@@ -446,7 +452,8 @@ if frequency_band_cut == 1:     # Plot profiles in small frequency bands?
     plt.close('all')
 
 nowTime = time.time() #                               '
-print ('\n  Preparing of data for SNR vs DM plot took ', round((nowTime - previousTime), 2), 'seconds ')
+print ('\n  Preparing of data for SNR vs DM plot took ', round((nowTime - previousTime), 2), 'seconds (',
+                                                round((nowTime - previousTime)/60, 2), 'min. ) \n')
 previousTime = nowTime
 
 
@@ -478,7 +485,8 @@ profiles_varDM, DM_vector = pulsar_DM_variation(inter_matrix.transpose(), no_of_
 del inter_matrix
 
 nowTime = time.time() #                               '
-print ('\n  DM variation                         took ', round((nowTime - previousTime), 2), 'seconds ')
+print ('\n  DM variation                         took ', round((nowTime - previousTime), 2), 'seconds (',
+                                                round((nowTime - previousTime)/60, 2), 'min. )')
 previousTime = nowTime
 
 # Preparing indexes for showing the maximal SNR value and its coordinates
@@ -493,10 +501,9 @@ DMoptimal = round(DM_vector[optimal_DM_index], 5)
 
 print(' \n\n ')
 print('    Initial DM (from catalogue) =          ', DM, ' pc / cm3')
+print('    Optimal DM =                           ', DMoptimal, ' pc / cm3  \n')
 print('    SNR for initial DM =                   ', round(SNRinitMax, 3))
 print('    SNR averaged in time for initial DM  = ', round(SNRinitDMtimeAver, 3), ' \n')
-
-print('    Optimal DM =                           ', DMoptimal, ' pc / cm3  \n')
 print('  * SNR for optimal DM can be calculated in the next part of the program')
 
 
@@ -544,7 +551,8 @@ plt.show()
 plt.close('all')
 
 
-print ('\n\n  In band calculations and DM variation lasted for ', round((endTime - startTime),3), 'seconds \n\n')
+print ('\n\n  In band calculations and DM variation lasted for ', round((endTime - startTime),3), 'seconds (',
+                                                round((endTime - startTime)/60, 2), 'min. ) \n\n')
 
 
 
@@ -563,9 +571,9 @@ del reducedMatrix, integrProfile, matrix, DM
 
 
 
-#****************************************************************
-# ***               Repeat program for optimal DM             ***
-#****************************************************************
+#*******************************************************************************
+# ***                     Repeat program for optimal DM                      ***
+#*******************************************************************************
 
 
 
@@ -840,9 +848,7 @@ if optimization_switch == 1:
     print(' \n\n ')
     print('    Maximal SNR for optimal DM =           ', round(SNRoptMax, 3))
     print('    SNR averaged in time for optimal DM  = ', round(SNRoptimDMtimeAver, 3), ' \n')
-
     print('    Optimal DM  =                          ', round(DM, 4), ' pc / cm3')
-
 
 
     plt.figure(1, figsize = (10.0, 6.0))
@@ -881,7 +887,4 @@ if optimization_switch == 1:
 
 
 
-
-for i in range (4): print (' ')
-print ('    *** Program has finished! ***')
-for i in range (3): print (' ')
+print ('\n\n\n\n       *** Program has finished! ***   \n\n\n')

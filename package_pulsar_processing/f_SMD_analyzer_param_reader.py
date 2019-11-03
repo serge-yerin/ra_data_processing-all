@@ -4,13 +4,13 @@
 from package_common_modules.text_manipulations import find_between
 
 
-def SMD_analyzer_param_reader():
+def f_SMD_analyzer_param_reader():
     '''
     Reads parameters of average pulsar pulse analysis from file "script_SMD_analyzer_parameters.py"
     and passes them to the main script "script_SMD_analyzer.py"
     '''
 
-    file = open('script_SMD_analyzer_parameters.py', 'r')
+    file = open('package_pulsar_processing/param_SMD_analyzer_parameters.py', 'r')
 
     print ('\n  * Parameters of analysis: \n')
 
