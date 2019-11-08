@@ -4,7 +4,7 @@ Software_version = '2019.04.13'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 foldpath = 'DATA/'
-filename = '20190819_173200_BST.fits'
+filename = '20190410_113700_BST.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot
@@ -39,8 +39,7 @@ print ('   **************************************************** \n\n\n')
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
-print (' ')
+print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
 
 newpath = "FITS_Results"
 if not os.path.exists(newpath):
@@ -109,7 +108,6 @@ if Vmin == float('-inf') or Vmin == float('inf'): Vmin = -50
 Vmax = np.max([np.max(dynamic_spectra1[0, 0:FreqPointsNum]), np.max(dynamic_spectra2[0, 0:FreqPointsNum])])
 if Vmax == float('-inf') or Vmax == float('inf'): Vmax = 250
 
-print (frequency[0,0], frequency[0, FreqPointsNum-1],Vmin-3, Vmax+3, Vmin-3, Vmax+3)
 
 # *** FIGURE Immediate spectra of initial data ***
 TwoOrOneValuePlot(2, frequency[0,:],  dynamic_spectra1[0, 0:FreqPointsNum],  dynamic_spectra2[0, 0:FreqPointsNum],
