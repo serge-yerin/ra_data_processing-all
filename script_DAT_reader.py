@@ -6,14 +6,14 @@ Software_version = '2019.05.08'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path = 'DATA/' # '/media/data/PYTHON/ra_data_processing-all/' #
+common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A190905_103553.adr_Data_CIm.dat'
+filename = common_path + 'A170328_060429.adr_Data_chA.dat'
 
-# Types of data to get
-#typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-typesOfData = ['CRe', 'CIm']
+# Types of data to get (full possible set in the comment below - copy to code necessary)
+#typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
+typesOfData = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
@@ -21,12 +21,12 @@ freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
 #freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
+StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 15                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 7                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
@@ -65,7 +65,7 @@ from matplotlib import rc
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
-from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
+from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  OneValueWithTimePlot
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
@@ -505,14 +505,21 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
                     ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
         fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+
                         ' Dynamic spectrum cleanned and normalized'+'.png')
-
+        '''
         OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle,
                         'Intensity, dB', len(dateTimeNew),
                         TimeScaleFig, freqLine,
                         len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
                         currentDate, currentTime, Software_version, customDPI)
-
-
+        '''
+        # Figure in PhD thesis format
+        fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+
+                        ' Dynamic spectrum cleanned and normalized_PhD'+'.png')
+        OneDynSpectraPlotPhD(array, VminNorm, VmaxNorm, Suptitle,
+                        'Інтенсивність, дБ', len(dateTimeNew),
+                        TimeScaleFig, freqLine,
+                        len(freqLine), colormap, 'Дата та час UTC', fig_file_name,
+                        currentDate, currentTime, Software_version, customDPI)
 
         '''
         # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
