@@ -13,10 +13,15 @@ import numpy as np
 import pylab
 import matplotlib.pyplot as plt
 import time
+from os import path
 from datetime import datetime, timedelta
 from matplotlib import rc
 import warnings
 warnings.filterwarnings("ignore")
+
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
@@ -83,6 +88,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
         Vmax = VmaxMan
         VminNorm = VminNormMan
         VmaxNorm = VmaxNormMan
+        if averOrMin == 0: reducing_type = 'Averaging '
+        if averOrMin == 1: reducing_type = 'Least of '
 
         if typesOfData[j] == 'chA':
             nameAdd = ' channel A'
@@ -344,7 +351,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
 
         Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
         Title = ('Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+sumDifMode+
-        'Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
+        'Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
 
         TwoOrOneValuePlot(1, frequency, array[:,[1]], [],
                     'Spectrum', ' ', frequency[0], frequency[FreqPointsNum-1],
@@ -382,7 +389,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
                     Suptitle = 'Intensity variation '+str(df_filename[0:18])+' '+nameAdd
                     Title = ('Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
                                 str(round(df/1000,3))+' kHz, Frequency = '+str(round(frequency[index],3))+
-                                ' MHz '+sumDifMode+' Processing: Averaging '+str(averageConst)+
+                                ' MHz '+sumDifMode+' Processing: ' + reducing_type + str(averageConst)+
                                 ' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
 
                     FileName = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j]+ df_filename[-4:]+
@@ -433,7 +440,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
         Suptitle = ('Dynamic spectrum starting from file '+str(df_filename[0:18])+
                     ' '+nameAdd+'\n Initial parameters: dt = '+str(round(TimeRes,3))+
                     ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                    ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
+                    ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
                     ' sec.)\n'+' Receiver: '+str(df_system_name)+
                     ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
         fig_file_name = (newpath + '/' + fileNameAdd + df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum.png')
@@ -457,7 +464,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
             Suptitle = ('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+
                         ' '+nameAdd+'\n Initial parameters: dt = '+str(round(TimeRes,3))+
                         ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                        ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
+                        ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
                         ' sec.)\n'+' Receiver: '+str(df_system_name)+
                         ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
             fig_file_name = (newpath + '/' + fileNameAddNorm + df_filename[0:14] + '_'+typesOfData[j]+
@@ -479,7 +486,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
             #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+nameAdd+
             #            '\n Initial parameters: dt = '+str(round(TimeRes,3))+
             #            ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-            #            ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)\n'+
+            #            ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)\n'+
             #            ' Receiver: '+str(df_system_name)+
             #            ', Place: '+str(df_obs_place) +
             #            ', Description: '+str(df_description),

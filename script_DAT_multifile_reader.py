@@ -7,21 +7,21 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-path_to_data = 'DATA_for_DAT_reader_development/'  # '/media/data/PYTHON/ra_data_processing-all/'
+path_to_data = 'DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
 # Types of data to get
-typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
-#typesOfData = ['CRe', 'CIm']
+#typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B'] # !-!
+typesOfData = ['chA', 'chB']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 #freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
 freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
-averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
+averOrMin = 1                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
