@@ -9,24 +9,24 @@ Software_version = '2019.05.08'
 common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A170328_060429.adr_Data_chA.dat'
+filename = common_path + 'A141217_130704.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
-typesOfData = ['chA']
+typesOfData = ['chA', 'chB', 'A+B']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
 #freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
-averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
+averOrMin = 1                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 7                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 15                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
@@ -37,15 +37,15 @@ AmplitudeReIm = 20 * 10**(-12) # Colour range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 0.0
-freqStop = 10.0
+freqStart = 20.0
+freqStop = 30.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2019-09-05 15:34:05'
-dateTimeStop =  '2019-09-06 00:57:41'
+dateTimeStart = '2017-05-18 18:36:30'
+dateTimeStop =  '2017-05-18 18:36:50'
 
 # Begin and end frequency of TXT files to save (MHz)
-freqStartTXT = 0.0
+freqStartTXT = 8.0
 freqStopTXT = 33.0
 
 ################################################################################
@@ -121,6 +121,8 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
     Vmax = VmaxMan
     VminNorm = VminNormMan
     VmaxNorm = VmaxNormMan
+    if averOrMin == 0: reducing_type = 'Averaging '
+    if averOrMin == 1: reducing_type = 'Least of '
 
     if typesOfData[j] == 'chA':
         nameAdd = ' channel A'
@@ -385,7 +387,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
     Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
     Title = ('Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+sumDifMode+
-    'Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
+    'Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
 
     TwoOrOneValuePlot(1, frequency, array[:,[1]], [],
                 'Spectrum', ' ', frequency[0], frequency[FreqPointsNum-1],
@@ -425,7 +427,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
                 Suptitle = 'Intensity variation '+str(df_filename[0:18])+' '+nameAdd
                 Title = ('Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
                             str(round(df/1000,3))+' kHz, Frequency = '+str(round(frequency[index],3))+
-                            ' MHz '+sumDifMode+' Processing: Averaging '+str(averageConst)+
+                            ' MHz '+sumDifMode+' Processing: ' + reducing_type + str(averageConst)+
                             ' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)')
 
                 FileName = ('DAT_Results/'+df_filename[0:14]+'_'+typesOfData[j]+
@@ -476,7 +478,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
     Suptitle = ('Dynamic spectrum starting from file '+str(df_filename[0:18])+
                 ' '+nameAdd+'\n Initial parameters: dt = '+str(round(TimeRes,3))+
                 ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
+                ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
                 ' sec.)\n'+' Receiver: '+str(df_system_name)+
                 ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
     fig_file_name = ('DAT_Results/' +fileNameAdd+ df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum.png')
@@ -500,19 +502,20 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         Suptitle = ('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+
                     ' '+nameAdd+'\n Initial parameters: dt = '+str(round(TimeRes,3))+
                     ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                    ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
+                    ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+
                     ' sec.)\n'+' Receiver: '+str(df_system_name)+
                     ', Place: '+str(df_obs_place) +', Description: '+str(df_description))
         fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+
                         ' Dynamic spectrum cleanned and normalized'+'.png')
-        '''
+
         OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle,
                         'Intensity, dB', len(dateTimeNew),
                         TimeScaleFig, freqLine,
                         len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
                         currentDate, currentTime, Software_version, customDPI)
-        '''
+
         # Figure in PhD thesis format
+        '''
         fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+
                         ' Dynamic spectrum cleanned and normalized_PhD'+'.png')
         OneDynSpectraPlotPhD(array, VminNorm, VmaxNorm, Suptitle,
@@ -520,7 +523,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
                         TimeScaleFig, freqLine,
                         len(freqLine), colormap, 'Дата та час UTC', fig_file_name,
                         currentDate, currentTime, Software_version, customDPI)
-
+        '''
         '''
         # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
         plt.figure(2, figsize=(16.0, 7.0))
@@ -529,7 +532,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+nameAdd+
         #            '\n Initial parameters: dt = '+str(round(TimeRes,3))+
         #            ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-        #            ' Processing: Averaging '+str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)\n'+
+        #            ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*TimeRes,3))+' sec.)\n'+
         #            ' Receiver: '+str(df_system_name)+
         #            ', Place: '+str(df_obs_place) +
         #            ', Description: '+str(df_description),
