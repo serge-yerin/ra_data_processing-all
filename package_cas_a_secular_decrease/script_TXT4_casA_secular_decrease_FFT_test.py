@@ -8,10 +8,11 @@ Software_version = '2019.09.28'
 #*******************************************************************************
 # Path to data files
 path_to_data =  'DATA/TEST/'
-file_name = 'D280719_183754_CIm.jds variation at 24.005 MHz.txt'
-Vmin = -15 * 10**-9
-Vmax =  15 * 10**-9
+file_name = 'A190818_093442_CIm.adr variation at 18.024 MHz.txt'
+Vmin = -0.2 * 10**-9
+Vmax =  0.2 * 10**-9
 customDPI = 300                     # Resolution of images of dynamic spectra
+zero_for_log = 0.0000000000001
 
 ################################################################################
 #*******************************************************************************
@@ -114,8 +115,6 @@ print ('  Today is ', currentDate, ' time is ', currentTime)
 #*******************************************************************************
 #                          R E A D I N G   D A T A                             *
 #*******************************************************************************
-
-
 # *** Reading files ***
 [x_value, y_value] = read_date_time_and_one_value_txt ([path_to_data + file_name])
 
@@ -153,6 +152,24 @@ spectra_plot(ampl_spectra, max_index, ymax,
             'Spectra of the initial interferometric responce',
             '01 - Spectra of interferometric responce 01.png', path_to_data)
 
+
+# Phase spectra plot
+phase_spectra = np.angle(experiment_spectra, deg = True)
+
+rc('font', size = 6, weight='bold')
+fig = plt.figure(figsize = (12, 5))
+fig.suptitle('Phase spectra of the initial interferometric responce', fontsize = 8, fontweight='bold')
+ax1 = fig.add_subplot(111)
+ax1.set_title('Spectra', fontsize = 6)
+ax1.plot(phase_spectra, linestyle = '-', linewidth = '2.0', alpha = 1.0, label = 'Measurements')
+ax1.scatter(np.linspace(0, len(phase_spectra)-1, num = len(phase_spectra)), phase_spectra, color = 'r')
+ax1.annotate(str(np.round(ymax,5)),  xy=(max_index+15, ymax), fontsize = 6, ha='center') # xy=(xmax, 2 + 0.3)
+ax1.set_xlim([0, int(len(ampl_spectra)/1)])
+pylab.savefig(path_to_data + '01a - Phase spectra of interferometric responce 01.png', bbox_inches = 'tight', dpi = 160)
+plt.close('all')
+
+
+
 #*******************************************************************************
 # The same signal after FFT and inverse FFT
 
@@ -166,8 +183,8 @@ responce_plot(1 * filtered_signal_re, 'Interferometric responce  after FFT and i
 
 #*******************************************************************************
 # Specter of signal without higher frequencies
-experiment_spectra[0] = 0.000000001 #np.nan
-experiment_spectra[25:] = 0.000000001
+experiment_spectra[0] = zero_for_log #np.nan
+experiment_spectra[25:] = zero_for_log
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
 
@@ -188,10 +205,10 @@ responce_plot(2 * filtered_signal_re, 'Interferometric responce without high fre
 
 
 if   max_index <= 4:
-    experiment_spectra[max_index + 5 : ] = 0.000000001
+    experiment_spectra[max_index + 5 : ] = zero_for_log
 else:
-    experiment_spectra[max_index + 5 : ] = 0.000000001
-    experiment_spectra[ : max_index - 4] = 0.000000001
+    experiment_spectra[max_index + 5 : ] = zero_for_log
+    experiment_spectra[ : max_index - 4] = zero_for_log
 
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
@@ -214,10 +231,10 @@ responce_plot(2 * filtered_signal_re, 'Interferometric responce only 9 harmonics
 # Signal without higher frequencies and filtered to 7 harmonics
 
 if   max_index <= 3:
-    experiment_spectra[max_index + 4:] = 0.000000001
+    experiment_spectra[max_index + 4:] = zero_for_log
 else:
-    experiment_spectra[max_index + 4 : ] = 0.000000001
-    experiment_spectra[ : max_index - 3] = 0.000000001
+    experiment_spectra[max_index + 4 : ] = zero_for_log
+    experiment_spectra[ : max_index - 3] = zero_for_log
 
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
@@ -240,10 +257,10 @@ responce_plot(2 * filtered_signal_re, 'Interferometric responce only 7 harmonics
 # Signal without higher frequencies and filtered to 5 harmonics
 
 if   max_index <= 2:
-    experiment_spectra[max_index + 3 :] = 0.000000001
+    experiment_spectra[max_index + 3 :] = zero_for_log
 else:
-    experiment_spectra[max_index + 3 : ] = 0.000000001
-    experiment_spectra[ : max_index - 2] = 0.000000001
+    experiment_spectra[max_index + 3 : ] = zero_for_log
+    experiment_spectra[ : max_index - 2] = zero_for_log
 
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
@@ -262,12 +279,15 @@ signal_5_harmonics = 2 * filtered_signal_re
 responce_plot(2 * filtered_signal_re, 'Interferometric responce only 5 harmonics',
             '02 - Interferometric responce 05.png', path_to_data, Vmin, Vmax, date_time)
 
+re_max = 2 * np.max(np.abs(filtered_signal_re))
 
 rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (9, 5))
 fig.suptitle('Interferometric responce only 5 harmonics', fontsize = 8, fontweight='bold')
 ax1 = fig.add_subplot(111)
 plt.axvline(x = x_center, linewidth = '0.5' , color = 'r') #, alpha=0.5
+plt.axhline(y = re_max, linewidth = '1.5' , color = 'r') #, alpha=0.5
+plt.axhline(y = -re_max, linewidth = '1.5' , color = 'r') #, alpha=0.5
 ax1.plot(2 * filtered_signal_re, linestyle = '-', linewidth = '1.00', label = 'Filtered')
 ax1.plot(y_value[0, :], linestyle = '-', linewidth = '1.00', label = 'Measured')
 ax1.legend(loc = 'upper right', fontsize = 6)
@@ -291,10 +311,10 @@ plt.close('all')
 # Signal without higher frequencies and filtered to 3 harmonics
 
 if   max_index <= 1:
-    experiment_spectra[max_index + 2:] = 0.000000001
+    experiment_spectra[max_index + 2:] = zero_for_log
 else:
-    experiment_spectra[max_index + 2 : ] = 0.000000001
-    experiment_spectra[ : max_index - 1] = 0.000000001
+    experiment_spectra[max_index + 2 : ] = zero_for_log
+    experiment_spectra[ : max_index - 1] = zero_for_log
 
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
@@ -315,8 +335,8 @@ responce_plot(2 * filtered_signal_re, 'Interferometric responce only 3 harmonics
 #*******************************************************************************
 # Signal without higher frequencies and filtered to only 1 harmonic
 
-experiment_spectra[max_index + 1 : ] = 0.000000001
-experiment_spectra[0 : max_index] = 0.000000001
+experiment_spectra[max_index + 1 : ] = zero_for_log
+experiment_spectra[0 : max_index] = zero_for_log
 
 ampl_spectra = np.abs(experiment_spectra)
 max_index = np.argmax(ampl_spectra)
@@ -340,8 +360,8 @@ responce_plot(2 * filtered_signal_re, 'Interferometric responce only 1 harmonic'
 # Signal without lower frequencies
 
 spectra = np.fft.fft(y_value[0, :])
-spectra[0 : 25] = 0.000000001
-spectra[-25 : ] = 0.000000001
+spectra[0 : 25] = zero_for_log
+spectra[-25 : ] = zero_for_log
 ampl_spectra = np.abs(spectra)
 
 

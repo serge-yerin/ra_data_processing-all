@@ -10,15 +10,11 @@ Software_version = '2019.10.05'
 
 path_to_data =  'DATA/'
 
-#path_to_data_SygA =  'DATA/DAT_Results_A190928_141322.adr_3C405/'
-#path_to_data_CasA =  'DATA/DAT_Results_A190928_185832.adr_3C461/'
-
-
 y_auto = 1
-Vmin = -500 * 10**(-12)
-Vmax =  500 * 10**(-12)
+Vmin = -100 * 10**(-12)
+Vmax =  100 * 10**(-12)
 interferometer_base = 400 #900
-
+zero_for_log = 0.0000000000001
 customDPI = 300                     # Resolution of images of dynamic spectra
 
 ################################################################################
@@ -198,47 +194,58 @@ for source in ['SygA', 'CasA']:
         plt.close('all')
         '''
 
-        experiment_spectra = np.abs(np.fft.fft(y_value[0, :]))
-        experiment_spectra[0] = 0.0000000001 #np.nan
+        # Specter of initial signal
+        experiment_spectra = np.fft.fft(y_value[0, :])
+        ampl_spectra = np.abs(experiment_spectra)
+        ymax = np.max(ampl_spectra)
+        max_index = np.argmax(ampl_spectra[0:50])
 
 
-
-        max_index = np.argmax(experiment_spectra)
-
-        # For our baselines the main frequency of interferometric responce is low, so we
-        # try to find the maximum below frequency # 50
-
-        #print ('\n Position of the maximum:', max_index, ' length = ', len(experiment_spectra))
-        if max_index > 50:
-            count = 0
-            while max_index > 50:
-                count += 1
-                if count > 10: break
-
-                experiment_spectra[max_index] = 0.0000000001
-                max_index = np.argmax(experiment_spectra)
-
-                #print(max_index, experiment_spectra[max_index])
-
-            max_index = np.argmax(experiment_spectra)
-            #print (' Counts = ', count)
-            #print ('\n New position of the maximum:', max_index)
-
-
-        if   max_index == 1:
-            ymax = np.sum(experiment_spectra[max_index : max_index+2])
-        elif max_index == 2:
-            ymax = np.sum(experiment_spectra[max_index-1 : max_index+2])
+        # Filtering of data
+        if   max_index <= 2:
+            experiment_spectra[max_index + 3 :] = zero_for_log
         else:
-            ymax = np.sum(experiment_spectra[max_index-2 : max_index+2]) # integration in the range +/- 2 frequencies from maximal point
+            experiment_spectra[max_index + 3 : ] = zero_for_log
+            experiment_spectra[ : max_index - 2] = zero_for_log
+
+        # Making inverse FFT to obtain the cleaned responce
+        filtered_signal_re = np.real(np.fft.ifft(experiment_spectra))
+
+        # Finding the maximal absolute valeu of the responce
+        ymax = 2 * np.max(np.abs(filtered_signal_re))
+
+        # Figure of the initial and filtered interferometric responce
+        rc('font', size = 6, weight='bold')
+        fig = plt.figure(figsize = (9, 5))
+        fig.suptitle('Interferometric responce only 5 harmonics', fontsize = 8, fontweight='bold')
+        ax1 = fig.add_subplot(111)
+        plt.axvline(x = x_center, linewidth = '0.5' , color = 'r') #, alpha=0.5
+        plt.axhline(y =  ymax, linewidth = '1.5' , color = 'r') #, alpha=0.5
+        plt.axhline(y = -ymax, linewidth = '1.5' , color = 'r') #, alpha=0.5
+        ax1.plot(2 * filtered_signal_re, linestyle = '-', linewidth = '1.00', label = 'Filtered')
+        ax1.plot(y_value[0, :], linestyle = '-', linewidth = '1.00', label = 'Measured')
+        ax1.legend(loc = 'upper right', fontsize = 6)
+        ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+        ax1.set_ylim([Vmin, Vmax])
+        ax1.set_xlim([0, b-1])
+        ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
+        ax1.set_xlabel('UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', fontsize=6, fontweight='bold')
+        ax1.xaxis.set_major_locator(mtick.LinearLocator(7))
+        text = ax1.get_xticks().tolist()
+        for i in range(len(text)):
+            k = int(text[i])
+            text[i] = str(date_time[k][0:11] + '\n' + date_time[k][11:23])
+        ax1.set_xticklabels(text, fontsize = 6, fontweight = 'bold')
+        fig.subplots_adjust(top=0.92)
+        pylab.savefig(result_path + '/' + parent_filename +' Interferometric responce '+source+' '+data_type+' '+text_freq+' MHz.png', bbox_inches = 'tight', dpi = 160)
+        plt.close('all')
+
 
 
         if data_type == 'CIm' and source == 'SygA': ampl_list_SygA_CIm.append(ymax)
         if data_type == 'CRe' and source == 'SygA': ampl_list_SygA_CRe.append(ymax)
         if data_type == 'CIm' and source == 'CasA': ampl_list_CasA_CIm.append(ymax)
         if data_type == 'CRe' and source == 'CasA': ampl_list_CasA_CRe.append(ymax)
-
-
 
 
         '''
@@ -259,7 +266,7 @@ for source in ['SygA', 'CasA']:
         ax2.set_ylim([-100, -50])
         if source == 'SygA': path = path_to_data_SygA
         if source == 'CasA': path = path_to_data_CasA
-        pylab.savefig(path + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
+        pylab.savefig(result_path + '/' + parent_filename + ' spectra of interferometric responce at '+ str(num_freq)+' MHz.png', bbox_inches = 'tight', dpi = 160)
         plt.close('all')
         '''
 
@@ -276,6 +283,8 @@ flux_ratio_CIm = []
 for i in range(len(ampl_list_CasA_CRe)):
     flux_ratio_CIm.append(ampl_list_CasA_CIm[i] / ampl_list_SygA_CIm[i])
     flux_ratio_CRe.append(ampl_list_CasA_CRe[i] / ampl_list_SygA_CRe[i])
+
+
 
 # Printing to terminal the calculated ratios
 print('\n Frequency, MHz  |  Flux ratio Re  |  Flux ratio Im')
