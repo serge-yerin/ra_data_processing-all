@@ -12,7 +12,7 @@ common_path = 'DATA/'
 filename = 'E300117_180000.jds_Data_chA.dat'
 
 num_of_blocks = 3              # Specify number of blocks to read (to be done automatically)
-cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
+cleaning = 1                   # Apply cleaning to data (1) or skip it (0)
 # Parameters of vertical and horizontal lines cleaning
 no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
 std_lines_clean = 1            # Limit in StD of pixels in line to clean
