@@ -11,7 +11,6 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 filename = 'E300117_180000.jds_Data_chA.dat'
 
-num_of_blocks = 3              # Specify number of blocks to read (to be done automatically)
 average_const = 192            # Number of frequency channels to average in result picture
 prifile_pic_min = -0.1         # Minimum limit of profile picture
 prifile_pic_max = 0.5          # Maximum limit of profile picture
@@ -23,6 +22,11 @@ std_lines_clean = 1            # Limit in StD of pixels in line to clean
 pic_in_line = 3                # Number of pixels in line
 # Parameter of pixels cleaning based on StD value estimation
 std_pixels_clean = 2.8
+
+SpecFreqRange = 1              # Specify particular frequency range (1) or whole range (0)
+# Begin and end frequency of dynamic spectrum (MHz)
+freqStart = 20.0
+freqStop = 30.0
 
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
@@ -55,6 +59,7 @@ from package_ra_data_processing.spectra_normalization import Normalization_lin
 from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
@@ -92,7 +97,6 @@ def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, avera
     fig.text(0.09, 0.06, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
     pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
     plt.close('all')
-
 
 
 
@@ -145,19 +149,38 @@ if receiver_type == '.jds':
 #************************************************************************************
 #                            R E A D I N G   D A T A                                *
 #************************************************************************************
-if receiver_type == '.jds':
-    num_frequencies = len(frequency_list)-4
-
+num_frequencies = len(frequency_list)
 shift_vector = DM_full_shift_calc(len(frequency_list), fmin, fmax, df / pow(10,6), TimeRes, DM, receiver_type)
+max_shift = np.abs(shift_vector[0])
+
+if SpecFreqRange == 1 and (frequency_list[0]<=freqStart<=frequency_list[num_frequencies-1]) and (frequency_list[0]<=freqStop<=frequency_list[num_frequencies-1]) and (freqStart<freqStop):
+    A = []
+    B = []
+    for i in range (len(frequency_list)):
+        A.append(abs(frequency_list[i] - freqStart))
+        B.append(abs(frequency_list[i] - freqStop))
+    ifmin = A.index(min(A))
+    ifmax = B.index(min(B))
+    shift_vector = DM_full_shift_calc(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10,6), TimeRes, DM, receiver_type)
+    print (' Number of frequency channels:  ', ifmax - ifmin)
+    buffer_array = np.zeros((ifmax - ifmin, 2 * max_shift))
+else:
+    buffer_array = np.zeros((len(frequency_list)-4, 2 * max_shift))
+    print (' Number of frequency channels:  ', len(frequency_list)-4)
 
 #plot1D(shift_vector, newpath+'/01 - Shift parameter.png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
 
-max_shift = np.abs(shift_vector[0])
+
 num_of_blocks = int(SpInFile / (2 * max_shift))
-buffer_array = np.zeros((num_frequencies, 2 * max_shift))
 print (' Maximal shift is:              ', max_shift, ' pixels \n')
 print (' Number of blocks in file:      ', num_of_blocks, ' \n')
 
+
+if receiver_type == '.jds':
+    num_frequencies_initial = len(frequency_list)-4
+
+frequency_list_initial = np.empty_like(frequency_list)
+frequency_list_initial[:] = frequency_list[:]
 
 dat_file = open(data_filename, 'rb')
 dat_file.seek(1024)                     # Jumping to 1024 byte from file beginning
@@ -165,19 +188,26 @@ dat_file.seek(1024)                     # Jumping to 1024 byte from file beginni
 
 for block in range (num_of_blocks):   # main loop by number of blocks in file
 
-    print ('\n * Data block # ', block + 1, ' of ', num_of_blocks,'\n ****************************************************************** \n')
+    print ('\n * Data block # ', block + 1, ' of ', num_of_blocks,'\n ******************************************************************')
 
     # Data block reading
     if receiver_type == '.jds':
-        data = np.fromfile(dat_file, dtype=np.float64, count = (num_frequencies+4) * 2 * max_shift)
-        data = np.reshape(data, [(num_frequencies+4), 2 * max_shift], order='F')
-        data = data[ : num_frequencies, :] # To delete the last channels of DSP spectra data where exact time is stored
+        data = np.fromfile(dat_file, dtype=np.float64, count = (num_frequencies_initial+4) * 2 * max_shift)
+        data = np.reshape(data, [(num_frequencies_initial+4), 2 * max_shift], order='F')
+        data = data[ : num_frequencies_initial, :] # To delete the last channels of DSP spectra data where exact time is stored
+
+
+    # Cutting the array in predefined frequency range
+    if SpecFreqRange == 1:
+        data, frequency_list, fi_start, fi_stop = specify_frequency_range(data, frequency_list_initial, freqStart, freqStop)
+        num_frequencies = len(frequency_list)
+
 
     # Normalization of data
     Normalization_lin(data, num_frequencies, 2 * max_shift)
 
     nowTime = time.time()
-    print ('  *** Preparation of data took:              ', round((nowTime - previousTime), 2), 'seconds ')
+    print ('\n  *** Preparation of data took:              ', round((nowTime - previousTime), 2), 'seconds ')
     previousTime = nowTime
 
 
@@ -219,14 +249,13 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
 
     # Logging the data
-    #data_log = np.empty((num_frequencies, 2 * max_shift), float)
     with np.errstate(invalid='ignore'):
         data[:,:] = 10 * np.log10(data[:,:])
     data[np.isnan(data)] = 0
-    #del data
 
     # Normalizing log data
     data = data - np.mean(data)
+
 
     nowTime = time.time() #                                '
     print ('\n  *** Time before dispersion compensation:   ', round((nowTime - previousTime), 2), 'seconds ')
@@ -234,7 +263,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
 
     # Dispersion compensation
-    temp_array = pulsar_DM_compensation_with_indices_changes(data, shift_vector[0: num_frequencies])
+    temp_array = pulsar_DM_compensation_with_indices_changes(data, shift_vector)
 
     nowTime = time.time()
     print ('\n  *** Dispersion compensation took:          ', round((nowTime - previousTime), 2), 'seconds ')
