@@ -102,7 +102,7 @@ if filename[0:3] == 'ADR':
 if filename[0:3] == 'DSP':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr,
-        TimeRes, fmin, fmax, df, frequencyList0, FFTsize] = FileHeaderReaderDSP(filepath, smd_filesize - 1024, 1)
+        TimeRes, fmin, fmax, df, frequencyList0, FFTsize, BlockSize] = FileHeaderReaderJDS(filepath, smd_filesize - 1024, 1)
 
 df = df / pow(10,6)
 freq_num = len(frequencyList0)
