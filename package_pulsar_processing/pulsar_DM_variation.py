@@ -33,21 +33,22 @@ def pulsar_DM_variation(array, no_of_DM_steps, frequencyList0, FFTsize, fmin, fm
 
         del inter_matrix
         # Averaging in frequency
-        reducedMatrix = np.array([[0.0 for col in range(samplesPerPeriod)] for row in range(int(FFTsize/AverageChannelNumber))])
-        for i in range (int(FFTsize/AverageChannelNumber)):
-            for j in range (samplesPerPeriod):
-                reducedMatrix[i, j] = sum(matrix[i*AverageChannelNumber : (i+1)*AverageChannelNumber, j])
-        frequencyList1 = frequencyList0[::AverageChannelNumber]
 
-        freq_channels, time_points = reducedMatrix.shape
-        integrProfile = np.array([])
-        integrProfile = (np.sum(reducedMatrix, axis = 0))
+        #reducedMatrix = np.array([[0.0 for col in range(samplesPerPeriod)] for row in range(int(FFTsize/AverageChannelNumber))])
+        #for i in range (int(FFTsize/AverageChannelNumber)):
+        #    for j in range (samplesPerPeriod):
+        #        reducedMatrix[i, j] = sum(matrix[i*AverageChannelNumber : (i+1)*AverageChannelNumber, j])
+        #frequencyList1 = frequencyList0[::AverageChannelNumber]
+
+        #freq_channels, time_points = reducedMatrix.shape
+        #integrProfile = np.array([])
+        #integrProfile = (np.sum(matrix, axis = 0))
 
         for i in range (freq_channels):
-            reducedMatrix[i,:] = reducedMatrix[i,:] - np.mean(reducedMatrix[i, beginIndex:endIndex])
+            matrix[i,:] = matrix[i,:] - np.mean(matrix[i, beginIndex:endIndex])
         # Calcultation of integrated profile
         integrProfile = np.array([])
-        integrProfile = (np.sum(reducedMatrix, axis = 0))
+        integrProfile = (np.sum(matrix, axis = 0))
         integrProfile = (integrProfile - noise_mean)/noise_std
         # Adding the calcultaed average profile to the matrix of profiles
         profiles_varDM[step, :] = integrProfile

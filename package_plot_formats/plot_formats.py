@@ -35,6 +35,7 @@ def plot2D(data, fig_name, frequency_list, colormap, Title, customDPI):
     plt.xlabel('Phase of pulsar period', fontsize = 10, fontweight='bold')
     plt.yticks(fontsize = 8, fontweight = 'bold')
     plt.xticks(fontsize = 8, fontweight = 'bold')
+    plt.colorbar()
     pylab.savefig(fig_name, bbox_inches='tight', dpi = customDPI)
     plt.close('all')
 
