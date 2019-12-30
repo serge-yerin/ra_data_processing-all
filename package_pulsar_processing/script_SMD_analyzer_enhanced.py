@@ -13,10 +13,11 @@ folder_path = 'DATA/'
 filename = 'ADR_A150221_211250_PSRB0834+06.gcd.smd'
 pulsar_name = 'B0834+06'
 
+auto_opt_DM_search = 1           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
 no_of_DM_steps = 51             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
-cleaning_switch = 1
-save_intermediate_data = 0       # Plot intermediate figures? (1 = Yes)
+cleaning_switch = 1              # Use cleaning? (1 - Yes, 0 - No)
+save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 32        # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time
 frequency_band_cut = 0           # Plot profiles in small frequency bands?
@@ -46,7 +47,7 @@ freqStopArray =  30.0
 # Make the rolling of SNR curve to easy finding of the noise area
 # https://stackoverflow.com/questions/9111711/get-coordinates-of-local-maxima-in-2d-array-above-certain-value
 # https://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.ndimage.filters.maximum_filter.html
-
+# DM calculation error as an interval of 5% drop from maximal value
 
 ################################################################################
 #*******************************************************************************
@@ -133,7 +134,7 @@ def simple_mask_clean(array, RFImeanConst):
 def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps, pulsarPeriod, save_intermediate_data, AverageChannelNumber):
 
     fig_number = '0' if type == 'first' else '1'
-
+    DM_type = 'initial' if type == 'first' else 'optimal'
 
     #  Calculation of shift in pixels to compensate dispersion
     shift_param = pulsar_DM_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
@@ -141,12 +142,12 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     #  Saving shift parameter for dispersion delay compensation vs. frequency to file and plot
     if save_intermediate_data == 1:
 
-        shift_paramTXT = open(filename + '_results/Shift parameter (' + fig_number + ').txt', "w")
+        shift_paramTXT = open(filename + '_results/Shift parameter (' + DM_type + ').txt', "w")
         for i in range(freq_num):
             shift_paramTXT.write(str(fmin + df * i)+'   '+str(shift_param[i])+' \n' )
         shift_paramTXT.close()
 
-        plot1D(shift_param, filename + '_results/' + fig_number + '3.1 - Shift parameter (initial DM).png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
+        plot1D(shift_param, filename + '_results/' + fig_number + '3.1 - Shift parameter (' + DM_type + ' DM).png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
 
     #  Compensation of dispersion delay
     matrix = pulsar_DM_compensation_with_indices_changes (matrix, shift_param)
@@ -170,7 +171,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     plt.show()
     plt.close('all')
 
-    # *** Manual input of the first and last index of noise segment in integrated plot
+    #  Manual input of the first and last index of noise segment in integrated plot
     begin_index  = int(input('\n    First index of noise segment:           '))
     end_index    = int(input('\n    Last index of noise segment:            '))
 
@@ -203,7 +204,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     # Integrated profiles with DM variation calculation
     matrix = np.zeros((freq_num, samples_per_period))
     matrix[:,:] = initial_matrix[:,:]
-    profiles_varDM, DM_vector = pulsar_DM_variation(matrix.transpose(), no_of_DM_steps, frequency_list, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samples_per_period, DM, filename, AverageChannelNumber, samples_per_period, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI)
+    profiles_varDM, DM_vector = pulsar_DM_variation(matrix, no_of_DM_steps, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samples_per_period, DM, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI)
 
 
     nowTime = time.time() #                               '
@@ -221,16 +222,15 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     DMoptimal = round(DM_vector[optimal_DM_index], 5)
 
     print(' \n\n ')
-    print('    Initial DM (from catalogue) =          ', DM, ' pc / cm3')
+    print('    Initial DM (from file) =               ', DM, ' pc / cm3')
     print('    Optimal DM =                           ', DMoptimal, ' pc / cm3  \n')
-    print('    SNR for initial DM =                   ', round(SNRinitMax, 3))
+    print('    SNR for current DM =                   ', round(SNRinitMax, 3))
     #print('    SNR averaged in time for initial DM  = ', round(SNRinitDMtimeAver, 3), ' \n')
-    print('  * SNR for optimal DM can be calculated in the next part of the program')
 
 
     # Saving integrated profiles with DM variation calculation to TXT file
     if save_intermediate_data == 1:
-        DM_Var_TXT = open(filename + '_results/Average profile vs DM 2D (initial DM).txt', "w")
+        DM_Var_TXT = open(filename + '_results/Average profile vs DM 2D (' + DM_type + ' DM).txt', "w")
         for step in range(DM_steps_real-1):
             DM_Var_TXT.write(''.join(format(DM_vector[step], "8.5f")) + '   '.join(format(profiles_varDM[step, i], "12.5f") for i in range(time_points)) + ' \n')
         DM_Var_TXT.close()
@@ -426,36 +426,20 @@ if cleaning_switch == 1:
 shift_param = pulsar_DM_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
 
 
-#  Saving shift parameter for dispersion delay compensation vs. frequency to file and plot
-if save_intermediate_data == 1:
 
-    shift_paramTXT = open(filename + '_results/Shift parameter (initial DM).txt', "w")
-    for i in range(freq_num):
-        shift_paramTXT.write(str(fmin + df * i)+'   '+str(shift_param[i])+' \n' )
-    shift_paramTXT.close()
-
-    plot1D(shift_param, filename + '_results/03.1 - Shift parameter (initial DM).png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
+#*******************************************************************************
+# ***                            Find optimal DM                             ***
+#*******************************************************************************
 
 
+if auto_opt_DM_search == 1:
+    DM = averge_profile_analysis('first', matrix, filename, freq_num, min, fmax, df, frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps, pulsarPeriod, save_intermediate_data, AverageChannelNumber)
 
-
-
-
-DM = averge_profile_analysis('first', matrix, filename, freq_num, min, fmax, df, frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps, pulsarPeriod, save_intermediate_data, AverageChannelNumber)
-
+#*******************************************************************************
+# ***                      Analyze data with optimal DM                      ***
+#*******************************************************************************
 
 DM = averge_profile_analysis('final', matrix, filename, freq_num, min, fmax, df, frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps, pulsarPeriod, save_intermediate_data, AverageChannelNumber)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
