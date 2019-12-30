@@ -33,9 +33,8 @@ def pulsar_DM_variation(array, no_of_DM_steps, FFTsize, fmin, fmax, df, TimeRes,
             matrix[i,:] = matrix[i,:] - np.mean(matrix[i, begin_index : end_index])
 
         # Calcultation of integrated profile
-        integrated_profile = np.array([])
-        integrated_profile = (np.sum(matrix, axis = 0))
-        #noise = integrated_profile[begin_index : end_index]
+        integrated_profile = np.sum(matrix, axis = 0)
+
 
         integrated_profile = (integrated_profile - noise_mean) / noise_std
 

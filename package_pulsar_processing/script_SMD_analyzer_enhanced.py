@@ -17,6 +17,7 @@ auto_opt_DM_search = 1           # Automatically search optimal DM (1 - auto, 2 
 no_of_DM_steps = 51             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
 cleaning_switch = 1              # Use cleaning? (1 - Yes, 0 - No)
+RFI_std_const = 0.1              # Standard deviation of integrated profile to clean channels
 save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 32        # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time
@@ -34,8 +35,8 @@ colormap = 'Greys'               # Possible: 'jet', 'Blues', 'Purples'
 customDPI = 200
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStartArray = 18.0
-freqStopArray =  30.0
+freqStartArray = 31.0
+freqStopArray =  65.0
 
 
 
@@ -110,9 +111,9 @@ def plot_average_profiles(array, data_type, filename, frequency_list, colormap, 
     pylab.savefig(filename + '_results/02.' + n + ' - ' + data_type + ' data integrated over time and over frequency.png', bbox_inches='tight', dpi = 250)
     plt.close('all')
 
+    del integr_profile_0, integr_profile_1
 
-
-def simple_mask_clean(array, RFImeanConst):
+def simple_mask_clean(array, RFI_std_const):
     '''
     Simplest cleaning of entire frequency channels polluted with RFI
     Input parameters:
@@ -121,13 +122,37 @@ def simple_mask_clean(array, RFImeanConst):
     Output parameters:
         Data -
     '''
+    # Search for polluted channels in averaged profile
+    integr_profile = np.sum(array, axis = 0)
+    ip_mean = np.mean(integr_profile)
+    ip_std = np.std(integr_profile)
+    polluted_channels = []
+    for i in range(len(integr_profile)):
+        if integr_profile[i] > ip_mean + RFI_std_const * ip_std:
+            polluted_channels.append(i)
 
+    # Making mask array
+    mask = np.zeros_like(array, dtype=bool)
+    for i in range(len(polluted_channels)):
+        mask[:, polluted_channels[i]] = 1
+
+    # Mask polluted channels in array
+    masked_array = np.ma.masked_array(array, mask=mask)
+
+    # Calculate mean of array with masked polluted channels
+    ma_mean = np.mean(masked_array)
+
+    # Change the polluted channels to masked array mean value
+    array = array * np.abs(mask - 1) + mask * ma_mean
+
+    '''
     data_StD = np.std(array)
     masked_array = np.ma.masked_outside(array, -RFImeanConst * data_StD, RFImeanConst * data_StD)
     masked_data_StD = np.std(masked_array)
     mask_array = masked_array.mask
     array = array * np.abs(mask_array - 1) + mask_array * masked_data_StD
-    return array
+    '''
+    return array, mask
 
 
 
@@ -179,6 +204,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     #  Mean value extraction from the matrix
     for i in range (freq_num):
         matrix[i,:] = matrix[i,:] - np.mean(matrix[i, begin_index : end_index])
+
     integrated_profile = (np.sum(matrix, axis = 0))
 
     #  Calculation of SNR
@@ -202,9 +228,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     previousTime = time.time()
 
     # Integrated profiles with DM variation calculation
-    matrix = np.zeros((freq_num, samples_per_period))
-    matrix[:,:] = initial_matrix[:,:]
-    profiles_varDM, DM_vector = pulsar_DM_variation(matrix, no_of_DM_steps, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samples_per_period, DM, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI)
+    profiles_varDM, DM_vector = pulsar_DM_variation(initial_matrix, no_of_DM_steps, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samples_per_period, DM, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI)
 
 
     nowTime = time.time() #                               '
@@ -213,7 +237,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
     # Preparing indexes for showing the maximal SNR value and its coordinates
     DM_steps_real, time_points = profiles_varDM.shape
-    phase_vector = np.linspace(0,1,num = time_points)
+    phase_vector = np.linspace(0, 1, num = time_points)
     optimal_DM_indexes = np.unravel_index(np.argmax(profiles_varDM, axis=None), profiles_varDM.shape)
     optimal_DM_index = optimal_DM_indexes[0]
     optimal_pulse_phase = optimal_DM_indexes[1]
@@ -246,19 +270,18 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     ax1.yaxis.set_label_coords(-0.04, 1.01)
     ax2.yaxis.set_label_coords( 1.04, 1.03)
     ax1.set_xlabel('Phase of pulsar period', fontsize = 7, fontweight='bold')
-    ax1.set_ylabel(r'$\mathrm{\Delta DM}$', rotation = 0) # , fontsize=8, fontweight='bold'
+    ax1.set_ylabel(r'$\mathrm{\Delta DM}$', rotation = 0)
     ax2.set_ylabel('DM', rotation = 0, fontsize = 7, fontweight='bold') #
     ax2.set_ylim(ax1.get_ylim())
     text = ax2.get_yticks().tolist()
     for i in range(len(text)-1):
         k = np.float(text[i])
         text[i] = DM + k
-    ax2.set_yticklabels(np.round(text, 4)) # , fontsize=8, fontweight='bold'
-    fig.colorbar(im1, ax = ax1, pad = 0.1) #
+    ax2.set_yticklabels(np.round(text, 4))
+    fig.colorbar(im1, ax = ax1, pad = 0.1)
     fig.text(0.76, 0.89,'Current SNR \n    '+str(round(SNRinitMax, 3)), fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
     fig.text(0.75, 0.05, '    Current DM  \n'+str(round(DM, 4))+r' $\mathrm{pc \cdot cm^{-3}}$', fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
     pylab.savefig(filename + '_results/' + fig_number + '8 - SNR vs DM.png', bbox_inches='tight', dpi = customDPI)
-    #plt.close('all')
 
 
     endTime = time.time()    # Stop timer of calculations because next figure will popup and wait for response of user
@@ -412,13 +435,15 @@ if save_intermediate_data == 1:
 
 # Cleainig data if necessary
 if cleaning_switch == 1:
-    matrix = simple_mask_clean(np.rot90(matrix), 0.3)
+    matrix, mask = simple_mask_clean(np.rot90(matrix), RFI_std_const)
     matrix = np.rot90(matrix, 3)
 
     # Plotting averaged profiles of initial cleaned data
     if save_intermediate_data == 1:
         plot_average_profiles(matrix, 'Cleaned', filename, frequency_list, colormap, customDPI)
+        plot2D(mask.transpose(), filename + '_results/01.0 - RFI cleaning mask.png', frequency_list, colormap, 'Mask \n File: '+filename, customDPI)
 
+    del mask
 
 
 
