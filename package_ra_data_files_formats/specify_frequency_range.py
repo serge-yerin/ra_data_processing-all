@@ -1,11 +1,9 @@
 '''
 '''
-#import numpy as np
-#from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 
 ################################################################################
 
-def specify_frequency_range(array, frequency, freqStart, freqStop):
+def specify_frequency_range(array, frequency, freq_start, freq_stop):
     '''
     The function cuts array to necessary frequency range
     Input parameters:
@@ -13,27 +11,20 @@ def specify_frequency_range(array, frequency, freqStart, freqStop):
     Output parameters:
 
     '''
-    print ('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
+    print ('\n You have chosen the frequency range', round(freq_start,6), '-', round(freq_stop,6), 'MHz')
     A = []
     B = []
     for i in range (len(frequency)):
-        A.append(abs(frequency[i] - freqStart))
-        B.append(abs(frequency[i] - freqStop))
+        A.append(abs(frequency[i] - freq_start))
+        B.append(abs(frequency[i] - freq_stop))
     ifmin = A.index(min(A))
     ifmax = B.index(min(B))
-    array = array[ifmin:ifmax, :]
+    new_array = array[ifmin : ifmax, :]
     print ('\n New data array shape is: ', array.shape)
-    frequency = frequency[ifmin:ifmax]
+    frequency = frequency[ifmin : ifmax]
 
-    return array, frequency, ifmin, ifmax
-
-################################################################################
+    return new_array, frequency, ifmin, ifmax
 
 ################################################################################
-'''
-if __name__ == '__main__':
 
-    folder_path = 'DATA/'
-    file_list = ['A170712_160219.adr', 'File 10 2048FFT A 100 ms 141119_164450.adr']
-    equal_or_not = chaeck_if_ADR_files_of_equal_parameters(folder_path, file_list)
-'''
+################################################################################

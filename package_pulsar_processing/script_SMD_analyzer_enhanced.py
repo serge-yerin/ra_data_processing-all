@@ -14,14 +14,14 @@ filename = 'ADR_A150221_211250_PSRB0834+06.gcd.smd'
 pulsar_name = 'B0834+06'
 
 auto_opt_DM_search = 1           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
-no_of_DM_steps = 51             # Number of DM steps to plot 361
+no_of_DM_steps = 181             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
 cleaning_switch = 1              # Use cleaning? (1 - Yes, 0 - No)
 RFI_std_const = 0.1              # Standard deviation of integrated profile to clean channels
 save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 32        # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time
-frequency_band_cut = 0           # Plot profiles in small frequency bands?
+frequency_band_cut = 1           # Plot profiles in small frequency bands?
 specify_freq_range = 0           # Specify particular frequency range (1) or whole range (0)
 
 
@@ -35,9 +35,8 @@ colormap = 'Greys'               # Possible: 'jet', 'Blues', 'Purples'
 customDPI = 200
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStartArray = 31.0
-freqStopArray =  65.0
-
+freq_startArray = 31.0
+freq_stopArray =  65.0
 
 
 
@@ -45,10 +44,9 @@ freqStopArray =  65.0
 # Make check of the frequencies to cut lag between the limits of the band
 # make possible to average in time the raw dedispersed data to increase SNR
 # Incorporate data on UTR-2 and GURT effective area, background temperatures and show data in fluxes
-# Make the rolling of SNR curve to easy finding of the noise area
+# Make the rolling of SNR curve for easy finding of the noise area
 # https://stackoverflow.com/questions/9111711/get-coordinates-of-local-maxima-in-2d-array-above-certain-value
 # https://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.ndimage.filters.maximum_filter.html
-# DM calculation error as an interval of 5% drop from maximal value
 
 ################################################################################
 #*******************************************************************************
@@ -73,6 +71,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
+from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
@@ -81,6 +80,8 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
+
+
 
 
 def plot_average_profiles(array, data_type, filename, frequency_list, colormap, customDPI):
@@ -145,14 +146,140 @@ def simple_mask_clean(array, RFI_std_const):
     # Change the polluted channels to masked array mean value
     array = array * np.abs(mask - 1) + mask * ma_mean
 
-    '''
-    data_StD = np.std(array)
-    masked_array = np.ma.masked_outside(array, -RFImeanConst * data_StD, RFImeanConst * data_StD)
-    masked_data_StD = np.std(masked_array)
-    mask_array = masked_array.mask
-    array = array * np.abs(mask_array - 1) + mask_array * masked_data_StD
-    '''
     return array, mask
+
+
+#*******************************************************************************
+# ***        Calculations and figures for various frequency bands            ***
+#*******************************************************************************
+
+def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_per_period, filename, begin_index, end_index, roll_number):
+    no_of_freq_bands = len(frequency_cuts) + 1
+    band_freq_name = ["" for i in range(no_of_freq_bands)]
+    SNRmax_in_band = np.zeros((no_of_freq_bands))
+    SNRperMHZ_in_band = np.zeros((no_of_freq_bands))
+    band_frequencies = np.zeros((no_of_freq_bands, 2)) # matrix of bands frequency limits
+    profiles_varBand = np.zeros((no_of_freq_bands, samples_per_period)) # matrix for all profiles
+
+    for band in range (no_of_freq_bands):
+
+
+        # Find the limits of the frquency range
+        if band == 0:
+            freq_start = frequency_list[0]
+            freq_stop = frequency_cuts[band]
+        elif band == no_of_freq_bands-1:
+            freq_start = frequency_cuts[band-1]
+            freq_stop = frequency_list[len(frequency_list)-1]
+        else:
+            freq_start = frequency_cuts[band-1]
+            freq_stop = frequency_cuts[band]
+
+        # Cutting the current frequency range
+        array_band_cut, frequency_band_list, ifmin, ifmax = specify_frequency_range(array, frequency_list, freq_start, freq_stop)
+
+        # Plot dedispersed data
+        plot2D(array_band_cut, filename + '_results/12-'+str(band+1)+' - Dedispersed data for subband '+str(round(freq_start,3))+'-'+str(round(freq_stop,3))+' MHz.png', frequency_band_list, colormap, 'Dedispersed pulsar pulse in frequency range '+str(round(freq_start,3))+'-'+str(round(freq_stop,3))+' MHz \n File: '+filename, customDPI)
+
+        # ***   Matrix sum in one dimension   ***
+        for i in range (len(frequency_band_list)):
+            array_band_cut[i,:] = array_band_cut[i,:] - np.mean(array_band_cut[i, begin_index : end_index])
+        integr_band_profile = np.array([])
+        integr_band_profile = (np.sum(array_band_cut, axis = 0))
+
+        #   Calculations of SNR
+        noise_in_band = integr_band_profile[begin_index : end_index]
+        integr_band_profile = (integr_band_profile - np.mean(noise_in_band))/np.std(noise_in_band)
+
+        # ***   Rolling the pulse to the center of the plot  ***
+        integr_band_profile = np.roll(integr_band_profile, roll_number) # Rolling the vector to make the pulse in the center
+
+        # ***   Plotting and saving the SNR curve  ***
+        plot1D(integr_band_profile, filename + '_results/14-'+str(band+1)+' - SNR for subband '+str(round(freq_start,3))+'-'+str(round(freq_stop,3))+' MHz.png', 'Averaged profile', 'Pulsar average pulse profile in range '+str(round(freq_start,3))+'-'+str(round(freq_stop,3))+' MHz  \n File: '+filename, 'SNR', 'Samples in pulsar period', customDPI)
+
+        profiles_varBand[band, :] = integr_band_profile
+        band_frequencies[band, 0] = freq_start
+        band_frequencies[band, 1] = freq_stop
+        SNRmax_in_band[band] = np.max(integr_band_profile)
+        band_freq_name[band] = str(round(freq_start,3)) + '-' + str(round(freq_stop,3))
+        SNRperMHZ_in_band[band] = (SNRmax_in_band[band] / (band_frequencies[band, 1] - band_frequencies[band, 0]))
+
+
+    plt.figure(1, figsize=(10.0, 6.0))
+    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+    for band in range (no_of_freq_bands):
+        plt.plot(profiles_varBand[band, :], label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
+    plt.title('All subbands profiles on single figure \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    plt.legend(loc = 'upper right', fontsize = 10)
+    plt.ylabel('SNR', fontsize = 10, fontweight='bold')
+    plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
+    plt.yticks(fontsize = 8, fontweight = 'bold')
+    plt.xticks(fontsize = 8, fontweight = 'bold')
+    pylab.savefig(filename + '_results/16.1 - SNR of pulse profile in subbands.png', bbox_inches='tight', dpi = customDPI)
+    plt.close('all')
+
+    plt.figure(1, figsize=(10.0, 6.0))
+    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+    for band in range (no_of_freq_bands):
+        plt.plot(profiles_varBand[band, :] / np.max(profiles_varBand[band, :]), label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
+    plt.title('All subbands normalized profiles on single figure \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    plt.legend(loc = 'upper right', fontsize = 10)
+    plt.ylabel('Normalized SNR', fontsize = 10, fontweight='bold')
+    plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
+    plt.yticks(fontsize = 8, fontweight = 'bold')
+    plt.xticks(fontsize = 8, fontweight = 'bold')
+    pylab.savefig(filename + '_results/16.2 - Normalized SNR of pulse profile in subbands.png', bbox_inches='tight', dpi = customDPI)
+    plt.close('all')
+
+    plt.figure(1, figsize=(10.0, 6.0))
+    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+    for band in range (no_of_freq_bands):
+        plt.plot(profiles_varBand[band, :] - np.max(profiles_varBand[band, :]), label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
+    plt.title('All subbands profiles with maximums at the same level \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    plt.legend(loc = 'upper right', fontsize = 10)
+    plt.ylabel('SNR', fontsize = 10, fontweight='bold')
+    plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
+    plt.yticks(fontsize = 8, fontweight = 'bold')
+    plt.xticks(fontsize = 8, fontweight = 'bold')
+    pylab.savefig(filename + '_results/16.3 - SNR of pulse profile with same maximum levels in subbands.png', bbox_inches='tight', dpi = customDPI)
+    plt.close('all')
+
+    fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
+    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+    plt.plot(SNRmax_in_band, label = 'SNR vs. frequency band')
+    plt.plot(SNRmax_in_band, 'ro', markersize = 3)
+    plt.title('SNR values in subbands of analysis  \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    plt.legend(loc = 'upper left', fontsize = 10)
+    plt.ylabel('SNR', fontsize = 10, fontweight='bold')
+    plt.xlabel('Bands of analysis, MHz', fontsize = 10, fontweight='bold')
+    plt.yticks(fontsize = 8, fontweight = 'bold')
+    plt.xticks(fontsize = 8, fontweight = 'bold', rotation=0)
+    a = ax.get_xticks().tolist()
+    for i in range(len(a)-1):
+        k = int(a[i])
+        a[i] = band_freq_name[k]
+    ax.set_xticklabels(a)
+    pylab.savefig(filename + '_results/16.4 - SNR value vs. subbands.png', bbox_inches='tight', dpi = customDPI)
+    plt.close('all')
+
+    fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
+    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+    plt.plot(SNRperMHZ_in_band, label = 'SNR / MHz vs. frequency band')
+    plt.plot(SNRperMHZ_in_band, 'ro', markersize = 3)
+    plt.title('SNR per MHz values in subbands of analysis  \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    plt.legend(loc = 'upper left', fontsize = 10)
+    plt.ylabel('SNR / MHz', fontsize = 10, fontweight='bold')
+    plt.xlabel('Bands of analysis, MHz', fontsize = 10, fontweight='bold')
+    plt.yticks(fontsize = 8, fontweight = 'bold')
+    plt.xticks(fontsize = 8, fontweight = 'bold', rotation=0)
+    a = ax.get_xticks().tolist()
+    for i in range(len(a)-1):
+        k = int(a[i])
+        a[i] = band_freq_name[k]
+    ax.set_xticklabels(a)
+    pylab.savefig(filename + '_results/16.5 - SNR per MHz value vs. subbands.png', bbox_inches='tight', dpi = customDPI)
+    plt.close('all')
+    return
 
 
 
@@ -225,10 +352,66 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
     # ***   Calculations of DM variation  ***
 
+    if type == 'final' and frequency_band_cut == 1:     # Plot profiles in small frequency bands?
+        array = np.zeros((freq_num, samples_per_period))
+        array[:,:] = matrix[:,:]
+
+        analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_per_period, filename, begin_index, end_index, roll_number)
+
+
     previousTime = time.time()
 
     # Integrated profiles with DM variation calculation
     profiles_varDM, DM_vector = pulsar_DM_variation(initial_matrix, no_of_DM_steps, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samples_per_period, DM, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI)
+
+
+
+    #**************************************************************************
+    #         Calculation the accuracy of optimal DM determination
+    #**************************************************************************
+    if type == 'final':
+        # Profile of maximal SNR for each DM value
+        max_profile_var_DM = np.max(profiles_varDM, axis = 1)
+
+        # Index of the optimal DM value in vector
+        max_x = np.argmax(max_profile_var_DM)
+
+        # Indexes of optimal DM value with errer interval
+        indexes = np.where(max_profile_var_DM >= np.max(max_profile_var_DM) * 0.95)
+        x_index_min = indexes[0][0] - 1 if indexes[0][0] > 0 else indexes[0][0] # Minimal index
+        x_index_max = indexes[0][len(indexes[0])-1] + 1 if indexes[0][len(indexes[0])-1] < len(max_profile_var_DM)-1 else indexes[0][len(indexes[0])-1] # Maximal index
+        diff_max = np.abs(x_index_max - max_x) # Index error to upper limit
+        diff_min = np.abs(x_index_min - max_x) # Index error to lower limit
+        index_error = np.max([diff_max, diff_min])
+        DM_error = index_error * DM_var_step
+        print ('\n\n  Error of optimal DM determination is ',index_error,' steps, or ',DM_error,' pc / cm3')
+
+        # Figure optimal DM determination error
+        rc('font', size = 7, weight='bold')
+        fig = plt.figure(1, figsize = (10.0, 6.0))
+        ax1 = fig.add_subplot(111)
+        ax1.plot(DM_vector - DM, max_profile_var_DM, label = 'Max of SNR profile vs. DM')
+        ax1.axvline(x = DM_vector[max_x] - DM, color = 'C4', linestyle = '-', linewidth = 1.0)
+        ax1.axvline(x = DM_vector[x_index_min] - DM, color = 'C1', linestyle = '-', linewidth = 1.0)
+        ax1.axvline(x = DM_vector[x_index_max] - DM, color = 'C1', linestyle = '-', linewidth = 1.0)
+        ax1.axhline(y = max_profile_var_DM[max_x] * 0.95, label = 'Max error = '+str(DM_error)+r' $\mathrm{pc \cdot cm^{-3}}$', color = 'r', linestyle = '-', linewidth = 0.5)
+        ax1.legend(loc = 'upper right')
+        ax1.set_xlabel(r'$\mathrm{\Delta DM}$', fontsize = 7, fontweight='bold')
+        ax1.set_ylabel('Max SNR', fontsize = 7, fontweight='bold')
+        ax2 = ax1.twiny()
+        ax2.set_xlabel('DM value', fontsize = 7, fontweight='bold')
+        ax2.set_xlim(ax1.get_xlim())
+        text = ax2.get_xticks().tolist()
+        for i in range(len(text)-1):
+            k = np.float(text[i])
+            text[i] = k + DM
+        ax2.set_xticklabels(np.round(text, 4))
+        fig.subplots_adjust(top=0.90)
+        fig.suptitle('Maxima of SNR profiles vs. DM variation \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+        pylab.savefig(filename + '_results/' + fig_number + '6 - SNR vs DM.png', bbox_inches='tight', dpi = customDPI)
+        plt.close('all')
+
+    #**************************************************************************
 
 
     nowTime = time.time() #                               '
@@ -253,7 +436,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
 
     # Saving integrated profiles with DM variation calculation to TXT file
-    if save_intermediate_data == 1:
+    if save_intermediate_data == 1 and type == 'final':
         DM_Var_TXT = open(filename + '_results/Average profile vs DM 2D (' + DM_type + ' DM).txt', "w")
         for step in range(DM_steps_real-1):
             DM_Var_TXT.write(''.join(format(DM_vector[step], "8.5f")) + '   '.join(format(profiles_varDM[step, i], "12.5f") for i in range(time_points)) + ' \n')
@@ -301,6 +484,13 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
 
 
+
+
+
+
+
+
+
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -336,8 +526,8 @@ print (' Specify particular frequency range?  ', specify_freq_range)
 print (' Frequencies to cut the range         ', frequency_cuts)
 print (' Color map =                          ', colormap)
 print (' DPI of plots =                       ', customDPI)
-print (' Lowest frequency of the band =       ', freqStartArray)
-print (' Highest frequency of the band =      ', freqStopArray)
+print (' Lowest frequency of the band =       ', freq_startArray)
+print (' Highest frequency of the band =      ', freq_stopArray)
 print (' Dispersion measure from catalogur =  ', DM, ' pc / cm3 \n')
 
 
@@ -421,7 +611,7 @@ for i in range (samples_per_period):
 
 # *** Cutting the array inside frequency range specified by user ***
 if specify_freq_range == 1:
-    frequency_list, initial_matrix, freq_num, fmin, fmax = choose_frequency_range (frequency_list, initial_matrix, freqStartArray, freqStopArray, freq_num, fmin, fmax)
+    frequency_list, initial_matrix, freq_num, fmin, fmax = choose_frequency_range (frequency_list, initial_matrix, freq_startArray, freq_stopArray, freq_num, fmin, fmax)
 
 
 # *** To save initial matrix for further processing with the same name with or without cut of frequencies
@@ -473,8 +663,6 @@ DM = averge_profile_analysis('final', matrix, filename, freq_num, min, fmax, df,
 
 
 
-
-
 '''
 
 # *** Averaging data in frequency domain ***
@@ -504,537 +692,7 @@ roll_number = int((len(integrated_profile)*9/10) - np.argmax(integrated_profile)
 # ***   Rolling the pulse to the center of the plot  ***
 integrated_profile = np.roll(integrated_profile, roll_number) # Rolling the vector to make the pulse in the center
 '''
-'''
 
 
-
-
-
-
-
-
-
-#****************************************************************
-# ***   Calculations and figures for various frequency bands  ***
-#****************************************************************
-
-
-if frequency_band_cut == 1:     # Plot profiles in small frequency bands?
-
-    no_of_freq_bands = len(frequency_cuts) + 1
-    band_freq_name = ["" for i in range(no_of_freq_bands)]
-    SNRmax_in_band = np.zeros((no_of_freq_bands))
-    SNRperMHZ_in_band = np.zeros((no_of_freq_bands))
-    band_frequencies = np.zeros((no_of_freq_bands, 2)) # matrix of bands frequency limits
-    profiles_varBand = np.zeros((no_of_freq_bands, time_points)) # matrix for all profiles
-    for band in range (no_of_freq_bands):
-
-        # Find the limits of the frquency range
-        if band == 0:
-            freqStart = frequency_list[0]
-            freqStop = frequency_cuts[band]
-        elif band == no_of_freq_bands-1:
-            freqStart = frequency_cuts[band-1]
-            freqStop = frequency_list[len(frequency_list)-1]
-        else:
-            freqStart = frequency_cuts[band-1]
-            freqStop = frequency_cuts[band]
-
-        print ('\n  * Calculations for frequency subband ', round(freqStart,3), ' - ', round(freqStop,3), ' MHz')
-
-        # Forming the array of data in specified subband and frequency list
-        A = []
-        B = []
-        for i in range (len(frequency_list)):
-            A.append(abs(frequency_list[i] - freqStart))
-            B.append(abs(frequency_list[i] - freqStop))
-        ifmin = A.index(min(A))
-        ifmax = B.index(min(B))
-        array = matrix[ifmin:ifmax, :]
-        print ('    New data array shape is: ', array.shape)
-        freqBandList = frequency_list[ifmin:ifmax]
-
-
-        plot2D(array, filename + '_results/02-'+str(band+1)+' - Dedispersed data for subband '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz.png', freqBandList, colormap, 'Dedispersed pulsar pulse in frequency range '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz \n File: '+filename, customDPI)
-
-
-        # ***   Matrix sum in one dimension   ***
-        for i in range (len(freqBandList)):
-            array[i,:] = array[i,:] - np.mean(array[i, begin_index:end_index])
-        integrBandProfile = np.array([])
-        integrBandProfile = (np.sum(array, axis = 0))
-
-        # ***   Calculations of SNR   ***
-        noiseBand = integrBandProfile[begin_index : end_index]
-        integrBandProfile = (integrBandProfile - np.mean(noiseBand))/np.std(noiseBand)
-
-        # ***   Rolling the pulse to the center of the plot  ***
-        integrBandProfile = np.roll(integrBandProfile, roll_number) # Rolling the vector to make the pulse in the center
-
-
-        # ***   Plotting and saving the SNR curve  ***
-        plot1D(integrBandProfile, filename + '_results/04-'+str(band+1)+' - SNR for subband '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz.png', 'Averaged profile', 'Pulsar average pulse profile in range '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz  \n File: '+filename, 'SNR', 'Samples in pulsar period', customDPI)
-
-        profiles_varBand[band, :] = integrBandProfile
-        band_frequencies[band, 0] = freqStart
-        band_frequencies[band, 1] = freqStop
-        SNRmax_in_band[band] = np.max(integrBandProfile)
-        band_freq_name[band] = str(round(freqStart,3)) + '-' + str(round(freqStop,3))
-        SNRperMHZ_in_band[band] = (SNRmax_in_band[band] / (band_frequencies[band, 1] - band_frequencies[band, 0]))
-
-
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    for band in range (no_of_freq_bands):
-        plt.plot(profiles_varBand[band, :], label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
-    plt.title('All subbands profiles on single figure \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-    plt.legend(loc = 'upper right', fontsize = 10)
-    plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-    plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
-    plt.yticks(fontsize = 8, fontweight = 'bold')
-    plt.xticks(fontsize = 8, fontweight = 'bold')
-    pylab.savefig(filename + '_results/06.1 - SNR of pulse profile in subbands.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')
-
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    for band in range (no_of_freq_bands):
-        plt.plot(profiles_varBand[band, :] / np.max(profiles_varBand[band, :]), label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
-    plt.title('All subbands normalized profiles on single figure \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-    plt.legend(loc = 'upper right', fontsize = 10)
-    plt.ylabel('Normalized SNR', fontsize = 10, fontweight='bold')
-    plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
-    plt.yticks(fontsize = 8, fontweight = 'bold')
-    plt.xticks(fontsize = 8, fontweight = 'bold')
-    pylab.savefig(filename + '_results/06.2 - Normalized SNR of pulse profile in subbands.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')
-
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    for band in range (no_of_freq_bands):
-        plt.plot(profiles_varBand[band, :] - np.max(profiles_varBand[band, :]), label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
-    plt.title('All subbands profiles with maximums at the same level \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-    plt.legend(loc = 'upper right', fontsize = 10)
-    plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-    plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
-    plt.yticks(fontsize = 8, fontweight = 'bold')
-    plt.xticks(fontsize = 8, fontweight = 'bold')
-    pylab.savefig(filename + '_results/06.3 - SNR of pulse profile with same maximum levels in subbands.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')
-
-
-    fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    plt.plot(SNRmax_in_band, label = 'SNR vs. frequency band')
-    plt.plot(SNRmax_in_band, 'ro', markersize = 3)
-    plt.title('SNR values in subbands of analysis  \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-    plt.legend(loc = 'upper left', fontsize = 10)
-    plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-    plt.xlabel('Bands of analysis, MHz', fontsize = 10, fontweight='bold')
-    plt.yticks(fontsize = 8, fontweight = 'bold')
-    plt.xticks(fontsize = 8, fontweight = 'bold', rotation=0)
-    a = ax.get_xticks().tolist()
-    for i in range(len(a)-1):
-        k = int(a[i])
-        a[i] = band_freq_name[k]
-    ax.set_xticklabels(a)
-    pylab.savefig(filename + '_results/06.4 - SNR value vs. subbands.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')
-
-
-    fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
-    plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    plt.plot(SNRperMHZ_in_band, label = 'SNR / MHz vs. frequency band')
-    plt.plot(SNRperMHZ_in_band, 'ro', markersize = 3)
-    plt.title('SNR per MHz values in subbands of analysis  \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-    plt.legend(loc = 'upper left', fontsize = 10)
-    plt.ylabel('SNR / MHz', fontsize = 10, fontweight='bold')
-    plt.xlabel('Bands of analysis, MHz', fontsize = 10, fontweight='bold')
-    plt.yticks(fontsize = 8, fontweight = 'bold')
-    plt.xticks(fontsize = 8, fontweight = 'bold', rotation=0)
-    a = ax.get_xticks().tolist()
-    for i in range(len(a)-1):
-        k = int(a[i])
-        a[i] = band_freq_name[k]
-    ax.set_xticklabels(a)
-    pylab.savefig(filename + '_results/06.5 - SNR per MHz value vs. subbands.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')
-
-
-
-
-nowTime = time.time() #                               '
-print ('\n  Preparing of data for SNR vs DM plot took ', round((nowTime - previousTime), 2), 'seconds (',
-                                                round((nowTime - previousTime)/60, 2), 'min. ) \n')
-previousTime = nowTime
-
-
-
-
-
-
-print('\n  * Calculation of SNR vs. DM plot... ')
-
-# ***   Integration in time of overall average profile   ***
-
-points = math.floor(time_points / AverageTPointsNumber)
-integrated_profileTimeAver = np.zeros((points))   # preparing the vector
-for i in range (points):
-    integrated_profileTimeAver[i] = sum(integrated_profile[i*AverageTPointsNumber : (i+1)*AverageTPointsNumber]) / (AverageTPointsNumber**0.5)
-
-SNRinitDMtimeAver = np.max(integrated_profileTimeAver)
-
-# ***   Plotting and saving the integrated in time SNR curve  ***
-if save_intermediate_data == 1:
-    plot1D(integrated_profileTimeAver, filename + '_results/06 - Averaged SNR.png', 'Averaged profile', 'Averaged (in frequency and time) pulse profile in band ' + str(round(frequency_list[0],3)) + ' - ' + str(round(frequency_list[len(frequency_list)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Samples in pulsar period', customDPI)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if DM != DMoptimal:
-    print ('  Current DM differs from fouund optimal DM. \n')
-    optimization_switch = int(input('\n  Enter "1" for optimal DM pulse analysis (or "0" tp stop):        '))
-else:
-    print ('  Current DM and optimal DM coincide. \n')
-    optimization_switch = 0
-
-
-del reducedMatrix, integrated_profile, matrix, DM
-
-
-
-
-
-
-#*******************************************************************************
-# ***                     Repeat program for optimal DM                      ***
-#*******************************************************************************
-
-
-
-
-if optimization_switch == 1:
-    DM = DMoptimal
-
-    print ('\n\n  * Working with optimal DM = '+str(DMoptimal)+' pc / cm3 ...')
-
-    # *** Preparing matrix which will be processed to save the initial data ***
-
-    inter_matrix = np.zeros((freq_num, samples_per_period))
-    inter_matrix[:,:] = initial_matrix[:,:]
-
-
-    # *** Compensation of DM (dispersion delay) ***
-
-    #matrix, shift_param = pulsar_DM_compensation_roll(inter_matrix, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, DM, save_intermediate_data, customDPI)
-    shift_param = pulsar_DM_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
-    matrix = pulsar_DM_compensation_with_indices_changes (inter_matrix, shift_param)
-    del inter_matrix
-
-    # *** Plot of the data with DM compensation but without data reduction ***
-
-    if save_intermediate_data == 1:
-        plot2D(matrix, filename + '_results/12 - Dedispersed data optimal DM.png', frequency_list, colormap, 'Dedispersed pulsar pulse \n File: '+filename, customDPI)
-        #print ('\n    12 - Dedispersed data.png created \n')
-
-
-    # *** Averaging data in frequency domain ***
-    reducedMatrix = np.array([[0.0 for col in range(samples_per_period)] for row in range(int(freq_num/AverageChannelNumber))])
-    for i in range (int(freq_num/AverageChannelNumber)):
-        for j in range (samples_per_period):
-            reducedMatrix[i, j] = sum(matrix[i*AverageChannelNumber : (i+1)*AverageChannelNumber, j])
-
-    frequencyList1 = frequency_list[::AverageChannelNumber]
-
-
-    # *** Plot of raw data with DM compensation and data reduction ***
-    if save_intermediate_data == 1:
-        plot2D(reducedMatrix, filename + '_results/13 - Dedispersed integrated data optimal DM.png', frequencyList1, colormap, 'Dedispersed and averaged in frequency pulsar pulse \n File: '+filename, customDPI)
-        #print ('\n    03 - Dedispersed integrated data.png created \n')
-
-
-    #   *** Integrated over band temporal profile ***
-    freq_channels, time_points = reducedMatrix.shape
-    #print ('\n  Matrix shape: ', freq_channels, time_points)
-
-
-    # *** Matrix sum in one dimension for noise area detection ***
-    integrated_profile = np.array([])
-    integrated_profile = (np.sum(reducedMatrix, axis = 0))
-
-    print ('\n  * Check the noise segment and close the plot, then enter needed data ')
-
-    plt.figure()
-    plt.plot(integrated_profile)
-    plt.xlabel('Phase of pulsar period')
-    plt.ylabel('Data')
-    if save_intermediate_data == 1:
-        pylab.savefig(filename + '_results/14 - Raw integrated data to find pulse optimal DM.png', bbox_inches='tight', dpi = 250)
-    plt.show()
-    plt.close('all')
-
-    # *** Entering the first and last index of noise segment in integrated plot
-    begin_index  = int(input('\n    First index of noise segment:           '))
-    end_index    = int(input('\n    Last index of noise segment:            '))
-
-    startTime = time.time()
-
-    # ***   Matrix sum in one dimension   ***
-    for i in range (freq_channels):
-        reducedMatrix[i,:] = reducedMatrix[i,:] - np.mean(reducedMatrix[i, begin_index:end_index])
-    integrated_profile = np.array([])
-    integrated_profile = (np.sum(reducedMatrix, axis = 0))
-
-    # ***   Calculations of SNR   ***
-    noise = integrated_profile[begin_index : end_index]
-    noise_mean = np.mean(noise)
-    noise_std = np.std(noise)
-    integrated_profile = (integrated_profile - np.mean(noise))/np.std(noise)
-
-    # ***   Calculation of number of points to roll the pulse   ***
-    roll_number = int((len(integrated_profile)/2) - np.argmax(integrated_profile))
-
-    # ***   Rolling the pulse to the center of the plot  ***
-    integrated_profile = np.roll(integrated_profile, roll_number) # Rolling the vector to make the pulse in the center
-    SNRoptMax = np.max(integrated_profile)
-
-    # ***   Plotting and saving the SNR curve  ***
-    plot1D(integrated_profile, filename + '_results/15 - SNR optimal DM.png', 'Averaged profile for DM = ' + str(round(DM, 3)), 'Averaged pulse profile with optimal DM in band ' + str(round(frequency_list[0],3)) + ' - ' + str(round(frequency_list[len(frequency_list)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Phase of pulsar period', customDPI)
-
-
-
-    #****************************************************************
-    # ***   Calculations and figures for various frequency bands  ***
-    #****************************************************************
-
-
-    if frequency_band_cut == 1:     # Plot profiles in small frequency bands?
-
-        no_of_freq_bands = len(frequency_cuts) + 1
-        band_freq_name = ["" for i in range(no_of_freq_bands)]
-        SNRmax_in_band = np.zeros((no_of_freq_bands))
-        SNRperMHZ_in_band = np.zeros((no_of_freq_bands))
-        band_frequencies = np.zeros((no_of_freq_bands, 2)) # matrix of bands frequency limits
-        profiles_varBand = np.zeros((no_of_freq_bands, time_points)) # matrix for all profiles
-
-        for band in range (no_of_freq_bands):
-
-            # Find the limits of the frquency range
-            if band == 0:
-                freqStart = frequency_list[0]
-                freqStop = frequency_cuts[band]
-            elif band == no_of_freq_bands-1:
-                freqStart = frequency_cuts[band-1]
-                freqStop = frequency_list[len(frequency_list)-1]
-            else:
-                freqStart = frequency_cuts[band-1]
-                freqStop = frequency_cuts[band]
-
-            print ('\n  * Calculations for frequency range', round(freqStart,3), '-', round(freqStop,3), 'MHz')
-
-            # Forming the array of data in specified range and frequency list
-            A = []
-            B = []
-            for i in range (len(frequency_list)):
-                A.append(abs(frequency_list[i] - freqStart))
-                B.append(abs(frequency_list[i] - freqStop))
-            ifmin = A.index(min(A))
-            ifmax = B.index(min(B))
-            array = matrix[ifmin:ifmax, :]
-            print ('    New data array shape is: ', array.shape)
-            freqBandList = frequency_list[ifmin:ifmax]
-            plot2D(array, filename + '_results/12-'+str(band+1)+' - Dedispersed data for range '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz optimal DM.png', freqBandList, colormap, 'Dedispersed pulsar pulse in frequency range '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz \n File: '+filename, customDPI)
-
-
-            # ***   Matrix sum in one dimension   ***
-            for i in range (len(freqBandList)):
-                array[i,:] = array[i,:] - np.mean(array[i, begin_index:end_index])
-            integrBandProfile = np.array([])
-            integrBandProfile = (np.sum(array, axis = 0))
-
-            # ***   Calculations of SNR   ***
-            noiseBand = integrBandProfile[begin_index : end_index]
-            integrBandProfile = (integrBandProfile - np.mean(noiseBand))/np.std(noiseBand)
-
-            # ***   Rolling the pulse to the center of the plot  ***
-            integrBandProfile = np.roll(integrBandProfile, roll_number) # Rolling the vector to make the pulse in the center
-
-            # ***   Plotting and saving the SNR curve  ***
-            plot1D(integrBandProfile, filename + '_results/14-'+str(band+1)+' - SNR for range '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz optimal DM.png', 'Averaged profile', 'Pulsar average pulse profile in range '+str(round(freqStart,3))+'-'+str(round(freqStop,3))+' MHz  \n File: '+filename, 'SNR', 'Samples in pulsar period', customDPI)
-
-
-            profiles_varBand[band, :] = integrBandProfile
-            band_frequencies[band, 0] = freqStart
-            band_frequencies[band, 1] = freqStop
-            SNRmax_in_band[band] = np.max(integrBandProfile)
-            band_freq_name[band] = str(round(freqStart,3)) + '-' + str(round(freqStop,3))
-            SNRperMHZ_in_band[band] = (SNRmax_in_band[band] / (band_frequencies[band, 1] - band_frequencies[band, 0]))
-
-
-        plt.figure(1, figsize=(10.0, 6.0))
-        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-        for band in range (no_of_freq_bands):
-            plt.plot(profiles_varBand[band, :], label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
-        plt.title('All band profiles on single figure', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-        plt.legend(loc = 'upper right', fontsize = 10)
-        plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-        plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
-        plt.yticks(fontsize = 8, fontweight = 'bold')
-        plt.xticks(fontsize = 8, fontweight = 'bold')
-        pylab.savefig(filename + '_results/16.1 - Averaged SNR in bands optimal DM.png', bbox_inches='tight', dpi = customDPI)
-        plt.close('all')
-
-        plt.figure(1, figsize=(10.0, 6.0))
-        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-        for band in range (no_of_freq_bands):
-            plt.plot(profiles_varBand[band, :] / np.max(profiles_varBand[band, :]), label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
-        plt.title('All band normalized profiles on single figure', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-        plt.legend(loc = 'upper right', fontsize = 10)
-        plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-        plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
-        plt.yticks(fontsize = 8, fontweight = 'bold')
-        plt.xticks(fontsize = 8, fontweight = 'bold')
-        pylab.savefig(filename + '_results/16.2 - Averaged normalized SNR in bands optimal DM.png', bbox_inches='tight', dpi = customDPI)
-        plt.close('all')
-
-        plt.figure(1, figsize=(10.0, 6.0))
-        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-        for band in range (no_of_freq_bands):
-            plt.plot(profiles_varBand[band, :] - np.max(profiles_varBand[band, :]), label = str(round(band_frequencies[band, 0],3))+' - '+str(round(band_frequencies[band, 1],3))+' MHz')
-        plt.title('All band profiles with maximums at the same level \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-        plt.legend(loc = 'upper right', fontsize = 10)
-        plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-        plt.xlabel('Samples in pulsar period', fontsize = 10, fontweight='bold')
-        plt.yticks(fontsize = 8, fontweight = 'bold')
-        plt.xticks(fontsize = 8, fontweight = 'bold')
-        pylab.savefig(filename + '_results/16.3 - Averaged SNR with same maximum levels in bands optimal DM.png', bbox_inches='tight', dpi = customDPI)
-        plt.close('all')
-
-        fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
-        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-        plt.plot(SNRmax_in_band, label = 'SNR vs. frequency band')
-        plt.plot(SNRmax_in_band, 'ro', markersize = 3)
-        plt.title('SNR values in subbands of analysis  \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-        plt.legend(loc = 'upper left', fontsize = 10)
-        plt.ylabel('SNR', fontsize = 10, fontweight='bold')
-        plt.xlabel('Bands of analysis, MHz', fontsize = 10, fontweight='bold')
-        plt.yticks(fontsize = 8, fontweight = 'bold')
-        plt.xticks(fontsize = 8, fontweight = 'bold', rotation=0)
-        a = ax.get_xticks().tolist()
-        for i in range(len(a)-1):
-            k = int(a[i])
-            a[i] = band_freq_name[k]
-        ax.set_xticklabels(a)
-        pylab.savefig(filename + '_results/16.4 - SNR value vs. subbands optimal DM.png', bbox_inches='tight', dpi = customDPI)
-        plt.close('all')
-
-
-        fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
-        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-        plt.plot(SNRperMHZ_in_band, label = 'SNR / MHz vs. frequency band')
-        plt.plot(SNRperMHZ_in_band, 'ro', markersize = 3)
-        plt.title('SNR per MHz values in subbands of analysis  \n File: '+filename, fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-        plt.legend(loc = 'upper left', fontsize = 10)
-        plt.ylabel('SNR / MHz', fontsize = 10, fontweight='bold')
-        plt.xlabel('Bands of analysis, MHz', fontsize = 10, fontweight='bold')
-        plt.yticks(fontsize = 8, fontweight = 'bold')
-        plt.xticks(fontsize = 8, fontweight = 'bold', rotation=0)
-        a = ax.get_xticks().tolist()
-        for i in range(len(a)-1):
-            k = int(a[i])
-            a[i] = band_freq_name[k]
-        ax.set_xticklabels(a)
-        pylab.savefig(filename + '_results/16.5 - SNR per MHz value vs. subbands optimal DM.png', bbox_inches='tight', dpi = customDPI)
-        plt.close('all')
-
-
-    print('\n  * Calculation of SNR vs. DM plot... ')
-
-    # ***   Integration in time   ***
-
-    points = math.floor(time_points/AverageTPointsNumber)
-    integrated_profileTimeAver = np.zeros((points))   # preparing the vector
-    for i in range (points):
-        integrated_profileTimeAver[i] = sum(integrated_profile[i*AverageTPointsNumber : (i+1)*AverageTPointsNumber]) / (AverageTPointsNumber**0.5)
-
-    # ***   Plotting and saving the integrated in time SNR curve  ***
-    plot1D(integrated_profileTimeAver, filename + '_results/16 - Averaged SNR optimal DM.png', 'Averaged profile', 'Averaged (in frequency and time) pulse profile in band ' + str(round(frequency_list[0],3)) + ' - ' + str(round(frequency_list[len(frequency_list)-1],3)) + ' MHz \n File: '+filename, 'SNR', 'Samples in pulsar period', customDPI)
-
-    SNRoptimDMtimeAver = np.max(integrated_profileTimeAver)
-
-
-    #*****************************************************************
-    # ***   Calculations and figures plotting for variation of DM  ***
-    #*****************************************************************
-
-
-    # Integrated profiles with DM variation calculation
-    profiles_varDM, DM_vector = pulsar_DM_variation(initial_matrix.transpose(), no_of_DM_steps, frequency_list, freq_num, fmin, fmax, df, TimeRes, pulsarPeriod, samples_per_period, DM, filename, AverageChannelNumber, time_points, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI)
-
-    # Preparing indexes for showing the maximal SNR value and its coordinates
-    freq_channels, time_points = profiles_varDM.shape
-    phase_vector = np.linspace(0,1,num = time_points)
-    optimal_DM_indexes = np.unravel_index(np.argmax(profiles_varDM, axis=None), profiles_varDM.shape) #np.argmax(profiles_varDM)
-    optimal_DM_index = optimal_DM_indexes[0]
-    optimal_pulse_phase = optimal_DM_indexes[1]
-    MAXpointX = phase_vector[optimal_pulse_phase]
-    MAXpointY = - (DM_vector[optimal_DM_index] - DM)
-
-    print(' \n\n ')
-    print('    Maximal SNR for optimal DM =           ', round(SNRoptMax, 3))
-    print('    SNR averaged in time for optimal DM  = ', round(SNRoptimDMtimeAver, 3), ' \n')
-    print('    Optimal DM  =                          ', round(DM, 4), ' pc / cm3')
-
-
-    plt.figure(1, figsize = (10.0, 6.0))
-    plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-    ImA = plt.imshow(np.flipud(profiles_varDM), aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap)
-    plt.axhline(y = 0,   color = 'r', linestyle = '-', linewidth = 0.4)
-    plt.axvline(x = 0.5, color = 'r', linestyle = '-', linewidth = 0.4)
-    plt.plot(MAXpointX, - MAXpointY, marker = 'o', markersize = 1.5, color = 'chartreuse') # 'y' '#008000'
-    plt.title('Pulse profile vs DM in band ' + str(round(frequency_list[0],3)) + ' - ' + str(round(frequency_list[len(frequency_list)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
-    plt.yticks(fontsize=8, fontweight='bold')
-    plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
-    plt.ylabel('deltaDM', fontsize = 8, fontweight='bold')
-    plt.colorbar()
-    plt.xticks(fontsize = 8, fontweight = 'bold')
-    plt.text(0.76, 0.89,'Current SNR \n    '+str(round(SNRoptMax, 3)), fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-    plt.text(0.76, 0.05, '  Current DM  \n' +str(round(DM, 4))+' pc / cm3', fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-
-    pylab.savefig(filename + '_results/17 - SNR vs DM for optimal DM.png', bbox_inches='tight', dpi = customDPI)
-    plt.show()
-    plt.close('all')
-
-
-    plt.figure(1, figsize = (10.0, 6.0))
-    plt.subplots_adjust(left = None, bottom = None, right = None, top = 0.86, wspace = None, hspace = None)
-    ImA = plt.imshow(np.flipud(profiles_varDM), aspect = 'auto', vmin = np.min(profiles_varDM), vmax = np.max(profiles_varDM),extent=[0,1,DM_vector[0]-DM,DM_vector[no_of_DM_steps-1]-DM], cmap=colormap)
-    plt.title('Pulse profile vs DM in band ' + str(round(frequency_list[0],3)) + ' - ' + str(round(frequency_list[len(frequency_list)-1],3)) + ' MHz \n File: ' + filename, fontsize = 8, fontweight = 'bold', style='italic', y=1.025)
-    plt.yticks(fontsize=8, fontweight='bold')
-    plt.xlabel('Phase of pulsar period', fontsize=8, fontweight='bold')
-    plt.ylabel('deltaDM', fontsize = 8, fontweight='bold')
-    plt.colorbar()
-    plt.xticks(fontsize = 8, fontweight = 'bold')
-    plt.text(0.76, 0.89,'Current SNR \n    '+str(round(SNRoptMax, 3)), fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-    plt.text(0.76, 0.05, '  Current DM  \n'+str(round(DM, 4))+' pc / cm3', fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-    pylab.savefig(filename + '_results/18 - SNR vs DM for optimal DM.png', bbox_inches='tight', dpi = customDPI)
-    plt.close('all')
-
-'''
 
 print ('\n\n\n\n       *** Program has finished! ***   \n\n\n')
