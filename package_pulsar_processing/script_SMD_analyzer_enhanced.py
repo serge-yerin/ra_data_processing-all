@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2019.12.29'
+Software_version = '2020.01.13'
 Software_name = 'Pulsar averaged pulse SMD analyzer'
 # Program intended to read, show and analyze averaged pulse data of pulsar observation from SMD files
 # SMD file is a result of data processing by the pipeline written in IDL by V. V. Zakharenko
@@ -9,18 +9,18 @@ Software_name = 'Pulsar averaged pulse SMD analyzer'
 #*******************************************************************************
 folder_path = 'DATA/'
 
-filename = 'DSPZ-C011119_123701-C011119_163118_PSRB1919+21_ChA.ucd.smd'
-pulsar_name = 'B1919+21'
+filename = 'DSPZ-C011119_083201-C011119_122618_PSRB1508+55_ChA.ucd.smd'
+pulsar_name = 'B1508+55'
 
-auto_opt_DM_search = 1           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
+auto_opt_DM_search = 0           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
 no_of_DM_steps = 181             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
-cleaning_switch = 1              # Use cleaning? (1 - Yes, 0 - No)
+cleaning_switch = 0              # Use cleaning? (1 - Yes, 0 - No)
 RFI_std_const = 1.0              # Standard deviation of integrated profile to clean channels
-save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
+save_intermediate_data = 0       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 128       # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time
-frequency_band_cut = 1           # Plot profiles in small frequency bands?
+frequency_band_cut = 0           # Plot profiles in small frequency bands?
 specify_freq_range = 0           # Specify particular frequency range (1) or whole range (0)
 
 
@@ -307,7 +307,8 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
                             TimeRes, samples_per_period, DM, no_of_DM_steps, pulsarPeriod,
                             save_intermediate_data, AverageChannelNumber, record_date_time,
                             pulsar_name, telescope, Software_version, Software_name, currentTime,
-                            currentDate, df_filename, df_obs_place, df_description, ReceiverMode):
+                            currentDate, df_filename, df_obs_place, df_description, ReceiverMode,
+                            df_system_name):
 
     fig_number = '0' if type == 'first' else '1'
     DM_type = 'initial' if type == 'first' else 'optimal'
@@ -418,7 +419,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
         ax1.axvline(x = DM_vector[max_x] - DM, color = 'C4', linestyle = '-', linewidth = 1.0)
         ax1.axvline(x = DM_vector[x_index_min] - DM, color = 'C1', linestyle = '-', linewidth = 1.0)
         ax1.axvline(x = DM_vector[x_index_max] - DM, color = 'C1', linestyle = '-', linewidth = 1.0)
-        ax1.axhline(y = max_profile_var_DM[max_x] * 0.95, label = 'Max error = '+str(DM_error)+r' $\mathrm{pc \cdot cm^{-3}}$', color = 'r', linestyle = '-', linewidth = 0.5)
+        ax1.axhline(y = max_profile_var_DM[max_x] * 0.95, label = 'Max error = '+str(np.round(DM_error,4))+r' $\mathrm{pc \cdot cm^{-3}}$', color = 'r', linestyle = '-', linewidth = 0.5)
         ax1.legend(loc = 'upper right')
         ax1.set_xlabel(r'$\mathrm{\Delta DM}$', fontsize = 7, fontweight='bold')
         ax1.set_ylabel('Max SNR', fontsize = 7, fontweight='bold')
@@ -548,23 +549,31 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
         fig.suptitle('Pulsar '+ pulsar_name +' in band ' + str(round(frequency_list[0], 1)) + ' - ' + str(round(frequency_list[-1], 1)) + ' MHz \n File: ' + filename, fontsize=10, fontweight='bold')
         fig.text(0.03, 0.960, pulsar_name + '\n' + str(record_date_time[:10])+' '+telescope, fontsize=10, transform=plt.gcf().transFigure)
-        fig.text(0.76, 0.950, r'$\mathrm{T_{pulsar}\, /\, T_{sys}}:~$' +str(round(SNRinitMax, 3)) + '\nDM: '+str(round(DM, 4)) + r' $\mathrm{\pm}$ '+ str(DM_error) + r' $\mathrm{pc \cdot cm^{-3}}$', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.880, 'Pulsar name: ' + pulsar_name, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.850, 'Period: '+str(pulsarPeriod)+' s.', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.820, 'Record started: ' + str(record_date_time[:10]) + ' at ' + str(record_date_time[11:19]), fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.790, 'Time resolution: '+str(np.round(TimeRes*1000,3))+' ms.', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.760, 'Number of samples per period: ' + str(samples_per_period), fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.730, 'Initial data file name: ' + df_filename, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.700, 'Receiver mode: ' + str(ReceiverMode), fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.670, 'Observation place: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.640, df_obs_place, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.610, 'Observation desription: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.580, df_description, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.880, 'Pulsar name: ' + pulsar_name, fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.845, r'$\mathrm{T_{pulsar}\, /\, T_{sys}}:~$' +str(round(SNRinitMax, 3)), fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.810, 'DM: '+str(round(DM, 4)) + r' $\mathrm{\pm}$ '+ str(np.round(DM_error,4)) + r' $\mathrm{pc \cdot cm^{-3}}$', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.775, 'Date: ' + str(record_date_time[:10]) , fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.740, 'Start time: ' + str(record_date_time[11:19])+ ' UTC', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.705, 'Duration: ', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
+        fig.text(0.72, 0.670, 'Period: '+str(np.round(pulsarPeriod,6))+' s.', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.640, 'Time resolution: '+str(np.round(TimeRes*1000,4))+' ms.', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.610, 'Number of samples per period: ' + str(samples_per_period), fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.580, 'DM from catalogue: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.550, r'$\mathrm{RA_{J2000}}: $', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.520, r'$\mathrm{DEC_{J2000}}: $', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+
+        fig.text(0.72, 0.490, 'Initial data file name: ' + df_filename, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.460, 'Receiver mode: ' + str(ReceiverMode), fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.430, 'Receiver ID: ' + str(df_system_name), fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.400, 'Observation place: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.370, df_obs_place, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.340, 'Observation description: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.310, df_description, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.85, -0.015, 'Processed '+currentDate+ ' at '+currentTime, fontsize=6, transform=plt.gcf().transFigure)
-        fig.text(0.03, -0.015, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=6, transform=plt.gcf().transFigure)
+        fig.text(0.02, -0.015, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=6, transform=plt.gcf().transFigure)
 
         pylab.savefig(result_path + '/Total result.png', bbox_inches='tight', dpi=customDPI)
         plt.show()
@@ -754,7 +763,7 @@ if auto_opt_DM_search == 1:
                                  pulsarPeriod, save_intermediate_data, AverageChannelNumber,
                                  record_date_time, pulsar_name, telescope, Software_version,
                                  Software_name, currentTime, currentDate, df_filename,
-                                 df_obs_place, df_description, ReceiverMode)
+                                 df_obs_place, df_description, ReceiverMode, df_system_name)
 
 #*******************************************************************************
 # ***                      Analyze data with optimal DM                      ***
@@ -765,7 +774,7 @@ DM = averge_profile_analysis('final', matrix, filename, freq_num, min, fmax, df,
                              pulsarPeriod, save_intermediate_data, AverageChannelNumber,
                              record_date_time, pulsar_name, telescope, Software_version,
                              Software_name, currentTime, currentDate, df_filename, df_obs_place,
-                             df_description, ReceiverMode)
+                             df_description, ReceiverMode, df_system_name)
 
 
 
