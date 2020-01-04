@@ -1,21 +1,21 @@
 # Python3
 #
-#   !!!! NOT FINISHED !!! Works only for 2-channel files
+#   !!!! NOT FINISHED !!!
 #
 Software_version = '2019.04.29'
-# Program intended to read, show and analyze data from DSPZ receivers in wvaform mode
+# Program intended to read, show and analyze data from DSPZ receivers in waveform mode
 
 #*******************************************************************************
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/gurt/GURT_2019.09-2/27.09.2019_UTR2_Jupiter_WF/' # 'DATA/'
+directory = 'DATA/' # 'DATA/'
 
 no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 15                   # Upper limit of figure dynamic range for normalized spectra
-colormap = 'jet'                # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300                 # Resolution of images of dynamic spectra
 
 
@@ -26,10 +26,7 @@ customDPI = 300                 # Resolution of images of dynamic spectra
 # Common functions
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import time
-import datetime
-from datetime import datetime, timedelta
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
@@ -73,8 +70,7 @@ if not os.path.exists(initial_spectra_folder):
 fileList = find_files_only_in_current_folder(directory, '.jds', 1)
 
 for fileNo in range (len(fileList)):   # loop by files
-    for i in range(3): print (' ')
-    print ('  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
+    print ('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
     print ('  *  File path: ', str(fileList[fileNo]))
 
     # *** Opening datafile ***
@@ -102,7 +98,7 @@ for fileNo in range (len(fileList)):   # loop by files
     if Channel == 0 or Channel == 1: # Single channel mode
         no_of_av_spectra_per_file = (df_filesize - 1024)/(2 * data_block_size * no_of_spectra_to_average)
 
-    if Channel == 2: # Two cahnnels mode
+    if Channel == 2: # Two channels mode
         no_of_av_spectra_per_file = (df_filesize - 1024)/(2 * data_block_size * no_of_spectra_to_average * 2)
 
     no_of_blocks_in_file =  (df_filesize - 1024) / data_block_size
@@ -151,7 +147,7 @@ for fileNo in range (len(fileList)):   # loop by files
             if Channel == 0 or Channel == 1: # Single channel mode
                 wf_data = np.fromfile(file, dtype='i2', count = no_of_spectra_to_average * data_block_size)
                 wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_to_average], order='F')
-            if Channel == 2: # Two cahnnels mode
+            if Channel == 2: # Two channels mode
                 wf_data = np.fromfile(file, dtype='i2', count = 2 * no_of_spectra_to_average * data_block_size)
                 wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_to_average], order='F')
 
@@ -171,7 +167,7 @@ for fileNo in range (len(fileList)):   # loop by files
                 wf_data_chA = wf_data           # All the data is channel A data
                 del wf_data                     # Deleting unnecessary array to free the memory
 
-            if Channel == 2: # Two cahnnels mode
+            if Channel == 2: # Two channels mode
 
                 # Resizing to obtain the matrix for separation of channels
                 wf_data_new = np.zeros((2 * data_block_size, no_of_spectra_to_average))
@@ -199,7 +195,7 @@ for fileNo in range (len(fileList)):   # loop by files
             for i in range (no_of_spectra_to_average):
                 with np.errstate(invalid='ignore', divide='ignore'):
                     spectra_chA[:,i] = 10 * np.log10(np.power(np.abs(np.fft.fft(wf_data_chA[:,i])), 2))
-                    if Channel == 2: # Two cahnnels mode
+                    if Channel == 2: # Two channels mode
                         spectra_chB[:,i] = 10 * np.log10(np.power(np.abs(np.fft.fft(wf_data_chB[:,i])), 2))
 
 
@@ -257,7 +253,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
 
                 TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2,
-                                                'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
+                                                'Channel A', 'Channel B', frequency[0], frequency[-1],
                                                 -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                                 Suptitle, Title,
                                                 service_folder+'/'+ df_filename[0:14] +' Immediate spectrum first in file.png',
@@ -290,7 +286,7 @@ for fileNo in range (len(fileList)):   # loop by files
                         ', Description: '+str(df_description))
 
                 TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2,
-                            'Channel A', 'Channel B', frequency[0], frequency[len(frequency)-1],
+                            'Channel A', 'Channel B', frequency[0], frequency[-1],
                             -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                             Suptitle, Title,
                             service_folder+'/'+ df_filename[0:14] +' Average spectrum first data block in file.png',
