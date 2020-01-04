@@ -89,6 +89,17 @@ def simple_mask_clean(array, RFI_std_const):
         for i in range(len(polluted_channels)):
             mask[:, polluted_channels[i]] = 1
 
+        integr_profile_02 = np.sum(temp_array, axis = 1)
+        ip_mean = np.mean(integr_profile_02)
+        ip_std = np.std(integr_profile_02)
+        polluted_channels = []
+        for i in range(len(integr_profile_02)):
+            if integr_profile_02[i] > ip_mean + RFI_std_const * ip_std:
+                polluted_channels.append(i)
+
+        for i in range(len(polluted_channels)):
+            mask[polluted_channels[i], :] = 1
+
         # Mask polluted channels in array
         temp_array = np.ma.masked_array(temp_array, mask=mask)
 
@@ -170,7 +181,7 @@ dat_file.seek(1024)                     # Jumping to 1024 byte from file beginni
 
 buffer_array = np.zeros((num_frequencies_initial, samples_per_period))
 
-for block in range (100):   #  num_of_blocks    main loop by number of blocks in file
+for block in range (num_of_blocks):   #      main loop by number of blocks in file
 
     #print ('\n * Data block # ', block + 1, ' of ', num_of_blocks,'\n ******************************************************************')
 
@@ -185,10 +196,9 @@ for block in range (100):   #  num_of_blocks    main loop by number of blocks in
     # Normalization of data
     Normalization_lin(data, num_frequencies_initial, samples_per_period)
 
-    data, mask = simple_mask_clean(data, 0.5)
+    data, mask = simple_mask_clean(data, 3.0)
     #data, mask = simple_mask_clean(data, 0.3)
-    plot2Da(mask, newpath + '/fig. 3 - mask of data.png', frequency_list, 0, 1, colormap,
-            'averaged data', customDPI)
+    #plot2Da(mask, newpath + '/fig. 3 - mask of data.png', frequency_list, 0, 1, colormap,'averaged data', customDPI)
 
     # Adding the next data block
     buffer_array += data
@@ -201,12 +211,38 @@ buffer_array[np.isnan(buffer_array)] = 0
 # Normalizing log data
 buffer_array = buffer_array - np.mean(buffer_array)
 
+profile_0 = np.sum(buffer_array, axis = 0)
+profile_1 = np.sum(buffer_array, axis = 1)
+
+plt.figure(1, figsize=(10.0, 6.0))
+plt.subplots_adjust(left=None, bottom=None, right=None, top=0.86, wspace=None, hspace=0.3)
+plt.subplot(2, 1, 1)
+plt.title('Data integrated over time and over frequency \n File: ', fontsize=10,
+          fontweight='bold', style='italic', y=1.025)
+plt.plot(profile_0)
+plt.xlabel('Samples in time', fontsize=8, fontweight='bold')
+plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
+plt.xticks(fontsize=6, fontweight='bold')
+plt.yticks(fontsize=6, fontweight='bold')
+plt.subplot(2, 1, 2)
+plt.plot(profile_1)
+plt.xlabel('Frequency points', fontsize=8, fontweight='bold')
+plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
+plt.xticks(fontsize=6, fontweight='bold')
+plt.yticks(fontsize=6, fontweight='bold')
+pylab.savefig(newpath + '/02 data integrated over time and over frequency.png',
+              bbox_inches='tight', dpi=250)
+plt.close('all')
+
+plot2Da(buffer_array, newpath+'/fig. 1 - averaged data.png', frequency_list, -3, 2, colormap, 'averaged data', customDPI)
+
+
 shift_vector = pulsar_DM_shift_calculation_aver_pulse(len(frequency_list), fmin, fmax, df / pow(10,6), TimeRes, DM, pulsar_period)
 
 # Dispersion compensation
 buffer_array = pulsar_DM_compensation_with_indices_changes(buffer_array, shift_vector)
 
-plot2Da(buffer_array, newpath+'/fig. 1 - averaged data.png', frequency_list, -3, 2, colormap, 'averaged data', customDPI)
+plot2Da(buffer_array, newpath+'/fig. 1 - dedispersed averaged data.png', frequency_list, -3, 2, colormap, 'averaged data', customDPI)
 
 AverageChannelNumber = 128
 reduced_matrix = np.array([[0.0 for col in range(samples_per_period)] for row in range(int(len(frequency_list)/AverageChannelNumber))])
@@ -236,7 +272,7 @@ plt.xlabel('Frequency points', fontsize=8, fontweight='bold')
 plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
 plt.xticks(fontsize=6, fontweight='bold')
 plt.yticks(fontsize=6, fontweight='bold')
-pylab.savefig(newpath + '/02. data integrated over time and over frequency.png',
+pylab.savefig(newpath + '/03 dedispersed data integrated over time and over frequency.png',
               bbox_inches='tight', dpi=250)
 plt.close('all')
 
