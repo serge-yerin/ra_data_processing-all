@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2020.01.06'
+Software_version = '2019.05.06'
 Software_name = 'ADR reader (single folder)'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files for further processing
