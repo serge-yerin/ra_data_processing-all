@@ -1,12 +1,13 @@
 # Python3
-Software_version = '2019.05.09'
+Software_version = '2020.01.07'
+Software_name = 'JDS reader (single folder)'
 # Program intended to read, show and analyze data from DSPZ receivers
 
-#*******************************************************************************
-#                             P A R A M E T E R S                              *
-#*******************************************************************************
+# *******************************************************************************
+#                              P A R A M E T E R S                              *
+# *******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/2019.10.11_Moon_dipole_various_experiments' #'h:/2019.09.29_UTR2_3C461_Interf_sect_10-11/' #           #'h:/2019.04.03_UTR2_3C405_interferometer/'
+directory = 'DATA/2019.09.27_UTR2_3C405_Interf_sect_09-12/'  #'h:/2019.09.29_UTR2_3C461_Interf_sect_10-11/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -18,98 +19,83 @@ VmaxNorm = 15                 # Upper limit of figure dynamic range for normaliz
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-customDPI = 300               # Resolution of images of dynamic spectra
+customDPI = 200               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
-longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
+longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-DynSpecSaveInitial = 1        # Save dynamic spectra pictures before claning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after claning (1 = yes, 0 = no) ?
+DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
 
-################################################################################
-#*******************************************************************************
-#                    I M P O R T    L I B R A R I E S                          *
-#*******************************************************************************
+# ###############################################################################
+# *******************************************************************************
+#                     I M P O R T    L I B R A R I E S                          *
+# *******************************************************************************
 # Common functions
 import os
-import sys
-import struct
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import time
 import gc
-import datetime
+import math
+import time
+import numpy as np
 from datetime import datetime, timedelta
 
 # My functions
-from package_plot_formats.plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot, TwoOrOneValuePlot
+from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
+from package_plot_formats.plot_formats import  TwoDynSpectraPlot, TwoOrOneValuePlot
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
-################################################################################
-#*******************************************************************************
-#                          M A I N    P R O G R A M                            *
-#*******************************************************************************
-print ('\n\n\n\n\n\n\n\n   ****************************************************')
-print ('   *      JDS data files reader  v.', Software_version,'       *      (c) YeS 2019')
-print ('   **************************************************** \n\n\n')
+# ###############################################################################
+# *******************************************************************************
+#                           M A I N    P R O G R A M                            *
+# *******************************************************************************
+print ('\n\n\n\n\n\n\n\n   **************************************************************************')
+print ('   *               ', Software_name,' v.',Software_version,'              *      (c) YeS 2019')
+print ('   ************************************************************************** \n\n\n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
-print (' ')
+print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
+# Check the correctness of path to data
+if directory[-1] != '/':
+    directory = directory + '/'
 
-# *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-newpath = "JDS_Results/Service"
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
+# *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
+result_path = 'JDS_Results_' + directory.split('/')[-2]
+if not os.path.exists(result_path + '/Service'):
+    os.makedirs(result_path + '/Service')
 if DynSpecSaveInitial == 1:
-    if not os.path.exists('JDS_Results/Initial_spectra'):
-        os.makedirs('JDS_Results/Initial_spectra')
+    if not os.path.exists(result_path + '/Initial_spectra'):
+        os.makedirs(result_path + '/Initial_spectra')
 if (CorrSpecSaveCleaned == 1  and CorrelationProcess == 1):
-    if not os.path.exists('JDS_Results/Correlation_spectra'):
-        os.makedirs('JDS_Results/Correlation_spectra')
+    if not os.path.exists(result_path + '/Correlation_spectra'):
+        os.makedirs(result_path + '/Correlation_spectra')
 
 # *** Creating a TXT logfile ***
-Log_File = open("JDS_Results/Service/Log.txt", "w")
-Log_File.write('\n\n    ****************************************************\n' )
-Log_File.write('    *     JDS data files reader  v.%s LOG      *      (c) YeS 2019\n' %Software_version )
-Log_File.write('    ****************************************************\n\n' )
+Log_File = open(result_path + "/Service/Log.txt", "w")
+Log_File.write('\n\n    *********************************************************\n')
+Log_File.write('    *     {0}  v.{1} LOG      *      (c) YeS 2018 \n'.format(Software_name, Software_version))
+Log_File.write('    *********************************************************\n\n')
 Log_File.write('  Date of data processing: %s   \n' %currentDate )
 Log_File.write('  Time of data processing: %s \n\n' %currentTime )
 
 
 # *** Search JDS files in the directory ***
-fileList = []
-i = 0
-print ('  Directory: ', directory, '\n')
-Log_File.write('  Directory: %s \n' %directory )
-print ('  List of files to be analyzed: ')
-Log_File.write('  List of files to be analyzed: \n')
-for root, dirs, files in os.walk(directory):
-    for file in files:
-        if file.endswith('.jds'):
-            i = i + 1
-            print ('         ', i, ') ', file)
-            Log_File.write('           '+str(i)+') %s \n' %file )
-            fileList.append(str(os.path.join(root, file)))
-Log_File.close()
-fileList.sort()
+fileList = find_files_only_in_current_folder(directory, '.jds', 1)
 
 for fileNo in range (len(fileList)):   # loop by files
     print ('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
     print ('  *  File path: ', str(fileList[fileNo]))
-    Log_File = open("JDS_Results/Service/Log.txt", "a")
+    Log_File = open(result_path + "/Service/Log.txt", "a")
     Log_File.write('\n\n\n  * File '+str(fileNo+1)+' of %s \n' %str(len(fileList)))
     Log_File.write('  * File path: %s \n\n\n' %str(fileList[fileNo]) )
 
@@ -117,8 +103,7 @@ for fileNo in range (len(fileList)):   # loop by files
 #*********************************************************************************
 
     # *** Opening datafile ***
-    fname = ''
-    if len(fname) < 1 : fname = fileList[fileNo]
+    fname = directory + fileList[fileNo]
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -302,7 +287,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                         'Frequency, MHz', 'Amplitude, dB',
                                         'Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B',
                                         'Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+str(round(df/1000,3))+' kHz',
-                                        'JDS_Results/Service/'+df_filename[0:14]+' Correlation Spectrum Re and Im before log.png')
+                                        result_path + '/Service/'+df_filename[0:14]+' Correlation Spectrum Re and Im before log.png')
                 '''
 
 
@@ -357,7 +342,7 @@ for fileNo in range (len(fileList)):   # loop by files
 
                 # *** Saving immediate spectrum to file ***
                 if(SpecterFileSaveSwitch == 1 and figID == 0):
-                    SpFile = open('JDS_Results/Service/Specter_'+df_filename[0:14]+'.txt', 'w')
+                    SpFile = open(result_path + '/Service/Specter_'+df_filename[0:14]+'.txt', 'w')
                     for i in range(FreqPointsNum-1):
                         if Mode == 1:
                             SpFile.write(str('{:10.6f}'.format(frequency[i]))+'  '+str('{:16.10f}'.format(Data_ChA[ImmediateSpNo][i]))+'  '+str('{:16.10f}'.format(Data_ChB[ImmediateSpNo][i]))+' \n')
@@ -380,7 +365,7 @@ for fileNo in range (len(fileList)):   # loop by files
                     Title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+
                             '. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
                             str(round(df/1000,3))+' kHz '+'Description: '+str(df_description))
-                    Filename = ('JDS_Results/Service/' + df_filename[0:14] +
+                    Filename = (result_path + '/Service/' + df_filename[0:14] +
                                 ' Channels A and B Immediate Spectrum before cleaning and normalizing.png')
 
                     TwoOrOneValuePlot(2, frequency,  Data_ChA[0][:], Data_ChB[0][:],
@@ -395,7 +380,7 @@ for fileNo in range (len(fileList)):   # loop by files
                     Title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+
                                 '. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
                                 str(round(df/1000,3))+' kHz '+'Description: '+str(df_description))
-                    Filename = ('JDS_Results/Service/' + df_filename[0:14] +
+                    Filename = (result_path + '/Service/' + df_filename[0:14] +
                                 ' Channels A and B Correlation Immedaiate Spectrum before cleaning and normalizing.png')
 
                     TwoOrOneValuePlot(2, frequency,  CorrModule[0][:], CorrPhase[0][:],
@@ -414,7 +399,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 ' kHz, Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
                                 '\n'+ReceiverMode+', Description: '+str(df_description))
 
-                    fig_file_name = ('JDS_Results/Initial_spectra/' + df_filename[0:14] +
+                    fig_file_name = (result_path + '/Initial_spectra/' + df_filename[0:14] +
                                     ' Initial dynamic spectrum fig.' + str(figID+1) + '.png')
 
                     TwoDynSpectraPlot(Data_ChA.transpose(), Data_ChB.transpose(), Vmin, Vmax, Vmin, Vmax, Suptitle,
@@ -433,7 +418,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+
                                 ', Description: '+str(df_description))
 
-                    fig_file_name = ('JDS_Results/Correlation_spectra/' + df_filename[0:14] +
+                    fig_file_name = (result_path + '/Correlation_spectra/' + df_filename[0:14] +
                                     ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png')
 
                     TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
@@ -467,7 +452,7 @@ for fileNo in range (len(fileList)):   # loop by files
                     Title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name)+
                             '. Initial parameters: dt = '+str(round(TimeRes,3))+' Sec, df = '+
                             str(round(df/1000,3))+' kHz '+'Description: '+str(df_description))
-                    Filename = ('JDS_Results/Service/'+df_filename[0:14]+
+                    Filename = (result_path + '/Service/'+df_filename[0:14]+
                                 ' Channels A and B Immediate Spectrum after cleaning and normalizing.png')
 
                     TwoOrOneValuePlot(2, frequency,  Data_ChA[1][:], Data_ChB[1][:],
@@ -485,7 +470,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 ' kHz, Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
                                 '\n'+ReceiverMode+', Description: '+str(df_description))
 
-                    fig_file_name = ('JDS_Results/' + df_filename[0:14] + ' Dynamic spectra fig.' +
+                    fig_file_name = (result_path + '/' + df_filename[0:14] + ' Dynamic spectra fig.' +
                                         str(figID+1) + '.png')
 
                     TwoDynSpectraPlot(Data_ChA.transpose(), Data_ChB.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm, Suptitle,
@@ -504,7 +489,7 @@ for fileNo in range (len(fileList)):   # loop by files
                                 str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+
                                 ', Description: '+str(df_description))
 
-                    fig_file_name = ('JDS_Results/Correlation_spectra/' + df_filename[0:14] +
+                    fig_file_name = (result_path + '/Correlation_spectra/' + df_filename[0:14] +
                                     ' Correlation dynamic spectra cleaned fig.' + str(figID+1) + '.png')
                     TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), 2*VminNorm, 2*VmaxNorm, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nsp,
@@ -539,4 +524,4 @@ for fileNo in range (len(fileList)):   # loop by files
 endTime = time.time()
 print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                 round((endTime - startTime)/60, 2), 'min. ) \n')
-print ('\n           *** Program JDS reader has finished! *** \n\n\n')
+print ('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')

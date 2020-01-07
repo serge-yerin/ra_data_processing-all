@@ -69,9 +69,11 @@ currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
+# Check the correctness of path to data
+if directory[-1] != '/':
+    directory = directory + '/'
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-
 result_path = 'ADR_Results_' + directory.split('/')[-2]
 if not os.path.exists(result_path + '/Service'):
     os.makedirs(result_path + '/Service')
