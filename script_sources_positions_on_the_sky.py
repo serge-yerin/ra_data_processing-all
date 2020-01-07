@@ -8,12 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker as mtick
 from matplotlib import rc
-from pytz import timezone
+#from pytz import timezone
 import astropy.units as u
 from astropy.coordinates import EarthLocation, AltAz
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import solar_system_ephemeris
-from astropy.coordinates import get_body_barycentric
+#from astropy.coordinates import get_body_barycentric
 from astropy.coordinates import get_body
 from astropy.coordinates import get_sun
 from astropy.time import Time
@@ -232,7 +232,7 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
     fig.text(0.210, 0.070, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
 
     pylab.savefig(newpath + '/'+ str(start_time)[0:10] + ' sky map.png', bbox_inches='tight', dpi = 300)
-    #plt.show()
+    # plt.show()
 
 
     # Plot of culmination times
@@ -370,9 +370,9 @@ def sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_lis
 
 if __name__ == '__main__':
 
-    start_time = Time('2019-10-01 12:00:00')
-    end_time = Time('2019-10-02 12:00:00')
-    pulsars_list = ['B0329+54', 'B0809+74', 'B1133+16', 'B1508+55', 'B1919+21']
-    sources_list = ['Cas A', 'Syg A', 'Vir A', 'Crab'] #
+    start_time = Time('2019-11-01 00:00:00')
+    end_time = Time('2019-11-02 00:00:00')
+    pulsars_list = ['B0031-07', 'B1133+16', 'B1508+55', 'B1919+21']
+    sources_list = [] # 'Cas A', 'Syg A', 'Vir A', 'Crab'
 
     sources_positions_on_the_sky(start_time, end_time, pulsars_list, sources_list)
