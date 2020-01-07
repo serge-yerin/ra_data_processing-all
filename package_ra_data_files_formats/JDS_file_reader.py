@@ -1,23 +1,20 @@
 # Python3
 Software_version = '2019.05.09'
 # Program intended to read, show and analyze data from DSPZ receivers
-#*******************************************************************************
-#                    I M P O R T    L I B R A R I E S                          *
-#*******************************************************************************
+# *******************************************************************************
+#                     I M P O R T    L I B R A R I E S                          *
+# *******************************************************************************
 # Common functions
 import os
-import sys
-import struct
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 import time
 import gc
 import datetime
 from datetime import datetime, timedelta
 
 # My functions
-from package_plot_formats.plot_formats import OneImmedSpecterPlot, TwoImmedSpectraPlot, TwoDynSpectraPlot, TwoOrOneValuePlot
+from package_plot_formats.plot_formats import TwoDynSpectraPlot, TwoOrOneValuePlot
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
@@ -37,7 +34,7 @@ def JDS_file_reader(fileList, result_path, MaxNsp, spSkip, RFImeanConst,
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
 
-    # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
+    # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     if not os.path.exists(result_path + '/Service'):
@@ -53,7 +50,7 @@ def JDS_file_reader(fileList, result_path, MaxNsp, spSkip, RFImeanConst,
 
     # Main loop
     for fileNo in range (len(fileList)):   # loop by files
-        print ('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
+        print ('\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
         print ('  *  File path: ', str(fileList[fileNo]))
 
     #*********************************************************************************
@@ -131,7 +128,7 @@ def JDS_file_reader(fileList, result_path, MaxNsp, spSkip, RFImeanConst,
     #*******************************************************************************
     #                         R E A D I N G   D A T A                              *
     #*******************************************************************************
-            #print ('\n  *** Reading data from file *** \n')
+
             file.seek(1024)  # Jumping to 1024 byte from file beginning
             if Mode == 0:
                 print('\n\n  Data in waveform mode, use appropriate program!!! \n\n\n')
