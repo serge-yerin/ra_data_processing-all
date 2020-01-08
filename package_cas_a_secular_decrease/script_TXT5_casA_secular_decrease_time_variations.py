@@ -8,7 +8,7 @@ Software_version = '2020.01.08'
 #*******************************************************************************
 # Path to data files
 
-path_to_data =  'DATA/Frequency responces processed GURT/'
+path_to_data =    'DATA/Frequency responces processed GURT/'
 
 y_auto = 1
 Vmin = -100 * 10**(-12)
@@ -52,7 +52,13 @@ print ('   *********************************************************************
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
+print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
+
+
+# *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
+path_to_results = 'RESULTS CasA decrease GURT absolute amplitudes/'
+if not os.path.exists(path_to_results):
+    os.makedirs(path_to_results)
 
 # Preparing empty pandas data frame
 data_frame = pd.DataFrame(columns=['Date', 'Frequencies, MHz', 'Amplitude CasA Re', 'Amplitude CasA Im', 'Amplitude SygA Re', 'Amplitude SygA Im'])
@@ -71,7 +77,7 @@ for i in range(len(folder_list)):
 # It is inherited from other script
 
 # Taking the pairs of folders and process them with standard script
-for subfolder in range(5): # len(temp_subfolder_list)//2
+for subfolder in range(len(temp_subfolder_list)//2): #
     only_subfolder_list = []
     only_subfolder_list.append(temp_subfolder_list[2*subfolder])
     only_subfolder_list.append(temp_subfolder_list[2*subfolder+1])
@@ -90,6 +96,7 @@ for subfolder in range(5): # len(temp_subfolder_list)//2
     file_name_SygA = find_between(path_to_data_SygA, 'Results_', '_3C')
     file_name_CasA = find_between(path_to_data_CasA, 'Results_', '_3C')
 
+    '''
     if   '.jds' in path_to_data_SygA and '.jds' in path_to_data_CasA:
         result_path = 'CasA secular decrease UTR2 time variations'
     elif '.adr' in path_to_data_SygA and '.adr' in path_to_data_CasA:
@@ -100,6 +107,7 @@ for subfolder in range(5): # len(temp_subfolder_list)//2
 
     if not os.path.exists(result_path):
         os.makedirs(result_path)
+    '''
 
     freq_list_CasA_CRe = []
     freq_list_SygA_CRe = []
@@ -199,7 +207,7 @@ for subfolder in range(5): # len(temp_subfolder_list)//2
 
     # Making string of observations start date
     if date_of_experiment_spectra == '':
-        print(' No')
+        #print(' No')
         if '.jds' in file_name_list[file_no]:
             date_of_experiment_spectra = '20' + file_name_SygA[5:7] + '.' + file_name_SygA[3:5] + '.' + file_name_SygA[1:3]
         if '.adr' in file_name_list[file_no]:
@@ -209,39 +217,106 @@ for subfolder in range(5): # len(temp_subfolder_list)//2
 
     # adding new line to data frame
     data_frame.loc[subfolder] = [date_of_experiment_spectra, freq_list_SygA_CRe, ampl_list_CasA_CRe, ampl_list_CasA_CIm, ampl_list_SygA_CRe, ampl_list_SygA_CIm]
-    print('  Date being processed: ', date_of_experiment_spectra)
+    print('  Date processed: ', date_of_experiment_spectra)
 
     # print(data_frame.keys())
     # print(*data_frame['Frequencies, MHz'])
     # print('Index =', (data_frame['Frequencies, MHz'].tolist())[0][0])
     # print('Index =', (data_frame['Frequencies, MHz'].tolist())[0][1])
 
-print(*data_frame['Frequencies, MHz'])
+# print('Data: ', np.array(data_frame['Amplitude CasA Re'].tolist()).transpose()[3][:])
+# print('Dates:', (data_frame['Date'].tolist())[:])
+# print('Label:', np.array(data_frame['Frequencies, MHz'].tolist()).transpose()[3][0])
+
+freq_num = len(data_frame['Frequencies, MHz'].tolist()[0][:])
+print('\n  Number of frequencies:', freq_num)
+
+for i in range(freq_num):
+
+    x_data = data_frame['Date'].tolist()[:]
+    y_data_1 = np.array(data_frame['Amplitude CasA Re'].tolist()).transpose()[i][:]
+    y_data_2 = np.array(data_frame['Amplitude CasA Im'].tolist()).transpose()[i][:]
+    y_data_3 = np.array(data_frame['Amplitude SygA Re'].tolist()).transpose()[i][:]
+    y_data_4 = np.array(data_frame['Amplitude SygA Im'].tolist()).transpose()[i][:]
+    data_label = str(np.array(data_frame['Frequencies, MHz'].tolist()).transpose()[i][0]) + ' MHz'
+
+    rc('font', size = 10, weight='bold')
+    fig = plt.figure(1, figsize=(16.0, 8.0))
+    fig.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+
+    ax1 = fig.add_subplot(211)
+    ax1.plot(x_data, y_data_1, label = 'Amplitude CasA Re ' + data_label)
+    ax1.plot(x_data, y_data_2, label = 'Amplitude CasA Im ' + data_label)
+    ax1.scatter(np.linspace(0, len(x_data) - 1, num = len(x_data)), y_data_1, color='b')
+    ax1.scatter(np.linspace(0, len(x_data) - 1, num = len(x_data)), y_data_2, color='r')
+
+    ax1.set_title('Cassiopeia A', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    ax1.legend(loc = 'upper right', fontsize = 10)
+    #ax1.set_xlabel('Date', fontsize = 10, fontweight='bold')
+    ax1.set_ylabel('Interferometric response amplitude', fontsize = 10, fontweight='bold')
+    #plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45 )
+    ax1.axes.get_xaxis().set_ticks([])
+
+    ax2 = fig.add_subplot(212)
+    ax2.plot(x_data, y_data_3, label = 'Amplitude SygA Re ' + data_label)
+    ax2.plot(x_data, y_data_4, label = 'Amplitude SygA Im ' + data_label)
+    ax2.scatter(np.linspace(0, len(x_data) - 1, num=len(x_data)), y_data_3, color='b')
+    ax2.scatter(np.linspace(0, len(x_data) - 1, num=len(x_data)), y_data_4, color='r')
+
+    ax2.set_title('Sygnus A', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
+    ax2.legend(loc = 'upper right', fontsize = 10)
+    ax2.set_xlabel('Date', fontsize = 10, fontweight='bold')
+    ax2.set_ylabel('Interferometric response amplitude', fontsize = 10, fontweight='bold')
+    plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45 )
+
+    pylab.savefig(path_to_results + 'Absolute amplitudes at ' + data_label + '.png', bbox_inches='tight', dpi = customDPI)
+    plt.close('all')
 
 
-print('Dates:', (data_frame['Date'].tolist())[:])
-print('Data:', (data_frame['Amplitude CasA Re'].tolist())[:][0])
-print('Label:', (data_frame['Frequencies, MHz'])[:][4])
+date_num = len(data_frame['Date'].tolist())
+print('\n  Number of dates:', date_num)
 
-plt.figure(1, figsize=(10.0, 6.0))
-plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-plt.plot((data_frame['Date'].tolist())[:], (data_frame['Amplitude CasA Re'].tolist())[:][5], label = (data_frame['Frequencies, MHz'].tolist())[0][5]+' MHz')
-plt.title('Title', fontsize = 10, fontweight = 'bold', style = 'italic', y = 1.025)
-plt.legend(loc = 'upper right', fontsize = 10)
-plt.ylabel('x_label', fontsize = 10, fontweight='bold')
-plt.xlabel('y_label', fontsize = 10, fontweight='bold')
-plt.yticks(fontsize = 8, fontweight = 'bold')
-plt.xticks(fontsize = 8, fontweight = 'bold')
-pylab.savefig('fig_name.png', bbox_inches='tight', dpi = customDPI)
-plt.close('all')
+for i in range(date_num):
 
+    x_data = data_frame['Frequencies, MHz'].tolist()[0][18:]
+    y_data_1 = np.array(data_frame['Amplitude CasA Re'].tolist())[i][18:]
+    y_data_2 = np.array(data_frame['Amplitude CasA Im'].tolist())[i][18:]
+    y_data_3 = np.array(data_frame['Amplitude SygA Re'].tolist())[i][18:]
+    y_data_4 = np.array(data_frame['Amplitude SygA Im'].tolist())[i][18:]
+    data_label = data_frame['Date'].tolist()[i]
 
+    rc('font', size = 6, weight='bold')
+    fig = plt.figure(figsize = (10, 8))
+    fig.suptitle('Amplitudes of Cas A interferometric responses with frequency', fontsize = 8, fontweight='bold')
+    fig.subplots_adjust(left=None, bottom=0, right=None, top=0.95, wspace=None, hspace=None)
+    ax1 = fig.add_subplot(211)
+    #ax1.set_title('Statistics calculated from ' + str(len(file_name_list)) + ' files', fontsize = 7)
+    ax1.plot(x_data, y_data_1, label = 'Amplitude CasA Re ' + data_label)
+    ax1.plot(x_data, y_data_1, 'bo')
+    ax1.plot(x_data, y_data_2, label = 'Amplitude CasA Im ' + data_label)
+    ax1.plot(x_data, y_data_2, 'ro')
+    ax1.set_xlim([28, 80])
+    ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+    ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
+    ax1.set_ylabel('Amplitude', fontsize=6, fontweight='bold')
+    ax1.legend(loc = 'upper right')
 
+    ax2 = fig.add_subplot(212)
+    #ax1.set_title('Statistics calculated from ' + str(len(file_name_list)) + ' files', fontsize = 7)
+    ax2.plot(x_data, y_data_3, label = 'Amplitude SygA Re ' + data_label)
+    ax2.plot(x_data, y_data_3, 'bo')
+    ax2.plot(x_data, y_data_4, label = 'Amplitude SygA Im ' + data_label)
+    ax2.plot(x_data, y_data_4, 'ro')
+    ax2.set_xlim([28, 80])
+    ax2.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+    ax2.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
+    ax2.set_ylabel('Amplitude', fontsize=6, fontweight='bold')
+    ax2.legend(loc = 'upper right')
 
-
-
-
-
+    #fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+    #fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    pylab.savefig(path_to_results + 'Amplitude vs frequency ' + data_label + '.png', bbox_inches = 'tight', dpi = 160)
+    plt.close('all')
 
 
 
