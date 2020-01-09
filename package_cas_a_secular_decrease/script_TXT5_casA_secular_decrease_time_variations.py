@@ -8,7 +8,7 @@ Software_version = '2020.01.08'
 #*******************************************************************************
 # Path to data files
 
-path_to_data =    'DATA/Frequency responces processed GURT/'
+path_to_data =    'DATA/Frequency responces processed UTR2/'
 
 y_auto = 1
 Vmin = -100 * 10**(-12)
@@ -56,7 +56,10 @@ print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-path_to_results = 'RESULTS CasA decrease GURT absolute amplitudes/'
+if 'GURT' in path_to_data:
+    path_to_results = 'RESULTS CasA decrease GURT absolute amplitudes/'
+else:
+    path_to_results = 'RESULTS CasA decrease UTR2 absolute amplitudes/'
 if not os.path.exists(path_to_results):
     os.makedirs(path_to_results)
 
@@ -276,13 +279,23 @@ for i in range(freq_num):
 date_num = len(data_frame['Date'].tolist())
 print('\n  Number of dates:', date_num)
 
+print(path_to_data[-6:-1])
+print(file_name_list[0])
+
+if '.adr' in file_name_list[0]:
+    f_start = 18; x_min = 28; x_max = 80
+if '.jds' in file_name_list[0]:
+    f_start = 0; x_min = 12; x_max = 33
+
+
+
 for i in range(date_num):
 
-    x_data = data_frame['Frequencies, MHz'].tolist()[0][18:]
-    y_data_1 = np.array(data_frame['Amplitude CasA Re'].tolist())[i][18:]
-    y_data_2 = np.array(data_frame['Amplitude CasA Im'].tolist())[i][18:]
-    y_data_3 = np.array(data_frame['Amplitude SygA Re'].tolist())[i][18:]
-    y_data_4 = np.array(data_frame['Amplitude SygA Im'].tolist())[i][18:]
+    x_data = data_frame['Frequencies, MHz'].tolist()[0][f_start:]
+    y_data_1 = np.array(data_frame['Amplitude CasA Re'].tolist())[i][f_start:]
+    y_data_2 = np.array(data_frame['Amplitude CasA Im'].tolist())[i][f_start:]
+    y_data_3 = np.array(data_frame['Amplitude SygA Re'].tolist())[i][f_start:]
+    y_data_4 = np.array(data_frame['Amplitude SygA Im'].tolist())[i][f_start:]
     data_label = data_frame['Date'].tolist()[i]
 
     rc('font', size = 6, weight='bold')
@@ -295,7 +308,7 @@ for i in range(date_num):
     ax1.plot(x_data, y_data_1, 'bo')
     ax1.plot(x_data, y_data_2, label = 'Amplitude CasA Im ' + data_label)
     ax1.plot(x_data, y_data_2, 'ro')
-    ax1.set_xlim([28, 80])
+    ax1.set_xlim([x_min, x_max])
     ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
     ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Amplitude', fontsize=6, fontweight='bold')
@@ -307,7 +320,7 @@ for i in range(date_num):
     ax2.plot(x_data, y_data_3, 'bo')
     ax2.plot(x_data, y_data_4, label = 'Amplitude SygA Im ' + data_label)
     ax2.plot(x_data, y_data_4, 'ro')
-    ax2.set_xlim([28, 80])
+    ax2.set_xlim([x_min, x_max])
     ax2.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
     ax2.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Amplitude', fontsize=6, fontweight='bold')
