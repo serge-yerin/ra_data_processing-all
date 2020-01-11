@@ -1,18 +1,16 @@
 # Python3
-Software_version = '2019.07.30'
+Software_version = '2020.01.11'
 Software_name = 'ADR multifolder data files reader'
 # Script intended to read, show and analyze data from ADR, to save
-# data to long DAT files for further processing
+# data to long DAT files and analyze them
 import os
 #*******************************************************************************
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data =  'h:/To_process/'
-# Path to intermediate data files and results
-path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
+path_to_data =  'DATA/' # 'h:/To_process/'
 
-MaxNim = 8192                 # Number of data chunks for one figure
+MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
 Vmax = -50                    # Upper limit of figure dynamic range for initial spectra
@@ -22,13 +20,14 @@ VminCorrMag = -150            # Lower limit of figure dynamic range for correlat
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
+CorrelationProcess = 0        # Process correlation data or save time?  (1 = process, 0 = save)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
+where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
@@ -37,7 +36,6 @@ VminNormMan = 0                  # Manual lower limit of normalized dynamic spec
 VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 AmplitudeReIm = 2000 * 10**(-12) # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
-
 
 
 ################################################################################
@@ -53,7 +51,6 @@ from package_common_modules.find_unique_strings_in_list import find_unique_strin
 from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
 
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
 from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import check_if_ADR_files_of_equal_parameters
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
@@ -72,8 +69,11 @@ currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
-#      *** Making a list of folders with ADR files ***
+# Path to intermediate data files (DAT)
+path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
 
+
+#      *** Making a list of folders with ADR files ***
 # Search needed files in the directory and subdirectories
 file_path_list, file_name_list = find_all_files_in_folder_and_subfolders(path_to_data, '.adr', 0)
 
@@ -103,6 +103,7 @@ for folder_no in range (num_of_folders):
     print ('\n\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n **********************************************************')
     for i in range (len(file_name_list_current)):
         print('         ',  i+1 ,') ', file_name_list_current[i])
+    print(' ')
 
     # Check if all files (except the last) have same size
     same_or_not[folder_no] = check_if_all_files_of_same_size(list_of_folder_names[folder_no], file_name_list_current, 1)
@@ -139,25 +140,33 @@ for folder_no in range (num_of_folders):
     print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
 
     # Making a name of folder for storing the result figures and txt files
-    name = list_of_folder_names[folder_no]
-    result_path = 'ADR_Results_'+name.replace('/','_').replace(':','')[:-1]
+    result_folder_name =  list_of_folder_names[folder_no].split('/')[-2]
+    if where_save_pics == 0:
+        result_path = path_to_DAT_files + 'ADR_Results_' + result_folder_name
+    else:
+        result_path = list_of_folder_names[folder_no] + 'ADR_Results_' + result_folder_name
 
     for file in range (len(file_name_list_current)):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
 
     # Run ADR reader for the current folder
-    done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+    done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+                    RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                     VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, 0, 1, 1, 1, 1, 0,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
                     SpecterFileSaveSwitch, ImmediateSpNo)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
-    DAT_result_path = list_of_folder_names[folder_no].replace('/','_').replace(':','')[:-1]
+    # Making path to folder with result pictures
+    if where_save_pics == 0:
+        DAT_result_path = path_to_DAT_files
+    else:
+        DAT_result_path = list_of_folder_names[folder_no]
 
-    # Run DAT reader for the resuls of current folder
-    done_or_not = DAT_file_reader(path_to_results, DAT_file_name, DAT_file_list, DAT_result_path, averOrMin,
-                                0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+    # Run DAT reader for the results of current folder
+    done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
+                                  averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                 RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 

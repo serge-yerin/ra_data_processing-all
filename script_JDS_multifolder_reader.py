@@ -10,9 +10,6 @@ import os
 # Path to directory with files to be analyzed:
 path_to_data = 'DATA/' # 'h:/To process/'
 
-# Path to intermediate data files and results
-path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'DATA/'
-
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
@@ -27,14 +24,15 @@ customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
-longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
+longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
+longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
+where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                     # Use average value (0) per data block or minimum value (1)
 VminMan = -120                    # Manual lower limit of immediate spectrum figure color range
@@ -74,6 +72,9 @@ startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
+
+# Path to intermediate data files and results
+path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'DATA/'
 
 #      *** Making a list of folders with ADR files ***
 
@@ -145,7 +146,13 @@ for folder_no in range (num_of_folders):
     print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no])
 
     # Making a name of folder for storing the result figures and txt files
-    result_path = 'JDS_Results_'+list_of_folder_names[folder_no].split('/')[-2]
+    #result_path = 'JDS_Results_'+list_of_folder_names[folder_no].split('/')[-2]
+    result_folder_name =  list_of_folder_names[folder_no].split('/')[-2]
+    if where_save_pics == 0:
+        result_path = path_to_DAT_files + 'JDS_Results_' + result_folder_name
+    else:
+        result_path = list_of_folder_names[folder_no] + 'JDS_Results_' + result_folder_name
+
 
     for file in range (len(file_name_list_current)):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
@@ -162,12 +169,19 @@ for folder_no in range (num_of_folders):
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
     #DAT_result_path = list_of_folder_names[folder_no].replace('/','_').replace(':','')[:-1]
-    DAT_result_path = list_of_folder_names[folder_no].split('/')[-2]
+    #DAT_result_path = list_of_folder_names[folder_no].split('/')[-2]
+
+    # Making path to folder with result pictures
+    if where_save_pics == 0:
+        DAT_result_path = path_to_DAT_files
+    else:
+        DAT_result_path = list_of_folder_names[folder_no]
+
 
     # Run DAT reader for the resuls of current folder
-    done_or_not = DAT_file_reader(path_to_results, DAT_file_name, DAT_file_list, DAT_result_path, averOrMin,
-                                0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
-                                RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+    done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
+                                  averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                                  RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 
 

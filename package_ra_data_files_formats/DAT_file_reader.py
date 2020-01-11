@@ -34,7 +34,8 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 #                         M A I N    F U N C T I O N                           *
 #*******************************************************************************
 
-def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan,
+def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, result_folder_name,
+                    averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan,
                     VminNormMan, VmaxNormMan, RFImeanConst, customDPI, colormap,
                     ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
                     freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
@@ -149,7 +150,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, av
 
 
         # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-        newpath = common_path + 'DAT_Results_' + DAT_result_path
+        newpath = DAT_result_path + 'DAT_Results_' +  result_folder_name
         if not os.path.exists(newpath):
             os.makedirs(newpath)
 
