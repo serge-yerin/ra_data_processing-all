@@ -15,7 +15,7 @@ Software_version = '2020.01.19'
 # Directory of files to be analyzed:
 directory = 'DATA/'  #
 
-no_of_spectra_to_average = 64   # Number of spectra to average for dynamic spectra (64)
+no_of_spectra_to_average = 32   # Number of spectra to average for dynamic spectra (64)
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 10                   # Upper limit of figure dynamic range for normalized spectra
