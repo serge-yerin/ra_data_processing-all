@@ -9,18 +9,18 @@ Software_version = '2019.05.08'
 common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'C091019_125137.jds_Data_chA.dat'
+filename = common_path + 'E220213_201455.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
-typesOfData = ['chA', 'chB']
+typesOfData = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 #freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
 freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
 #freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
-averOrMin = 1                    # Use average value (0) per data block or minimum value (1)
+averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range

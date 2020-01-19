@@ -59,4 +59,4 @@ if __name__ == '__main__':
             wf_data = np.fromfile(file, dtype='i2', count = no_of_spectra_to_average * data_block_size)
             wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_to_average], order='F')
 
-            JDS_WF_time(wf_data, CLCfrq, data_block_size)
+            time_block = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
