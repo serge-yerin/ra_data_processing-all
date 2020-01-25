@@ -262,35 +262,27 @@ for fileNo in range(len(fileList)):   # loop by files
                 wf_data_chB[:,:] = wf_data_new[1:(2 * data_block_size):2, :]        # Separation to channel B
                 del wf_data_new
 
-            # Calculation of spectra
+            # preparing matrices for spectra
             spectra_chA = np.zeros_like(wf_data_chA)
             if Channel == 2:
                 spectra_chB = np.zeros_like(wf_data_chB)
 
+            # Calculation of spectra
             for i in range(no_of_spectra_to_average):
                 spectra_chA[:, i] = np.power(np.abs(np.fft.fft(wf_data_chA[:, i])), 2)
                 if Channel == 2:  # Two channels mode
                     spectra_chB[:, i] = np.power(np.abs(np.fft.fft(wf_data_chB[:, i])), 2)
 
-            # Storing only second (right) mirror part of spectra
-            spectra_chA = spectra_chA[int(data_block_size/2): data_block_size, :]
-
-            # The normal sequence of spectra data in the script  is taken to be of
-            # inverse spectra which is obtained with 33 MHz clock and 16.5-33 MHz
-            # frequency range. To obtain the normal spectra for 1 channel, 66 MHz
-            # clock and full 0-33 MHz range the spectra must be flipped, that's
-            # what is done in the next two lines
-            if (Channel == 0 and int(CLCfrq/1000000) == 66) or (Channel == 1 and int(CLCfrq/1000000) == 66):
-                spectra_chA = np.flipud(spectra_chA)
-
+            # Storing only first (left) mirror part of spectra
+            spectra_chA = spectra_chA[: int(data_block_size/2), :]
             if Channel == 2:
-                spectra_chB = spectra_chB[int(data_block_size/2): data_block_size, :]
+                spectra_chB = spectra_chB[: int(data_block_size/2), :]
 
-            # For new receiver (temporary):
-            if Channel == 2 and int(CLCfrq / 1000000) == 80:
+            # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
+            if int(CLCfrq/1000000) == 33:
                 spectra_chA = np.flipud(spectra_chA)
-                spectra_chB = np.flipud(spectra_chB)
-
+                if Channel == 2:
+                    spectra_chB = np.flipud(spectra_chB)
 
             # Plotting first waveform block and first immediate spectrum in a file
             if av_sp == 0:      # First data block in a file
