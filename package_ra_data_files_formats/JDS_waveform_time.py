@@ -1,30 +1,41 @@
-'''
-'''
 import numpy as np
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 
 def JDS_waveform_time(wf_data, clock_frequency, data_block_size):
     '''
+    Takes raw data from JDS waveform file and returns string array of time for each data block
+    Input:
+        wf_data - batch of WF data several blocks from file
+        clock_frequency - clock frequency from file header
+        data_block_size - size of data block
+    Output:
+        timeline_block_str - string array of time for each data block in batch
     '''
 
-    # The frequency meter of the receiver measures frequency roughly, and the clock
-    # frequency comes from precision clock generator, so we round the measured frequency to
-    # exact 66 or 33 MHz
-    clock_frequency = int(clock_frequency/10**6) * 10**6
+    # The frequency meter of the receiver measures frequency roughly, usually the clock frequency comes
+    #  from precision clock generator, so we round the measured frequency to exact 66 or 33 MHz
 
-    second_of_day = np.uint32(wf_data[data_block_size - 2, :]) + np.power(2, 16) * np.uint32(wf_data[data_block_size - 1, :])
-    phase_of_second = (np.uint32(wf_data[data_block_size - 4, :]) + np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :]))
+    clock_frequency = int(clock_frequency/10**6) * 10**6
+    A = np.uint32(int('00000000000000000000000000000001', 2))  # To separate 1 bit of second part of second of the day
+    B = np.uint32(int('00000111111111111111111111111111', 2))  # To separate 0-26 bits of phase of second
+
+    second_of_day = np.uint32(wf_data[data_block_size - 2, :]) + np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[data_block_size - 1, :], A))
+
+    phase_of_second = np.uint32(wf_data[data_block_size - 4, :]) + np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
+    phase_of_second[:] = np.uint32(np.bitwise_and(phase_of_second[:], B))
 
     hour = np.floor(second_of_day[:] / 3600)
     minutes = np.floor(((second_of_day[:] / 3600) % 1) * 60)
     seconds = np.zeros(len(hour))
-    for i in range (len(hour)):
+    for i in range(len(hour)):
         seconds[i] = second_of_day[i] - (hour[i] * 3600) - (minutes[i] * 60) + (np.float(phase_of_second[i]) / clock_frequency)
 
     timeline_block_str = ['' for x in range(len(hour))]
     for i in range (len(hour)):
-        timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + ':' + ''.join("{:02.6f}".format(seconds[i]))
-    #for i in range (len(hour)):
+        # timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + ':' + ''.join("{:02.6f}".format(seconds[i]))
+        timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + \
+                                ':' + ''.join("{:09.6f}".format(seconds[i]))
+    #for i in range(len(hour)):
     #    print(timeline_block_str[i], '    ', phase_of_second[i])
 
     return timeline_block_str

@@ -21,7 +21,7 @@ VminNorm = 0                    # Lower limit of figure dynamic range for normal
 VmaxNorm = 10                   # Upper limit of figure dynamic range for normalized spectra
 colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300                 # Resolution of images of dynamic spectra
-save_long_file_aver = 1         # Save long data file of averaged spectra? (1 - yes, 0 - no)
+save_long_file_aver = 0         # Save long data file of averaged spectra? (1 - yes, 0 - no)
 dyn_spectr_save_init = 1        # Save dynamic spectra pictures before normalizing (1 = yes, 0 = no) ?
 dyn_spectr_save_norm = 1        # Save dynamic spectra pictures after normalizing (1 = yes, 0 = no) ?
 
@@ -112,6 +112,8 @@ print('\n  First file header parameters: \n')
     CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
     df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(directory + fileList[0], 0, 1)
 
+CLCfrq = 80
+
 # Main loop by files start
 for fileNo in range(len(fileList)):   # loop by files
     print('\n\n  *  File ', str(fileNo+1), ' of', str(len(fileList)))
@@ -165,6 +167,10 @@ for fileNo in range(len(fileList)):   # loop by files
     if Channel == 2 or (Channel == 0 and int(CLCfrq/1000000) == 33) or (Channel == 1 and int(CLCfrq/1000000) == 33):
         FreqPointsNum = 8192
         frequency = np.linspace(16.5, 33.0, FreqPointsNum)
+    # For new receiver (temporary):
+    if Channel == 2 and int(CLCfrq/1000000) == 80:
+        FreqPointsNum = 8192
+        frequency = np.linspace(0.0, 40.0, FreqPointsNum)
 
     # Calculation of number of blocks and number of spectra in the file
     if Channel == 0 or Channel == 1:    # Single channel mode
@@ -279,6 +285,12 @@ for fileNo in range(len(fileList)):   # loop by files
 
             if Channel == 2:
                 spectra_chB = spectra_chB[int(data_block_size/2): data_block_size, :]
+
+            # For new receiver (temporary):
+            if Channel == 2 and int(CLCfrq / 1000000) == 80:
+                spectra_chA = np.flipud(spectra_chA)
+                spectra_chB = np.flipud(spectra_chB)
+
 
             # Plotting first waveform block and first immediate spectrum in a file
             if av_sp == 0:      # First data block in a file

@@ -65,6 +65,11 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
     DMAinter = np.right_shift ((DSPmode & 2147483648), 31)
 
     dataBlockSize = struct.unpack('i', file.read(4))[0] # No info
+
+    # Only for test recordings of new receiver
+    if dataBlockSize == 0:
+        dataBlockSize = 16384
+
     if (print_or_not == 1): print (' Data block size:               ', dataBlockSize)
 
     prcMode       = struct.unpack('i', file.read(4))[0]
@@ -116,8 +121,16 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
     df_softvers = file.read(16).decode('utf-8').rstrip('\x00')       #
     df_DSP_vers = file.read(32).decode('utf-8').rstrip('\x00')       #
 
+    # Only for test recordings of new receiver
+    if CLCfrq == 0.0:
+        CLCfrq = 80000000.0
+    if Hb == 0:
+        Hb = 8192
+    if Wb == 0:
+        Wb = 8192
+
     if (print_or_not == 1):
-        print ('')
+        print('')
         if Mode == 0:
             print (' Mode:                           Waveform')
             if Wch == 0:
@@ -138,46 +151,48 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         print (' GPS synchronization (0-On):    ', Synch)
         if Mode == 0:
             if Navr == 2:
-                print (' Data records:                   without time gaps \n\n')
+                print(' Data records:                   without time gaps \n\n')
             else:
-                print (' Data records:                   probable time gaps \n\n')
+                print(' Data records:                   probable time gaps \n\n')
         else:
-            print (' Number of averaged spectra:    ', Navr, '\n\n')
+            print(' Number of averaged spectra:    ', Navr, '\n\n')
 
         if Mode == 0:
             print(' IN WAVEFORM MODE FREQUENCY AND TIME PARAMETERS DO NOT HAVE SENSE !')
             print(' They are listed here just to show all possible parameters of file \n\n')
 
-        print (' Snap shot Mode (always 1):     ', SSht)
-        print (' Smd:                           ', Smd)
-        print (' Offt:                          ', Offt)
-        print (' Lowest channel number:         ', Lb)
-        print (' Highest channel number:        ', Hb)
-        print (' Number of channels:            ', Wb)
-        print (' CAvr:                          ', CAvr)
-        if Weight == 0:  print (' Weightning window:              On')
-        if Weight == 1:  print (' Weightning window:              Off')
-        if DCRem == 0:   print (' DC removing:                    No')
-        if DCRem == 1:   print (' DC removing:                    Yes')
-        if Ch1 == 0:     print (' Channel 1:                      On')
-        if Ch1 == 1:     print (' Channel 1:                      Off')
-        if Ch2 == 0:     print (' Channel 2:                      On')
-        if Ch2 == 1:     print (' Channel 2:                      Off')
-        if ExtWin == 0:  print (' External FFT window:            No')
-        if ExtWin == 1:  print (' External FFT window:            Yes')
-        print (' Clip:                          ', Clip)
-        print (' HPF0:                          ', HPF0)
-        print (' HPF1:                          ', HPF1)
-        print (' LPF0:                          ', LPF0)
-        print (' LPF1:                          ', LPF1)
-        print (' ATT0:                          ', ATT0)
-        print (' ATT1:                          ', ATT1)
+        print(' Snap shot Mode (always 1):     ', SSht)
+        print(' Smd:                           ', Smd)
+        print(' Offt:                          ', Offt)
+        print(' Lowest channel number:         ', Lb)
+        print(' Highest channel number:        ', Hb)
+        print(' Number of channels:            ', Wb)
+        print(' CAvr:                          ', CAvr)
+        if Weight == 0:  print(' Weightning window:              On')
+        if Weight == 1:  print(' Weightning window:              Off')
+        if DCRem == 0:   print(' DC removing:                    No')
+        if DCRem == 1:   print(' DC removing:                    Yes')
+        if Ch1 == 0:     print(' Channel 1:                      On')
+        if Ch1 == 1:     print(' Channel 1:                      Off')
+        if Ch2 == 0:     print(' Channel 2:                      On')
+        if Ch2 == 1:     print(' Channel 2:                      Off')
+        if ExtWin == 0:  print(' External FFT window:            No')
+        if ExtWin == 1:  print(' External FFT window:            Yes')
+        print(' Clip:                          ', Clip)
+        print(' HPF0:                          ', HPF0)
+        print(' HPF1:                          ', HPF1)
+        print(' LPF0:                          ', LPF0)
+        print(' LPF1:                          ', LPF1)
+        print(' ATT0:                          ', ATT0)
+        print(' ATT1:                          ', ATT1)
 
-        print (' Softvare name:                 ', df_softname)
-        print (' Softvare version:              ', df_softvers)
-        print (' DSP soft version:              ', df_DSP_vers)
-        print ('\n')
+        print(' Softvare name:                 ', df_softname)
+        print(' Softvare version:              ', df_softvers)
+        print(' DSP soft version:              ', df_DSP_vers)
+        print('\n')
 
+    if Navr == 0:
+        Navr = 2
 
     # *** Temporal and frequency resolutions ***
     Sfft = 8192.0
@@ -222,7 +237,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
 
 if __name__ == '__main__':
 
-    filename = 'DATA/E250714_130330.jds'
+    filename = 'DATA/A191022_070249-001.jds'
 
     print('\n\n Parameters of the file: ')
 
