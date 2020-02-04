@@ -11,6 +11,9 @@ common_path = 'DATA/'
 # Directory of DAT file to be analyzed:
 #filename = 'E300117_180000.jds_Data_chA.dat'
 filename = 'E220213_201455.jds_Data_chA.dat'
+no_of_averged_spectra = 32     # Number of spectra averaged while making DAT file from waveform
+
+pulsar_name = 'B0950+08'
 
 average_const = 192            # Number of frequency channels to average in result picture
 prifile_pic_min = -0.1         # Minimum limit of profile picture
@@ -32,9 +35,7 @@ freqStop = 30.0
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
-DM = 2.9730     # 'B0950+08'
-# DM = 5.750    # 'B0809+74'
-# DM = 45.325   # 'J0250+5854'
+
 #*************************************************************
 
 
@@ -67,6 +68,7 @@ from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes impor
 from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
 from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value
 from package_plot_formats.plot_formats import plot1D, plot2Da
+from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 
 def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, average_const, filename, colormap, customDPI, currentDate, currentTime, Software_version):
@@ -148,8 +150,10 @@ if receiver_type == '.jds':
     CLCfrq, df_creation_timeUTC, sp_in_file, ReceiverMode, Mode, Navr,
     TimeRes, fmin, fmax, df, frequency_list, FFTsize, dataBlockSize] = FileHeaderReaderJDS(data_filename, 0, 1)
 
-TimeRes = 0.007936
+TimeRes = TimeRes * no_of_averged_spectra # Calculation of time resolution for averaged waveform data
 sp_in_file = int(((df_filesize - 1024)/(len(frequency_list) * 8))) # the second dimension of the array: file size - 1024 bytes
+
+pulsar_ra, pulsar_dec, DM = catalogue_pulsar(pulsar_name)
 #************************************************************************************
 #                            R E A D I N G   D A T A                                *
 #************************************************************************************

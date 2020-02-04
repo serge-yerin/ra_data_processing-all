@@ -2,8 +2,7 @@
 # pip install progress
 #
 #   !!!! NOT FINISHED !!!
-# Add storing data files of raw and averaged data
-# Improve time reading (for new receiver)
+# Add storing data files of raw data
 # Read frequency list from header, not create it
 #
 Software_version = '2020.01.19'
@@ -21,8 +20,8 @@ VminNorm = 0                    # Lower limit of figure dynamic range for normal
 VmaxNorm = 10                   # Upper limit of figure dynamic range for normalized spectra
 colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300                 # Resolution of images of dynamic spectra
-save_long_file_aver = 0         # Save long data file of averaged spectra? (1 - yes, 0 - no)
-dyn_spectr_save_init = 1        # Save dynamic spectra pictures before normalizing (1 = yes, 0 = no) ?
+save_long_file_aver = 1         # Save long data file of averaged spectra? (1 - yes, 0 - no)
+dyn_spectr_save_init = 0        # Save dynamic spectra pictures before normalizing (1 = yes, 0 = no) ?
 dyn_spectr_save_norm = 1        # Save dynamic spectra pictures after normalizing (1 = yes, 0 = no) ?
 
 # ###############################################################################
@@ -112,7 +111,7 @@ print('\n  First file header parameters: \n')
     CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
     df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(directory + fileList[0], 0, 1)
 
-CLCfrq = 80
+# CLCfrq = 80
 
 # Main loop by files start
 for fileNo in range(len(fileList)):   # loop by files
