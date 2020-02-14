@@ -135,6 +135,9 @@ for fileNo in range(len(fileList)):   # loop by files
             # *** Data file header read ***
             file_header = file.read(1024)
 
+
+        #file_header[624] = Navr * no_of_spectra_to_average
+
         # *** Creating a name for long timeline TXT file ***
         TLfile_name = df_filename + '_Timeline.txt'
         TLfile = open(TLfile_name, 'w')  # Open and close to delete the file with the same name
@@ -144,6 +147,8 @@ for fileNo in range(len(fileList)):   # loop by files
         file_data_A_name = df_filename + '_Data_chA.dat'
         file_data_A = open(file_data_A_name, 'wb')
         file_data_A.write(file_header)
+        file_data_A.seek(636) # 708 724
+        file_data_A.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
         file_data_A.close()
 
         if Channel == 2:
@@ -188,7 +193,7 @@ for fileNo in range(len(fileList)):   # loop by files
 
     # Real time resolution of averaged spectra
     real_av_spectra_dt = (1 / fine_CLCfrq) * (data_block_size-4) * no_of_spectra_to_average
-    print(' Time resolution of averaged spectrum:  ', round(real_av_spectra_dt*1000, 3), ' ms.')
+    print(' Time resolution of averaged spectrum: ', round(real_av_spectra_dt*1000, 3), ' ms.')
 
     # *******************************************************************************
     #                           R E A D I N G   D A T A                             *

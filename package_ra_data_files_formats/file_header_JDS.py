@@ -25,7 +25,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
     file.seek(start_byte) # Jump to the start of the header info
 
     # reading FHEADER
-    df_filesize = (os.stat(filepath).st_size)                               # Size of file
+    df_filesize = (os.stat(filepath).st_size)                            # Size of file
     df_filename = file.read(32).decode('utf-8').rstrip('\x00')           # Initial data file name
     df_creation_timeLOC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in local time
     df_creation_timeUTC = file.read(32).decode('utf-8').rstrip('\x00')   # Creation time in UTC time
@@ -150,6 +150,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         if ExtSyn == 1:  print (' Synchronization:                External')
         print (' GPS synchronization (0-On):    ', Synch)
         if Mode == 0:
+            print(' Navr:                          ', Navr, '\n\n')
             if Navr == 2:
                 print(' Data records:                   without time gaps \n\n')
             else:
@@ -196,7 +197,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
 
     # *** Temporal and frequency resolutions ***
     Sfft = 8192.0
-    TimeRes = Navr * (Sfft / CLCfrq);
+    TimeRes = Navr * (Sfft / CLCfrq)
     df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
     if (print_or_not == 1):
         print (' Temporal resolution:           ', round((TimeRes*1000), 3), '  ms')
