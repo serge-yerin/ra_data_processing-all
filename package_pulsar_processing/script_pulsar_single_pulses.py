@@ -6,12 +6,11 @@ Software_version = '2019.12.14'
 #                        PARAMETERS                          *
 #*************************************************************
 # Path to data files
-common_path = 'DATA/'
+common_path = ''
 
 # Directory of DAT file to be analyzed:
 #filename = 'E300117_180000.jds_Data_chA.dat'
 filename = 'E220213_201455.jds_Data_chA.dat'
-no_of_averged_spectra = 32     # Number of spectra averaged while making DAT file from waveform
 
 pulsar_name = 'B0950+08'
 
@@ -150,7 +149,6 @@ if receiver_type == '.jds':
     CLCfrq, df_creation_timeUTC, sp_in_file, ReceiverMode, Mode, Navr,
     TimeRes, fmin, fmax, df, frequency_list, FFTsize, dataBlockSize] = FileHeaderReaderJDS(data_filename, 0, 1)
 
-TimeRes = TimeRes * no_of_averged_spectra # Calculation of time resolution for averaged waveform data
 sp_in_file = int(((df_filesize - 1024)/(len(frequency_list) * 8))) # the second dimension of the array: file size - 1024 bytes
 
 pulsar_ra, pulsar_dec, DM = catalogue_pulsar(pulsar_name)
@@ -185,7 +183,8 @@ else:
 
 num_of_blocks = int(sp_in_file / (1 * max_shift))
 
-print (' Maximal shift is:              ', max_shift, ' pixels \n')
+print (' Number of spectra in file:     ', sp_in_file, ' ')
+print (' Maximal shift is:              ', max_shift, ' pixels ')
 print (' Number of blocks in file:      ', num_of_blocks, ' \n')
 
 
@@ -205,8 +204,8 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
     # Data block reading
     if receiver_type == '.jds':
-        data = np.fromfile(dat_file, dtype=np.float64, count = (num_frequencies_initial+4) * 2 * max_shift)
-        data = np.reshape(data, [(num_frequencies_initial+4), 2 * max_shift], order='F')
+        data = np.fromfile(dat_file, dtype=np.float64, count = (num_frequencies_initial+4) * 1 * max_shift)   # 2
+        data = np.reshape(data, [(num_frequencies_initial+4), 1 * max_shift], order='F')  # 2
         data = data[ : num_frequencies_initial, :] # To delete the last channels of DSP spectra data where exact time is stored
 
 
@@ -217,7 +216,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
 
     # Normalization of data
-    Normalization_lin(data, num_frequencies, 2 * max_shift)
+    Normalization_lin(data, num_frequencies, 1 * max_shift)  # 2
 
     nowTime = time.time()
     print ('\n  *** Preparation of data took:              ', round((nowTime - previousTime), 2), 'seconds ')
@@ -276,7 +275,11 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
 
     # Dispersion compensation
-    temp_array = pulsar_DM_compensation_with_indices_changes(data, shift_vector)
+    data_space = np.zeros((num_frequencies, 2 * max_shift))
+    data_space[:, max_shift : ] = data[:,:]
+    temp_array = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
+    del data, data_space
+
 
     nowTime = time.time()
     print ('\n  *** Dispersion compensation took:          ', round((nowTime - previousTime), 2), 'seconds ')
