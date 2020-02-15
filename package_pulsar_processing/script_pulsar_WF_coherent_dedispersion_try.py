@@ -13,7 +13,7 @@ Software_name = 'Coherent dispersion compensation'
 directory = 'DATA/' # 'DATA/'
 
 pulsar_name = 'B0950+08'
-no_of_spectra_to_average = 128
+no_of_spectra_to_average = 1
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 5                    # Upper limit of figure dynamic range for normalized spectra
 colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -27,9 +27,15 @@ customDPI = 300                 # Resolution of images of dynamic spectra
 # Common functions
 import matplotlib.pyplot as plt
 import os
+import sys
 import numpy as np
 import time
 import pylab
+from os import path
+
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
@@ -44,13 +50,18 @@ def make_long_spectra_files_from_wf(directory, fileList, result_folder):
     Makes fft and saves spectra to the long data files
     '''
     # Preparing long data files
-    # Writing first WF data file header to the header of long data file
+
     fname = directory + fileList[0]
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
      df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(fname, 0, 1)
 
     no_of_av_spectra_per_file = int((df_filesize - 1024) / (2 * data_block_size * no_of_spectra_to_average))
+
+    no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
+    print(' Number of blocks in file:             ', no_of_blocks_in_file)
+
+    no_of_block_in_batch = int(no_of_blocks_in_file / 16)
 
     with open(fname, 'rb') as file:
         # *** Data file header read ***
@@ -72,7 +83,7 @@ def make_long_spectra_files_from_wf(directory, fileList, result_folder):
     file_data_im.write(file_header)
     file_data_im.close()
 
-    for fileNo in range(1):  # len(fileList) loop by files
+    for fileNo in range(len(fileList)):  # loop by files
         print('\n\n\n  *  File ', str(fileNo + 1), ' of', str(len(fileList)))
         print('  *  File path: ', str(fileList[fileNo]))
 
@@ -94,18 +105,22 @@ def make_long_spectra_files_from_wf(directory, fileList, result_folder):
 
         with open(fname, 'rb') as file:
             file.seek(1024)  # Jumping to 1024 byte from file beginning #+ (sizeOfChunk+8) * chunkSkip
-
-            for av_sp in range(no_of_av_spectra_per_file):  # no_of_av_spectra_per_file
-
+            TimeScaleFull = []
+            #for av_sp in range(no_of_av_spectra_per_file):  # no_of_av_spectra_per_file
+            for av_sp in range(no_of_av_spectra_per_file):  #
+                print(av_sp)
                 # Reading and reshaping all data with readers
                 if Channel == 0 or Channel == 1:  # Single channel mode
 
                     wf_data = np.fromfile(file, dtype='i2', count=no_of_spectra_to_average * data_block_size)
+                    #wf_data = np.fromfile(file, dtype='i2', count=no_of_block_in_batch * data_block_size)
                     wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_to_average], order='F')
+                    #wf_data = np.reshape(wf_data, [data_block_size, no_of_block_in_batch], order='F')
 
-                # Timing aquirement
-                # timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
-                # TimeScaleFig.append(timeline_block_str[-1][0:12])
+                # Timing
+                timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+                #TimeScaleFig.append(timeline_block_str[-1][0:12])
+                TimeScaleFull.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[-1][0:12])
 
                 # Nulling the time blocks in waveform data
                 wf_data[data_block_size - 4: data_block_size, :] = 0
@@ -145,6 +160,11 @@ def make_long_spectra_files_from_wf(directory, fileList, result_folder):
                 file_data_im.write(temp)
                 file_data_im.close()
 
+                # Saving time data to ling timeline file
+                #with open(TLfile_name, 'a') as TLfile:
+                #    for i in range(no_of_av_spectra_per_file):
+                #        TLfile.write((TimeScaleFull[i][:]) + ' \n')  # str
+
     return file_data_re_name, file_data_im_name, TLfile_name
 
 
@@ -178,12 +198,12 @@ fileList = find_files_only_in_current_folder(directory, '.jds', 1)
 
 # Make long data files
 
-# file_data_re_name, file_data_im_name, TLfile_name = make_long_spectra_files_from_wf(directory, fileList, result_folder)
+file_data_re_name, file_data_im_name, TLfile_name = make_long_spectra_files_from_wf(directory, fileList, result_folder)
 
 
-file_data_re_name = 'DATA/TEMP_WF/E220213_201455.jds_Data_WRe.dat'
-file_data_im_name = 'DATA/TEMP_WF/E220213_201455.jds_Data_WIm.dat'
-TLfile_name = 'DATA/TEMP_WF/E220213_201455.jds_Timeline.txt'
+#file_data_re_name = 'DATA/TEMP_WF/E220213_201455.jds_Data_WRe.dat'
+#file_data_im_name = 'DATA/TEMP_WF/E220213_201455.jds_Data_WIm.dat'
+#TLfile_name = 'DATA/TEMP_WF/E220213_201455.jds_Timeline.txt'
 
 # Compensate DM for both long data files
 
