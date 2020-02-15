@@ -14,7 +14,7 @@ filename = 'E220213_201455.jds_Data_chA.dat'
 
 pulsar_name = 'B0950+08'
 
-average_const = 192            # Number of frequency channels to average in result picture
+average_const = 512            # Number of frequency channels to average in result picture
 prifile_pic_min = -0.1         # Minimum limit of profile picture
 prifile_pic_max = 0.5          # Maximum limit of profile picture
 
