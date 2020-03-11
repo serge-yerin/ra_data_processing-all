@@ -286,7 +286,7 @@ def JDS_file_reader(fileList, result_path, MaxNsp, spSkip, RFImeanConst,
 
                     # *** Saving immediate spectrum to file ***
                     if(SpecterFileSaveSwitch == 1 and figID == 0):
-                        SpFile = open('JDS_Results/Service/Specter_'+df_filename[0:14]+'.txt', 'w')
+                        SpFile = open(result_path + '/Service/' +'Specter_'+df_filename[0:14]+'.txt', 'w')
                         for i in range(FreqPointsNum-1):
                             if Mode == 1:
                                 SpFile.write(str('{:10.6f}'.format(frequency[i]))+'  '+str('{:16.10f}'.format(Data_ChA[ImmediateSpNo][i]))+'  '+str('{:16.10f}'.format(Data_ChB[ImmediateSpNo][i]))+' \n')
