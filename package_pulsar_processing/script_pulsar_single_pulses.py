@@ -10,7 +10,7 @@ common_path = ''
 
 # Directory of DAT file to be analyzed:
 #filename = 'E300117_180000.jds_Data_chA.dat'
-filename = 'E220213_201455.jds_Data_chA.dat'
+filename = 'E220213_201439.jds_Data_chA.dat'
 
 pulsar_name = 'B0950+08'
 
@@ -18,6 +18,7 @@ average_const = 512            # Number of frequency channels to average in resu
 prifile_pic_min = -0.1         # Minimum limit of profile picture
 prifile_pic_max = 0.5          # Maximum limit of profile picture
 
+cleaning_Iana = 1
 cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
 # Parameters of vertical and horizontal lines cleaning
 no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
@@ -66,6 +67,8 @@ from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_s
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
 from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value
+from package_cleaning.survey_cleaning import survey_cleaning
+
 from package_plot_formats.plot_formats import plot1D, plot2Da
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
@@ -222,6 +225,8 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     print ('\n  *** Preparation of data took:              ', round((nowTime - previousTime), 2), 'seconds ')
     previousTime = nowTime
 
+    if cleaning_Iana > 0:
+        data = survey_cleaning(data)  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     if cleaning > 0:
 
