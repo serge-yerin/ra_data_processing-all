@@ -1,5 +1,6 @@
 # Python3
-Software_version = '2019.12.14'
+Software_version = '2020.03.14'
+Software_name = 'Pulsar single pulses processing pipeline'
 # Program intended to read and show individual pulses of pulsars from DAT files
 
 #*************************************************************
@@ -50,7 +51,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from os import path
 from matplotlib import rc
-from datetime import datetime
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -60,14 +60,13 @@ from package_ra_data_processing.spectra_normalization import Normalization_lin
 from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
 from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value
 from package_cleaning.survey_cleaning import survey_cleaning
-
-from package_plot_formats.plot_formats import plot1D, plot2Da
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 
@@ -79,7 +78,6 @@ def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, fig_t
 
     # Averaging of the array with pulses for picture
     averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
-    #del array_compensated_DM
 
     # Making result picture
     fig = plt.figure(figsize = (9.2, 4.5))
@@ -108,37 +106,13 @@ def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, fig_t
     pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
     plt.close('all')
 
-def time_line_file_reader(time_line_file_name):
-    '''
-    Reading timeline file and store data in text and datetime data format
-    '''
-    # Reading text timeline data from file
-    tl_file = open(time_line_file_name, 'r')
-    timeline = []
-    for line in tl_file:
-        timeline.append(str(line))
-    tl_file.close()
-
-    # Converting text to ".datetime" data format
-    dt_timeline = []
-    for i in range(len(timeline)):
-        # Check is the uS field is empty. If so it means it is equal to '000000'
-        uSecond = timeline[i][20:26]
-        if len(uSecond) < 2: uSecond = '000000'
-
-        dt_timeline.append(
-            datetime(int(timeline[i][0:4]),   int(timeline[i][5:7]),   int(timeline[i][8:10]), int(timeline[i][11:13]),
-                     int(timeline[i][14:16]), int(timeline[i][17:19]), int(uSecond)))
-
-    return timeline, dt_timeline
-
 
 #*************************************************************
 #                       MAIN PROGRAM                         *
 #*************************************************************
 print(' \n\n\n\n\n\n\n\n')
 print('   *****************************************************************')
-print('   *    Pulsar single pulses processing pipeline v.', Software_version,'    *      (c) YeS 2019')
+print('   *   ', Software_name, ' v.', Software_version,'   *      (c) YeS 2020')
 print('   ***************************************************************** \n\n\n')
 
 startTime = time.time()
@@ -212,8 +186,6 @@ if SpecFreqRange == 1:
     buffer_array = np.zeros((ifmax - ifmin, 2 * max_shift))
 else:
     buffer_array = np.zeros((len(frequency_list) - 4, 2 * max_shift))
-
-#plot1D(shift_vector, newpath+'/01 - Shift parameter.png', 'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', customDPI)
 
 num_of_blocks = int(sp_in_file / (1 * max_shift))
 
@@ -327,8 +299,6 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     nowTime = time.time()
     print ('\n  *** Dispersion compensation took:          ', round((nowTime - previousTime), 2), 'seconds ')
     previousTime = nowTime
-
-    #plot2Da(temp_array, newpath+'/05 '+ ' fig. ' +str(block+1)+' - DM compensated data.png', frequency_list, np.min(temp_array), np.max(temp_array), colormap, 'DM compensated data', customDPI)
 
     # Adding the next data block
     buffer_array += temp_array
