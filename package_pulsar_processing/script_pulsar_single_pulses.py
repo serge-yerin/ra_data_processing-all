@@ -18,7 +18,7 @@ average_const = 512            # Number of frequency channels to average in resu
 prifile_pic_min = -0.1         # Minimum limit of profile picture
 prifile_pic_max = 0.5          # Maximum limit of profile picture
 
-cleaning_Iana = 1
+cleaning_Iana = 0
 cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
 # Parameters of vertical and horizontal lines cleaning
 no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
@@ -44,15 +44,13 @@ colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or
 #*************************************************************
 import os
 import sys
-import math
 import time
 import pylab
-import struct
 import numpy as np
 import matplotlib.pyplot as plt
 from os import path
 from matplotlib import rc
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -73,8 +71,8 @@ from package_plot_formats.plot_formats import plot1D, plot2Da
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 
-def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, average_const, filename, colormap, customDPI, currentDate, currentTime, Software_version):
-    #plot2Da(array_compensated_DM, newpath+'/07' + ' fig. ' +str(block+1)+' - Only full ready data.png', frequency_list, np.min(array_compensated_DM), np.max(array_compensated_DM), colormap, 'Only full ready data', customDPI)
+def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, fig_time_scale, average_const, filename,
+                    pulsar_name, fig_no, fig_num, colormap, customDPI, currentDate, currentTime, Software_version):
 
     profile = array_compensated_DM.mean(axis=0)[:]
     profile = profile - np.mean(profile)
@@ -84,10 +82,11 @@ def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, avera
     #del array_compensated_DM
 
     # Making result picture
-    fig = plt.figure(figsize = (9, 6))
+    fig = plt.figure(figsize = (9.2, 4.5))
+    rc('font', size=5, weight='bold')
     ax1 = fig.add_subplot(211)
     ax1.plot(profile, color =u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '1.00', label = 'Pulses time profile')
-    ax1.legend(loc = 'upper right', fontsize = 6)
+    ax1.legend(loc = 'upper right', fontsize = 5)
     ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
     ax1.axis([0, len(profile), prifile_pic_min, prifile_pic_max])
     ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
@@ -95,16 +94,43 @@ def plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, avera
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
     ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
-    ax2.set_xlabel('Time, counts', fontsize=6, fontweight='bold')
+    ax2.set_xlabel('Time, HH:MM:SS.ms', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
+    text = ax2.get_xticks().tolist()
+    for i in range(len(text)-1):
+        k = int(text[i])
+        text[i] = fig_time_scale[k]
+    ax2.set_xticklabels(text, fontsize = 5, fontweight = 'bold')
     fig.subplots_adjust(hspace=0.05, top=0.92)
-    fig.suptitle('Single pulses of pulsar, fig. ' + str(block+1), fontsize = 8, fontweight='bold')
-    fig.text(0.77, 0.06, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.06, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    fig.suptitle('Single pulses of '+pulsar_name+', fig. ' + str(fig_no) + ' of ' + str(fig_num), fontsize = 7, fontweight='bold')
+    fig.text(0.77, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
     pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
     plt.close('all')
 
+def time_line_file_reader(time_line_file_name):
+    '''
+    Reading timeline file and store data in text and datetime data format
+    '''
+    # Reading text timeline data from file
+    tl_file = open(time_line_file_name, 'r')
+    timeline = []
+    for line in tl_file:
+        timeline.append(str(line))
+    tl_file.close()
 
+    # Converting text to ".datetime" data format
+    dt_timeline = []
+    for i in range(len(timeline)):
+        # Check is the uS field is empty. If so it means it is equal to '000000'
+        uSecond = timeline[i][20:26]
+        if len(uSecond) < 2: uSecond = '000000'
+
+        dt_timeline.append(
+            datetime(int(timeline[i][0:4]),   int(timeline[i][5:7]),   int(timeline[i][8:10]), int(timeline[i][11:13]),
+                     int(timeline[i][14:16]), int(timeline[i][17:19]), int(uSecond)))
+
+    return timeline, dt_timeline
 
 
 #*************************************************************
@@ -132,6 +158,8 @@ newpath = "PULSAR_single_pulses"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 
+# Directory of Timeline file to be analyzed:
+time_line_file_name = common_path + filename[-31:-13] +'_Timeline.txt'
 
 # *** Opening DAT datafile ***
 file = open(data_filename, 'rb')
@@ -158,9 +186,12 @@ pulsar_ra, pulsar_dec, DM = catalogue_pulsar(pulsar_name)
 #************************************************************************************
 #                            R E A D I N G   D A T A                                *
 #************************************************************************************
-#num_frequencies = len(frequency_list)
 
-# if SpecFreqRange == 1 and (frequency_list[0]<=freqStart<=frequency_list[-1]) and (frequency_list[0]<=freqStop<=frequency_list[-1]) and (freqStart<freqStop):
+# Time line file reading
+
+timeline, dt_timeline = time_line_file_reader(time_line_file_name)
+
+# Selecting the frequency range of data to be analyzed
 if SpecFreqRange == 1:
     A = []
     B = []
@@ -204,6 +235,13 @@ dat_file.seek(1024)                     # Jumping to 1024 byte from file beginni
 for block in range (num_of_blocks):   # main loop by number of blocks in file
 
     print ('\n * Data block # ', block + 1, ' of ', num_of_blocks,'\n ******************************************************************')
+
+    # Time line arrangements:
+    fig_time_scale = []
+    for i in range (block * max_shift, (block+1) * max_shift):
+        fig_time_scale.append(timeline[i][11:23])
+    print(' Time: ', fig_time_scale[0], ' - ', fig_time_scale[-1], ', number of points: ', len(fig_time_scale))
+
 
     # Data block reading
     if receiver_type == '.jds':
@@ -297,7 +335,8 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
     # Making and filling the array with fully ready data for plotting and saving to a file
     array_compensated_DM = buffer_array[:, 0 : max_shift]
-    plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, average_const, filename, colormap, customDPI, currentDate, currentTime, Software_version)
+    plot_ready_data(array_compensated_DM, frequency_list, num_frequencies, fig_time_scale, average_const, filename,
+                    pulsar_name, block+1, num_of_blocks, colormap, customDPI, currentDate, currentTime, Software_version)
 
     # Rolling temp_array to put current data first
     buffer_array = np.roll(buffer_array, - max_shift)
