@@ -90,7 +90,7 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
     ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
-    ax2.set_xlabel('Time (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
+    ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
     text = ax2.get_xticks().tolist()
     for i in range(len(text)-1):
@@ -98,7 +98,8 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
         text[i] = fig_time_scale[k]
     ax2.set_xticklabels(text, fontsize = 5, fontweight = 'bold')
     fig.subplots_adjust(hspace=0.05, top=0.91) # top=0.92
-    fig.suptitle('Single pulses of '+pulsar_name+' (DM = '+str(DM)+r' $\mathrm{pc \cdot cm^{-3}}$'+'), fig. ' + str(fig_no) + ' of ' + str(fig_num), fontsize = 7, fontweight='bold')
+    fig.suptitle('Single pulses of '+pulsar_name+' (DM = '+str(DM)+r' $\mathrm{pc \cdot cm^{-3}}$'+'), fig. ' +
+                 str(fig_no) + ' of ' + str(fig_num), fontsize = 7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
     pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
