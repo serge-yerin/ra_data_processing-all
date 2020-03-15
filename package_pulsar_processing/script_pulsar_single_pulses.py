@@ -33,6 +33,7 @@ SpecFreqRange = 1              # Specify particular frequency range (1) or whole
 freqStart = 20.0
 freqStop = 30.0
 
+save_profile_txt = 1           # Save profile data to TXT file?
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
@@ -128,8 +129,14 @@ newpath = "RESULTS_pulsar_single_pulses"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 
-# Directory of Timeline file to be analyzed:
+# Path to timeline file to be analyzed:
 time_line_file_name = common_path + filename[-31:-13] +'_Timeline.txt'
+
+if save_profile_txt > 0:
+    # *** Creating a name for long timeline TXT file ***
+    profile_file_name = newpath + '/' + filename[-31:-13] +'_time_profile.txt'
+    profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
+    profile_txt_file.close()
 
 # *** Opening DAT datafile ***
 file = open(data_filename, 'rb')
@@ -306,6 +313,13 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     profile = array_compensated_DM.mean(axis=0)[:]
     profile = profile - np.mean(profile)
 
+    # Save full profile to TXT file
+    if save_profile_txt > 0:
+        profile_txt_file = open(profile_file_name, 'a')
+        for i in range(len(profile)):
+            profile_txt_file.write(str(profile[i]) + ' \n')
+        profile_txt_file.close()
+
     # Averaging of the array with pulses for figure
     averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
     freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
@@ -327,4 +341,4 @@ endTime = time.time()    # Time of calculations
 
 print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                 round((endTime - startTime)/60, 2), 'min. ) \n')
-print ('\n\n                 *** Program PULSAR_single_pulse_reader has finished! *** \n\n\n')
+print ('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
