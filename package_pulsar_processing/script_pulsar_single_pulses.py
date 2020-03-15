@@ -84,9 +84,9 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
     ax1.grid(b = True, which = 'both', color = 'silver', linewidth = '0.50', linestyle = '-')
     ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
     ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title('File: '+ filename + ' Description: ' + df_description + ' Averaging: '+
+    ax1.set_title('File: '+ filename + '  Description: ' + df_description + '  Averaging: '+
                   str(np.round(freq_resolution, 3))+' kHz and '+str(np.round(time_resolution*1000,3))+
-                  ' ms. Max. shift: '+ str(np.round(max_time_shift,3))+' s.', fontsize = 6)
+                  ' ms.  Max. shift: '+ str(np.round(max_time_shift,3))+' s.', fontsize = 5, fontweight='bold')
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
     ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
