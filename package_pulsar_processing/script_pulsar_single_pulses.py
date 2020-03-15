@@ -16,8 +16,8 @@ filename = 'E220213_201439.jds_Data_chA.dat'
 pulsar_name = 'B0950+08'
 
 average_const = 512            # Number of frequency channels to average in result picture
-prifile_pic_min = -0.15        # Minimum limit of profile picture
-prifile_pic_max = 0.55         # Maximum limit of profile picture
+profile_pic_min = -0.15        # Minimum limit of profile picture
+profile_pic_max = 0.55         # Maximum limit of profile picture
 
 cleaning_Iana = 0
 cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
@@ -71,8 +71,9 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 
 def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale, filename,
-                    pulsar_name, DM, freq_resolution, fig_no, fig_num, prifile_pic_min, prifile_pic_max,
-                    df_description, colormap, customDPI, currentDate, currentTime, Software_version):
+                    pulsar_name, DM, freq_resolution, time_resolution, max_time_shift, fig_no, fig_num,
+                    profile_pic_min, profile_pic_max, df_description, colormap, customDPI, currentDate,
+                    currentTime, Software_version):
 
     # Making result picture
     fig = plt.figure(figsize = (9.2, 4.5))
@@ -81,9 +82,11 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
     ax1.plot(profile, color =u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '0.60', label = 'Pulses time profile')
     ax1.legend(loc = 'upper right', fontsize = 5)
     ax1.grid(b = True, which = 'both', color = 'silver', linewidth = '0.50', linestyle = '-')
-    ax1.axis([0, len(profile), prifile_pic_min, prifile_pic_max])
+    ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
     ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title('Data file: '+ filename + ', description: ' + df_description + ', averaging: '+ str(np.round(freq_resolution, 3))+' kHz', fontsize = 6)
+    ax1.set_title('File: '+ filename + ' Description: ' + df_description + ' Averaging: '+
+                  str(np.round(freq_resolution, 3))+' kHz and '+str(np.round(time_resolution*1000,3))+
+                  ' ms. Max. shift: '+ str(np.round(max_time_shift,3))+' s.', fontsize = 6)
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
     ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
@@ -94,10 +97,10 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
         k = int(text[i])
         text[i] = fig_time_scale[k]
     ax2.set_xticklabels(text, fontsize = 5, fontweight = 'bold')
-    fig.subplots_adjust(hspace=0.05, top=0.92)
+    fig.subplots_adjust(hspace=0.05, top=0.91) # top=0.92
     fig.suptitle('Single pulses of '+pulsar_name+' (DM = '+str(DM)+r' $\mathrm{pc \cdot cm^{-3}}$'+'), fig. ' + str(fig_no) + ' of ' + str(fig_num), fontsize = 7, fontweight='bold')
-    fig.text(0.77, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+    fig.text(0.80, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
     pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
     plt.close('all')
 
@@ -305,10 +308,12 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     # Averaging of the array with pulses for figure
     averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
     freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
+    max_time_shift = max_shift * TimeRes
 
     plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale, filename,
-                    pulsar_name, DM, freq_resolution, block+1, num_of_blocks, prifile_pic_min, prifile_pic_max,
-                    df_description, colormap, customDPI, currentDate, currentTime, Software_version)
+                    pulsar_name, DM, freq_resolution, TimeRes, max_time_shift, block+1, num_of_blocks,
+                    profile_pic_min, profile_pic_max, df_description, colormap, customDPI, currentDate,
+                    currentTime, Software_version)
 
     # Rolling temp_array to put current data first
     buffer_array = np.roll(buffer_array, - max_shift)
