@@ -88,37 +88,37 @@ def catalogue_pulsar(pulsar_name):
     elif 'J1848+0647' in pulsar_name: pulsar_ra = '18h48m56.01s';   pulsar_dec = '+06d47m31.7s';   pulsar_DM = 0;        p_bar = 0.5059567391
     elif 'J1851-0053' in pulsar_name: pulsar_ra = '18h51m3.17s';    pulsar_dec = '-00d53m7.3s';    pulsar_DM = 0;        p_bar = 1.40906524128
 
-    elif 'J1908+0734' in pulsar_name: pulsar_ra = '19h08m17.01s';   pulsar_dec = '+07d34m14.36s';   pulsar_DM = 0;       p_bar = 0.212352673319
-    elif 'B1916+14'   in pulsar_name: pulsar_ra = '19h18m23.63s';   pulsar_dec = '+14d45m6.0s';     pulsar_DM = 0;       p_bar = 2.129665364024
-    elif 'J1917+0834' in pulsar_name: pulsar_ra = '19h17m48.85s';   pulsar_dec = '+08d+34m54.63s';  pulsar_DM = 0;       p_bar = 1.18102329730
-    elif 'J1918+1541' in pulsar_name: pulsar_ra = '19h18m7.70s';    pulsar_dec = '+15d41m15.2s';    pulsar_DM = 0;       p_bar = 0.37088299877
-    elif 'B1918+26'   in pulsar_name: pulsar_ra = '19h20m38.374s';  pulsar_dec = '+26d50m38.4s';    pulsar_DM = 0;       p_bar = 0.785521849527
-    elif 'B1919+21'   in pulsar_name: pulsar_ra = '19h21m44.81s';   pulsar_dec = '+21d53m2.25s';    pulsar_DM = 12.440;  p_bar = 1.3373021601895
-    elif 'B1929+10'   in pulsar_name: pulsar_ra = '19h32m13.95s';   pulsar_dec = '+10d59m32.42s';   pulsar_DM = 3.176;   p_bar = 0.226517635038
-    elif 'B1944+17'   in pulsar_name: pulsar_ra = '19h46m53.044s';  pulsar_dec = '+18d5m41.24s';    pulsar_DM = 0;       p_bar = 0.4406184769108
-    elif 'B1952+29'   in pulsar_name: pulsar_ra = '19h54m22.554s';  pulsar_dec = '+29d23m17.29s';   pulsar_DM = 0;       p_bar = 0.4266767865302
+    elif 'J1908+0734' in pulsar_name: pulsar_ra = '19h08m17.01s';   pulsar_dec = '+07d34m14.36s';  pulsar_DM = 0;        p_bar = 0.212352673319
+    elif 'B1916+14'   in pulsar_name: pulsar_ra = '19h18m23.63s';   pulsar_dec = '+14d45m6.0s';    pulsar_DM = 0;        p_bar = 2.129665364024
+    elif 'J1917+0834' in pulsar_name: pulsar_ra = '19h17m48.85s';   pulsar_dec = '+08d+34m54.63s'; pulsar_DM = 0;        p_bar = 1.18102329730
+    elif 'J1918+1541' in pulsar_name: pulsar_ra = '19h18m7.70s';    pulsar_dec = '+15d41m15.2s';   pulsar_DM = 0;        p_bar = 0.37088299877
+    elif 'B1918+26'   in pulsar_name: pulsar_ra = '19h20m38.374s';  pulsar_dec = '+26d50m38.4s';   pulsar_DM = 0;        p_bar = 0.785521849527
+    elif 'B1919+21'   in pulsar_name: pulsar_ra = '19h21m44.81s';   pulsar_dec = '+21d53m2.25s';   pulsar_DM = 12.440;   p_bar = 1.3373021601895
+    elif 'B1929+10'   in pulsar_name: pulsar_ra = '19h32m13.95s';   pulsar_dec = '+10d59m32.42s';  pulsar_DM = 3.176;    p_bar = 0.226517635038
+    elif 'B1944+17'   in pulsar_name: pulsar_ra = '19h46m53.044s';  pulsar_dec = '+18d5m41.24s';   pulsar_DM = 0;        p_bar = 0.4406184769108
+    elif 'B1952+29'   in pulsar_name: pulsar_ra = '19h54m22.554s';  pulsar_dec = '+29d23m17.29s';  pulsar_DM = 0;        p_bar = 0.4266767865302
 
-    elif 'J2015+2524' in pulsar_name: pulsar_ra = '20h15m12.7s';    pulsar_dec = '+25d24m31.3s';    pulsar_DM = 0;       p_bar = 2.3032990816
-    elif 'B2016+28'   in pulsar_name: pulsar_ra = '20h18m3.92s';    pulsar_dec = '+28d39m55.2s';    pulsar_DM = 0;       p_bar = 0.5579534804225
-    elif 'B2020+28'   in pulsar_name: pulsar_ra = '20h22m37.067s';  pulsar_dec = '+28d54m23.1s';    pulsar_DM = 24.640;  p_bar = 0.3434021577860
-    elif 'B2021+51'   in pulsar_name: pulsar_ra = '20h22m49.873s';  pulsar_dec = '+51d54m50.23s';   pulsar_DM = 0;       p_bar = 0.529196917808
+    elif 'J2015+2524' in pulsar_name: pulsar_ra = '20h15m12.7s';    pulsar_dec = '+25d24m31.3s';   pulsar_DM = 0;        p_bar = 2.3032990816
+    elif 'B2016+28'   in pulsar_name: pulsar_ra = '20h18m3.92s';    pulsar_dec = '+28d39m55.2s';   pulsar_DM = 0;        p_bar = 0.5579534804225
+    elif 'B2020+28'   in pulsar_name: pulsar_ra = '20h22m37.067s';  pulsar_dec = '+28d54m23.1s';   pulsar_DM = 24.640;   p_bar = 0.3434021577860
+    elif 'B2021+51'   in pulsar_name: pulsar_ra = '20h22m49.873s';  pulsar_dec = '+51d54m50.23s';  pulsar_DM = 0;        p_bar = 0.529196917808
 
-    elif 'B2110+27'   in pulsar_name: pulsar_ra = '21h13m4.39s';    pulsar_dec = '+27d54m2.29s';    pulsar_DM = 24.7;    p_bar = 1.2028517540847
-    elif 'J2151+2315' in pulsar_name: pulsar_ra = '21h51m10.43s';   pulsar_dec = '+23d15m12.8s';    pulsar_DM = 0;       p_bar = 0.593533613
+    elif 'B2110+27'   in pulsar_name: pulsar_ra = '21h13m4.39s';    pulsar_dec = '+27d54m2.29s';   pulsar_DM = 24.7;     p_bar = 1.2028517540847
+    elif 'J2151+2315' in pulsar_name: pulsar_ra = '21h51m10.43s';   pulsar_dec = '+23d15m12.8s';   pulsar_DM = 0;        p_bar = 0.593533613
 
-    elif 'J2215+1538' in pulsar_name: pulsar_ra = '22h15m39.65s';   pulsar_dec = '+15d38m34.88s';   pulsar_DM = 0;       p_bar = 0.3741958930416
-    elif 'B2217+47'   in pulsar_name: pulsar_ra = '22h19m48.139s';  pulsar_dec = '+47d54m53.93s';   pulsar_DM = 0;       p_bar = 0.5384688219194
-    elif 'J2248-0101' in pulsar_name: pulsar_ra = '22h48m26.904s';  pulsar_dec = '-01d01m48.1s';    pulsar_DM = 0;       p_bar = 0.477233119123
-    elif 'J2253+1516' in pulsar_name: pulsar_ra = '22h53m14.533s';  pulsar_dec = '+15d16m37.83s';   pulsar_DM = 0;       p_bar = 0.792235920118
+    elif 'J2215+1538' in pulsar_name: pulsar_ra = '22h15m39.65s';   pulsar_dec = '+15d38m34.88s';  pulsar_DM = 0;        p_bar = 0.3741958930416
+    elif 'B2217+47'   in pulsar_name: pulsar_ra = '22h19m48.139s';  pulsar_dec = '+47d54m53.93s';  pulsar_DM = 0;        p_bar = 0.5384688219194
+    elif 'J2248-0101' in pulsar_name: pulsar_ra = '22h48m26.904s';  pulsar_dec = '-01d01m48.1s';   pulsar_DM = 0;        p_bar = 0.477233119123
+    elif 'J2253+1516' in pulsar_name: pulsar_ra = '22h53m14.533s';  pulsar_dec = '+15d16m37.83s';  pulsar_DM = 0;        p_bar = 0.792235920118
 
-    elif 'J2307+2225' in pulsar_name: pulsar_ra = '23h07m41.288s';  pulsar_dec = '+22d25m50.12s';   pulsar_DM = 0;       p_bar = 0.535828895432
-    elif 'B2310+42'   in pulsar_name: pulsar_ra = '23h13m8.598s';   pulsar_dec = '+42d53m12.99s';   pulsar_DM = 0;       p_bar = 0.3494336821331
-    elif 'B2315+21'   in pulsar_name: pulsar_ra = '23h17m57.82s';   pulsar_dec = '+21d49m48.03s';   pulsar_DM = 0;       p_bar = 1.444653102317
-    elif 'J2346-0609' in pulsar_name: pulsar_ra = '23h46m50.454s';  pulsar_dec = '-06d09m59.5s';    pulsar_DM = 0;       p_bar = 1.181463382967
+    elif 'J2307+2225' in pulsar_name: pulsar_ra = '23h07m41.288s';  pulsar_dec = '+22d25m50.12s';  pulsar_DM = 0;        p_bar = 0.535828895432
+    elif 'B2310+42'   in pulsar_name: pulsar_ra = '23h13m8.598s';   pulsar_dec = '+42d53m12.99s';  pulsar_DM = 0;        p_bar = 0.3494336821331
+    elif 'B2315+21'   in pulsar_name: pulsar_ra = '23h17m57.82s';   pulsar_dec = '+21d49m48.03s';  pulsar_DM = 0;        p_bar = 1.444653102317
+    elif 'J2346-0609' in pulsar_name: pulsar_ra = '23h46m50.454s';  pulsar_dec = '-06d09m59.5s';   pulsar_DM = 0;        p_bar = 1.181463382967
 
     else: print('   !!! Source not found !!!')
 
-    return pulsar_ra, pulsar_dec, pulsar_DM
+    return pulsar_ra, pulsar_dec, pulsar_DM, p_bar
 
 ################################################################################
 ################################################################################
@@ -126,7 +126,8 @@ def catalogue_pulsar(pulsar_name):
 if __name__ == '__main__':
 
 
-    pulsar_ra, pulsar_dec, DM = catalogue_pulsar('j0006+1834')
+    pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar('j0006+1834')
 
-    print(' Pulsar coordinates are:', pulsar_ra, pulsar_dec)
-    print(' Pulsar dispersion measure is:', DM, ' pc*cm-3')
+    print(' Pulsar coordinates are:       ', pulsar_ra, pulsar_dec)
+    print(' Pulsar dispersion measure is: ', DM, ' pc*cm-3')
+    print(' Pulsar period is:             ', p_bar, ' s.')
