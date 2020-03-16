@@ -10,10 +10,11 @@ Software_name = 'Pulsar long time profile spectrum calculation'
 common_path = 'RESULTS_pulsar_single_pulses/'
 
 # Name of TXT file to be analyzed:
-filename = 'E220213_201439.jds_time_profile.txt'
+filename = 'E280120_212713.jds_time_profile.txt'
 
-pulsar_period = 0.253077573    # Period of pulsar rotation, s  1.292
-time_resolution = 0.007944     # Data time resolution, ms
+pulsar_name = 'B0809+74'
+
+time_resolution = 0.015887     # Data time resolution, s   # 0.007944
 
 profile_pic_min = -0.1         # Minimum limit of profile picture
 profile_pic_max = 0.5          # Maximum limit of profile picture
@@ -27,7 +28,6 @@ colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or
 #*************************************************************
 #                   IMPORT LIBRARIES                         *
 #*************************************************************
-import os
 import sys
 import time
 import pylab
@@ -36,14 +36,11 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from os import path
 
-
 # To change system path to main directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-
-from package_plot_formats.plot_formats import plot1D, plot2Da
-
+from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 
 ################################################################################
@@ -76,6 +73,9 @@ profile_txt_file.close()
 
 
 print (' Number of samples :  ', len(profile_data), ' \n')
+
+pulsar_ra, pulsar_dec, DM, pulsar_period = catalogue_pulsar(pulsar_name)
+#pulsar_period =     # Period of pulsar rotation, s  1.292   0.253077573
 
 pulsar_frequency = 1 / pulsar_period  # frequency of pulses, Hz
 frequency_resolution = 1 / (time_resolution * len(profile_data)) # frequency resolution, Hz

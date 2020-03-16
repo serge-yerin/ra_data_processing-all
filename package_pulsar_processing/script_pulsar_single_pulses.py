@@ -11,9 +11,9 @@ common_path = ''
 
 # Directory of DAT file to be analyzed:
 #filename = 'E300117_180000.jds_Data_chA.dat'
-filename = 'E220213_201439.jds_Data_chA.dat'
+filename = 'E280120_212713.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
-pulsar_name = 'B0950+08'
+pulsar_name = 'B0809+74' # 'B0950+08'
 
 average_const = 512            # Number of frequency channels to average in result picture
 profile_pic_min = -0.15        # Minimum limit of profile picture
@@ -28,7 +28,7 @@ pic_in_line = 10               # Number of pixels in line
 # Parameter of pixels cleaning based on StD value estimation
 std_pixels_clean = 2.8
 
-SpecFreqRange = 1              # Specify particular frequency range (1) or whole range (0)
+SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
 # Begin and end frequency of dynamic spectrum (MHz)
 freqStart = 20.0
 freqStop = 30.0
@@ -157,9 +157,16 @@ if receiver_type == '.jds':
     CLCfrq, df_creation_timeUTC, sp_in_file, ReceiverMode, Mode, Navr,
     TimeRes, fmin, fmax, df, frequency_list, FFTsize, dataBlockSize] = FileHeaderReaderJDS(data_filename, 0, 1)
 
+# Manually set frequencies for two channels mode
+if int(CLCfrq/1000000) == 33:
+    FFTsize = 8192
+    fmin = 16.5
+    fmax = 33.0
+    frequency_list = np.linspace(fmin, fmax, FFTsize)
+
 sp_in_file = int(((df_filesize - 1024)/(len(frequency_list) * 8))) # the second dimension of the array: file size - 1024 bytes
 
-pulsar_ra, pulsar_dec, DM = catalogue_pulsar(pulsar_name)
+pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
 #************************************************************************************
 #                            R E A D I N G   D A T A                                *
@@ -180,7 +187,7 @@ if SpecFreqRange == 1:
     shift_vector = DM_full_shift_calc(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10,6), TimeRes, DM, receiver_type)
     print (' Number of frequency channels:  ', ifmax - ifmin)
 else:
-    shift_vector = DM_full_shift_calc(len(frequency_list), fmin, fmax, df / pow(10, 6), TimeRes, DM, receiver_type)
+    shift_vector = DM_full_shift_calc(len(frequency_list)-4, fmin, fmax, df / pow(10, 6), TimeRes, DM, receiver_type)
     print (' Number of frequency channels:  ', len(frequency_list)-4)
 
 max_shift = np.abs(shift_vector[0])
@@ -229,7 +236,8 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     if SpecFreqRange == 1:
         data, frequency_list, fi_start, fi_stop = specify_frequency_range(data, frequency_list_initial, freqStart, freqStop)
         num_frequencies = len(frequency_list)
-
+    else:
+        num_frequencies = num_frequencies_initial
 
     # Normalization of data
     Normalization_lin(data, num_frequencies, 1 * max_shift)  # 2

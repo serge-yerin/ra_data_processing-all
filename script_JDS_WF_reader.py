@@ -68,7 +68,7 @@ print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
 
 # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-result_folder = 'JDS_WF_Results_' + directory.split('/')[-2]
+result_folder = 'RESULTS_JDS_waveform_' + directory.split('/')[-2]
 if not os.path.exists(result_folder):
     os.makedirs(result_folder)
 service_folder = result_folder + '/Service'
@@ -85,27 +85,29 @@ if dyn_spectr_save_init == 1:
 fileList = find_files_only_in_current_folder(directory, '.jds', 1)
 print('')
 
-# Check if all files (except the last) have same size
-same_or_not = check_if_all_files_of_same_size(directory, fileList, 1)
+if len(fileList) > 1:   # Check if files have same parameters if there are more then one file in list
+    # Check if all files (except the last) have same size
+    same_or_not = check_if_all_files_of_same_size(directory, fileList, 1)
 
-# Check if all files in this folder have the same parameters in headers
-equal_or_not = check_if_JDS_files_of_equal_parameters(directory, fileList)
+    # Check if all files in this folder have the same parameters in headers
+    equal_or_not = check_if_JDS_files_of_equal_parameters(directory, fileList)
 
-if same_or_not and equal_or_not:
-    print('\n\n\n        :-)  All files seem to be of the same parameters!  :-) \n\n\n')
-else:
-    print('\n\n\n ************************************************************************************* \n *                                                                                   *')
-    print(' *   Seems files in folders are different check the errors and restart the script!   *')
-    print(' *                                                                                   *  '
-          '\n ************************************************************************************* \n\n\n')
+    if same_or_not and equal_or_not:
+        print('\n\n\n        :-)  All files seem to be of the same parameters!  :-) \n\n\n')
+    else:
+        print('\n\n\n ************************************************************************************* \n *                                                                                   *')
+        print(' *   Seems files in folders are different check the errors and restart the script!   *')
+        print(' *                                                                                   *  '
+              '\n ************************************************************************************* \n\n\n')
 
-decision  = int(input('* Enter "1" to start processing, or "0" to stop the script:     '))
-if decision != 1:
-    sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
+    decision  = int(input('* Enter "1" to start processing, or "0" to stop the script:     '))
+    if decision != 1:
+        sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
 
 
 # To print in console the header of first file
 print('\n  First file header parameters: \n')
+
 # *** Data file header read ***
 [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
     CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
@@ -115,8 +117,8 @@ print('\n  First file header parameters: \n')
 
 # Main loop by files start
 for fileNo in range(len(fileList)):   # loop by files
-    print('\n\n  *  File ', str(fileNo+1), ' of', str(len(fileList)))
-    print('  *  File path: ', str(fileList[fileNo]))
+    #print('\n\n  *  File ', str(fileNo+1), ' of', str(len(fileList)))
+    #print('  *  File path: ', str(fileList[fileNo]))
 
     # *** Opening datafile ***
     fname = directory + fileList[fileNo]
@@ -183,22 +185,24 @@ for fileNo in range(len(fileList)):   # loop by files
 
     no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
 
-    print(' Number of blocks in file:             ', no_of_blocks_in_file)
-    print(' Number of spectra to average:         ', no_of_spectra_to_average)
-    print(' Number of averaged spectra in file:   ', no_of_av_spectra_per_file)
-
     no_of_av_spectra_per_file = int(no_of_av_spectra_per_file)
     fine_CLCfrq = (int(CLCfrq/1000000.0) * 1000000.0)
 
     # Real time resolution of averaged spectra
     real_av_spectra_dt = (1 / fine_CLCfrq) * (data_block_size-4) * no_of_spectra_to_average
-    print(' Time resolution of averaged spectrum: ', round(real_av_spectra_dt*1000, 3), ' ms.')
+
+    if fileNo == 0:
+        print(' Number of blocks in file:             ', no_of_blocks_in_file)
+        print(' Number of spectra to average:         ', no_of_spectra_to_average)
+        print(' Number of averaged spectra in file:   ', no_of_av_spectra_per_file)
+        print(' Time resolution of averaged spectrum: ', round(real_av_spectra_dt*1000, 3), ' ms.')
+        print('\n  *** Reading data from file *** \n')
+
 
     # *******************************************************************************
     #                           R E A D I N G   D A T A                             *
     # *******************************************************************************
 
-    print('\n  *** Reading data from file *** \n')
 
     with open(fname, 'rb') as file:
         file.seek(1024 + data_block_size * 4 * skip_data_blocks)  # Jumping to 1024 byte from file beginning
@@ -217,7 +221,7 @@ for fileNo in range(len(fileList)):   # loop by files
 
         TimeScaleFig = []
         TimeScaleFull = []
-        bar = IncrementalBar(' File ' + str(fileNo+1) + ' of ' + str(len(fileList)) + ' progress: ',
+        bar = IncrementalBar(' File ' + str(fileNo+1) + ' of ' + str(len(fileList)) + ' reading: ',
                              max=no_of_av_spectra_per_file, suffix='%(percent)d%%')
 
         for av_sp in range(no_of_av_spectra_per_file):
@@ -407,8 +411,8 @@ for fileNo in range(len(fileList)):   # loop by files
     #             P L O T T I N G    D Y N A M I C    S P E C T R A                 *
     # *******************************************************************************
 
-    if dyn_spectr_save_init == 1 or dyn_spectr_save_norm == 1:
-        print('\n  *** Making figures of dynamic spectra *** \n')
+    #if dyn_spectr_save_init == 1 or dyn_spectr_save_norm == 1:
+    #    print('\n  *** Making figures of dynamic spectra *** \n')
 
 
     if dyn_spectr_save_init == 1:
