@@ -154,8 +154,8 @@ for fileNo in range(len(fileList)):   # loop by files
             file_data_B_name = df_filename + '_Data_chB.dat'
             file_data_B = open(file_data_B_name, 'wb')
             file_data_B.write(file_header)
-            file_data_A.seek(636)   # Navr place in header
-            file_data_A.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
+            file_data_B.seek(636)   # Navr place in header
+            file_data_B.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
             file_data_B.close()
         
         del file_header
