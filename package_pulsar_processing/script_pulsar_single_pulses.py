@@ -205,19 +205,25 @@ if SpecFreqRange == 1:
     shift_vector = DM_full_shift_calc(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10,6), TimeRes, DM, receiver_type)
     print (' Number of frequency channels:  ', ifmax - ifmin)
 
-    # Save to file header the frequency range of new data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    '''
-    file_data_A_name = df_filename + '_Data_chA.dat'
-    file_data_A = open(file_data_A_name, 'wb')
-    file_data_A.write(file_header)
-    file_data_A.seek(636)  # Navr place in header
-    file_data_A.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
-    file_data_A.close()
-    '''
-
 else:
     shift_vector = DM_full_shift_calc(len(frequency_list)-4, fmin, fmax, df / pow(10, 6), TimeRes, DM, receiver_type)
     print (' Number of frequency channels:  ', len(frequency_list)-4)
+    ifmin = 0
+    ifmax = int(len(frequency_list)-4)
+'''
+# Save to file header the frequency range of new data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+new_data_file = open(new_data_file_name, 'wb')
+new_data_file.seek(588)                         # Lb place in header
+#new_data_file.write(bytes([np.int32(ifmin)]))
+new_data_file.write(np.int32(ifmin).tobytes())
+new_data_file.seek(604)                         # Hb place in header
+new_data_file.write(np.int32(ifmax).tobytes())
+new_data_file.seek(620)                         # Wb place in header
+new_data_file.write(np.int32(ifmax - ifmin).tobytes())    #bytes([np.int32(ifmax - ifmin)]))
+#new_data_file.seek(636)                         # Navr place in header
+#new_data_file.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
+new_data_file.close()
+'''
 
 max_shift = np.abs(shift_vector[0])
 
