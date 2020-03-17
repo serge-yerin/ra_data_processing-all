@@ -2,16 +2,14 @@
 Software_version = '2020.03.14'
 Software_name = 'Pulsar single pulses processing pipeline'
 # Program intended to read and show individual pulses of pulsars from DAT files
-
-#*************************************************************
-#                        PARAMETERS                          *
-#*************************************************************
+# *******************************************************************************
+#                     M A N U A L    P A R A M E T E R S                        *
+# *******************************************************************************
 # Path to data files
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-#filename = 'E300117_180000.jds_Data_chA.dat'
-filename = 'E310120_204449.jds_Data_chB.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E310120_204449.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74' # 'B0950+08'
 
@@ -36,14 +34,11 @@ freqStop = 30.0
 save_profile_txt = 1           # Save profile data to TXT file?
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
+# *******************************************************************************
 
-
-#*************************************************************
-
-
-#*************************************************************
-#                   IMPORT LIBRARIES                         *
-#*************************************************************
+# *******************************************************************************
+#                     I M P O R T   L I B R A R I E S                           *
+# *******************************************************************************
 import os
 import sys
 import time
@@ -65,10 +60,16 @@ from package_ra_data_files_formats.time_line_file_reader import time_line_file_r
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
+from package_pulsar_processing.pulsar_pulses_time_profile_FFT import pulsar_pulses_time_profile_FFT
 from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
 from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value
 from package_cleaning.survey_cleaning import survey_cleaning
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
+
+
+# *******************************************************************************
+#                              F U N C T I O N S                                *
+# *******************************************************************************
 
 
 def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale, filename,
@@ -107,9 +108,10 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
     plt.close('all')
 
 
-#*************************************************************
-#                       MAIN PROGRAM                         *
-#*************************************************************
+# *******************************************************************************
+#                           M A I N    P R O G R A M                            *
+# *******************************************************************************
+
 print(' \n\n\n\n\n\n\n\n')
 print('   *****************************************************************')
 print('   *   ', Software_name, ' v.', Software_version,'   *      (c) YeS 2020')
@@ -342,8 +344,14 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     buffer_array = np.roll(buffer_array, - max_shift)
     buffer_array[:, max_shift : ] = 0
 
-
 dat_file.close()
+
+# Fourier analysis of the obtained time profile of pulses
+if save_profile_txt > 0:
+    print('\n\n  *** Making Fourier transform of the time profile...')
+    pulsar_pulses_time_profile_FFT(newpath+'/', filename +'_time_profile.txt', pulsar_name, TimeRes,
+                                   profile_pic_min, profile_pic_max, customDPI, colormap)
+
 endTime = time.time()    # Time of calculations
 
 
