@@ -9,11 +9,11 @@ Software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-filename = 'E310120_204449.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E280120_212713.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74' # 'B0950+08'
 
-average_const = 512            # Number of frequency channels to average in result picture
+average_const = 512            # Number of frequency channels to appear in result picture
 profile_pic_min = -0.15        # Minimum limit of profile picture
 profile_pic_max = 0.55         # Maximum limit of profile picture
 
@@ -23,15 +23,14 @@ cleaning = 0                   # Apply cleaning to data (1) or skip it (0)
 no_of_iterations = 2           # Number of lines cleaning iterations (usually 2-3)
 std_lines_clean = 1            # Limit in StD of pixels in line to clean
 pic_in_line = 10               # Number of pixels in line
-# Parameter of pixels cleaning based on StD value estimation
-std_pixels_clean = 2.8
+std_pixels_clean = 2.8         # Parameter of pixels cleaning based on StD value estimation
 
 SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
-# Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 20.0
-freqStop = 30.0
+freqStart = 20.0               # Lower frequency of dynamic spectrum (MHz)
+freqStop = 30.0                # Higher frequency of dynamic spectrum (MHz)
 
 save_profile_txt = 1           # Save profile data to TXT file?
+save_compensated_data = 1      # Save data with compensated DM to DAT file?
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
 # *******************************************************************************
@@ -104,7 +103,7 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
                  str(fig_no) + ' of ' + str(fig_num), fontsize = 7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
+    pylab.savefig(newpath + '/'+ filename + ' fig. ' +str(block)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
     plt.close('all')
 
 
@@ -170,9 +169,26 @@ sp_in_file = int(((df_filesize - 1024)/(len(frequency_list) * 8))) # the second 
 
 pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
-#************************************************************************************
-#                            R E A D I N G   D A T A                                *
-#************************************************************************************
+if save_compensated_data > 0:
+    with open(data_filename, 'rb') as file:
+        file_header = file.read(1024)  # Data file header read
+
+    # *** Creating a binary file with data for long data storage ***
+    new_data_file_name = pulsar_name + '_DM_' + str(DM) + '_' + filename
+    new_data_file = open(new_data_file_name, 'wb')
+    new_data_file.write(file_header)
+    new_data_file.close()
+
+    # *** Creating a name for long timeline TXT file ***
+    new_TLfile_name = pulsar_name + '_DM_' + str(DM) + '_' + data_filename[:-13] + '_Timeline.txt'
+    new_TLfile = open(new_TLfile_name, 'w')  # Open and close to delete the file with the same name
+    new_TLfile.close()
+
+    del file_header
+
+# ************************************************************************************
+#                             R E A D I N G   D A T A                                *
+# ************************************************************************************
 
 # Time line file reading
 timeline, dt_timeline = time_line_file_reader(time_line_file_name)
@@ -188,6 +204,17 @@ if SpecFreqRange == 1:
     ifmax = B.index(min(B))
     shift_vector = DM_full_shift_calc(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10,6), TimeRes, DM, receiver_type)
     print (' Number of frequency channels:  ', ifmax - ifmin)
+
+    # Save to file header the frequency range of new data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    '''
+    file_data_A_name = df_filename + '_Data_chA.dat'
+    file_data_A = open(file_data_A_name, 'wb')
+    file_data_A.write(file_header)
+    file_data_A.seek(636)  # Navr place in header
+    file_data_A.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
+    file_data_A.close()
+    '''
+
 else:
     shift_vector = DM_full_shift_calc(len(frequency_list)-4, fmin, fmax, df / pow(10, 6), TimeRes, DM, receiver_type)
     print (' Number of frequency channels:  ', len(frequency_list)-4)
@@ -242,7 +269,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
         num_frequencies = num_frequencies_initial
 
     # Normalization of data
-    Normalization_lin(data, num_frequencies, 1 * max_shift)  # 2
+    Normalization_lin(data, num_frequencies, 1 * max_shift)
 
     nowTime = time.time()
     print ('\n  *** Preparation of data took:              ', round((nowTime - previousTime), 2), 'seconds ')
@@ -287,7 +314,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
         print ('\n  *** Normalization and cleaning took:       ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
-
+    '''
     # Logging the data
     with np.errstate(invalid='ignore'):
         data[:,:] = 10 * np.log10(data[:,:])
@@ -295,11 +322,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
     # Normalizing log data
     data = data - np.mean(data)
-
-
-    nowTime = time.time()
-    print ('\n  *** Time before dispersion compensation:   ', round((nowTime - previousTime), 2), 'seconds ')
-    previousTime = nowTime
+    '''
 
 
     # Dispersion delay compensation
@@ -319,26 +342,50 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     # Making and filling the array with fully ready data for plotting and saving to a file
     array_compensated_DM = buffer_array[:, 0 : max_shift]
 
-    # Preparing single averaged data profile for figure
-    profile = array_compensated_DM.mean(axis=0)[:]
-    profile = profile - np.mean(profile)
+    if block > 0:
+        # Saving data with compensated DM to DAT file
+        if save_compensated_data > 0 and block > 0:
+            temp = array_compensated_DM.copy(order='C')   # .transpose()
+            new_data_file = open(new_data_file_name, 'ab')
+            new_data_file.write(temp)
+            new_data_file.close()
 
-    # Save full profile to TXT file
-    if save_profile_txt > 0:
-        profile_txt_file = open(profile_file_name, 'a')
-        for i in range(len(profile)):
-            profile_txt_file.write(str(profile[i]) + ' \n')
-        profile_txt_file.close()
+            # Saving time data to ling timeline file
+            with open(new_TLfile_name, 'a') as new_TLfile:
+                for i in range(max_shift):
+                    new_TLfile.write((fig_time_scale[i][:]) + ' \n')  # str
 
-    # Averaging of the array with pulses for figure
-    averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
-    freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
-    max_time_shift = max_shift * TimeRes
 
-    plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale, filename,
-                    pulsar_name, DM, freq_resolution, TimeRes, max_time_shift, block+1, num_of_blocks,
-                    profile_pic_min, profile_pic_max, df_description, colormap, customDPI, currentDate,
-                    currentTime, Software_version)
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # Logging the data
+        with np.errstate(divide='ignore'):
+            array_compensated_DM[:, :] = 10 * np.log10(array_compensated_DM[:, :])
+        array_compensated_DM[array_compensated_DM == -np.inf] = 0
+
+        # Normalizing log data
+        array_compensated_DM = array_compensated_DM - np.mean(array_compensated_DM)
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        # Preparing single averaged data profile for figure
+        profile = array_compensated_DM.mean(axis=0)[:]
+        profile = profile - np.mean(profile)
+
+        # Save full profile to TXT file
+        if save_profile_txt > 0:
+            profile_txt_file = open(profile_file_name, 'a')
+            for i in range(len(profile)):
+                profile_txt_file.write(str(profile[i]) + ' \n')
+            profile_txt_file.close()
+
+        # Averaging of the array with pulses for figure
+        averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
+        freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
+        max_time_shift = max_shift * TimeRes
+
+        plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale, filename,
+                        pulsar_name, DM, freq_resolution, TimeRes, max_time_shift, block, num_of_blocks-1,
+                        profile_pic_min, profile_pic_max, df_description, colormap, customDPI, currentDate,
+                        currentTime, Software_version)
 
     # Rolling temp_array to put current data first
     buffer_array = np.roll(buffer_array, - max_shift)
@@ -355,6 +402,6 @@ if save_profile_txt > 0:
 endTime = time.time()    # Time of calculations
 
 
-print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+print ('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                 round((endTime - startTime)/60, 2), 'min. ) \n')
 print ('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')

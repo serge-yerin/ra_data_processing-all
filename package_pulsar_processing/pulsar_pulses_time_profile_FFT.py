@@ -67,7 +67,7 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
         profile_data.append(np.float(line))
     profile_txt_file.close()
 
-    print ('  Number of samples in text file:  ', len(profile_data), ' \n')
+    print ('\n  Number of samples in text file:  ', len(profile_data), ' \n')
 
     pulsar_ra, pulsar_dec, DM, pulsar_period = catalogue_pulsar(pulsar_name)
 
@@ -101,7 +101,7 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
     ax2.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
     fig.subplots_adjust(hspace=0.05, top=0.91)
-    fig.suptitle('Single pulses in time and frequency', fontsize=7, fontweight='bold')
+    fig.suptitle('Single pulses of ' + pulsar_name + ' in time and frequency', fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU', fontsize=3,
              transform=plt.gcf().transFigure)
