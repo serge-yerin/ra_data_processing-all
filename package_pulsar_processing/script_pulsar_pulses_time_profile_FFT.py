@@ -10,7 +10,7 @@ Software_name = 'Pulsar long time profile spectrum calculation'
 common_path = 'RESULTS_pulsar_single_pulses/'
 
 # Name of TXT file to be analyzed:
-filename = 'E280120_212713.jds_time_profile.txt'
+filename = 'E310120_204449.jds_Data_chB.dat_time_profile.txt'
 
 pulsar_name = 'B0809+74'
 
@@ -114,7 +114,7 @@ fig.suptitle('Single pulses in time and frequency', fontsize=7, fontweight='bold
 fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=3, transform=plt.gcf().transFigure)
 fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU', fontsize=3,
          transform=plt.gcf().transFigure)
-pylab.savefig(common_path + '/Profile in time and its spectrum.png', bbox_inches='tight', dpi=customDPI)
+pylab.savefig(common_path + '/' + filename[0:-4] + ' and its spectrum.png', bbox_inches='tight', dpi=customDPI)
 plt.close('all')
 
 

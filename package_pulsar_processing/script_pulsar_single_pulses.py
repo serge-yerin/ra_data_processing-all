@@ -11,7 +11,7 @@ common_path = ''
 
 # Directory of DAT file to be analyzed:
 #filename = 'E300117_180000.jds_Data_chA.dat'
-filename = 'E280120_212713.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E310120_204449.jds_Data_chB.dat' # 'E220213_201439.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74' # 'B0950+08'
 
@@ -134,7 +134,7 @@ time_line_file_name = common_path + filename[-31:-13] +'_Timeline.txt'
 
 if save_profile_txt > 0:
     # *** Creating a name for long timeline TXT file ***
-    profile_file_name = newpath + '/' + filename[-31:-13] +'_time_profile.txt'
+    profile_file_name = newpath + '/' + filename +'_time_profile.txt'
     profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
     profile_txt_file.close()
 
