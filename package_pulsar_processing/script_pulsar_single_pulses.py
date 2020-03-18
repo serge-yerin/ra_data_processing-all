@@ -169,22 +169,7 @@ sp_in_file = int(((df_filesize - 1024)/(len(frequency_list) * 8))) # the second 
 
 pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
-if save_compensated_data > 0:
-    with open(data_filename, 'rb') as file:
-        file_header = file.read(1024)  # Data file header read
 
-    # *** Creating a binary file with data for long data storage ***
-    new_data_file_name = pulsar_name + '_DM_' + str(DM) + '_' + filename
-    new_data_file = open(new_data_file_name, 'wb')
-    new_data_file.write(file_header)
-    new_data_file.close()
-
-    # *** Creating a name for long timeline TXT file ***
-    new_TLfile_name = pulsar_name + '_DM_' + str(DM) + '_' + data_filename[:-13] + '_Timeline.txt'
-    new_TLfile = open(new_TLfile_name, 'w')  # Open and close to delete the file with the same name
-    new_TLfile.close()
-
-    del file_header
 
 # ************************************************************************************
 #                             R E A D I N G   D A T A                                *
@@ -210,20 +195,31 @@ else:
     print (' Number of frequency channels:  ', len(frequency_list)-4)
     ifmin = 0
     ifmax = int(len(frequency_list)-4)
-'''
-# Save to file header the frequency range of new data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-new_data_file = open(new_data_file_name, 'wb')
-new_data_file.seek(588)                         # Lb place in header
-#new_data_file.write(bytes([np.int32(ifmin)]))
-new_data_file.write(np.int32(ifmin).tobytes())
-new_data_file.seek(604)                         # Hb place in header
-new_data_file.write(np.int32(ifmax).tobytes())
-new_data_file.seek(620)                         # Wb place in header
-new_data_file.write(np.int32(ifmax - ifmin).tobytes())    #bytes([np.int32(ifmax - ifmin)]))
-#new_data_file.seek(636)                         # Navr place in header
-#new_data_file.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
-new_data_file.close()
-'''
+
+
+if save_compensated_data > 0:
+    with open(data_filename, 'rb') as file:
+        file_header = file.read(1024)  # Data file header read
+
+    # *** Creating a binary file with data for long data storage ***
+    new_data_file_name = pulsar_name + '_DM_' + str(DM) + '_' + filename
+    new_data_file = open(new_data_file_name, 'wb')
+    new_data_file.write(file_header)
+    new_data_file.seek(624)                         # Lb place in header
+    new_data_file.write(np.int32(ifmin).tobytes())
+    new_data_file.seek(628)                         # Hb place in header
+    new_data_file.write(np.int32(ifmax).tobytes())
+    new_data_file.seek(632)                         # Wb place in header
+    new_data_file.write(np.int32(ifmax - ifmin).tobytes())    #bytes([np.int32(ifmax - ifmin)]))
+    new_data_file.close()
+
+    # *** Creating a name for long timeline TXT file ***
+    new_TLfile_name = pulsar_name + '_DM_' + str(DM) + '_' + data_filename[:-13] + '_Timeline.txt'
+    new_TLfile = open(new_TLfile_name, 'w')  # Open and close to delete the file with the same name
+    new_TLfile.close()
+
+    del file_header
+
 
 max_shift = np.abs(shift_vector[0])
 
@@ -351,7 +347,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
     if block > 0:
         # Saving data with compensated DM to DAT file
         if save_compensated_data > 0 and block > 0:
-            temp = array_compensated_DM.copy(order='C')   # .transpose()
+            temp = array_compensated_DM.transpose().copy(order='C')
             new_data_file = open(new_data_file_name, 'ab')
             new_data_file.write(temp)
             new_data_file.close()
