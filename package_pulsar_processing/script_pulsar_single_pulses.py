@@ -251,8 +251,10 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
 
     # Time line arrangements:
     fig_time_scale = []
+    fig_date_time_scale = []
     for i in range (block * max_shift, (block+1) * max_shift):  # Shows the time of pulse end (at lowest frequency)
         fig_time_scale.append(timeline[i][11:23])
+        fig_date_time_scale.append(timeline[i][:])
     print(' Time: ', fig_time_scale[0], ' - ', fig_time_scale[-1], ', number of points: ', len(fig_time_scale))
 
 
@@ -355,7 +357,7 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
             # Saving time data to ling timeline file
             with open(new_TLfile_name, 'a') as new_TLfile:
                 for i in range(max_shift):
-                    new_TLfile.write((fig_time_scale[i][:]) + ' \n')  # str
+                    new_TLfile.write((fig_date_time_scale[i][:]))  # str
 
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
