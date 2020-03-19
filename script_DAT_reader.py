@@ -9,7 +9,7 @@ Software_version = '2019.05.08'
 common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'E220213_201455.jds_Data_chA.dat'
+filename = common_path + 'B0809+74_DM_5.75_E280120_212713.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
@@ -53,14 +53,10 @@ freqStopTXT = 33.0
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
 import os
-import struct
 import sys
 import numpy as np
-import pylab
-import matplotlib.pyplot as plt
 import time
-from datetime import datetime, timedelta
-from matplotlib import rc
+from datetime import datetime
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
@@ -80,8 +76,7 @@ print ('   **************************************************** \n\n\n')
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime)
-print (' ')
+print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
 
 # Directory of Timeline file to be analyzed:
 timeLineFileName = common_path + filename[-31:-13] +'_Timeline.txt'
@@ -92,7 +87,6 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
     temp = list(filename)
     temp[-7:-4] = typesOfData[j]
     filename = "".join(temp)
-
 
     if (typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B'):
         temp = list(filename)
@@ -180,7 +174,6 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
     #*********************************************************************************
 
-
     # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
     newpath = "DAT_Results"
     if not os.path.exists(newpath):
@@ -226,7 +219,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
     if StartStopSwitch == 1:  # If we read only specified time limits of files
 
-        # *** Converting text to ".datetime" format ***
+        # Converting text to ".datetime" format
         dt_timeline = []
         for i in range (len(timeline)):  # converting text to ".datetime" format
 
@@ -239,7 +232,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         dt_dateTimeStart = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]), int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]), 0)
         dt_dateTimeStop = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]), int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
 
-        # *** Showing the time limits of file and time limits of chosen part
+        # Showing the time limits of file and time limits of chosen part
         print ('\n\n                               Start                         End \n')
         print ('  File time limits:   ', dt_timeline[0],' ', dt_timeline[len(timeline)-1], '\n')
         print ('  Chosen time limits: ', dt_dateTimeStart, '        ', dt_dateTimeStop, '\n')
@@ -267,7 +260,7 @@ for j in range(len(typesOfData)):  # Main loop by types of data to analyze
         print ('\n Total number of spectra to read:  ', istop - istart)
 
 
-    # *** Calculation of the dimensions of arrays to read ***
+    # Calculation of the dimensions of arrays to read
 
     nx = len(frequency)                  # the first dimension of the array
     if StartStopSwitch == 1:             # If we read only specified time limits of files
