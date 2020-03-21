@@ -9,7 +9,7 @@ Software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-filename = 'E280120_212713.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E310120_204627.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74' # 'B0950+08'
 
@@ -126,7 +126,7 @@ rc('font', size = 6, weight='bold')
 data_filename = common_path + filename
 
 # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-newpath = "RESULTS_pulsar_single_pulses"
+newpath = 'RESULTS_pulsar_single_pulses_' + pulsar_name + '_' + filename
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 
