@@ -11,6 +11,7 @@ Software_name = 'JDS Waveform to DAT spectra converter'
 source_directory = 'DATA/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
+no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768 ...
 no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
 
 # ###############################################################################
@@ -44,15 +45,14 @@ print('\n\n\n\n\n\n\n\n   ******************************************************
 print('   *   ', Software_name, ' v.', Software_version,'   *      (c) YeS 2020')
 print('   ***************************************************************** \n\n\n')
 
-
 startTime = time.time()
 previousTime = startTime
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
-# *** Search JDS files in the source_directory ***
 
+# *** Search JDS files in the source_directory ***
 fileList = find_files_only_in_current_folder(source_directory, '.jds', 1)
 print('')
 
@@ -116,7 +116,8 @@ for fileNo in range(len(fileList)):   # loop by files
         FreqPointsNum = 8192
         frequency = np.linspace(0.0, 40.0, FreqPointsNum)
 
-        # Create long data files and copy first data file header to them
+
+    # Create long data files and copy first data file header to them
     if fileNo == 0:
 
         with open(fname, 'rb') as file:
@@ -137,7 +138,7 @@ for fileNo in range(len(fileList)):   # loop by files
         file_data_A.seek(628)  # Hb place in header
         file_data_A.write(np.int32(FreqPointsNum).tobytes())
         file_data_A.seek(632)  # Wb place in header
-        file_data_A.write(np.int32(FreqPointsNum).tobytes())  # bytes([np.int32(ifmax - ifmin)]))
+        file_data_A.write(np.int32(FreqPointsNum).tobytes())
         file_data_A.seek(636)  # Navr place in header
         file_data_A.write(bytes([np.int32(Navr)]))
         file_data_A.close()
@@ -151,12 +152,13 @@ for fileNo in range(len(fileList)):   # loop by files
             file_data_B.seek(628)  # Hb place in header
             file_data_B.write(np.int32(FreqPointsNum).tobytes())
             file_data_B.seek(632)  # Wb place in header
-            file_data_B.write(np.int32(FreqPointsNum).tobytes())  # bytes([np.int32(ifmax - ifmin)]))
+            file_data_B.write(np.int32(FreqPointsNum).tobytes())
             file_data_B.seek(636)  # Navr place in header
             file_data_B.write(bytes([np.int32(Navr)]))
             file_data_B.close()
 
         del file_header
+
 
     # Calculation of number of blocks and number of spectra in the file
     if Channel == 0 or Channel == 1:    # Single channel mode
@@ -165,6 +167,7 @@ for fileNo in range(len(fileList)):   # loop by files
         no_of_spectra_in_bunch = int((df_filesize - 1024) / (no_of_bunches_per_file * 4 * data_block_size))
 
     no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
+
 
     fine_CLCfrq = (int(CLCfrq/1000000.0) * 1000000.0)
 
@@ -190,9 +193,9 @@ for fileNo in range(len(fileList)):   # loop by files
         # *** DATA READING process ***
 
         # Preparing arrays for dynamic spectra
-        dyn_spectra_chA = np.zeros((int(data_block_size/2), no_of_bunches_per_file), float)
-        if Channel == 2:  # Two channels mode
-            dyn_spectra_chB = np.zeros((int(data_block_size/2), no_of_bunches_per_file), float)
+        #dyn_spectra_chA = np.zeros((int(data_block_size/2), no_of_bunches_per_file), float)
+        #if Channel == 2:  # Two channels mode
+        #    dyn_spectra_chB = np.zeros((int(data_block_size/2), no_of_bunches_per_file), float)
 
         # !!! Fake timing. Real timing to be done!!!
         TimeFigureScaleFig = np.linspace(0, no_of_bunches_per_file, no_of_bunches_per_file+1)
@@ -208,7 +211,7 @@ for fileNo in range(len(fileList)):   # loop by files
 
             bar.next()
 
-            # Reading and reshaping all data with readers
+            # Reading and reshaping all data with time data
             if Channel == 0 or Channel == 1:  # Single channel mode
                 wf_data = np.fromfile(file, dtype='i2', count = no_of_spectra_in_bunch * data_block_size)
                 wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_in_bunch], order='F')
@@ -216,45 +219,54 @@ for fileNo in range(len(fileList)):   # loop by files
                 wf_data = np.fromfile(file, dtype='i2', count = 2 * no_of_spectra_in_bunch * data_block_size)
                 wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
 
+
             # Timing
             timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
             if Channel == 2:  # Two channels mode
-                timeline_block_str = timeline_block_str[0:len(timeline_block_str)] # Cut the timeline of second channel
+                timeline_block_str = timeline_block_str[0:int(len(timeline_block_str)/2)] # Cut the timeline of second channel
             for i in range (len(timeline_block_str)):
                 time_scale_bunch.append(df_creation_timeUTC[0:10] + ' ' +timeline_block_str[i])  #  [0:12]
 
 
-            # Nulling the time blocks in waveform data
-            wf_data[data_block_size-4 : data_block_size, :] = 0
+            # deleting the time blocks from waveform data
+            #data_block_size = data_block_size - 4
+            #wf_data = wf_data[0 : data_block_size, :]
+            wf_data[data_block_size - 4: data_block_size, :] = 0
 
+
+            # *** !!! Not sure if it is necessary now !!! ***
             # Scaling of the data - seems to be wrong in absolute value
             wf_data = wf_data / 32768.0
 
+            # Separation data into channels
             if Channel == 0 or Channel == 1:    # Single channel mode
                 wf_data_chA = wf_data           # All the data is channel A data
-                del wf_data                     # Deleting unnecessary array to free the memory
+                del wf_data                     # Deleting unnecessary array name just in case
 
             if Channel == 2:  # Two channels mode
-                # '''
+
                 # Resizing to obtain the matrix for separation of channels
-                wf_data_new = np.zeros((2 * data_block_size, no_of_spectra_in_bunch))
+                #wf_data_new = np.zeros((2 * data_block_size, no_of_spectra_in_bunch))
+                '''
+                wf_data_chA = np.zeros((data_block_size, no_of_spectra_in_bunch)) # Preparing empty array
+                wf_data_chB = np.zeros((data_block_size, no_of_spectra_in_bunch)) # Preparing empty array
+
                 for i in range(2 * no_of_spectra_in_bunch):
                     if i % 2 == 0:
                         wf_data_new[0:data_block_size, int(i/2)] = wf_data[:, i]   # Even
                     else:
-                        wf_data_new[data_block_size:2*data_block_size, int(i/2)] = wf_data[:, i]   # Odd
+                        wf_data_new[data_block_size : 2*data_block_size, int(i/2)] = wf_data[:, i]   # Odd
                 del wf_data     # Deleting unnecessary array to free the memory
 
                 # Separating the data into two channels
-                wf_data_chA = np.zeros((data_block_size, no_of_spectra_in_bunch)) # Preparing empty array
-                wf_data_chB = np.zeros((data_block_size, no_of_spectra_in_bunch)) # Preparing empty array
+                #wf_data_chA = np.zeros((data_block_size, no_of_spectra_in_bunch)) # Preparing empty array
+                #wf_data_chB = np.zeros((data_block_size, no_of_spectra_in_bunch)) # Preparing empty array
                 wf_data_chA[:,:] = wf_data_new[0:(2 * data_block_size):2, :]        # Separation to channel A
                 wf_data_chB[:,:] = wf_data_new[1:(2 * data_block_size):2, :]        # Separation to channel B
                 del wf_data_new
-                # '''
-
-                # ***  Alternative way to divide channels into separate arrays (check what works faster!) ***
                 '''
+
+                #print(wf_data.size, wf_data.shape)
                 wf_data = np.reshape(wf_data, [2 * data_block_size * no_of_spectra_in_bunch, 1], order='F') # , order='F'
                 #print(wf_data.size, wf_data.shape)
                 wf_data_chA = wf_data[0 : (2 * data_block_size * no_of_spectra_in_bunch) : 2]  # Separation to channel A
@@ -263,7 +275,12 @@ for fileNo in range(len(fileList)):   # loop by files
 
                 wf_data_chA = np.reshape(wf_data_chA, [data_block_size, no_of_spectra_in_bunch], order='F')
                 wf_data_chB = np.reshape(wf_data_chB, [data_block_size, no_of_spectra_in_bunch], order='F')
-                '''
+
+
+
+
+
+
 
             # preparing matrices for spectra
             spectra_chA = np.zeros_like(wf_data_chA)
@@ -291,8 +308,9 @@ for fileNo in range(len(fileList)):   # loop by files
             del wf_data_chA
             if Channel == 2:
                 del wf_data_chB
-
-
+            '''
+            '''
+            # Saving spectra data to dat file 
             temp = spectra_chA.transpose().copy(order='C')
             file_data_A = open(file_data_A_name, 'ab')
             file_data_A.write(temp)
