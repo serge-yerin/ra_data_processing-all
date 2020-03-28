@@ -11,7 +11,7 @@ Software_name = 'JDS Waveform to DAT spectra converter'
 source_directory = 'DATA/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
-no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768 ...
+no_of_points_for_fft = 32768    # Number of true wf data points for FFT calculation # 8192, 16384, 32768 ...
 no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
 
 # ###############################################################################
@@ -147,7 +147,8 @@ for fileNo in range(len(fileList)):   # loop by files
         file_data_A.seek(632)  # Wb place in header
         file_data_A.write(np.int32(no_of_points_for_fft/2).tobytes())
         file_data_A.seek(636)  # Navr place in header
-        file_data_A.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
+        #file_data_A.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
+        file_data_A.write(np.int32(no_of_points_for_fft/8192).tobytes())
         file_data_A.close()
 
         if Channel == 2:
@@ -161,7 +162,8 @@ for fileNo in range(len(fileList)):   # loop by files
             file_data_B.seek(632)  # Wb place in header
             file_data_B.write(np.int32(no_of_points_for_fft/2).tobytes())
             file_data_B.seek(636)  # Navr place in header
-            file_data_B.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
+            #file_data_B.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
+            file_data_B.write(np.int32(no_of_points_for_fft / 8192).tobytes())
             file_data_B.close()
 
         del file_header
