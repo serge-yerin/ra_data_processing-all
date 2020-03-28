@@ -245,7 +245,7 @@ for fileNo in range(len(fileList)):   # loop by files
 
             # Separation data into channels
             if Channel == 0 or Channel == 1:    # Single channel mode
-                wf_data_chA = np.append(wf_data_chA, np.reshape(wf_data, [2 * real_data_block_size * no_of_spectra_in_bunch, 1], order='F'))
+                wf_data_chA = np.append(wf_data_chA, np.reshape(wf_data, [real_data_block_size * no_of_spectra_in_bunch, 1], order='F'))
                 del wf_data                     # Deleting unnecessary array name just in case
 
             if Channel == 2:  # Two channels mode
@@ -285,9 +285,9 @@ for fileNo in range(len(fileList)):   # loop by files
                     #spectra_chB = np.power(np.abs(np.fft.fft(ready_wf_array_chB[:, :])), 2)
 
             # Storing only first (left) mirror part of spectra
-            spectra_chA = spectra_chA[: int(real_data_block_size/2), :]
+            spectra_chA = spectra_chA[: int(no_of_points_for_fft/2), :]
             if Channel == 2:
-                spectra_chB = spectra_chB[: int(real_data_block_size/2), :]
+                spectra_chB = spectra_chB[: int(no_of_points_for_fft/2), :]
 
             # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
             if int(CLCfrq/1000000) == 33:
