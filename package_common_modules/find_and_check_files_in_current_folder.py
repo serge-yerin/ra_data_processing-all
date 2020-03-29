@@ -24,6 +24,7 @@ def find_and_check_files_in_current_folder(source_directory, extension):
 
         if same_or_not and equal_or_not:
             print('\n\n\n        :-)  All files seem to be of the same parameters!  :-) \n\n\n')
+            decision = 1
         else:
             print(
                 '\n\n\n ************************************************************************************* \n *                                                                                   *')
@@ -31,7 +32,7 @@ def find_and_check_files_in_current_folder(source_directory, extension):
             print(' *                                                                                   *  '
                   '\n ************************************************************************************* \n\n\n')
 
-        decision = int(input('* Enter "1" to start processing, or "0" to stop the script:     '))
+            decision = int(input('* Enter "1" to start processing, or "0" to stop the script:     '))
         if decision != 1:
             sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
 
