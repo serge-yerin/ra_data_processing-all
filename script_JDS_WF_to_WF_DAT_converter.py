@@ -162,11 +162,11 @@ for fileNo in range(len(fileList)):   # loop by files
 
             # Saving WF data to dat file
             file_data_A = open(file_data_A_name, 'ab')
-            file_data_A.write(wf_data_chA.copy(order='C'))
+            file_data_A.write(np.int16(wf_data_chA).transpose().copy(order='C'))
             file_data_A.close()
             if Channel == 2:
                 file_data_B = open(file_data_B_name, 'ab')
-                file_data_B.write(wf_data_chB.copy(order='C'))
+                file_data_B.write(np.int16(wf_data_chB).transpose().copy(order='C'))
                 file_data_B.close()
 
             # Saving time data to ling timeline file
