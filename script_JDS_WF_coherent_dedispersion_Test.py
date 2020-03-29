@@ -31,9 +31,6 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
-from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
-from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.check_if_JDS_files_of_equal_parameters import check_if_JDS_files_of_equal_parameters
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
@@ -67,10 +64,10 @@ no_of_freq_points = int(no_of_points_for_fft/2)  # Number of frequency points (s
 # Manually set frequencies for two channels mode
 if int(CLCfrq / 1000000) == 33:
     fmin, fmax = 16.5, 33.0
-    frequency = np.linspace(fmin, fmax, no_of_freq_points)
+    #frequency = np.linspace(fmin, fmax, no_of_freq_points)
 else:
     fmin, fmax = 0.0, 33.0
-    frequency = np.linspace(fmin, fmax, no_of_freq_points)
+    #frequency = np.linspace(fmin, fmax, no_of_freq_points)
 # Frequency and time resolution:
 df = (fmax - fmin) / no_of_freq_points
 time_resolution = (1/CLCfrq) * no_of_points_for_fft
@@ -140,12 +137,17 @@ with open(fname, 'rb') as file:
         TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
 
     time_scale_bunch = []
+    buffer_array = np.zeros((int(no_of_points_for_fft/2), 2 * max_shift)) # Making buffer array for dedispersion
+
+    nowTime = time.time()
+    print('\n  * Everything prepared to start: ', round((nowTime - previousTime), 2), 'seconds ')
+    previousTime = nowTime
 
     #bar = IncrementalBar(' File ' + str(fileNo+1) + ' of ' + str(len(fileList)) + ' reading: ',
     #                     max=no_of_bunches_in_file, suffix='%(percent)d%%')
 
     for bunch in range(no_of_bunches_in_file):
-        print('\n  *** Bunch #',bunch+1,' *** \n')
+        print('\n  *** Bunch #',bunch+1,' *** ')
         #bar.next()
 
         # Reading and reshaping all data with time data
@@ -158,29 +160,69 @@ with open(fname, 'rb') as file:
         # preparing matrices for spectra
         spectra_data = np.zeros_like(wf_data)
 
-        print('\n  *** Data read and prepared *** \n')
+        nowTime = time.time()
+        print('\n * Data read and prepared:        ', round((nowTime - previousTime), 2), 'seconds ')
+        previousTime = nowTime
 
         # Calculation of spectra
         for i in range(no_of_spectra_in_bunch):
             spectra_data[:, i] = np.power(np.abs(np.fft.fft(wf_data[:, i])),2)
+            #spectra_data[:, i] = np.fft.fft(wf_data[:, i])
         del wf_data
 
-        print('\n  *** Spectra calculated *** \n')
+        nowTime = time.time()
+        print('\n * Spectra calculated:            ', round((nowTime - previousTime), 2), 'seconds ')
+        previousTime = nowTime
 
-       # Storing only first (left) mirror part of spectra
+        # Storing only first (left) mirror part of spectra
         spectra_data = spectra_data[: int(no_of_points_for_fft / 2), :]
 
         # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
         if int(CLCfrq/1000000) == 33:
             spectra_data = np.flipud(spectra_data)
 
-        # Saving spectra data to dat file
-        temp = spectra_data.transpose().copy(order='C')
-        file_data_A = open(file_data_A_name, 'ab')
-        file_data_A.write(temp)
-        file_data_A.close()
+
+        # *******************************************************************************
+        #            D I S P E R S I O N   D E L A Y    R E M O V I N G                 *
+        # *******************************************************************************
+
+        # Dispersion delay compensation
+        data_space = np.zeros((int(no_of_points_for_fft/2), 2 * max_shift))
+        data_space[:, max_shift:] = spectra_data[:, :]
         del spectra_data
-        print('\n  *** Spectra saved to file *** \n')
+        temp_array = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
+        del data_space
+
+        nowTime = time.time()
+        print('\n * Dispersion delay removed:      ', round((nowTime - previousTime), 2), 'seconds ')
+        previousTime = nowTime
+
+        # Adding the next data block
+        buffer_array += temp_array
+
+        # Making and filling the array with fully ready data for plotting and saving to a file
+        array_compensated_DM = buffer_array[:, 0: max_shift]
+        #array_compensated_DM = np.power(np.abs(buffer_array[:, 0: max_shift]),2)
+
+        # Rolling temp_array to put current data first
+        buffer_array = np.roll(buffer_array, - max_shift)
+        buffer_array[:, max_shift:] = 0
+
+        nowTime = time.time()
+        print('\n * Result array prepared:         ', round((nowTime - previousTime), 2), 'seconds ')
+        previousTime = nowTime
+
+        # *******************************************************************************
+
+        # Saving spectra data to dat file
+        file_data_A = open(file_data_A_name, 'ab')
+        file_data_A.write(array_compensated_DM.transpose().copy(order='C'))
+        file_data_A.close()
+        del array_compensated_DM
+
+        nowTime = time.time()
+        print('\n * Spectra saved to file:         ', round((nowTime - previousTime), 2), 'seconds \n')
+        previousTime = nowTime
 
         # Saving time data to ling timeline file
         #with open(TLfile_name, 'a') as TLfile:
