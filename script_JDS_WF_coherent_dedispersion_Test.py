@@ -1,4 +1,4 @@
-# !!! Not ready at all !!!
+# Still there is no coherent dedispersion now !!!!
 # Python3
 # pip install progress
 Software_version = '2020.03.29'
@@ -14,7 +14,6 @@ source_file = 'E280120_212713.jds_Data_chA.wdat'      # DAT file with waveform d
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 pulsar_name = 'B0000+00'        # 'B0950+08'
 no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768 ...
-#no_of_bunches_in_file = 16     # Number of bunches to read one file (depends on RAM volume)
 
 # ###############################################################################
 # *******************************************************************************
@@ -36,7 +35,7 @@ from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
-
+from package_plot_formats.plot_formats import plot2D, plot1D
 # ###############################################################################
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -69,12 +68,14 @@ else:
     fmin, fmax = 0.0, 33.0
     #frequency = np.linspace(fmin, fmax, no_of_freq_points)
 # Frequency and time resolution:
-df = (fmax - fmin) / no_of_freq_points
+df = 1000000*(fmax - fmin) / no_of_freq_points
 time_resolution = (1/CLCfrq) * no_of_points_for_fft
 
 pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
 shift_vector = DM_full_shift_calc(no_of_freq_points, fmin, fmax, df / pow(10, 6), time_resolution, DM,'.jds')
+
+#plot1D(shift_vector, 'Fig.0.png', 'Shift parameter', 'Shift parameter', 'Shift param', 'Frequency channel number', 300)
 
 max_shift = np.abs(shift_vector[0])
 
@@ -137,7 +138,7 @@ with open(fname, 'rb') as file:
         TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
 
     time_scale_bunch = []
-    buffer_array = np.zeros((int(no_of_points_for_fft/2), 2 * max_shift)) # Making buffer array for dedispersion
+    buffer_array = np.zeros((int(no_of_points_for_fft/2), 2 * max_shift), dtype='float32') # Making buffer array for dedispersion
 
     nowTime = time.time()
     print('\n  * Everything prepared to start: ', round((nowTime - previousTime), 2), 'seconds ')
@@ -155,7 +156,7 @@ with open(fname, 'rb') as file:
         wf_data = np.reshape(wf_data, [no_of_points_for_fft, no_of_spectra_in_bunch], order='F')
 
         # Scaling of the data - seems to be wrong in absolute value
-        wf_data = wf_data / 32768  #  .0
+        wf_data = np.array(wf_data / 32768.0, dtype='float32')
 
         # preparing matrices for spectra
         spectra_data = np.zeros_like(wf_data)
@@ -181,48 +182,65 @@ with open(fname, 'rb') as file:
         if int(CLCfrq/1000000) == 33:
             spectra_data = np.flipud(spectra_data)
 
-
+        '''
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # Logging the data
+        with np.errstate(divide='ignore'):
+            spectra_data[:, :] = 10 * np.log10(spectra_data[:, :])
+        spectra_data[spectra_data == -np.inf] = 0
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        '''
         # *******************************************************************************
         #            D I S P E R S I O N   D E L A Y    R E M O V I N G                 *
         # *******************************************************************************
 
         # Dispersion delay compensation
-        data_space = np.zeros((int(no_of_points_for_fft/2), 2 * max_shift))
-        data_space[:, max_shift:] = spectra_data[:, :]
+        data_space = np.zeros((int(no_of_points_for_fft/2), 2 * max_shift), dtype='float32')
+        data_space[:, max_shift : ] = spectra_data[:, :]
         del spectra_data
-        temp_array = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
-        del data_space
+
+        #plot2D(data_space, 'Fig. 1.png', np.linspace(0, no_of_freq_points-1, no_of_freq_points), 'Greys', 'Title', 300)
+
+        data_space = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
+
+        #plot2D(data_space, 'Fig. 2.png', np.linspace(0, no_of_freq_points - 1, no_of_freq_points), 'Greys', 'Title', 300)
 
         nowTime = time.time()
         print('\n * Dispersion delay removed:      ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
         # Adding the next data block
-        buffer_array += temp_array
+        buffer_array += data_space
+        del data_space
 
-        # Making and filling the array with fully ready data for plotting and saving to a file
-        array_compensated_DM = buffer_array[:, 0: max_shift]
-        #array_compensated_DM = np.power(np.abs(buffer_array[:, 0: max_shift]),2)
+        #plot2D(buffer_array, 'Fig. 3.png', np.linspace(0, no_of_freq_points - 1, no_of_freq_points), 'Greys', 'Title', 300)
+
+        if bunch > 0:
+
+            # Making and filling the array with fully ready data for plotting and saving to a file
+            array_compensated_DM = buffer_array[:, 0 : max_shift]
+            #array_compensated_DM = np.power(np.abs(buffer_array[:, 0: max_shift]),2)
+
+            #plot2D(array_compensated_DM, 'Fig. 4.png', np.linspace(0, no_of_freq_points - 1, no_of_freq_points), 'Greys', 'Title',300)
+
+            # Saving spectra data to dat file
+            file_data_A = open(file_data_A_name, 'ab')
+            file_data_A.write(array_compensated_DM.transpose().copy(order='C'))
+            file_data_A.close()
+            del array_compensated_DM
+
+            nowTime = time.time()
+            print('\n * Spectra saved to file:         ', round((nowTime - previousTime), 2), 'seconds \n')
+            previousTime = nowTime
 
         # Rolling temp_array to put current data first
         buffer_array = np.roll(buffer_array, - max_shift)
-        buffer_array[:, max_shift:] = 0
+        buffer_array[:, max_shift:] = 0.0
 
         nowTime = time.time()
-        print('\n * Result array prepared:         ', round((nowTime - previousTime), 2), 'seconds ')
+        print('\n * Array prepared for next bunch: ', round((nowTime - previousTime), 2), 'seconds ')
         previousTime = nowTime
 
-        # *******************************************************************************
-
-        # Saving spectra data to dat file
-        file_data_A = open(file_data_A_name, 'ab')
-        file_data_A.write(array_compensated_DM.transpose().copy(order='C'))
-        file_data_A.close()
-        del array_compensated_DM
-
-        nowTime = time.time()
-        print('\n * Spectra saved to file:         ', round((nowTime - previousTime), 2), 'seconds \n')
-        previousTime = nowTime
 
         # Saving time data to ling timeline file
         #with open(TLfile_name, 'a') as TLfile:
