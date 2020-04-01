@@ -218,7 +218,7 @@ with open(fname, 'rb') as file:
         if bunch > 0:
 
             # Making and filling the array with fully ready data for plotting and saving to a file
-            array_compensated_DM = buffer_array[:, 0 : max_shift]
+            array_compensated_DM = np.array(buffer_array[:, 0 : max_shift], dtype='float64')
             #array_compensated_DM = np.power(np.abs(buffer_array[:, 0: max_shift]),2)
 
             #plot2D(array_compensated_DM, 'Fig. 4.png', np.linspace(0, no_of_freq_points - 1, no_of_freq_points), 'Greys', 'Title',300)
@@ -226,6 +226,7 @@ with open(fname, 'rb') as file:
             # Saving spectra data to dat file
             file_data_A = open(file_data_A_name, 'ab')
             file_data_A.write(array_compensated_DM.transpose().copy(order='C'))
+            #file_data_A.write(array_compensated_DM.transpose())
             file_data_A.close()
             del array_compensated_DM
 
