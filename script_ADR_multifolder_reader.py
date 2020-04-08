@@ -8,7 +8,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data =  'DATA/' # 'h:/To_process/'
+path_to_data = '/media/data/DATA/To_process/' # 'h:/To_process/'
 
 MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
@@ -33,8 +33,8 @@ averOrMin = 0                    # Use average value (0) per data block or minim
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
-AmplitudeReIm = 2000 * 10**(-12) # Color range of Re and Im dynamic spectra
+VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+AmplitudeReIm = 1 * 10**(-12) # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 
