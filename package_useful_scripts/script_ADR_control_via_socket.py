@@ -27,7 +27,7 @@ serversocket.connect((host, port))
 
 def ts(str):
     serversocket.send('ADRSCTRL'.encode())
-    ctrl = 0
+    ctrl = 1
     register_cc_msg = bytearray([108,0,0,0])
     register_cc_msg.extend(b'YeS\0                                                            ')  # Name 64 bytes
     register_cc_msg.extend('adrs\0                           '.encode())                          # Password 32 bytes
@@ -38,8 +38,8 @@ def ts(str):
     #print(' Sent message: ', register_cc_msg)
 
     serversocket.send(register_cc_msg)
-    data = serversocket.recv(200).decode()
-    print (' Received message: ', data)
+    data = serversocket.recv(5024).decode()
+    print ('\n Received message: ', data)
 
     #serversocket.send('get prc/dsp/ctl/mdo'.encode())
     #data = serversocket.recv(1024).decode()
@@ -47,25 +47,32 @@ def ts(str):
 
     time.sleep(5)
 
-    serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name).encode())    # set directory to store data
-    data = serversocket.recv(200).decode()
-    print (' Received message: ', data)
+    print ('\n\n\n Making directory ')
+    #serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name).encode())    # set directory to store data
+    serversocket.send(('get prc/srv/ctl/pth').encode())    # set directory to store data
 
+    data = serversocket.recv(6024).decode()
+    print ('\n Received message: ', data)
+
+
+    '''
     time.sleep(5)
 
+    print ('\n\n\n Start ')
     serversocket.send('set prc/srv/ctl/srd 0 1'.encode())    # start data recording
-    data = serversocket.recv(200).decode()
-    print (' Received message: ', data)
+    data = serversocket.recv(3024).decode()
+    print ('\n Received message: ', data)
 
     time.sleep(15)
 
+    print ('\n\n\n Stop ')
     serversocket.send('set prc/srv/ctl/srd 0 0'.encode())    # stop data recording
-    data = serversocket.recv(200).decode()
-    print (' Received message: ', data)
+    data = serversocket.recv(3024).decode()
+    print ('\n Received message: ', data)
 
     time.sleep(15)
 
-
+    '''
 
 ts(str)
 
@@ -78,7 +85,7 @@ set prc/srv/ctl/srd 0 0     - to switch off the data recording
 set prc/srv/ctl/srd 1 1     - to switch on the file autocreation option
 set prc/srv/ctl/srd 1 0     - to switch off the file autocreation option
 
-set prc/srv/ctl/srd 2 <FSIZE>   - defines the file size restriction to be set to FSIZE MB (FSIZE = -1 means no restrictions)   
+set prc/srv/ctl/srd 2 <FSIZE>   - defines the file size restriction to be set to FSIZE MB (FSIZE = -1 means no restrictions)
 
 set prc/srv/ctl/pth <directory_name>    - set directory to store data
 get prc/srv/ctl/pth
@@ -104,7 +111,7 @@ get prc/dsp/ctl/mdo                     - get values for all sub-parameters from
 
 set prc/dsp/ctl/mdo 0 <index>           - set ADR operation mode:
 get prc/dsp/ctl/mdo 0
- 
+
 set prc/dsp/ctl/mdo 1 <SFFT>            - set SFFT from list: 2048,4096,8192,16384,32768
 get prc/dsp/ctl/mdo 1
 
