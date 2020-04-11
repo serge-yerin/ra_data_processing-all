@@ -35,6 +35,15 @@ print (' Host: ', host)
 print (' Port: ', port)
 serversocket.connect((host, port))
 
+def read_meassage():
+    byte = b'a'
+    message = bytearray([])
+    while byte != b'\0':
+        byte = serversocket.recv()
+        message.extend(byte)
+    message = bytes(message)
+    return message.decode()
+
 def ts(str):
     serversocket.send('ADRSCTRL'.encode())
     ctrl = 1
@@ -113,6 +122,9 @@ def ts(str):
 ts(str)
 
 '''
+
+
+
 Connection terminates if control client has no any activity in 120 seconds
 
 set prc/srv/ctl/srd 0 1     - to switch on the data recording
@@ -132,6 +144,9 @@ get prc/srv/ctl/sys                     - get the system (receiver) name
 set prc/srv/ctl/plc <place_text>        - set text string defining the observation place
 get prc/srv/ctl/plc                     - get text string defining the observation place
 
+
+set prc/srv/ctl/adr 6 <0/1>             - To apply the ADR DSP options, defined in [opt]
+
 get prc/dsp/ctl/opt                     - get values for all sub-parameters from [opt] group
 
 set prc/dsp/ctl/opt 1 <0/1>             - On/Off the external source of ADC CLC.
@@ -140,8 +155,14 @@ get prc/dsp/ctl/opt 1
 set prc/dsp/ctl/opt 3 <0/1>             - On/Off the “sum-difference” mode A±B, instead of A/B mode on CH-A and CH-B outputs.
 get prc/dsp/ctl/opt 3
 
+
+set prc/srv/ctl/adr 5 <0/1>             - to apply the ADR DSP settings, defined in [set]
+
 set prc/dsp/ctl/set 5 <DDEL>            - Differential delay (DDEL) between CH-A and CH-B ADC sampling (CLC front) in picoseconds.
 get prc/dsp/ctl/set 5
+
+
+set prc/srv/ctl/adr 3 <0/1>             - to apply the ADR DSP parameters which is set in the [mdo]
 
 get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group use the command:
 
