@@ -39,7 +39,7 @@ def read_meassage():
     byte = b'a'
     message = bytearray([])
     while byte != b'\0':
-        byte = serversocket.recv()
+        byte = serversocket.recv(1)
         message.extend(byte)
     message = bytes(message)
     return message.decode()
@@ -53,24 +53,26 @@ def ts(str):
     register_cc_msg.extend([0, 0, 0, 0])                                                         # Priv 4 bytes
     register_cc_msg.extend([ctrl, 0, 0, 0])                                                      # CTRL 4 bytes
     register_cc_msg = bytes(register_cc_msg)
-    print(' Length: ', len(register_cc_msg))
-    print(' Sent message: ', register_cc_msg)
-
+    print('\n Length: ', len(register_cc_msg))
+    print('\n Sent message: ', register_cc_msg)
     serversocket.send(register_cc_msg)
+
     #data = serversocket.recv(1024).decode()
 
     data = read_meassage()
-    print(' Length: ', len(data))
-    print ('\n Received message: ', data)
+    print('\n Length: ', len(data))
+    print('\n Received message: ', data)
 
     data = serversocket.recv(108)
     print ('\n Reterned register_cc_msg: ', data)
 
 
-    data = read_meassage()
 
-    print(' Length: ', len(data))
-    print ('\n Received long message: ', data)
+    for i in range(23):
+
+        data = read_meassage()
+        print(' Length: ', len(data))
+        print ('\n Received long message: ', data)
 
     #serversocket.send('get prc/dsp/ctl/mdo'.encode())
     #data = serversocket.recv(1024).decode()
@@ -78,20 +80,20 @@ def ts(str):
 
     time.sleep(5)
 
-    print ('\n\n\n Making directory ')
+    print ('\n\n\n Checking directory ')
     #serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name).encode())    # set directory to store data
     serversocket.send(('get prc/srv/ctl/pth').encode())    # set directory to store data
 
     #data = serversocket.recv(6024).decode()
     #print ('\n Received message: ', data)
-    data = read_meassage()
 
+    time.sleep(1)
+
+    data = read_meassage()
     print(' Length: ', len(data))
     print ('\n Received long message: ', data)
 
-
-
-
+    '''
     time.sleep(5)
 
     print ('\n\n\n Start ')
@@ -115,8 +117,8 @@ def ts(str):
     print ('\n Received long message: ', data)
 
 
-    time.sleep(15)
-
+    #time.sleep(15)
+    '''
 
 
 ts(str)
