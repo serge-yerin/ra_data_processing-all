@@ -39,11 +39,11 @@ def f_connect_to_adr_receiver(host, port, control, delay):
 
     data = serversocket.recv(108)
     #print ('\n Returned register_cc_msg: ', data)
-    print ('\n Control bit: ', data[-1])
+    #print ('\n Control bit: ', data[-1])
     if data[-1] == 1:
-        print (' * Control accepted')
+        print ('\n * Control accepted!')
     else:
-        print(' * Control denied, view only!!!')
+        print('\n * Control denied, view only!!!')
 
     # Reading all parameters valid now
     input_parameters_str = ''

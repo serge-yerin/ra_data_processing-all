@@ -18,7 +18,7 @@ def f_read_adr_meassage(serversocket, print_or_not):
     message = bytes(message).decode()
     if print_or_not == 1:
         print('\n Length: ', len(message))
-        print('\n Received long message: ', message)
+        print('\n Received message: ', message)
     return message 
 
 

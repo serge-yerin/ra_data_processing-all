@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-11 23:00:30'
-date_time_stop =  '2020-04-11 23:02:50'
+date_time_start = '2020-04-11 23:15:30'
+date_time_stop =  '2020-04-11 23:17:50'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -67,13 +67,15 @@ In a loop:
 data_directory_name = date_time_start[0:10].replace('-','.') + '_GURT_' + source_to_observe
 
 # Prepare directory for data recording
-print ('\n\n\n Changing directory ')
-serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
-data = f_read_adr_meassage(serversocket, 1)
+print ('\n * Changing directory to:', data_directory_name)
+#serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
+#data = f_read_adr_meassage(serversocket, 1)
 serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
 data = f_read_adr_meassage(serversocket, 1)
-serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
-data = f_read_adr_meassage(serversocket, 1)
+if data.startswith(' SUCCESS'):
+    print ('\n   Directory name changes successfully')
+#serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
+#data = f_read_adr_meassage(serversocket, 1)
 
 
 # Construct datetime variables to start and stop observations
@@ -83,27 +85,34 @@ dt_time_to_start_record = datetime(int(date_time_start[0:4]), int(date_time_star
 dt_time_to_stop_record = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]), int(date_time_stop[8:10]),
                             int(date_time_stop[11:13]), int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
+# Check if the start time is less then stop one!
+
 # Waiting time to start record
+print('\n * Waiting time to start recording...')
 ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket)
 if not ok:
     print(' ERROR!')
     pass # !!!!
 
 # Start record
-print ('\n\n\n Start recording')
+print ('\n * Starting recording...')
 serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
-data = f_read_adr_meassage(serversocket, 1)
+data = f_read_adr_meassage(serversocket, 0)
+if data.startswith(' SUCCESS'):
+    print ('\n   Recording started successfully')
 
 # Waiting time to stop record
-ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket)
+ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket)
 if not ok:
     print(' ERROR!')
     pass # !!!!
 
 # Stop record
-print ('\n\n\n Stop recording')
+print ('\n * Stopping recording')
 serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
-data = f_read_adr_meassage(serversocket, 1)
+data = f_read_adr_meassage(serversocket, 0)
+if data.startswith(' SUCCESS'):
+    print ('\n   Recording stopped successfully')
 
 print ('\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
