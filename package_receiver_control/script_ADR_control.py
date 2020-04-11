@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-11 23:25:30'
-date_time_stop =  '2020-04-11 23:27:50'
+date_time_start = '2020-04-11 23:35:30'
+date_time_stop =  '2020-04-11 23:38:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -37,7 +37,7 @@ from package_receiver_control.f_wait_predefined_time_connected import f_wait_pre
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 print ('\n\n\n\n\n\n\n\n   *********************************************************************')
-print ('   *    ', Software_name, '  v.', Software_version,'     *      (c) YeS 2020')
+print ('   *              ', Software_name, '  v.', Software_version,'                 *      (c) YeS 2020')
 print ('   ********************************************************************* \n\n\n')
 
 startTime = time.time()
@@ -99,7 +99,7 @@ if not ok:
 print ('\n * Starting recording...')
 serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
 data = f_read_adr_meassage(serversocket, 0)
-if data.startswith(' SUCCESS'):
+if data.startswith('SUCCESS'):
     print ('\n   Recording started successfully')
 
 # Waiting time to stop record
@@ -109,10 +109,10 @@ if not ok:
     pass # !!!!
 
 # Stop record
-print ('\n * Stopping recording')
+print ('\n * Stopping recording...')
 serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
 data = f_read_adr_meassage(serversocket, 0)
-if data.startswith('  SUCCESS'):
+if data.startswith('SUCCESS'):
     print ('\n   Recording stopped successfully')
 
 

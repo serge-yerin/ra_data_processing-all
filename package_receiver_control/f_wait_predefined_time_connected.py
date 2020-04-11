@@ -20,7 +20,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
     diff = int((time_to_start - now).total_seconds())
     if diff > 0:
         result = True
-        print("\n {:02d}:{:02d}:{:02d}  Wait for: {:02d} hour {:02d} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 3600), int(diff / 60), diff % 60))
+        print("\n   {:02d}:{:02d}:{:02d}  Wait for: {:02d} hour {:02d} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 3600), int(diff / 60), diff % 60))
         # Wait minutes
         if int(diff / 60) > 0:
             while True:
@@ -36,7 +36,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
 
         now = datetime.datetime.now()
         diff = int((time_to_start - now).total_seconds())
-        print(" {:02d}:{:02d}:{:02d}  Wait for: {} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 60), diff % 60))
+        print("   {:02d}:{:02d}:{:02d}  Wait for: {} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 60), diff % 60))
 
         # Wait seconds
         while True:
@@ -44,7 +44,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
             now = datetime.datetime.now()
             diff = int((time_to_start - now).total_seconds())
             if diff < 0:
-                print(" {:02d}:{:02d}:{:02d}  Starting!".format(now.hour, now.minute, now.second))
+                print("   {:02d}:{:02d}:{:02d}  It's time!".format(now.hour, now.minute, now.second))
                 break
     else:
         print('\n ERROR! Time has passed!')
