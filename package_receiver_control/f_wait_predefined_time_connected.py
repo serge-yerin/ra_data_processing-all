@@ -36,14 +36,14 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
 
         now = datetime.datetime.now()
         diff = int((time_to_start - now).total_seconds())
-        print(" {:02d}:{:02d}:{:02d}  Starting in: {} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 60), diff % 60))
+        print(" {:02d}:{:02d}:{:02d}  Wait for: {} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 60), diff % 60))
 
         # Wait seconds
         while True:
             time.sleep(1)
             now = datetime.datetime.now()
             diff = int((time_to_start - now).total_seconds())
-            if diff <= 0:
+            if diff < 0:
                 print(" {:02d}:{:02d}:{:02d}  Starting!".format(now.hour, now.minute, now.second))
                 break
     else:

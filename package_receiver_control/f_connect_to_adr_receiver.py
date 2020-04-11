@@ -35,7 +35,7 @@ def f_connect_to_adr_receiver(host, port, control, delay):
     #print('\n Sent message: ', register_cc_msg)
     serversocket.send(register_cc_msg)
 
-    data = f_read_adr_meassage(serversocket, 1)
+    data = f_read_adr_meassage(serversocket, 0)
 
     data = serversocket.recv(108)
     #print ('\n Returned register_cc_msg: ', data)

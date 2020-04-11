@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-11 23:15:30'
-date_time_stop =  '2020-04-11 23:17:50'
+date_time_start = '2020-04-11 23:25:30'
+date_time_stop =  '2020-04-11 23:27:50'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -66,16 +66,17 @@ In a loop:
 # Construct the name of data directory
 data_directory_name = date_time_start[0:10].replace('-','.') + '_GURT_' + source_to_observe
 
+
+# Print the current directory
+#serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
+#data = f_read_adr_meassage(serversocket, 1)
+
 # Prepare directory for data recording
 print ('\n * Changing directory to:', data_directory_name)
-#serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
-#data = f_read_adr_meassage(serversocket, 1)
 serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
-data = f_read_adr_meassage(serversocket, 1)
-if data.startswith(' SUCCESS'):
-    print ('\n   Directory name changes successfully')
-#serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
-#data = f_read_adr_meassage(serversocket, 1)
+data = f_read_adr_meassage(serversocket, 0)
+if data.startswith('SUCCESS'):
+    print ('\n   Directory name changed successfully')
 
 
 # Construct datetime variables to start and stop observations
@@ -111,8 +112,9 @@ if not ok:
 print ('\n * Stopping recording')
 serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
 data = f_read_adr_meassage(serversocket, 0)
-if data.startswith(' SUCCESS'):
+if data.startswith('  SUCCESS'):
     print ('\n   Recording stopped successfully')
+
 
 print ('\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
