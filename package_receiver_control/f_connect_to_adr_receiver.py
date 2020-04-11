@@ -48,7 +48,7 @@ def f_connect_to_adr_receiver(host, port, control, delay):
     # Reading all parameters valid now
     input_parameters_str = ''
     for i in range(23):
-        input_parameters_str.append(f_read_adr_meassage(serversocket, 0))
+        input_parameters_str += f_read_adr_meassage(serversocket, 0)
 
     # Making pause to read the printed data
     time.sleep(delay)
