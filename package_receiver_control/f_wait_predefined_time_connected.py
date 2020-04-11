@@ -14,7 +14,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
     '''
     #'''
     serversocket.send(('get prc/srv/ctl/pth\0').encode())
-    f_read_adr_meassage(0)
+    f_read_adr_meassage(serversocket, 0)
     #'''
     now = datetime.datetime.now()
     diff = int((time_to_start - now).total_seconds())
@@ -27,7 +27,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
                 time.sleep(60)
                 #'''
                 serversocket.send(('get prc/srv/ctl/pth\0').encode())
-                f_read_adr_meassage(0)
+                f_read_adr_meassage(serversocket, 0)
                 #'''
                 now = datetime.datetime.now()
                 diff = int((time_to_start - now).total_seconds())
@@ -57,4 +57,4 @@ if __name__ == '__main__':
 
     time_to_start = datetime.datetime(2020, 4, 11, 22, 20, 10)
     precision = 1 # in seconds
-    f_wait_predefined_time_connected(time_to_start)
+    f_wait_predefined_time_connected(serversocket, time_to_start)

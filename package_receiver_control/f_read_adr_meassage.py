@@ -2,7 +2,7 @@
 #*************************************************************
 #                       MAIN FUNCTION                        *
 #*************************************************************
-def f_read_adr_meassage(print_or_not):
+def f_read_adr_meassage(serversocket, print_or_not):
     '''
     Function reads a message from ADR radio astronomy receiver
     Input parameters:
