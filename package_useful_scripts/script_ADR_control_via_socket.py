@@ -4,15 +4,16 @@
 #                        PARAMETERS                          *
 #*************************************************************
 data_directory_name = 'test_yes'
-
-
+host = '192.168.1.171'
+port = 38386
+control = 1
 #*************************************************************
 #                   IMPORT LIBRARIES                         *
 #*************************************************************
 import socket
 import time
 from threading import *
-
+'''
 def read_meassage():
     byte = b'a'
     array = bytearray([])
@@ -22,103 +23,72 @@ def read_meassage():
         #print(byte)
     message = bytes(array)
     return message.decode()
-
+'''
 #*************************************************************
 #                       MAIN PROGRAM                         *
 #*************************************************************
-
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = '192.168.1.171'
-port = 38386
-login = 'view' #'control'
 print (' Host: ', host)
 print (' Port: ', port)
 serversocket.connect((host, port))
 
-def read_meassage():
+def read_meassage(print_or_not):
     byte = b'a'
     message = bytearray([])
     while byte != b'\0':
         byte = serversocket.recv(1)
         message.extend(byte)
-    message = bytes(message)
-    return message.decode()
+    message = bytes(message).decode()
+    if print_or_not == 1:
+        print('\n Length: ', len(message))
+        print('\n Received long message: ', message)
+    return message 
 
 def ts(str):
     serversocket.send('ADRSCTRL'.encode())
-    ctrl = 1
     register_cc_msg = bytearray([108,0,0,0])
     register_cc_msg.extend(b'YeS\0                                                            ')  # Name 64 bytes
-    register_cc_msg.extend('adrs\0                           '.encode())                          # Password 32 bytes
-    register_cc_msg.extend([0, 0, 0, 0])                                                         # Priv 4 bytes
-    register_cc_msg.extend([ctrl, 0, 0, 0])                                                      # CTRL 4 bytes
+    register_cc_msg.extend(b'adrs\0                           ')                          # Password 32 bytes
+    register_cc_msg.extend([0, 0, 0, control])                                                         # Priv 4 bytes
+    register_cc_msg.extend([0, 0, 0, control])                                                      # CTRL 4 bytes
     register_cc_msg = bytes(register_cc_msg)
     print('\n Length: ', len(register_cc_msg))
     print('\n Sent message: ', register_cc_msg)
     serversocket.send(register_cc_msg)
 
-    #data = serversocket.recv(1024).decode()
-
-    data = read_meassage()
-    print('\n Length: ', len(data))
-    print('\n Received message: ', data)
+    data = read_meassage(1)
 
     data = serversocket.recv(108)
     print ('\n Reterned register_cc_msg: ', data)
 
-
-
+    # Reading all parameters valid now
     for i in range(23):
-
-        data = read_meassage()
-        print(' Length: ', len(data))
-        print ('\n Received long message: ', data)
-
-    #serversocket.send('get prc/dsp/ctl/mdo'.encode())
-    #data = serversocket.recv(1024).decode()
-    #print (' Received message: ', data)
+        data = read_meassage(0)
 
     time.sleep(5)
 
-    print ('\n\n\n Checking directory ')
-    #serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name).encode())    # set directory to store data
-    serversocket.send(('get prc/srv/ctl/pth').encode())    # set directory to store data
+    print ('\n\n\n Changing directory ')
+    serversocket.send(('get prc/srv/ctl/pth\0').encode())    # set directory to store data
+    data = read_meassage(1)
+    serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
+    data = read_meassage(1)
+    serversocket.send(('get prc/srv/ctl/pth\0').encode())    # set directory to store data
+    data = read_meassage(1)
 
-    #data = serversocket.recv(6024).decode()
-    #print ('\n Received message: ', data)
-
-    time.sleep(1)
-
-    data = read_meassage()
-    print(' Length: ', len(data))
-    print ('\n Received long message: ', data)
-
-    '''
     time.sleep(5)
 
-    print ('\n\n\n Start ')
-    serversocket.send('set prc/srv/ctl/srd 0 1'.encode())    # start data recording
-    #data = serversocket.recv(3024).decode()
-    #print ('\n Received message: ', data)
-    data = read_meassage()
-
-    print(' Length: ', len(data))
-    print ('\n Received long message: ', data)
+    print ('\n\n\n Start recording')
+    serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
+    data = read_meassage(1)
 
     time.sleep(15)
 
-    print ('\n\n\n Stop ')
-    serversocket.send('set prc/srv/ctl/srd 0 0'.encode())    # stop data recording
-    #data = serversocket.recv(3024).decode()
-    #print ('\n Received message: ', data)
-    data = read_meassage()
-
-    print(' Length: ', len(data))
-    print ('\n Received long message: ', data)
-
+    print ('\n\n\n Stop recording')
+    serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
+    data = read_meassage(1)
 
     #time.sleep(15)
-    '''
+
 
 
 ts(str)
