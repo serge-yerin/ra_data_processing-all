@@ -2,7 +2,7 @@ import datetime
 import time
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 
-def f_wait_predefined_time_connected(time_to_start, serversocket):
+def f_wait_predefined_time_connected(time_to_start, serversocket):  #
     '''
     Function waits the predefined time and once a minute reads something from ADR receiver to
     save connection to ADR server
@@ -20,7 +20,10 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
     diff = int((time_to_start - now).total_seconds())
     if diff > 0:
         result = True
-        print("\n   {:02d}:{:02d}:{:02d}  Wait for: {:02d} hour {:02d} min {:02d} sec...".format(now.hour, now.minute, now.second, int(diff / 3600), int(diff / 60), diff % 60))
+        diff_hours = int(diff / 3600)
+        diff_min = int((diff - diff_hours*3600) / 60)
+        diff_sec = diff % 60
+        print("\n   {:02d}:{:02d}:{:02d}  Wait for: {:02d} hr {:02d} min {:02d} sec...".format(now.hour, now.minute, now.second, diff_hours, diff_min, diff_sec))
         # Wait minutes
         if int(diff / 60) > 0:
             while True:
@@ -43,7 +46,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
             time.sleep(1)
             now = datetime.datetime.now()
             diff = int((time_to_start - now).total_seconds())
-            if diff < 0:
+            if diff < 1:
                 print("   {:02d}:{:02d}:{:02d}  It's time!".format(now.hour, now.minute, now.second))
                 break
     else:
@@ -55,6 +58,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):
 
 if __name__ == '__main__':
 
-    time_to_start = datetime.datetime(2020, 4, 11, 22, 20, 10)
+    time_to_start = datetime.datetime(2020, 4, 12, 23, 58, 00)
     precision = 1 # in seconds
-    f_wait_predefined_time_connected(serversocket, time_to_start)
+    #f_wait_predefined_time_connected(serversocket, time_to_start)
+    f_wait_predefined_time_connected(time_to_start)

@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-11 23:35:30'
-date_time_stop =  '2020-04-11 23:38:00'
+date_time_start = '2020-04-12 23:55:00'
+date_time_stop =  '2020-04-12 23:57:30'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -86,7 +86,12 @@ dt_time_to_start_record = datetime(int(date_time_start[0:4]), int(date_time_star
 dt_time_to_stop_record = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]), int(date_time_stop[8:10]),
                             int(date_time_stop[11:13]), int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
-# Check if the start time is less then stop one!
+# Check the correctness of start and stop time
+if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
+    print('\n   Start time: ', date_time_start)
+    print('\n   Stop time:  ', date_time_stop)
+else:
+    print('\n\n * ERROR! Time limits are wrong!!! \n\n')
 
 # Waiting time to start record
 print('\n * Waiting time to start recording...')
@@ -156,7 +161,7 @@ get prc/dsp/ctl/set 5
 
 set prc/srv/ctl/adr 3 <0/1>             - to apply the ADR DSP parameters which is set in the [mdo]
 
-get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group use the command:
+get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group
 
 set prc/dsp/ctl/mdo 0 <index>           - set ADR operation mode:
 get prc/dsp/ctl/mdo 0
