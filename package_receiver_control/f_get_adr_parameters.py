@@ -60,10 +60,10 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
     if print_or_not > 0:
         print('\n * Current ADR parameters:')
-        print('\n   File description: \n   ', parameters_dict["file_description"], '\n')
-        print('   Path to save data:               ', parameters_dict["save_data_path"])
-        print('   Observation place:               ', parameters_dict["observation_place"])
-        print('   Receiver name:                   ', parameters_dict["receiver_name"])
+        print('\n   File description: \n\n  ', parameters_dict["file_description"], '\n')
+        print('   Path to save data:            ', parameters_dict["save_data_path"])
+        print('   Observation place:            ', parameters_dict["observation_place"])
+        print('   Receiver name:                ', parameters_dict["receiver_name"])
 
     return parameters_dict
 
