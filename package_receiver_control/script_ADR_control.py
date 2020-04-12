@@ -64,17 +64,20 @@ In a loop:
     Stop observations on predefined time 
 '''
 # Update synchronization of PC and ADR
-print ('\n * ADR synchronization with PC')
+print('\n * ADR synchronization with PC')
 now = datetime.now()
 serversocket.send(('set prc/dsp/ctl/clc 0 '+str(now)+'\0').encode())    # set directory to store data
-data = f_read_adr_meassage(serversocket, 0)
+print('   Now = ', now)
+data = f_read_adr_meassage(serversocket, 1)
 if data.startswith('SUCCESS'):
-    print ('\n   UTC absolute second set')
+    print('\n   UTC absolute second set')
+else:
+    print('\n   ERROR! UTC absolute second was not set!')
 
 serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')    # set directory to store data
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
-    print ('\n   UTC absolute second tuned')
+    print('\n   UTC absolute second tuned')
 
 
 # Requesting and printing current ADR parameters

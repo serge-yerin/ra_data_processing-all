@@ -4,6 +4,7 @@
 # *******************************************************************************
 
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
+from package_common_modules.text_manipulations import find_between
 
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
@@ -20,13 +21,20 @@ def f_get_adr_parameters(serversocket, print_or_not):
     parameters_dict = {}
 
     serversocket.send((b'get prc/srv/ctl/pth\0'))  # read directory where data are stored
-    parameters_dict["save_data_path"] = f_read_adr_meassage(serversocket, 0)
+    data = f_read_adr_meassage(serversocket, 0)
+    parameters_dict["save_data_path"] = find_between(data,'SUCCESS','\0')
+
     serversocket.send((b'get prc/srv/ctl/sys\0'))  # read directory where data are stored
-    parameters_dict["receiver_name"] = f_read_adr_meassage(serversocket, 0)
+    data =  f_read_adr_meassage(serversocket, 0)
+    parameters_dict["receiver_name"] = find_between(data,'SUCCESS','\0')
+
     serversocket.send((b'get prc/srv/ctl/plc\0'))  # read directory where data are stored
-    parameters_dict["observation_place"] = f_read_adr_meassage(serversocket, 0)
+    data = f_read_adr_meassage(serversocket, 0)
+    parameters_dict["observation_place"] = find_between(data, 'SUCCESS', '\0')
+
     serversocket.send((b'get prc/srv/ctl/dsc\0'))  # read directory where data are stored
-    parameters_dict["file_description"] = f_read_adr_meassage(serversocket, 0)
+    data = f_read_adr_meassage(serversocket, 0)
+    parameters_dict["file_description"] = find_between(data, 'SUCCESS', '\0')
 
     '''
     get prc/dsp/ctl/opt                     - get values for all sub-parameters from [opt] group
