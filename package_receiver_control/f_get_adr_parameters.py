@@ -22,19 +22,19 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
     serversocket.send((b'get prc/srv/ctl/pth\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["save_data_path"] = find_between(data,'SUCCESS\n',' ')
+    parameters_dict["save_data_path"] = find_between(data,'SUCCESS\n','\n')
 
     serversocket.send((b'get prc/srv/ctl/sys\0'))  # read directory where data are stored
     data =  f_read_adr_meassage(serversocket, 0)
-    parameters_dict["receiver_name"] = find_between(data,'SUCCESS\n','\0')
+    parameters_dict["receiver_name"] = find_between(data,'SUCCESS\n','\n')
 
     serversocket.send((b'get prc/srv/ctl/plc\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["observation_place"] = find_between(data, 'SUCCESS\n', '\0')
+    parameters_dict["observation_place"] = find_between(data, 'SUCCESS\n', '\n')
 
     serversocket.send((b'get prc/srv/ctl/dsc\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["file_description"] = find_between(data, 'SUCCESS\n', '\0')
+    parameters_dict["file_description"] = find_between(data, 'SUCCESS\n', '\n')
 
     '''
     get prc/dsp/ctl/opt                     - get values for all sub-parameters from [opt] group
@@ -60,10 +60,10 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
     if print_or_not > 0:
         print('\n * Current ADR parameters:')
-        print('   File description: \n   ', parameters_dict["file_description"], '\n')
+        print('\n   File description: \n   ', parameters_dict["file_description"], '\n')
         print('   Path to save data:               ', parameters_dict["save_data_path"])
-        print('   Path to save data:               ', parameters_dict["observation_place"])
-        print('   Path to save data:               ', parameters_dict["receiver_name"])
+        print('   Observation place:               ', parameters_dict["observation_place"])
+        print('   Receiver name:                   ', parameters_dict["receiver_name"])
 
     return parameters_dict
 
