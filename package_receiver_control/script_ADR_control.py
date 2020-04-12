@@ -32,6 +32,7 @@ if __package__ is None:
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
 from package_receiver_control.f_wait_predefined_time_connected import f_wait_predefined_time_connected
+from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -62,14 +63,11 @@ In a loop:
     Wait predefined time and check connection every minute
     Stop observations on predefined time 
 '''
+# Requesting and printing current ADR parameters
+parameters_dict = f_get_adr_parameters(serversocket, 1)
 
 # Construct the name of data directory
 data_directory_name = date_time_start[0:10].replace('-','.') + '_GURT_' + source_to_observe
-
-
-# Print the current directory
-#serversocket.send(('get prc/srv/ctl/pth\0').encode())    # read directory where data are stored
-#data = f_read_adr_meassage(serversocket, 1)
 
 # Prepare directory for data recording
 print ('\n * Changing directory to:', data_directory_name)
