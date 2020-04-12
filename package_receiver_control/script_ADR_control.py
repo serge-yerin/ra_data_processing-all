@@ -63,6 +63,20 @@ In a loop:
     Wait predefined time and check connection every minute
     Stop observations on predefined time 
 '''
+# Update synchronization of PC and ADR
+print ('\n * ADR synchronization with PC')
+now = datetime.now()
+serversocket.send(('set prc/dsp/ctl/clc 0 '+str(now)+'\0').encode())    # set directory to store data
+data = f_read_adr_meassage(serversocket, 0)
+if data.startswith('SUCCESS'):
+    print ('\n   UTC absolute second set')
+
+serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')    # set directory to store data
+data = f_read_adr_meassage(serversocket, 0)
+if data.startswith('SUCCESS'):
+    print ('\n   UTC absolute second tuned')
+
+
 # Requesting and printing current ADR parameters
 parameters_dict = f_get_adr_parameters(serversocket, 1)
 
