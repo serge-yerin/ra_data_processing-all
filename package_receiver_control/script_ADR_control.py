@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-12 23:55:00'
-date_time_stop =  '2020-04-12 23:57:30'
+date_time_start = '2020-04-12 23:38:00'
+date_time_stop =  '2020-04-12 23:38:30'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -66,8 +66,9 @@ In a loop:
 # Update synchronization of PC and ADR
 print('\n * ADR synchronization with PC')
 now = datetime.now()
-serversocket.send(('set prc/dsp/ctl/clc 0 '+str(now)+'\0').encode())    # set directory to store data
-print('   Now = ', now)
+seconds_since_midnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+serversocket.send(('set prc/dsp/ctl/clc 0 '+str(seconds_since_midnight)+'\0').encode())    # set directory to store data
+print('   Now = ', seconds_since_midnight)
 data = f_read_adr_meassage(serversocket, 1)
 if data.startswith('SUCCESS'):
     print('\n   UTC absolute second set')

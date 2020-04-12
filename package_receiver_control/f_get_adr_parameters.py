@@ -22,19 +22,19 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
     serversocket.send((b'get prc/srv/ctl/pth\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["save_data_path"] = find_between(data,'SUCCESS','\0')
+    parameters_dict["save_data_path"] = find_between(data,'SUCCESS\n',' ')
 
     serversocket.send((b'get prc/srv/ctl/sys\0'))  # read directory where data are stored
     data =  f_read_adr_meassage(serversocket, 0)
-    parameters_dict["receiver_name"] = find_between(data,'SUCCESS','\0')
+    parameters_dict["receiver_name"] = find_between(data,'SUCCESS\n','\0')
 
     serversocket.send((b'get prc/srv/ctl/plc\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["observation_place"] = find_between(data, 'SUCCESS', '\0')
+    parameters_dict["observation_place"] = find_between(data, 'SUCCESS\n', '\0')
 
     serversocket.send((b'get prc/srv/ctl/dsc\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["file_description"] = find_between(data, 'SUCCESS', '\0')
+    parameters_dict["file_description"] = find_between(data, 'SUCCESS\n', '\0')
 
     '''
     get prc/dsp/ctl/opt                     - get values for all sub-parameters from [opt] group
