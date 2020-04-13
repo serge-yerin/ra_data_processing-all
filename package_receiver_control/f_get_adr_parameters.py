@@ -63,34 +63,20 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
     serversocket.send((b'get prc/srv/ctl/srd\0'))  #
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["data_recording"] = find_between(data, 'SUCCESS\n', ' - Save on/off')
-    parameters_dict["files_autocreation"] = find_between(data, 'on/off  (On/Off)\n', ' - Autocreation')
-    parameters_dict["size_of_file"] = find_between(data, 'Autocreation  (On/Off)\n', ' - Size restriction')
-    parameters_dict["time_of_file"] = find_between(data, 'restriction  (MB)\n', ' - Time restriction')
+    parameters_dict["data_recording"] = int(find_between(data, 'SUCCESS\n', ' - Save on/off'))
+    parameters_dict["files_autocreation"] = int(find_between(data, 'on/off  (On/Off)\n', ' - Autocreation'))
+    parameters_dict["size_of_file"] = int(find_between(data, 'Autocreation  (On/Off)\n', ' - Size restriction'))
+    parameters_dict["time_of_file"] = int(find_between(data, 'restriction  (MB)\n', ' - Time restriction'))
 
-
-    '''
-    get prc/srv/ctl/srd
-    1 - Save on/off  (On/Off)
-    1 - Autocreation  (On/Off)
-    2000 - Size restriction  (MB)
-    2000 - Time restriction  (ms)
-    '''
+    # Calculation of frequency and time parameters
     parameters_dict["time_resolution"] = parameters_dict["spectra_averaging"] * (parameters_dict["FFT_size_samples"] / float(parameters_dict["clock_frequency"]))
     parameters_dict["frequency_resolution"] = float(parameters_dict["clock_frequency"]) / parameters_dict["FFT_size_samples"]
     parameters_dict["number_of_channels"] = int(parameters_dict["width_line_freq"] * 1024)
     parameters_dict["lowest_frequency"] = parameters_dict["start_line_freq"] * 1024 * parameters_dict["frequency_resolution"]
     parameters_dict["highest_frequency"] = (parameters_dict["lowest_frequency"] + parameters_dict["number_of_channels"] *
                                         parameters_dict["frequency_resolution"])
-    '''
-    # *** Frequncy calculation (in MHz) ***
-    df = F_ADC / FFT_Size
-    FreqPointsNum = int(Width * 1024)                # Number of frequency points in specter
-    f0 = (SLine * 1024 * df)
-    frequency = [0 for col in range(FreqPointsNum)]
-    for i in range (0, FreqPointsNum):
-        frequency[i] = (f0 + (i * df)) * (10**-6)
-    '''
+
+    # Printing the parameters to console
     if print_or_not > 0:
         print('\n * Current ADR parameters:')
         print('\n   File description: \n\n  ', parameters_dict["file_description"], '\n')
@@ -103,8 +89,8 @@ def f_get_adr_parameters(serversocket, print_or_not):
         print('   Frequency range:              ', round(parameters_dict["lowest_frequency"] / 1000000, 3), ' - ',
                                                    round(parameters_dict["highest_frequency"] / 1000000, 3), ' MHz')
 
-        print('   ADR operation mode:           ', parameters_dict["operation_mode_str"])
-        print('\n   External 160 MHz clock:       ', parameters_dict["external_clock"])
+        print('\n   ADR operation mode:           ', parameters_dict["operation_mode_str"])
+        print('   External 160 MHz clock:       ', parameters_dict["external_clock"])
         print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
         print('   Number of frequency channels: ', int(parameters_dict["FFT_size_samples"] / 2))
         print('   Number of frequency channels: ', parameters_dict["number_of_channels"])
@@ -116,12 +102,6 @@ def f_get_adr_parameters(serversocket, print_or_not):
             print('   Files autocreation:            ON')
         else:
             print('   Files autocreation:            OFF')
-
-
-
-    #parameters_dict["start_line_freq"] = int(find_between(data, '\n', ' - Start line'))
-    #parameters_dict["width_line_freq"] = int(find_between(data, '\n', ' - Width'))
-
 
     return parameters_dict
 

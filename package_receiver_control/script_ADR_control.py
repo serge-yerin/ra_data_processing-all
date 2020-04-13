@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-14 00:15:00'
-date_time_stop =  '2020-04-14 00:16:00'
+date_time_start = '2020-04-14 06:20:00'
+date_time_stop =  '2020-04-14 18:20:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -110,8 +110,8 @@ dt_time_to_stop_record = datetime(int(date_time_stop[0:4]), int(date_time_stop[5
 
 # Check the correctness of start and stop time
 if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
-    print('\n   Start time: ', date_time_start)
-    print('\n   Stop time:  ', date_time_stop)
+    print('\n   Recording start time: ', date_time_start)
+    print('\n   Recording stop time:  ', date_time_stop)
 else:
     print('\n\n * ERROR! Time limits are wrong!!! \n\n')
 
