@@ -36,14 +36,14 @@ def f_get_adr_parameters(serversocket, print_or_not):
     data = f_read_adr_meassage(serversocket, 0)
     parameters_dict["file_description"] = find_between(data, 'SUCCESS\n', '\n')
 
-    serversocket.send((b'get prc/dsp/ctl/opt\0'))  # read directory where data are stored
+    serversocket.send((b'get prc/dsp/ctl/opt\0'))  #
     data = f_read_adr_meassage(serversocket, 0)
     parameters_dict["synchro_start"] = find_between(data, 'SyncStart: ', '\n')
     parameters_dict["external_clock"] = find_between(data, 'Ext.CLC: ', '\n')
     parameters_dict["fft_window"] = find_between(data, 'FFT_Window: ', '\n')
     parameters_dict["sum_diff_mode"] = find_between(data, 'A+B/A-B: ', '\n')
 
-    serversocket.send((b'get prc/dsp/ctl/mdo\0'))  # read directory where data are stored
+    serversocket.send((b'get prc/dsp/ctl/mdo\0'))  #
     data = f_read_adr_meassage(serversocket, 0)
     parameters_dict["operation_mode_num"] = int(find_between(data, 'SUCCESS\n', ' - Mode'))
     if   parameters_dict["operation_mode_num"] == 0: parameters_dict["operation_mode_str"] = 'Waveform ch. A'
@@ -61,6 +61,14 @@ def f_get_adr_parameters(serversocket, print_or_not):
     parameters_dict["width_line_freq"] = int(find_between(data, 'Start line (count)\n', ' - Width'))
     parameters_dict["clock_frequency"] = int(find_between(data, 'Width (count)\n', ' - ADC CLOCK'))
 
+    serversocket.send((b'get prc/srv/ctl/srd\0'))  #
+    data = f_read_adr_meassage(serversocket, 0)
+    parameters_dict["data_recording"] = find_between(data, 'SUCCESS\n', ' - Save on/off')
+    parameters_dict["files_autocreation"] = find_between(data, 'on/off  (On/Off)\n', ' - Autocreation')
+    parameters_dict["size_of_file"] = find_between(data, 'Autocreation  (On/Off)\n', ' - Size restriction')
+    parameters_dict["time_of_file"] = find_between(data, 'restriction  (MB)\n', ' - Time restriction')
+
+
     '''
     get prc/srv/ctl/srd
     1 - Save on/off  (On/Off)
@@ -68,7 +76,16 @@ def f_get_adr_parameters(serversocket, print_or_not):
     2000 - Size restriction  (MB)
     2000 - Time restriction  (ms)
     '''
-
+    parameters_dict["time_resolution"] = parameters_dict["spectra_averaging"] * (parameters_dict["FFT_size_samples"] / float(parameters_dict["clock_frequency"]))
+    '''
+    # *** Frequncy calculation (in MHz) ***
+    df = F_ADC / FFT_Size
+    FreqPointsNum = int(Width * 1024)                # Number of frequency points in specter
+    f0 = (SLine * 1024 * df)
+    frequency = [0 for col in range(FreqPointsNum)]
+    for i in range (0, FreqPointsNum):
+        frequency[i] = (f0 + (i * df)) * (10**-6)
+    '''
     if print_or_not > 0:
         print('\n * Current ADR parameters:')
         print('\n   File description: \n\n  ', parameters_dict["file_description"], '\n')
@@ -80,9 +97,11 @@ def f_get_adr_parameters(serversocket, print_or_not):
         print('   Sum/diff mode:                ', parameters_dict["sum_diff_mode"])
         print('   ADR operation mode:           ', parameters_dict["operation_mode_str"])
         print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
-        print('   Number of frequency channels: ', parameters_dict["FFT_size_samples"]/2)
+        print('   Number of frequency channels: ', int(parameters_dict["FFT_size_samples"]/2))
         print('   Sampling frequency:           ', format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ','), ' Hz')
-        print('   NMumber of spectra averaged:  ', parameters_dict["spectra_averaging"])
+        print('   Number of spectra averaged:   ', parameters_dict["spectra_averaging"])
+        print('   Time resolution:              ', parameters_dict["time_resolution"], ' ms.')
+        print('   Files autocreation:           ', parameters_dict["files_autocreation"])
 
     #parameters_dict["start_line_freq"] = int(find_between(data, '\n', ' - Start line'))
     #parameters_dict["width_line_freq"] = int(find_between(data, '\n', ' - Width'))
@@ -100,18 +119,8 @@ if __name__ == '__main__':
     control = 1
     delay = 5
 
-
     parameters_dict = f_get_adr_parameters(serversocket, 1)
 
-
-
-    '''
-    get prc/dsp/ctl/opt                     - get values for all sub-parameters from [opt] group
-    1 - SyncStart: ON
-    0 - Ext.CLC: OFF
-    1 - FFT_Window: ON
-    0 - A+B/A-B: OFF
-    '''
     '''
     get prc/dsp/ctl/set
     1387701331 - Start Second (sec)
@@ -120,17 +129,14 @@ if __name__ == '__main__':
     16384 - Norm1 (rel. un.)
     16384 - Norm2 (rel. un.)
     2000 - Delay (ps)
-    '''
 
-    '''
     get prc/dsp/ctl/clc
     0 - UTC second (sec)
     0 - Seconds Tuning (sec)
     160000001 - Measured F_ADC (Hz)
     1 - Synchro state (On/Off)
     1 - Synchro end (On/Off)
-    '''
-    '''
+
     get prc/srv/ctl/adr
     0 - ADRS Status: OFF
     0 - WatchDog Thread: OFF
@@ -148,21 +154,7 @@ get prc/srv/ctl/srd
 1 - Autocreation  (On/Off)
 2000 - Size restriction  (MB)
 2000 - Time restriction  (ms)
-'''
 
-'''
-get prc/dsp/ctl/mdo
-5 - Mode (index)
-2048 - FFT Size (samples)
-700 - Averaging (Spectra count)
-0 - Start line (count)
-1 - Width (count)
-160000005 - ADC CLOCK (Hz)
-
-'''
-
-
-'''
 get prc/srv/ctl/adr 0
 ADR Mode: 6
 Flags: 143

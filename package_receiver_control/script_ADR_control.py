@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-13 22:31:00'
-date_time_stop =  '2020-04-13 22:32:00'
+date_time_start = '2020-04-13 22:55:00'
+date_time_stop =  '2020-04-13 22:56:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -143,7 +143,7 @@ if data.startswith('SUCCESS'):
     print ('\n   Recording stopped successfully')
 
 
-print ('\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
+print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
 
 '''
