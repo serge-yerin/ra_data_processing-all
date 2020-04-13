@@ -12,13 +12,13 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-13 06:21:00'
-date_time_stop =  '2020-04-12 18:15:00'
+date_time_start = '2020-04-13 22:23:00'
+date_time_stop =  '2020-04-13 22:25:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
-#import socket
+import os
 from datetime import datetime
 import time
 import sys
@@ -65,6 +65,12 @@ In a loop:
 '''
 # Update synchronization of PC and ADR
 print('\n * ADR synchronization with PC')
+
+os.system('sntp -P no -r 192.168.1.150')
+print('\n   ADR PC synchronized with the GURT server')
+
+time.sleep(1)
+
 now = datetime.now()
 seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
 serversocket.send(('set prc/dsp/ctl/clc 0 '+str(seconds_since_midnight)+'\0').encode())    # set directory to store data
@@ -73,6 +79,8 @@ if data.startswith('SUCCESS'):
     print('\n   UTC absolute second set')
 else:
     print('\n   ERROR! UTC absolute second was not set!')
+
+time.sleep(1)
 
 serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')    # set directory to store data
 data = f_read_adr_meassage(serversocket, 0)

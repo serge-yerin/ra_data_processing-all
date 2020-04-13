@@ -36,26 +36,37 @@ def f_get_adr_parameters(serversocket, print_or_not):
     data = f_read_adr_meassage(serversocket, 0)
     parameters_dict["file_description"] = find_between(data, 'SUCCESS\n', '\n')
 
-    '''
-    get prc/dsp/ctl/opt                     - get values for all sub-parameters from [opt] group
-    1 - SyncStart: ON
-    0 - Ext.CLC: OFF
-    1 - FFT_Window: ON
-    0 - A+B/A-B: OFF
+    serversocket.send((b'get prc/dsp/ctl/opt\0'))  # read directory where data are stored
+    data = f_read_adr_meassage(serversocket, 0)
+    parameters_dict["synchro_start"] = find_between(data, 'SyncStart: ', '\n')
+    parameters_dict["external_clock"] = find_between(data, 'Ext.CLC: ', '\n')
+    parameters_dict["fft_window"] = find_between(data, 'FFT_Window: ', '\n')
+    parameters_dict["sum_diff_mode"] = find_between(data, 'A+B/A-B: ', '\n')
 
+    serversocket.send((b'get prc/dsp/ctl/mdo\0'))  # read directory where data are stored
+    data = f_read_adr_meassage(serversocket, 0)
+    parameters_dict["operation_mode_num"] = int(find_between(data, '', ' - Mode'))
+    if   parameters_dict["operation_mode_num"] == 0: parameters_dict["operation_mode_str"] = 'Waveform ch. A'
+    elif parameters_dict["operation_mode_num"] == 1: parameters_dict["operation_mode_str"] = 'Waveform ch. B'
+    elif parameters_dict["operation_mode_num"] == 2: parameters_dict["operation_mode_str"] = 'Waveform ch. A & B'
+    elif parameters_dict["operation_mode_num"] == 3: parameters_dict["operation_mode_str"] = 'Spectra ch. A'
+    elif parameters_dict["operation_mode_num"] == 4: parameters_dict["operation_mode_str"] = 'Spectra ch. B'
+    elif parameters_dict["operation_mode_num"] == 5: parameters_dict["operation_mode_str"] = 'Spectra ch. A & B'
+    elif parameters_dict["operation_mode_num"] == 6: parameters_dict["operation_mode_str"] = 'Correlation ch. A & B'
+    else: parameters_dict["operation_mode_str"] = 'Unknown mode'
+
+    parameters_dict["FFT_size_samples"] = int(find_between(data, '\n', ' - FFT Size'))
+    parameters_dict["spectra_averaging"] = int(find_between(data, '\n', ' - Averaging'))
+    parameters_dict["start_line_freq"] = int(find_between(data, '\n', ' - Start line'))
+    parameters_dict["width_line_freq"] = int(find_between(data, '\n', ' - Width'))
+    parameters_dict["clock_frequency"] = int(find_between(data, '\n', ' - ADC CLOCK'))
+
+    '''
     get prc/srv/ctl/srd
     1 - Save on/off  (On/Off)
     1 - Autocreation  (On/Off)
     2000 - Size restriction  (MB)
     2000 - Time restriction  (ms)
-
-    get prc/dsp/ctl/mdo
-    5 - Mode (index)
-    2048 - FFT Size (samples)
-    700 - Averaging (Spectra count)
-    0 - Start line (count)
-    1 - Width (count)
-    160000005 - ADC CLOCK (Hz)
     '''
 
     if print_or_not > 0:
@@ -64,6 +75,18 @@ def f_get_adr_parameters(serversocket, print_or_not):
         print('   Path to save data:            ', parameters_dict["save_data_path"])
         print('   Observation place:            ', parameters_dict["observation_place"])
         print('   Receiver name:                ', parameters_dict["receiver_name"])
+
+        print('   External 160 MHz clock:       ', parameters_dict["external_clock"])
+        print('   Sum/diff mode:                ', parameters_dict["sum_diff_mode"])
+        print('   ADR operation mode:           ', parameters_dict["operation_mode_str"])
+        print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
+        print('   Number of frequency channels: ', parameters_dict["FFT_size_samples"]/2)
+        print('   Sampling frequency:           ', format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ','), ' Hz')
+        print('   NMumber of spectra averaged:  ', parameters_dict["spectra_averaging"])
+
+    #parameters_dict["start_line_freq"] = int(find_between(data, '\n', ' - Start line'))
+    #parameters_dict["width_line_freq"] = int(find_between(data, '\n', ' - Width'))
+
 
     return parameters_dict
 
