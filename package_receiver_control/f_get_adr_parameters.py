@@ -55,11 +55,11 @@ def f_get_adr_parameters(serversocket, print_or_not):
     elif parameters_dict["operation_mode_num"] == 6: parameters_dict["operation_mode_str"] = 'Correlation ch. A & B'
     else: parameters_dict["operation_mode_str"] = 'Unknown mode'
 
-    parameters_dict["FFT_size_samples"] = int(find_between(data, '\n', ' - FFT Size'))
-    parameters_dict["spectra_averaging"] = int(find_between(data, '\n', ' - Averaging'))
-    parameters_dict["start_line_freq"] = int(find_between(data, '\n', ' - Start line'))
-    parameters_dict["width_line_freq"] = int(find_between(data, '\n', ' - Width'))
-    parameters_dict["clock_frequency"] = int(find_between(data, '\n', ' - ADC CLOCK'))
+    parameters_dict["FFT_size_samples"] = int(find_between(data, 'Mode (index)\n', ' - FFT Size'))
+    parameters_dict["spectra_averaging"] = int(find_between(data, 'FFT Size (samples)\n', ' - Averaging'))
+    parameters_dict["start_line_freq"] = int(find_between(data, 'Averaging (Spectra count)\n', ' - Start line'))
+    parameters_dict["width_line_freq"] = int(find_between(data, 'Start line (count)\n', ' - Width'))
+    parameters_dict["clock_frequency"] = int(find_between(data, 'Width (count)\n', ' - ADC CLOCK'))
 
     '''
     get prc/srv/ctl/srd
