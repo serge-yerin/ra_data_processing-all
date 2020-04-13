@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-13 23:55:00'
-date_time_stop =  '2020-04-13 23:56:00'
+date_time_start = '2020-04-14 00:15:00'
+date_time_stop =  '2020-04-14 00:16:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -47,7 +47,7 @@ currentDate = time.strftime("%d.%m.%Y")
 print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
 # Connect to the ADR receiver via socket
-serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, control, 5)
+serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, control, 1)
 
 '''
 *** Possible workflow ***

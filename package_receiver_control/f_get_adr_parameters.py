@@ -77,6 +77,11 @@ def f_get_adr_parameters(serversocket, print_or_not):
     2000 - Time restriction  (ms)
     '''
     parameters_dict["time_resolution"] = parameters_dict["spectra_averaging"] * (parameters_dict["FFT_size_samples"] / float(parameters_dict["clock_frequency"]))
+    parameters_dict["frequency_resolution"] = float(parameters_dict["clock_frequency"]) / parameters_dict["FFT_size_samples"]
+    parameters_dict["number_of_channels"] = int(parameters_dict["width_line_freq"] * 1024)
+    parameters_dict["lowest_frequency"] = parameters_dict["start_line_freq"] * 1024 * parameters_dict["frequency_resolution"]
+    parameters_dict["highest_frequency"] = (parameters_dict["lowest_frequency"] + parameters_dict["number_of_channels"] *
+                                        parameters_dict["frequency_resolution"])
     '''
     # *** Frequncy calculation (in MHz) ***
     df = F_ADC / FFT_Size
@@ -93,15 +98,24 @@ def f_get_adr_parameters(serversocket, print_or_not):
         print('   Observation place:            ', parameters_dict["observation_place"])
         print('   Receiver name:                ', parameters_dict["receiver_name"])
 
-        print('   External 160 MHz clock:       ', parameters_dict["external_clock"])
-        print('   Sum/diff mode:                ', parameters_dict["sum_diff_mode"])
+        print('\n   Time resolution:              ', round(parameters_dict["time_resolution"], 3), ' s.')
+        print('   Frequency resolution:         ', round(parameters_dict["frequency_resolution"]/1000, 3), ' kHz.')
+        print('   Frequency range:              ', round(parameters_dict["lowest_frequency"] / 1000000, 3), ' - ',
+                                                   round(parameters_dict["highest_frequency"] / 1000000, 3), ' MHz')
+
         print('   ADR operation mode:           ', parameters_dict["operation_mode_str"])
+        print('\n   External 160 MHz clock:       ', parameters_dict["external_clock"])
         print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
-        print('   Number of frequency channels: ', int(parameters_dict["FFT_size_samples"]/2))
+        print('   Number of frequency channels: ', int(parameters_dict["FFT_size_samples"] / 2))
+        print('   Number of frequency channels: ', parameters_dict["number_of_channels"])
         print('   Sampling frequency:           ', format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ','), ' Hz')
+        print('   Sum/diff mode:                ', parameters_dict["sum_diff_mode"])
         print('   Number of spectra averaged:   ', parameters_dict["spectra_averaging"])
-        print('   Time resolution:              ', parameters_dict["time_resolution"], ' ms.')
-        print('   Files autocreation:           ', parameters_dict["files_autocreation"])
+
+        if parameters_dict["files_autocreation"] == 1:
+            print('   Files autocreation:            ON')
+        else:
+            print('   Files autocreation:            OFF')
 
 
 
