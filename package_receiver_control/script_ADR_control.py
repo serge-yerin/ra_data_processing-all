@@ -66,10 +66,9 @@ In a loop:
 # Update synchronization of PC and ADR
 print('\n * ADR synchronization with PC')
 
-os.system('sntp -P no -r 192.168.1.150')
-print('\n   ADR PC synchronized with the GURT server')
-
-time.sleep(1)
+#os.system('sntp -P no -r 192.168.1.150')
+#print('\n   ADR PC synchronized with the GURT server')
+#time.sleep(1)
 
 now = datetime.now()
 seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())

@@ -45,7 +45,7 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
     serversocket.send((b'get prc/dsp/ctl/mdo\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["operation_mode_num"] = int(find_between(data, '', ' - Mode'))
+    parameters_dict["operation_mode_num"] = int(find_between(data, 'SUCCESS\n', ' - Mode'))
     if   parameters_dict["operation_mode_num"] == 0: parameters_dict["operation_mode_str"] = 'Waveform ch. A'
     elif parameters_dict["operation_mode_num"] == 1: parameters_dict["operation_mode_str"] = 'Waveform ch. B'
     elif parameters_dict["operation_mode_num"] == 2: parameters_dict["operation_mode_str"] = 'Waveform ch. A & B'
