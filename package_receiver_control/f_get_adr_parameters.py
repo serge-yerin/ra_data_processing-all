@@ -103,6 +103,8 @@ def f_get_adr_parameters(serversocket, print_or_not):
         print('   Time resolution:              ', parameters_dict["time_resolution"], ' ms.')
         print('   Files autocreation:           ', parameters_dict["files_autocreation"])
 
+
+
     #parameters_dict["start_line_freq"] = int(find_between(data, '\n', ' - Start line'))
     #parameters_dict["width_line_freq"] = int(find_between(data, '\n', ' - Width'))
 

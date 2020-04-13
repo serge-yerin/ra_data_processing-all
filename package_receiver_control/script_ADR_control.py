@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-13 22:55:00'
-date_time_stop =  '2020-04-13 22:56:00'
+date_time_start = '2020-04-13 23:55:00'
+date_time_stop =  '2020-04-13 23:56:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
