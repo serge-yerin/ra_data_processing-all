@@ -91,12 +91,12 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
         print('\n   ADR operation mode:           ', parameters_dict["operation_mode_str"])
         print('   External 160 MHz clock:       ', parameters_dict["external_clock"])
-        print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
-        print('   Number of frequency channels: ', int(parameters_dict["FFT_size_samples"] / 2))
-        print('   Number of frequency channels: ', parameters_dict["number_of_channels"])
         print('   Sampling frequency:           ', format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ','), ' Hz')
+        print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
+        #print('   Number of frequency channels: ', int(parameters_dict["FFT_size_samples"] / 2))
+        print('   Number of frequency channels: ', parameters_dict["number_of_channels"])
         print('   Sum/diff mode:                ', parameters_dict["sum_diff_mode"])
-        print('   Number of spectra averaged:   ', parameters_dict["spectra_averaging"])
+        #print('   Number of spectra averaged:   ', parameters_dict["spectra_averaging"])
 
         if parameters_dict["files_autocreation"] == 1:
             print('   Files autocreation:            ON')

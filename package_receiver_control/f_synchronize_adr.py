@@ -28,7 +28,7 @@ def f_synchronize_adr(serversocket, host):
         print('\n   SSH session login successful.')
         s.sendline('sntp -P no -r 192.168.1.150')
         s.prompt()  # match the prompt
-        print('   Answer: ', s.before)  # print everything before the prompt.
+        print('\n   Answer: ', s.before)  # print everything before the prompt.
         s.logout()
 
     time.sleep(1)
@@ -36,16 +36,16 @@ def f_synchronize_adr(serversocket, host):
     now = datetime.now()
     seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
     serversocket.send(
-        ('set prc/dsp/ctl/clc 0 ' + str(seconds_since_midnight) + '\0').encode())  # set directory to store data
+        ('set prc/dsp/ctl/clc 0 ' + str(seconds_since_midnight) + '\0').encode())  # send number of second since midnight
     data = f_read_adr_meassage(serversocket, 0)
     if data.startswith('SUCCESS'):
         print('\n   UTC absolute second set')
     else:
         print('\n   ERROR! UTC absolute second was not set!')
 
-    time.sleep(1)
+    time.sleep(3)
 
-    serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # set directory to store data
+    serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # tune second
     data = f_read_adr_meassage(serversocket, 0)
     if data.startswith('SUCCESS'):
         print('\n   UTC absolute second tuned')
