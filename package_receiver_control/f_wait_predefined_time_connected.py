@@ -2,7 +2,7 @@ import datetime
 import time
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 
-def f_wait_predefined_time_connected(time_to_start, serversocket):  #
+def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
     '''
     Function waits the predefined time and once a minute reads something from ADR receiver to
     save connection to ADR server
@@ -36,6 +36,8 @@ def f_wait_predefined_time_connected(time_to_start, serversocket):  #
                 diff = int((time_to_start - now).total_seconds())
                 if int(diff / 60) <= 1:
                     break
+        if synchro > 0:
+            pass
 
         now = datetime.datetime.now()
         diff = int((time_to_start - now).total_seconds())

@@ -12,13 +12,14 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-14 06:20:00'
-date_time_stop =  '2020-04-14 18:20:00'
+date_time_start = '2020-04-14 20:25:00'
+date_time_stop =  '2020-04-14 20:26:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 import os
+from pexpect import pxssh
 from datetime import datetime
 import time
 import sys
@@ -64,11 +65,23 @@ In a loop:
     Stop observations on predefined time 
 '''
 # Update synchronization of PC and ADR
-print('\n * ADR synchronization with PC')
-
+print('\n * ADR synchronization with Server and ADR PC')
 #os.system('sntp -P no -r 192.168.1.150')
 #print('\n   ADR PC synchronized with the GURT server')
 #time.sleep(1)
+
+s = pxssh.pxssh()
+if not s.login ('192.168.1.171', 'root', 'ghbtvybr'):
+    print ("   SSH session failed on login.")
+    print (str(s))
+else:
+    print("   SSH session login successful!")
+    s.sendline ('sntp -P no -r 192.168.1.150')
+    s.prompt()              # match the prompt
+    print ('  Answer: ', s.before)        # print everything before the prompt.
+    s.logout()
+
+time.sleep(1)
 
 now = datetime.now()
 seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
@@ -110,14 +123,14 @@ dt_time_to_stop_record = datetime(int(date_time_stop[0:4]), int(date_time_stop[5
 
 # Check the correctness of start and stop time
 if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
-    print('\n   Recording start time: ', date_time_start)
-    print('\n   Recording stop time:  ', date_time_stop)
+    print('   ********************************************************\n   Recording start time: ', date_time_start)
+    print('\n   Recording stop time:  ', date_time_stop,'\n   ********************************************************')
 else:
     print('\n\n * ERROR! Time limits are wrong!!! \n\n')
 
 # Waiting time to start record
 print('\n * Waiting time to start recording...')
-ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket)
+ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1)
 if not ok:
     print(' ERROR!')
     pass # !!!!
@@ -130,7 +143,7 @@ if data.startswith('SUCCESS'):
     print ('\n   Recording started successfully')
 
 # Waiting time to stop record
-ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket)
+ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket, 0)
 if not ok:
     print(' ERROR!')
     pass # !!!!
