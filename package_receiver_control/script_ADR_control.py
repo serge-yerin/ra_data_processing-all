@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-14 21:20:00'
-date_time_stop =  '2020-04-14 21:21:00'
+date_time_start = '2020-04-15 06:20:00'
+date_time_stop =  '2020-04-15 18:10:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -100,7 +100,6 @@ print('\n * Waiting time to start recording...')
 ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1, host)
 if not ok:
     print(' ERROR!')
-    pass # !!!!
 
 # Start record
 print ('\n * Starting recording...')
@@ -113,7 +112,6 @@ if data.startswith('SUCCESS'):
 ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket)
 if not ok:
     print(' ERROR!')
-    pass # !!!!
 
 # Stop record
 print ('\n * Stopping recording...')

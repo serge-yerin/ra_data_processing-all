@@ -15,6 +15,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0, h
         result              - boolean variable (1) if time was chosen correctly (0) if not
     '''
     #'''
+    # Keeping connection active
     serversocket.send(('get prc/srv/ctl/pth\0').encode())
     f_read_adr_meassage(serversocket, 0)
     #'''
@@ -31,6 +32,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0, h
             while True:
                 time.sleep(60)
                 #'''
+                # Keeping connection active
                 serversocket.send(('get prc/srv/ctl/pth\0').encode())
                 f_read_adr_meassage(serversocket, 0)
                 #'''

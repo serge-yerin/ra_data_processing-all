@@ -1,5 +1,4 @@
 # Python 3
-
 from pexpect import pxssh
 import time
 from datetime import datetime
@@ -22,10 +21,10 @@ def f_synchronize_adr(serversocket, host):
     # SSH connection to ADR receiver to send sntp command to synchronize with server
     s = pxssh.pxssh()
     if not s.login(host, 'root', 'ghbtvybr'):
-        print('\n   SSH session failed on login.')
+        print('\n   ERROR! SSH session failed on login!')
         print(str(s))
     else:
-        print('\n   SSH session login successful.')
+        print('\n   SSH session login successful')
         s.sendline('sntp -P no -r 192.168.1.150')
         s.prompt()  # match the prompt
         print('\n   Answer: ', s.before)  # print everything before the prompt.
