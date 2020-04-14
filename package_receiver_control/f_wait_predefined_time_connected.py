@@ -1,6 +1,7 @@
 import datetime
 import time
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
+from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 
 def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
     '''
@@ -9,6 +10,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
     Input parameters:
         time_to_start       - datetime variable with time to continue the script
         serversocket        - socket handle to keep the connection alive
+        synchro             - to synchronize the receiver before timer end (1 - yes, 0 - no)
     Output parameter:
         result              - boolean variable (1) if time was chosen correctly (0) if not
     '''
@@ -37,7 +39,8 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
                 if int(diff / 60) <= 1:
                     break
         if synchro > 0:
-            pass
+            # Update synchronization of PC and ADR
+            f_synchronize_adr(serversocket)
 
         now = datetime.datetime.now()
         diff = int((time_to_start - now).total_seconds())
@@ -61,6 +64,4 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
 if __name__ == '__main__':
 
     time_to_start = datetime.datetime(2020, 4, 12, 23, 58, 00)
-    precision = 1 # in seconds
-    #f_wait_predefined_time_connected(serversocket, time_to_start)
-    f_wait_predefined_time_connected(time_to_start)
+    f_wait_predefined_time_connected(time_to_start, serversocket, 1)

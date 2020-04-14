@@ -18,13 +18,13 @@ date_time_stop =  '2020-04-14 20:26:00'
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
-import os
-from pexpect import pxssh
+#import os
+#from pexpect import pxssh
 from datetime import datetime
 import time
 import sys
 from os import path
-#from threading import *
+
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -34,6 +34,7 @@ from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
 from package_receiver_control.f_wait_predefined_time_connected import f_wait_predefined_time_connected
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
+from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -63,6 +64,7 @@ In a loop:
     Start observations on predefined time
     Wait predefined time and check connection every minute
     Stop observations on predefined time 
+'''
 '''
 # Update synchronization of PC and ADR
 print('\n * ADR synchronization with Server and ADR PC')
@@ -98,7 +100,9 @@ serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')    # set directory to store data
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print('\n   UTC absolute second tuned')
-
+'''
+# Update synchronization of PC and ADR
+f_synchronize_adr(serversocket)
 
 # Requesting and printing current ADR parameters
 parameters_dict = f_get_adr_parameters(serversocket, 1)
