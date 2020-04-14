@@ -3,7 +3,7 @@ import time
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 
-def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
+def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0, host = '192.168.1.171'):  #
     '''
     Function waits the predefined time and once a minute reads something from ADR receiver to
     save connection to ADR server
@@ -40,7 +40,8 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro):  #
                     break
         if synchro > 0:
             # Update synchronization of PC and ADR
-            f_synchronize_adr(serversocket)
+            f_synchronize_adr(serversocket, host)
+            print('') # To make empty line after synchro info
 
         now = datetime.datetime.now()
         diff = int((time_to_start - now).total_seconds())

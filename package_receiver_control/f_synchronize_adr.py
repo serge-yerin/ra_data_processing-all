@@ -8,29 +8,27 @@ from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 #*************************************************************
 #                       MAIN FUNCTION                        *
 #*************************************************************
-def f_synchronize_adr(serversocket):
+def f_synchronize_adr(serversocket, host):
     '''
     Function reads a message from ADR radio astronomy receiver
     Input parameters:
-        print_or_not   - to print (1) or not (0) the message to terminal
+        serversocket        - handle of socket to send and receive messages from server
+        host                - IP address of host to connect for sntp synchro from server
     Output parameters:
-        message        - string message
     '''
     # Update synchronization of PC and ADR
     print('\n * ADR synchronization with Server and ADR PC')
-    # os.system('sntp -P no -r 192.168.1.150')
-    # print('\n   ADR PC synchronized with the GURT server')
-    # time.sleep(1)
 
+    # SSH connection to ADR receiver to send sntp command to synchronize with server
     s = pxssh.pxssh()
-    if not s.login('192.168.1.171', 'root', 'ghbtvybr'):
-        print("   SSH session failed on login.")
+    if not s.login(host, 'root', 'ghbtvybr'):
+        print('\n   SSH session failed on login.')
         print(str(s))
     else:
-        print("   SSH session login successful!")
+        print('\n   SSH session login successful.')
         s.sendline('sntp -P no -r 192.168.1.150')
         s.prompt()  # match the prompt
-        print('  Answer: ', s.before)  # print everything before the prompt.
+        print('   Answer: ', s.before)  # print everything before the prompt.
         s.logout()
 
     time.sleep(1)
@@ -56,6 +54,6 @@ def f_synchronize_adr(serversocket):
 
 if __name__ == '__main__':
 
-
-    f_synchronize_adr(serversocket)
+    host = '192.168.1.171'
+    f_synchronize_adr(serversocket, host)
 
