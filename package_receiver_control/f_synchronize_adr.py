@@ -36,9 +36,10 @@ def f_synchronize_adr(serversocket, host):
     seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
     #serversocket.send(('set prc/dsp/ctl/clc 0 ' + str(seconds_since_midnight) + '\0').encode())  # seconds since midnight
     serversocket.send(b'set prc/dsp/ctl/clc 0 1\0')
+    data_0 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
-    data = f_read_adr_meassage(serversocket, 0)
-    if data.startswith('SUCCESS'):
+    data_1 = f_read_adr_meassage(serversocket, 0)
+    if (data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS')):
         print('\n   UTC absolute second set')
     else:
         print('\n   ERROR! UTC absolute second was not set!')
@@ -47,10 +48,12 @@ def f_synchronize_adr(serversocket, host):
 
     #serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # tune second
     serversocket.send(b'set prc/dsp/ctl/clc 0 0\0')  # tune second
+    data_0 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # tune second
+    data_1 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
-    data = f_read_adr_meassage(serversocket, 0)
-    if data.startswith('SUCCESS'):
+    data_2 = f_read_adr_meassage(serversocket, 0)
+    if (data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS') and data_2.startswith('SUCCESS')):
         print('\n   UTC absolute second tuned')
 
 ################################################################################
