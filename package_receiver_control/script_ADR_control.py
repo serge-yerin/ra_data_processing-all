@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-18 22:51:00'
-date_time_stop =  '2020-04-18 22:52:00'
+date_time_start = '2020-04-18 23:15:00'
+date_time_stop =  '2020-04-18 23:16:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -22,6 +22,7 @@ from datetime import datetime
 import time
 import sys
 from os import path
+from pexpect import pxssh
 import os
 
 
@@ -120,17 +121,18 @@ if data.startswith('SUCCESS'):
 
 time.sleep(1)
 
-print(' * Copying recorded data to server')
+print('\n * Copying recorded data to server')
 
 #subprocess.run(['scp -rp', 'vin@192.168.1.171:/data/' + data_directory_name+'/',
 #                '/media/data/DATA/To_process/' + data_directory_name + '/'])
-
+'''
 command = ('scp -rp ' + 'vin@192.168.1.171:/data/' + data_directory_name+'/' +
                 '/media/data/DATA/To_process/' + data_directory_name + '/')
 os.popen("sudo -S %s"%(command), 'w').write('B0809+74')
 
-'''
+
 os.popen("sudo -S %s"%(command), 'w').write('mypass')
+'''
 
 s = pxssh.pxssh()
 if not s.login(host, 'root', 'ghbtvybr'):
@@ -138,11 +140,13 @@ if not s.login(host, 'root', 'ghbtvybr'):
     print(str(s))
 else:
     print('\n   SSH session login successful')
-    s.sendline('sntp -P no -r 192.168.1.150')
+    command = ('rsync -anv ' + '/data/' + data_directory_name + '/' +
+               ' gurt@192.168.1.150:/media/data/DATA/To_process/' + data_directory_name + '/')
+    s.sendline(command)
     s.prompt()  # match the prompt
     print('\n   Answer: ', s.before)  # print everything before the prompt.
     s.logout()
-'''
+
 
 
 
