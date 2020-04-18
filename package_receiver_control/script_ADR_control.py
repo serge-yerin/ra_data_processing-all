@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-18 23:15:00'
-date_time_stop =  '2020-04-18 23:16:00'
+date_time_start = '2020-04-19 06:10:00'
+date_time_stop =  '2020-04-19 18:10:00'
 
 
 
@@ -122,9 +122,11 @@ data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Recording stopped')
 
-time.sleep(1)
 
-print('\n * Copying recorded data to server')
+
+#time.sleep(1)
+
+#print('\n * Copying recorded data to server')
 
 #subprocess.run(['scp -rp', 'vin@192.168.1.171:/data/' + data_directory_name+'/',
 #                '/media/data/DATA/To_process/' + data_directory_name + '/'])
@@ -136,7 +138,7 @@ os.popen("sudo -S %s"%(command), 'w').write('B0809+74')
 
 os.popen("sudo -S %s"%(command), 'w').write('mypass')
 '''
-
+'''
 s = pxssh.pxssh()
 if not s.login(host, 'root', 'ghbtvybr'):
     print('\n   ERROR! SSH session failed on login!')
@@ -149,7 +151,7 @@ else:
     s.prompt()  # match the prompt
     print('\n   Answer: ', s.before)  # print everything before the prompt.
     s.logout()
-
+'''
 
 
 
