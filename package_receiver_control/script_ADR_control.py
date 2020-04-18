@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-18 22:38:00'
-date_time_stop =  '2020-04-18 22:39:00'
+date_time_start = '2020-04-18 22:51:00'
+date_time_stop =  '2020-04-18 22:52:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -22,7 +22,7 @@ from datetime import datetime
 import time
 import sys
 from os import path
-import subprocess
+import os
 
 
 
@@ -122,7 +122,12 @@ time.sleep(1)
 
 print(' * Copying recorded data to server')
 
-subprocess.run(['scp -rp', 'vin@192.168.1.171:/data/'+'2020.04.18_GURT_Sun'+'/', '/media/data/DATA/To_process/'+'2020.04.18_GURT_Sun' + '/'])
+#subprocess.run(['scp -rp', 'vin@192.168.1.171:/data/' + data_directory_name+'/',
+#                '/media/data/DATA/To_process/' + data_directory_name + '/'])
+
+command = ('scp -rp ' + 'vin@192.168.1.171:/data/' + data_directory_name+'/' +
+                '/media/data/DATA/To_process/' + data_directory_name + '/')
+os.popen("sudo -S %s"%(command), 'w').write('B0809+74')
 
 '''
 os.popen("sudo -S %s"%(command), 'w').write('mypass')
