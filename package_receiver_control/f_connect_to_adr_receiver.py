@@ -23,7 +23,7 @@ def f_connect_to_adr_receiver(host, port, control, delay):
     '''
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.connect((host, port))
-    print('\n * Connected to host: ', host, ' port: ', port, '')
+    #print('\n * Connected to host: ', host, ' port: ', port, '')
     serversocket.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108,0,0,0])
     register_cc_msg.extend(b'YeS\0                                                            ')  # Name 64 bytes
@@ -41,9 +41,11 @@ def f_connect_to_adr_receiver(host, port, control, delay):
     #print ('\n Returned register_cc_msg: ', data)
     #print ('\n Control bit: ', data[-1])
     if data[-1] == 1:
-        print ('\n * Control accepted!')
+        print('\n * Connected to host: ', host, ' port: ', port, ' Control accepted')
+        #print ('\n * Control accepted!')
     else:
-        print('\n * Control denied, view only!!!')
+        print('\n * Connected to host: ', host, ' port: ', port, ' (!) View only')
+        #print('\n * Control denied, view only!!!')
 
     # Reading all parameters valid now
     input_parameters_str = ''

@@ -91,7 +91,7 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
         print('\n   ADR operation mode:           ', parameters_dict["operation_mode_str"])
         if parameters_dict["external_clock"] == 'OFF':
-            print('   External 160 MHz clock:       (!)', parameters_dict["external_clock"])
+            print('   External 160 MHz clock:        (!)', parameters_dict["external_clock"])
         else:
             print('   External 160 MHz clock:       ', parameters_dict["external_clock"])
 
@@ -99,14 +99,14 @@ def f_get_adr_parameters(serversocket, print_or_not):
         print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
         print('   Number of frequency channels: ', parameters_dict["number_of_channels"])
         if parameters_dict["sum_diff_mode"] == 'ON':
-            print('   Sum/diff mode:                (!)', parameters_dict["sum_diff_mode"])
+            print('   Sum/diff mode:                 (!)', parameters_dict["sum_diff_mode"])
         else:
             print('   Sum/diff mode:                ', parameters_dict["sum_diff_mode"])
 
         if parameters_dict["files_autocreation"] == 1:
             print('   Files autocreation:            ON')
         else:
-            print('   Files autocreation:            (!) OFF')
+            print('   Files autocreation:             (!) OFF')
 
     return parameters_dict
 

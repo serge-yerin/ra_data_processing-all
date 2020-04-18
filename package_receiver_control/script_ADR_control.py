@@ -12,8 +12,8 @@ port = 38386
 control = 1
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-18 21:12:00'
-date_time_stop =  '2020-04-18 21:13:00'
+date_time_start = '2020-04-18 22:25:00'
+date_time_stop =  '2020-04-18 22:26:00'
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -22,6 +22,8 @@ from datetime import datetime
 import time
 import sys
 from os import path
+import subprocess
+
 
 
 # To change system path to main directory of the project:
@@ -115,6 +117,31 @@ serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Recording stopped')
+
+time.sleep(1)
+
+print(' * Copying recorded data to server')
+
+subprocess.run(['scp -rp', 'vin@192.168.1.171:/data/'+'2020.04.18_GURT_Sun'+'/', '/media/data/DATA/To_process/'+'2020.04.18_GURT_Sun' + '/'])
+
+'''
+os.popen("sudo -S %s"%(command), 'w').write('mypass')
+
+s = pxssh.pxssh()
+if not s.login(host, 'root', 'ghbtvybr'):
+    print('\n   ERROR! SSH session failed on login!')
+    print(str(s))
+else:
+    print('\n   SSH session login successful')
+    s.sendline('sntp -P no -r 192.168.1.150')
+    s.prompt()  # match the prompt
+    print('\n   Answer: ', s.before)  # print everything before the prompt.
+    s.logout()
+'''
+
+
+
+
 
 
 print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
