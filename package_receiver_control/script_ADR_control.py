@@ -1,34 +1,59 @@
 # Python3
-Software_version = '2020.04.14'
+Software_version = '2020.04.19'
 Software_name = 'ADR control script'
 # Script controls the ADR radio astronomy receiver
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-source_to_observe = 'Sun'
-set_time_automatically = 0
-host = '192.168.1.171'
-port = 38386
-control = 1
+source_to_observe = 'Sun'       # Name of source to observe (used for folder name construction)
+host = '192.168.1.171'          # Receiver IP address in local network
+port = 38386                    # Port of the receiver to connect (always 38386)
+process_data = 1                # Copy data from receiver and process them?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
 date_time_start = '2020-04-19 06:10:00'
 date_time_stop =  '2020-04-19 18:10:00'
 
+dir_data_on_server = '/media/data/DATA/To_process/'
 
+# PROCESSING PARAMETERS
+MaxNim = 1024                 # Number of data chunks for one figure
+RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
+Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
+Vmax = -50                    # Upper limit of figure dynamic range for initial spectra
+VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
+VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
+VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
+VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
+customDPI = 200               # Resolution of images of dynamic spectra
+colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+CorrelationProcess = 0        # Process correlation data or save time?  (1 = process, 0 = save)
+DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
+ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
+where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
+
+averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
+VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
+VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
+VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
+VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
+                                 # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 from datetime import datetime
+from pexpect import pxssh
+from os import path
 import time
 import sys
-from os import path
-from pexpect import pxssh
 import os
-
-
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -39,6 +64,9 @@ from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_
 from package_receiver_control.f_wait_predefined_time_connected import f_wait_predefined_time_connected
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
+from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
+from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -53,22 +81,7 @@ currentDate = time.strftime("%d.%m.%Y")
 print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
 # Connect to the ADR receiver via socket
-serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, control, 1)
-
-'''
-*** Possible workflow ***
-Read the source to observe
-Read number of hours before and after culmination
-Calculate culmination time
-Calculate the time of start and stop of observations (or set manually)
-Find the number of days to observe
-In a loop:
-    Make a folder to observe for the date and source
-    Wait predefined time and check connection every minute
-    Start observations on predefined time
-    Wait predefined time and check connection every minute
-    Stop observations on predefined time 
-'''
+serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, 1, 1)  # 1 - control, 1 - delay in sec
 
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, host)
@@ -77,7 +90,6 @@ f_synchronize_adr(serversocket, host)
 data_directory_name = date_time_start[0:10].replace('-','.') + '_GURT_' + source_to_observe
 
 # Prepare directory for data recording
-#print ('\n * Changing directory to:', data_directory_name)
 serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
@@ -106,7 +118,6 @@ print('\n * Waiting time to synchronize and start recording...')
 ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1, host)
 
 # Start record
-#print ('\n * Starting recording...')
 serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
@@ -116,52 +127,85 @@ if data.startswith('SUCCESS'):
 ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket)
 
 # Stop record
-#print ('\n * Stopping recording...')
 serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Recording stopped')
 
 
+if process_data > 0:
 
-#time.sleep(1)
+    time.sleep(1)
 
-#print('\n * Copying recorded data to server')
+    # Copy data from receiver to server with SSH login on receiver and using rsync
+    print('\n * Copying recorded data to server')
 
-#subprocess.run(['scp -rp', 'vin@192.168.1.171:/data/' + data_directory_name+'/',
-#                '/media/data/DATA/To_process/' + data_directory_name + '/'])
-'''
-command = ('scp -rp ' + 'vin@192.168.1.171:/data/' + data_directory_name+'/' +
-                '/media/data/DATA/To_process/' + data_directory_name + '/')
-os.popen("sudo -S %s"%(command), 'w').write('B0809+74')
+    s = pxssh.pxssh()
+    if not s.login(host, 'root', 'ghbtvybr'):
+        print('\n   ERROR! SSH session failed on login!')
+        print(str(s))
+    else:
+        print('\n   SSH session login successful')
+        command = ('rsync -r ' + '/data/' + data_directory_name + '/' +
+                   ' gurt@192.168.1.150:/media/data/DATA/To_process/' + data_directory_name + '/')
+        s.sendline(command)
+        s.prompt()  # match the prompt
+        print('\n   Answer: ', s.before)  # print everything before the prompt.
+        s.logout()
 
+    time.sleep(1)
 
-os.popen("sudo -S %s"%(command), 'w').write('mypass')
-'''
-'''
-s = pxssh.pxssh()
-if not s.login(host, 'root', 'ghbtvybr'):
-    print('\n   ERROR! SSH session failed on login!')
-    print(str(s))
-else:
-    print('\n   SSH session login successful')
-    command = ('rsync -anv ' + '/data/' + data_directory_name + '/' +
-               ' gurt@192.168.1.150:/media/data/DATA/To_process/' + data_directory_name + '/')
-    s.sendline(command)
-    s.prompt()  # match the prompt
-    print('\n   Answer: ', s.before)  # print everything before the prompt.
-    s.logout()
-'''
+    # Processing data with ADR reader and DAT reader
 
+    path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'
 
+    # Find all files in folder once more:
+    file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server + data_directory_name + '/', '.adr')
+    file_name_list_current.sort()
 
+    print('\n\n * ADR reader analyses data... \n')
 
+    # Making a name of folder for storing the result figures and txt files
 
+    result_path = path_to_DAT_files + 'ADR_Results_' + data_directory_name
+
+    for file in range(len(file_name_list_current)):
+        file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
+
+    # Run ADR reader for the current folder
+    ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+                                                                RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                                VminCorrMag, VmaxCorrMag, customDPI, colormap,
+                                                                CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                                DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                                CorrSpecSaveCleaned,
+                                                                SpecterFileSaveSwitch, ImmediateSpNo)
+
+    print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
+
+    # Run DAT reader for the results of current folder
+    ok = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, path_to_DAT_files, data_directory_name,
+                                  averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                                  RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
 
 '''
+*** Possible workflow ***
+Read the source to observe
+Read number of hours before and after culmination
+Calculate culmination time
+Calculate the time of start and stop of observations (or set manually)
+Find the number of days to observe
+In a loop:
+    Make a folder to observe for the date and source
+    Wait predefined time and check connection every minute
+    Start observations on predefined time
+    Wait predefined time and check connection every minute
+    Stop observations on predefined time 
+
+
 Connection terminates if control client has no any activity in 120 seconds
 
 set prc/srv/ctl/srd 0 1     - to switch on the data recording

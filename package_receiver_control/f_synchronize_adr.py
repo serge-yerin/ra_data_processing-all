@@ -33,7 +33,7 @@ def f_synchronize_adr(serversocket, host):
     time.sleep(1)
 
     now = datetime.now()
-    seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
+    #seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
     #serversocket.send(('set prc/dsp/ctl/clc 0 ' + str(seconds_since_midnight) + '\0').encode())  # seconds since midnight
     serversocket.send(b'set prc/dsp/ctl/clc 0 1\0')
     data_0 = f_read_adr_meassage(serversocket, 0)
