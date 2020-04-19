@@ -11,10 +11,10 @@ port = 38386                    # Port of the receiver to connect (always 38386)
 process_data = 1                # Copy data from receiver and process them?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-19 19:40:00'
-date_time_stop =  '2020-04-19 19:41:00'
+date_time_start = '2020-04-19 20:00:00'
+date_time_stop =  '2020-04-19 20:05:00'
 
-dir_data_on_server = '/media/data/DATA/To_process/'
+dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -132,7 +132,7 @@ data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Recording stopped')
 
-
+# Data copying processing
 if process_data > 0:
 
     time.sleep(1)
@@ -145,19 +145,21 @@ if process_data > 0:
         print('\n   ERROR! SSH session failed on login!')
         print(str(s))
     else:
-        print('\n   SSH login successful')
+        print('\n   SSH login successful, copying data to server...\n')
         command = ('rsync -r ' + '/data/' + data_directory_name + '/' +
                    ' gurt@192.168.1.150:/media/data/DATA/To_process/' + data_directory_name + '/')
         s.sendline(command)
         s.prompt()  # match the prompt
         #print('\n   Answer: ', s.before)  # print everything before the prompt.
         s.logout()
+    # To make this work properly one needs to pair receiver and server via SSH to not ask password each time
+    # Execute commands directly on the receiver or via ssh:
+    # ssh-keygen
+    # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
 
     time.sleep(1)
 
     # Processing data with ADR reader and DAT reader
-
-    path_to_DAT_files = '' # os.path.dirname(os.path.realpath(__file__)) + '/'
 
     # Find all files in folder once more:
     file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server + data_directory_name + '/', '.adr')
@@ -166,8 +168,6 @@ if process_data > 0:
     print('\n\n * ADR reader analyses data... \n')
 
     # Making a name of folder for storing the result figures and txt files
-
-    #result_path = path_to_DAT_files + 'ADR_Results_' + data_directory_name
     result_path = dir_data_on_server + data_directory_name + '/' + 'ADR_Results_' + data_directory_name
 
     for file in range(len(file_name_list_current)):
@@ -185,8 +185,9 @@ if process_data > 0:
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
     result_path = dir_data_on_server + data_directory_name + '/'
+
     # Run DAT reader for the results of current folder
-    ok = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, result_path, data_directory_name,
+    ok = DAT_file_reader('' , DAT_file_name, DAT_file_list, result_path, data_directory_name,
                                   averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
