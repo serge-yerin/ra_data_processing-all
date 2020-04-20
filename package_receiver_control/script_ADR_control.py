@@ -11,8 +11,8 @@ port = 38386                    # Port of the receiver to connect (always 38386)
 process_data = 1                # Copy data from receiver and process them?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-19 20:00:00'
-date_time_stop =  '2020-04-19 20:05:00'
+date_time_start = '2020-04-19 23:14:00'
+date_time_stop =  '2020-04-19 23:15:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -140,7 +140,7 @@ if process_data > 0:
     # Copy data from receiver to server with SSH login on receiver and using rsync
     print('\n * Copying recorded data to server')
 
-    s = pxssh.pxssh()
+    s = pxssh.pxssh(timeout = 1200)
     if not s.login(host, 'root', 'ghbtvybr'):
         print('\n   ERROR! SSH session failed on login!')
         print(str(s))
