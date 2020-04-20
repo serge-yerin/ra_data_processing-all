@@ -1,6 +1,8 @@
+import sys
 from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.check_if_JDS_files_of_equal_parameters import check_if_JDS_files_of_equal_parameters
+from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import check_if_ADR_files_of_equal_parameters
 
 '''
 '''
