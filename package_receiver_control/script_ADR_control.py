@@ -10,8 +10,8 @@ host = '192.168.1.171'          # Receiver IP address in local network
 process_data = 1                # Copy data from receiver and process them?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-24 23:47:00'
-date_time_stop =  '2020-04-24 23:48:00'
+date_time_start = '2020-04-25 06:05:00'
+date_time_stop =  '2020-04-25 18:05:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -136,7 +136,7 @@ if data.startswith('SUCCESS'):
 
 
 # Sending message to Telegram
-message = 'GURT' + source_to_observe + ' observations completed!\nStart: '+date_time_start+'\nStop: '+date_time_stop
+message = 'GURT ' + source_to_observe + ' observations completed!\nStart time: '+date_time_start+'\nStop time:  '+date_time_stop
 if process_data > 0:
     message = message + '\nData will be copied to GURT server and processed.'
 try:
@@ -205,7 +205,7 @@ if process_data > 0:
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
     # Sending message to Telegram
-    message = 'Data of last observations were copied and processed'
+    message = 'Data of last observations were copied and processed.'
     try:
         test = telegram_bot_sendtext(telegram_chat_id, message)
     except:
