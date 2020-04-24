@@ -7,12 +7,11 @@ Software_name = 'ADR control script'
 # *******************************************************************************
 source_to_observe = 'Sun'       # Name of source to observe (used for folder name construction)
 host = '192.168.1.171'          # Receiver IP address in local network
-port = 38386                    # Port of the receiver to connect (always 38386)
 process_data = 1                # Copy data from receiver and process them?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-20 23:26:00'
-date_time_stop =  '2020-04-20 23:27:00'
+date_time_start = '2020-04-24 23:47:00'
+date_time_stop =  '2020-04-24 23:48:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -44,7 +43,9 @@ VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spec
 AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
-
+# Rarely changes parameters:
+port = 38386                    # Port of the receiver to connect (always 38386)
+telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -65,6 +66,7 @@ from package_receiver_control.f_wait_predefined_time_connected import f_wait_pre
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
+from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
@@ -132,6 +134,17 @@ data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Recording stopped')
 
+
+# Sending message to Telegram
+message = 'GURT' + source_to_observe + ' observations completed!\nStart: '+date_time_start+'\nStop: '+date_time_stop
+if process_data > 0:
+    message = message + '\nData will be copied to GURT server and processed.'
+try:
+    test = telegram_bot_sendtext(telegram_chat_id, message)
+except:
+    pass
+
+
 # Data copying processing
 if process_data > 0:
 
@@ -190,6 +203,13 @@ if process_data > 0:
     ok = DAT_file_reader('' , DAT_file_name, DAT_file_list, result_path, data_directory_name,
                                   averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+
+    # Sending message to Telegram
+    message = 'Data of last observations were copied and processed'
+    try:
+        test = telegram_bot_sendtext(telegram_chat_id, message)
+    except:
+        pass
 
 print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
