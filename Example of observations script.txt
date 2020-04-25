@@ -1,0 +1,18 @@
+# ********** EXAMPLE OF OBSERVATION SET SHOWN BELOW AND MARKED WITH # SIGNS, PLEASE DO NOT DELETE **********************
+#
+# START: 2020-06-29 18:30:00, FFT: 16384, DT: 0.1, DIR: 2020.06.29_GURT_Sun, DESCR: GURT_Sun_one_section
+# STOP:  2020-06-29 20:00:00, COPY: 1, PROC: 1
+#
+# START: and STOP: values are necessary, other parameters are optional. Separate parameters with comas.
+# If you do not want to change the current parameters just leave them empty between : and ,
+# DESCR and DIR strings must not have spaces
+#***********************************************************************************************************************
+
+START: 2020-06-29 18:30:00, DT: 0.1, FFT: 16384, DIR: 2020.06.29_GURT_Sun, DESCR: GURT_Sun_one_section
+STOP:  2020-06-29 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-30 18:30:00, DT: 0.1, FFT: 16384, DIR: 2020.06.30_GURT_Sun, DESCR: GURT_Sun_one_section
+STOP:  2020-06-30 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-30 21:15:00, DT: 0.1, FFT: 16384, DIR: 2020.06.30_GURT_Cas_A, DESCR: GURT_Sun_one_section
+STOP:  2020-06-30 22:18:00, COPY: 1, PROC: 1
