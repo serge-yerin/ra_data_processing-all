@@ -81,8 +81,8 @@ for obs_no in range(len(schedule)):
 
     # Check the correctness of start and stop time
     if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
-        print('\n   ******************************************\n   Recording start time: ', date_time_start)
-        print('\n   Recording stop time:  ', date_time_stop,'\n   ******************************************')
+        print('\n   ******************************************\n   Recording start time: ', schedule[obs_no][0])
+        print('\n   Recording stop time:  ', schedule[obs_no][1],'\n   ******************************************')
     else:
         sys.exit('\n\n * ERROR! Time limits are wrong!!! \n\n')
 
