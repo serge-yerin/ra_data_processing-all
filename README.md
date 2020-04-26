@@ -45,3 +45,14 @@ files) and specify the parameters of processing in the file header.
 ### script_ADR_multifolder_reader.py
 The script has the same basic functionality as script_ADR_reader.py but deals 
 with multiple observation results folders stored in one parent folder.
+
+## Scripts to process data of Cas A secular flux decrease
+These scripts are in "package_cas_a_secular_decrease" folder
+### script_DAT_casA_secular_decrease.py
+### script_DAT_casA_secular_decrease_GURT_long.py
+### script_TXT3_casA_secular_decrease_stat.py
+### script_TXT4_casA_secular_decrease_FFT_test.py
+### script_TXT5_casA_secular_decrease_time_variations.py
+
+## Scripts to process pulsar data
+These scripts are in "package_pulsar_processing" folder
