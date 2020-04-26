@@ -6,7 +6,7 @@ Software_name = 'ADR control by schedule'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 host = '192.168.1.171'          # Receiver IP address in local network
-schedule_txt_file = 'Example of observations script.txt'
+schedule_txt_file = 'Observations.txt'
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
 # Rarely changes parameters:

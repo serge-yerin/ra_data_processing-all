@@ -21,17 +21,17 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
             pass
         elif line.strip().startswith('START:'):
             line = line.replace(' ', '').rstrip('\n')
-            start_time =        find_parameter_value(line, 'START:')
-            fft_size =          find_parameter_value(line, 'FFT:')
-            time_resolution =   find_parameter_value(line, 'DT:')
-            start_frequency = find_parameter_value(line, 'FSTART:')
-            stop_frequency = find_parameter_value(line, 'FSTOP:')
-            data_directory =    find_parameter_value(line, 'DIR:')
-            file_description =  find_parameter_value(line, 'DESCR:')
+            start_time =       find_parameter_value(line, 'START:')
+            fft_size =         find_parameter_value(line, 'FFT:')
+            time_resolution =  find_parameter_value(line, 'DT:')
+            start_frequency =  find_parameter_value(line, 'FSTART:')
+            stop_frequency =   find_parameter_value(line, 'FSTOP:')
+            data_directory =   find_parameter_value(line, 'DIR:')
+            file_description = find_parameter_value(line, 'DESCR:')
         elif line.strip().startswith('STOP:'):
             line = line.replace(' ', '').rstrip('\n')
-            stop_time = find_parameter_value(line, 'STOP:')
-            copy_or_not = find_parameter_value(line, 'COPY:')
+            stop_time =      find_parameter_value(line, 'STOP:')
+            copy_or_not =    find_parameter_value(line, 'COPY:')
             process_or_not = find_parameter_value(line, 'PROC:')
             # Adding parameters to list
             schedule.append([start_time[:10]+' '+start_time[10:], stop_time[:10]+' '+stop_time[10:], fft_size,
