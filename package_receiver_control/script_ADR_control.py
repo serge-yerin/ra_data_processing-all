@@ -136,7 +136,16 @@ if data.startswith('SUCCESS'):
 
 
 # Sending message to Telegram
-message = 'GURT ' + source_to_observe + ' observations completed!\nStart time: '+date_time_start+'\nStop time:  '+date_time_stop
+#message = 'GURT ' + source_to_observe + ' observations completed!\nStart time: '+date_time_start+'\nStop time:  '+date_time_stop
+message = 'GURT ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
+            +date_time_start + '\nStop time: '+date_time_stop + \
+            '\nReceiver: '+ parameters_dict["receiver_name"].replace('_',' ') + \
+            '\nDescription: ' + parameters_dict["file_description"].replace('_',' ') + \
+            '\nMode: ' + parameters_dict["operation_mode_str"] + \
+            '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+            '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
+            '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
+            str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
 if process_data > 0:
     message = message + '\nData will be copied to GURT server and processed.'
 try:
