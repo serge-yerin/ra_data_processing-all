@@ -8,8 +8,8 @@
 # DESCR and DIR strings must not have spaces
 #***********************************************************************************************************************
 
-START: 2020-04-26 21:30:00, DIR: 2020.04.26_GURT_Sun
-STOP:  2020-04-26 21:31:00, COPY: 1, PROC: 1
+START: 2020-04-26 22:45:00, DIR: 2020.04.26_GURT_Sun
+STOP:  2020-04-26 22:46:00, COPY: 1, PROC: 1
 
-START: 2020-04-26 21:35:00, DIR: 2020.06.30_GURT_Sun, DESCR: GURT_Sun_one_section
-STOP:  2020-04-26 21:37:00, PROC: 1
+START: 2020-04-26 22:53:00, DIR: 2020.04.26_GURT_Moon,
+STOP:  2020-04-26 22:55:00, COPY: 1, PROC: 1

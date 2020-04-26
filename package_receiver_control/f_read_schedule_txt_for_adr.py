@@ -69,9 +69,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
 
     # check FFT value correctness
 
-
-    print('\n Number of observations found: ', len(schedule))
-
+    print('\n   Number of observations found: ', len(schedule))
 
     return schedule
 
