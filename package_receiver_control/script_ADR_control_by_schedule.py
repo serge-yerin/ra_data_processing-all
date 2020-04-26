@@ -69,7 +69,7 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 print ('\n\n\n\n\n\n\n\n   *********************************************************************')
-print ('   *           ', Software_name, '  v.', Software_version,'              *      (c) YeS 2020')
+print ('   *            ', Software_name, '  v.', Software_version,'              *      (c) YeS 2020')
 print ('   ********************************************************************* \n\n\n')
 
 startTime = time.time()
@@ -84,10 +84,10 @@ schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
 Check correctness and recalculate the parameters to variables sent to ADR receiver
 '''
 # Printing overall schedule
-print('   **************** OBSERVATIONS SCHEDULE ****************')
+print('\n   ********************** OBSERVATIONS SCHEDULE **********************')
 for obs_no in range (len(schedule)):
-    print('   * ' + schedule[obs_no][0] + ' - ' + schedule[obs_no][1] + ' DIR: ' + schedule[obs_no][6])
-print('   ******************************************************')
+    print('   ' + schedule[obs_no][0] + ' - ' + schedule[obs_no][1] + ' DIR: ' + schedule[obs_no][6])
+print('   ******************************************************************')
 
 
 # Connect to the ADR receiver via socket
@@ -99,15 +99,15 @@ f_synchronize_adr(serversocket, host)
 
 for obs_no in range(len(schedule)):
 
-    print('   ******************************************************\n * Observation # ',
+    print('\n   ******************************************************\n           Observation # ',
           obs_no + 1, ' of ', len(schedule), '\n   ******************************************************')
 
     # Prepare directory for data recording
     data_directory_name = schedule[obs_no][6]
     serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
     data = f_read_adr_meassage(serversocket, 0)
-    if data.startswith('SUCCESS'):
-        print ('\n * Directory name changed to: ', data_directory_name)
+    #if data.startswith('SUCCESS'):
+    #    print ('\n * Directory name changed to: ', data_directory_name)
 
     # Requesting and printing current ADR parameters
     parameters_dict = f_get_adr_parameters(serversocket, 1)
