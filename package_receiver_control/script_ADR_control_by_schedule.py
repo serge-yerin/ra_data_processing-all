@@ -45,6 +45,7 @@ telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '92753468
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
+from multiprocessing import Process
 from datetime import datetime
 from pexpect import pxssh
 from os import path
@@ -65,6 +66,80 @@ from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
+
+
+def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, host,
+                        MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                        VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
+                        DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+                        ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm):
+
+    time.sleep(1)
+
+    # Copy data from receiver to server with SSH login on receiver and using rsync
+    print('\n * Copying recorded data to server')
+
+    s = pxssh.pxssh(timeout=120000)
+    if not s.login(host, 'root', 'ghbtvybr'):
+        print('\n   ERROR! SSH session failed on login!')
+        print(str(s))
+    else:
+        print('\n   SSH login successful, copying data to server...\n')
+        command = ('rsync -r ' + '/data/' + data_directory_name + '/' +
+                   ' gurt@192.168.1.150:'+ dir_data_on_server + data_directory_name + '/')
+        s.sendline(command)
+        s.prompt()  # match the prompt
+        # print('\n   Answer: ', s.before)  # print everything before the prompt.
+        s.logout()
+    # To make this work properly one needs to pair receiver and server via SSH to not ask password each time
+    # Execute commands directly on the receiver or via ssh:
+    # ssh-keygen
+    # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
+
+    time.sleep(1)
+
+    # Processing data with ADR reader and DAT reader
+
+    # Find all files in folder once more:
+    file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server+data_directory_name+'/','.adr')
+
+    file_name_list_current.sort()
+
+    print('\n\n * ADR reader analyses data... \n')
+
+    # Making a name of folder for storing the result figures and txt files
+    result_path = dir_data_on_server + data_directory_name + '/' + 'ADR_Results_' + data_directory_name
+
+    for file in range(len(file_name_list_current)):
+        file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
+
+    # Run ADR reader for the current folder
+    ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+                                                       RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                       VminCorrMag, VmaxCorrMag, customDPI, colormap,
+                                                       CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                       DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                       CorrSpecSaveCleaned,
+                                                       SpecterFileSaveSwitch, ImmediateSpNo)
+
+    print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
+
+    result_path = dir_data_on_server + data_directory_name + '/'
+
+    # Run DAT reader for the results of current folder
+    ok = DAT_file_reader('', DAT_file_name, DAT_file_list, result_path, data_directory_name,
+                         averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                         RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+
+    # Sending message to Telegram
+    message = 'Data of last observations were copied and processed.'
+    try:
+        test = telegram_bot_sendtext(telegram_chat_id, message)
+    except:
+        pass
+
+    return 1
+
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
@@ -169,7 +244,15 @@ for obs_no in range(len(schedule)):
 
     # Data copying processing
     if process_data > 0:
+        p = Process(target = copy_and_process, args=(dir_data_on_server, data_directory_name, telegram_chat_id, host,
+                         MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                         VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
+                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+                         ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
+        p.start()
+        p.join()
 
+        '''
         time.sleep(1)
 
         # Copy data from receiver to server with SSH login on receiver and using rsync
@@ -233,7 +316,7 @@ for obs_no in range(len(schedule)):
             test = telegram_bot_sendtext(telegram_chat_id, message)
         except:
             pass
-
+        '''
 
 print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
