@@ -184,7 +184,7 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
     for obs_no in range(len(schedule)):
 
         print('\n   *********************************************************************\n           Observation # ',
-              obs_no + 1, ' of ', len(schedule), '  ', + schedule[obs_no][6],
+              obs_no + 1, ' of ', len(schedule), '  ', schedule[obs_no][6],
               '\n   *********************************************************************')
 
         # Prepare directory for data recording
