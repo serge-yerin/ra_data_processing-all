@@ -13,7 +13,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
         schedule_txt_file        - name of txt file with observation schedule
     Output parameters:
     '''
-    print('\n * Reading observation schedule...')
+    # print('\n * Reading observation schedule...')
     schedule = []
     file = open(schedule_txt_file, "r")
     for line in file:
@@ -69,7 +69,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
 
     # check FFT value correctness
 
-    print('\n   Number of observations found: ', len(schedule))
+    print('\n * Number of observations found: ', len(schedule))
 
     return schedule
 
@@ -86,7 +86,7 @@ def find_parameter_value(line, string_name):
 ################################################################################
 
 if __name__ == '__main__':
-    schedule_txt_file = 'Example of observations script.txt'
+    schedule_txt_file = 'Observations.txt'
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
     for i in range (len(schedule)):
         print(schedule[i])
