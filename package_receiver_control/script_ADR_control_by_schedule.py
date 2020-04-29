@@ -202,8 +202,8 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
 
         # Check the correctness of start and stop time
         if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
-            print('\n   Recording start time: ', schedule[obs_no][0])
-            print('\n   Recording stop time:  ', schedule[obs_no][1],
+            print('   Recording start time: ', schedule[obs_no][0])
+            print('   Recording stop time:  ', schedule[obs_no][1],
                   '\n   *********************************************************************')
         else:
             sys.exit('\n\n * ERROR! Time limits are wrong!!! \n\n')
