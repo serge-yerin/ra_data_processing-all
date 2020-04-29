@@ -7,6 +7,9 @@ import numpy as np
 from os import path
 from datetime import datetime
 from datetime import timedelta
+import matplotlib.pyplot as plt
+from matplotlib import rc
+import pylab
 
 
 # To change system path to main directory of the project:
@@ -90,7 +93,7 @@ def mark_5_data_header_read(file):
     print('\n * High-level parameters:')
     print('\n   Date and time of first data frame:  ', dt_file_start)
 
-    return data_frame_length, num_of_channels, bits_per_sample
+    return data_frame_length, num_of_channels, bits_per_sample, dt_file_start
 
 ################################################################################
 
@@ -99,11 +102,11 @@ if __name__ == '__main__':
     directory = 'DATA/'
     filename = 'pulsar_ir_no40.m5a'
     fname = directory + filename
-    no_of_samples_to_average = 1024000  #64000
+    no_of_samples_to_average = 512000  #64000
     with open(fname, 'rb') as file:
 
         # Reading first frame header
-        data_frame_length, num_of_channels, bits_per_sample = mark_5_data_header_read(file)
+        data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
 
 
         data_bytes_length = data_frame_length * 8 - 32
@@ -120,6 +123,7 @@ if __name__ == '__main__':
         file.seek(0)  # Jumping to the file beginning
 
         profile = []
+        channel_profiles = []
 
         for i in range (1200):
 
@@ -142,15 +146,36 @@ if __name__ == '__main__':
             unpacked_data[7, :] = np.right_shift(raw_data[:] & 49152, 14)
 
             #del raw_data
-            #channel_sum_array = np.sum(unpacked_data, axis = 0)
-            sum = np.sum(unpacked_data)
-            profile.append(sum)
+            #channel_sum_array = np.sum(unpacked_data, axis = 1)
+            channel_profiles.append(np.sum(unpacked_data, axis = 1))
+            profile.append(np.sum(unpacked_data))
             #print(channel_sum_array.shape)
 
-        plot1D(profile, 'Fig.1.png', 'Profile', 'Profile', 'xxx', 'xxx', 300)
+        channel_profiles = np.array(channel_profiles)
+        profile = np.array(profile)
+        print(channel_profiles.shape)
+        print(profile.shape)
+
+        Title = 'File: ' + filename + ', recorded on ' + str(dt_file_start) +', samples averaged: ' + str(no_of_samples_to_average)
+
+        plot1D(profile, 'Fig.2_sum_of_channels.png', 'Sum of channels', Title, 'Averaged samples, #', 'Amplitude, AU', 300)
+
+        plt.figure(1, figsize=(14.0, 6.0))
+        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+        for i in range(num_of_channels):
+            plt.plot(channel_profiles[:, i], label='Channel '+str(i+1))
+        plt.title(Title, fontsize=10, fontweight='bold', y=1.025)
+        plt.legend(loc='upper right', fontsize=8)
+        plt.ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
+        plt.xlabel('Averaged samples, #', fontsize=10, fontweight='bold')
+        plt.yticks(fontsize=8, fontweight='bold')
+        plt.xticks(fontsize=8, fontweight='bold')
+        pylab.savefig('Fig.1_channels.png', bbox_inches='tight', dpi=300)
+        plt.close('all')
+
 
         # Reading frame header
-        data_frame_length, num_of_channels, bits_per_sample = mark_5_data_header_read(file)
+        data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
 
 
 '''
