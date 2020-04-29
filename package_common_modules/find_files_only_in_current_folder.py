@@ -10,8 +10,8 @@ def find_files_only_in_current_folder(path, extension, print_or_not):
     file_path_list = []
     file_name_list = []
     i = 0
-    if print_or_not == 1: print ('  Directory: ', path, '\n')
-    if print_or_not == 1: print ('  List of files found: ')
+    if print_or_not == 1: print ('   Directory: ', path, '\n')
+    if print_or_not == 1: print ('   List of files found: ')
     files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
     for file in files:
         if file.endswith(extension):

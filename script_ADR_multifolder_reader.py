@@ -10,6 +10,7 @@ import os
 # Path to directory with files to be analyzed:
 path_to_data = '/media/data/DATA/To_process/' # 'h:/To_process/'
 
+print_or_not = 1              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
@@ -153,7 +154,7 @@ for folder_no in range (num_of_folders):
                     RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                     VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, 0, 1, 1, 1, 1, 0,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpecterFileSaveSwitch, ImmediateSpNo)
+                    SpecterFileSaveSwitch, ImmediateSpNo, print_or_not)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 

@@ -34,7 +34,11 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0, h
                 #'''
                 # Keeping connection active
                 serversocket.send(('get prc/srv/ctl/pth\0').encode())
-                f_read_adr_meassage(serversocket, 0)
+                data = f_read_adr_meassage(serversocket, 0)
+                #if (data.startswith('SUCCESS')):
+                #    pass
+                #else:
+                #    pass  # Can send some message if the receiver does not respond. Figure out how to make this.
                 #'''
                 now = datetime.datetime.now()
                 diff = int((time_to_start - now).total_seconds())

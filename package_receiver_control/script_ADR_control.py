@@ -202,7 +202,7 @@ if process_data > 0:
                                                                 CorrelationProcess, 0, 1, 1, 1, 1, 0,
                                                                 DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                                 CorrSpecSaveCleaned,
-                                                                SpecterFileSaveSwitch, ImmediateSpNo)
+                                                                SpecterFileSaveSwitch, ImmediateSpNo, 0)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 

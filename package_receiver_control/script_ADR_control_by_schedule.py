@@ -74,7 +74,7 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                         ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm):
 
-    time.sleep(1)
+    time.sleep(10)
 
     # Copy data from receiver to server with SSH login on receiver and using rsync
     print('\n * Copying recorded data to server')
@@ -96,7 +96,7 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
     # ssh-keygen
     # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
 
-    time.sleep(1)
+    time.sleep(5)
 
     # Processing data with ADR reader and DAT reader
 
@@ -120,7 +120,7 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
                                                        CorrelationProcess, 0, 1, 1, 1, 1, 0,
                                                        DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                        CorrSpecSaveCleaned,
-                                                       SpecterFileSaveSwitch, ImmediateSpNo)
+                                                       SpecterFileSaveSwitch, ImmediateSpNo, 0)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
@@ -131,8 +131,10 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
                          averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                          RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
+    print('\n * Data of ' + data_directory_name + ' observation were copied and processed.')
+
     # Sending message to Telegram
-    message = 'Data of last observations were copied and processed.'
+    message = 'Data of ' + data_directory_name + ' observation were copied and processed.'
     try:
         test = telegram_bot_sendtext(telegram_chat_id, message)
     except:
@@ -179,23 +181,15 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
     # Update synchronization of PC and ADR
     f_synchronize_adr(serversocket, host)
 
+    # Making separated IDs for each observation processing process
     p_processing = [None]*len(schedule)
 
+    # Preparing and starting observations
     for obs_no in range(len(schedule)):
 
         print('\n   *********************************************************************\n           Observation # ',
               obs_no + 1, ' of ', len(schedule), '  ', schedule[obs_no][6],
               '\n   *********************************************************************')
-
-        # Prepare directory for data recording
-        data_directory_name = schedule[obs_no][6]
-        serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
-        data = f_read_adr_meassage(serversocket, 0)
-        #if data.startswith('SUCCESS'):
-        #    print ('\n * Directory name changed to: ', data_directory_name)
-
-        # Requesting and printing current ADR parameters
-        parameters_dict = f_get_adr_parameters(serversocket, 1)
 
         # Construct datetime variables to start and stop observations
         dt_time = schedule[obs_no][0]
@@ -208,10 +202,23 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
 
         # Check the correctness of start and stop time
         if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
-            print('\n   ******************************************\n   Recording start time: ', schedule[obs_no][0])
-            print('\n   Recording stop time:  ', schedule[obs_no][1],'\n   ******************************************')
+            print('\n   Recording start time: ', schedule[obs_no][0])
+            print('\n   Recording stop time:  ', schedule[obs_no][1],
+                  '\n   *********************************************************************')
         else:
             sys.exit('\n\n * ERROR! Time limits are wrong!!! \n\n')
+
+
+        # Prepare directory for data recording
+        data_directory_name = schedule[obs_no][6]
+        serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
+        data = f_read_adr_meassage(serversocket, 0)
+        #if data.startswith('SUCCESS'):
+        #    print ('\n * Directory name changed to: ', data_directory_name)
+
+        # Requesting and printing current ADR parameters
+        parameters_dict = f_get_adr_parameters(serversocket, 1)
+
 
         '''
         To apply other parameters set in schedule

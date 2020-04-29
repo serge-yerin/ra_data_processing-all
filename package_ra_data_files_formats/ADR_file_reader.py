@@ -5,17 +5,12 @@ Software_version = '2019.08.02'
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
 import os
-import struct
 import math
 import numpy as np
-import pylab
-import matplotlib.pyplot as plt
 import time
-import sys
 import gc
 import datetime
 from datetime import datetime, timedelta
-from matplotlib import rc
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -32,7 +27,7 @@ def ADR_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, Sum_Diff_Calculate,
                     longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpecterFileSaveSwitch, ImmediateSpNo):
+                    SpecterFileSaveSwitch, ImmediateSpNo, print_or_not):
 
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
@@ -161,15 +156,16 @@ def ADR_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                 figMAX = int(math.ceil((ChunksInFile)/MaxNim))
                 if figMAX < 1: figMAX = 1
                 for fig in range (figMAX):
-                    Time1 = time.time()               # Timing
+                    # Time1 = time.time()               # Timing
                     figID = figID + 1
                     currentTime = time.strftime("%H:%M:%S")
-                    print ('   File # ', str(fileNo+1), ' of ', str(len(fileList)), ', figure # ', figID+1, ' of ', figMAX, '   started at: ', currentTime)
+                    if print_or_not > 0: print ('   File # ', str(fileNo+1), ' of ', str(len(fileList)), ', figure # ',
+                                                figID+1, ' of ', figMAX, '   started at: ', currentTime)
                     if (ChunksInFile - MaxNim * figID) < MaxNim:
                         Nim = (ChunksInFile - MaxNim * figID)
                     else:
                         Nim = MaxNim
-                    SpectrNum = Nim * SpInFrame * FrameInChunk # Number of specra in the figure
+                    # SpectrNum = Nim * SpInFrame * FrameInChunk # Number of spectra in the figure
 
 
                     # *** Preparing empty matrices ***
@@ -487,7 +483,7 @@ def ADR_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
                         simple_channel_clean(CorrModule, 2 * RFImeanConst)
 
-                    #   *** Immediate spectra of normalyzed data ***    (only for first figure in data file)
+                    #   *** Immediate spectra of normalized data ***    (only for first figure in data file)
                     if figID == 0 and DynSpecSaveCleaned == 1:
                         if ADRmode == 3:
                             Data_1 = Data_Ch_A[0][:]
@@ -591,9 +587,9 @@ if __name__ == '__main__':
 
     fileList = 'DATA/'
     result_path = ''
-
+    print_or_not = 1
     done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(directory, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, Sum_Diff_Calculate,
             longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
             DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-            SpecterFileSaveSwitch, ImmediateSpNo)
+            SpecterFileSaveSwitch, ImmediateSpNo, print_or_not)

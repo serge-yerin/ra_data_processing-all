@@ -25,7 +25,7 @@ def find_and_check_files_in_current_folder(source_directory, extension):
             equal_or_not = check_if_ADR_files_of_equal_parameters(source_directory, fileList)
 
         if same_or_not and equal_or_not:
-            print('\n\n\n        :-)  All files seem to be of the same parameters!  :-) \n\n\n')
+            #print('\n\n\n        :-)  All files seem to be of the same parameters!  :-) \n\n\n')
             decision = 1
         else:
             print(

@@ -57,7 +57,7 @@ def check_if_ADR_files_of_equal_parameters(folder_path, file_list):
 
     if i == 10:
         equal_or_not = 1
-        print('  OK: all files have the same parameters!')
+        print('   OK: all files have the same parameters!')
     else:
         equal_or_not = 0
         print('\n **********************************************************\n !!!   WARNING: Parameters of files in folder differ    !!! \n **********************************************************')

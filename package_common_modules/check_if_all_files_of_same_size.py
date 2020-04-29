@@ -26,7 +26,7 @@ def check_if_all_files_of_same_size(folder_path, file_name_list, one_but_last):
 
     if len(file_name_list) == 1 or len(unique) == 1:
         equal_or_not = 1
-        print('  OK: all files have the same size!')
+        print('   OK: all files have the same size!')
     else:
         equal_or_not = 0
         print('\n **********************************************************\n !!!      WARNING: Sizes of files in folder differ      !!! \n **********************************************************')
