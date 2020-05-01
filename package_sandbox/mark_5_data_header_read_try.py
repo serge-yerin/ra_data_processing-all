@@ -1,3 +1,20 @@
+# Python3
+Software_version = '2020.05.01'
+Software_name = 'MARK5 reader'
+# Script intended to read, show and analyze data from MARK5 receiver
+#*******************************************************************************
+#                             P A R A M E T E R S                              *
+#*******************************************************************************
+directory = 'DATA/'
+filename = 'pulsar_ir_no40.m5a'
+no_of_samples_to_average = 512000  # 64000
+points_in_bunch = 1280
+y_min_sum = 6170000
+y_max_sum = 6185000
+y_min_chan = 765000
+y_max_chan = 781000
+save_aver_data = 1
+save_figures = 1
 #*******************************************************************************
 #                    I M P O R T    L I B R A R I E S                          *
 #*******************************************************************************
@@ -10,13 +27,14 @@ from datetime import timedelta
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import pylab
+import os
+import time
 
 
 # To change system path to main directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_plot_formats.plot_formats import plot1D
 
 def mark_5_data_header_read(file):
     '''
@@ -34,7 +52,6 @@ def mark_5_data_header_read(file):
     I = np.uint32(int('00000011111111110000000000000000', 2))
     J = np.uint32(int('00000000000000001111111111111111', 2))
     K = np.uint32(int('11111111000000000000000000000000', 2))
-
 
     # *** Data file header read ***
     file_header = file.read(32)
@@ -66,23 +83,24 @@ def mark_5_data_header_read(file):
 
     num_of_channels = np.power(2, log_channel_no)
 
-    print('\n * Low-level parameters:')
-    print('\n   Seconds from epoch begin:  ', seconds_from_epoch_begin, ' s.')
-    print('   Invalid data marker:       ', invalid_data_marker)
-    print('   Legacy header length:      ', legacy_header_length)
-    print('   Data frame number:         ', data_frame_no, ' of ?')
-    print('   Number of the epoch:       ', epoch_no, ' (number of half years from 2000-01-01)')
-    print('   VDIF version number:       ', vdif_version_no)
-    print('   Number of channels:        ', num_of_channels)
-    print('   Data frame length:         ', data_frame_length, ' (units of 8 bytes)')
-    print('   Data type:                 ', data_type, ' (0 - real, 1 - complex)')
-    print('   Bits per sample:           ', bits_per_sample, ' bits')
-    print('   Thread ID:                 ', thread_id, ' ')
-    print('   Station ID:                ', station_id, ' ')
-    print('   Extended data version:     ', extended_data_version, ' ')
+    print('\n   DATA FRAME HEADER:')
+    print('   Seconds from epoch begin:           ', seconds_from_epoch_begin, ' s.')
+    print('   Invalid data marker:                ', invalid_data_marker)
+    print('   Legacy header length:               ', legacy_header_length)
+    print('   Data frame number:                  ', data_frame_no, ' of ?')
+    print('   Number of the epoch:                ', epoch_no, ' (number of half years from 2000-01-01)')
+    print('   VDIF version number:                ', vdif_version_no)
+    print('   Number of channels:                 ', num_of_channels)
+    print('   Data frame length:                  ', data_frame_length, ' (units of 8 bytes)')
+    print('   Data type:                          ', data_type, ' (0 - real, 1 - complex)')
+    print('   Bits per sample:                    ', bits_per_sample, ' bits')
+    print('   Thread ID:                          ', thread_id, ' ')
+    print('   Station ID:                         ', station_id, ' ')
+    print('   Extended data version:              ', extended_data_version, ' ')
 
-
+    if epoch_no == 39: epoch_start = '2019-06-01 00:00:00'
     if epoch_no == 40: epoch_start = '2020-01-01 00:00:00'
+    if epoch_no == 41: epoch_start = '2020-06-01 00:00:00'
 
     dt_epoch_start = datetime(int(epoch_start[0:4]), int(epoch_start[5:7]), int(epoch_start[8:10]),
                                   int(epoch_start[11:13]), int(epoch_start[14:16]),
@@ -90,8 +108,7 @@ def mark_5_data_header_read(file):
 
     dt_file_start = dt_epoch_start + timedelta(seconds = int(seconds_from_epoch_begin))
 
-    print('\n * High-level parameters:')
-    print('\n   Date and time of first data frame:  ', dt_file_start)
+    print('   Date and time of first data frame:  ', dt_file_start)
 
     return data_frame_length, num_of_channels, bits_per_sample, dt_file_start
 
@@ -99,83 +116,159 @@ def mark_5_data_header_read(file):
 
 if __name__ == '__main__':
 
-    directory = 'DATA/'
-    filename = 'pulsar_ir_no40.m5a'
-    fname = directory + filename
-    no_of_samples_to_average = 512000  #64000
-    with open(fname, 'rb') as file:
+    print('\n\n\n\n\n\n\n\n   **************************************************************************')
+    print('   *               ', Software_name, ' v.', Software_version, '              *      (c) YeS 2018')
+    print('   ************************************************************************** \n')
+
+    startTime = time.time()
+    currentTime = time.strftime("%H:%M:%S")
+    currentDate = time.strftime("%d.%m.%Y")
+    print('   Today is ', currentDate, ' time is ', currentTime, '\n')
+
+    # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
+    result_path = 'RESULTS_MARK5_Reader'
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+
+    filepath = directory + filename
+
+    file_size = (os.stat(filepath).st_size)  # Size of file
+    print('\n   File size:                    ', round(file_size / 1024 / 1024, 3), ' Mb (', file_size, ' bytes )')
+
+    with open(filepath, 'rb') as file:
 
         # Reading first frame header
+        print('\n *  First data frame header info:')
         data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
 
+        frames_in_file = file_size / (data_frame_length * 8)
+        print('\n   Frames in file:                     ', frames_in_file)
 
         data_bytes_length = data_frame_length * 8 - 32
         samples_in_16_bit_word = int(16 / num_of_channels / bits_per_sample)
         samples_in_frame = int(data_bytes_length/2) / samples_in_16_bit_word
-        print('\n   Samples in frame:', samples_in_frame)
+        print('   Samples in frame:                   ', samples_in_frame)
+        print('   Samples in file:                    ', samples_in_frame * frames_in_file)
+        print('   Points in bunch:                    ', points_in_bunch)
 
         no_of_frames_to_average = int(no_of_samples_to_average / samples_in_frame)
-        print('\n   Number of frames to average:', no_of_frames_to_average)
+        print('   Frames in bunch:                    ', points_in_bunch * no_of_frames_to_average)
+        print('   Number of frames to average:        ', no_of_frames_to_average)
+
+        no_of_bunches = int(frames_in_file / (points_in_bunch * no_of_frames_to_average))
+        print('   Bunches in file:                    ', no_of_bunches)
+        no_of_bunches = int(no_of_bunches)
+        print('   Bunches in file (integer):          ', no_of_bunches, '\n')
+
+
+        # making long DAT file to store average data
+        if save_aver_data > 0:
+            file.seek(0)  # Jumping to the file beginning
+            file_header = file.read(32)
+            dat_file_name = filename.replace('.','_') + '.dat'
+            dat_file = open(dat_file_name, 'wb')
+            dat_file.write(file_header)
+            dat_file.close()
 
         #raw_data = np.fromfile(file, dtype='i2', count=int(data_bytes_length/2))
         #unpacked_data = np.zeros((int(num_of_channels), int(4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
 
         file.seek(0)  # Jumping to the file beginning
 
-        profile = []
-        channel_profiles = []
-
-        for i in range (1200):
-
-            raw_data = np.fromfile(file, dtype='i2', count=int((data_frame_length * 8 / 2) * no_of_frames_to_average))
-            raw_data = np.reshape(raw_data, [int(data_frame_length * 8 / 2), no_of_frames_to_average], order='F')
-            raw_data = raw_data[16: , :]
-            raw_data = np.reshape(raw_data, [int((data_frame_length * 8 / 2)-16) * no_of_frames_to_average], order='F')
-            #print(raw_data.shape)
 
 
-            unpacked_data = np.zeros((int(num_of_channels), int(no_of_frames_to_average * 4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
+        no_of_bunches = 30
 
-            unpacked_data[0, :] = raw_data[:] & 3
-            unpacked_data[1, :] = np.right_shift(raw_data[:] & 12, 2)
-            unpacked_data[2, :] = np.right_shift(raw_data[:] & 48, 4)
-            unpacked_data[3, :] = np.right_shift(raw_data[:] & 192, 6)
-            unpacked_data[4, :] = np.right_shift(raw_data[:] & 768, 8)
-            unpacked_data[5, :] = np.right_shift(raw_data[:] & 3072, 10)
-            unpacked_data[6, :] = np.right_shift(raw_data[:] & 12288, 12)
-            unpacked_data[7, :] = np.right_shift(raw_data[:] & 49152, 14)
+        for bunch in range(no_of_bunches):
+            currentTime = time.strftime("%H:%M:%S")
+            print('   Bunch ' + str(bunch+1)+' of '+str(no_of_bunches) + '   started at: ' + currentTime)
+            profile = []
+            channel_profiles = []
+            for i in range (points_in_bunch):  #
 
-            #del raw_data
-            #channel_sum_array = np.sum(unpacked_data, axis = 1)
-            channel_profiles.append(np.sum(unpacked_data, axis = 1))
-            profile.append(np.sum(unpacked_data))
-            #print(channel_sum_array.shape)
+                raw_data = np.fromfile(file, dtype='i2', count=int((data_frame_length * 8 / 2) * no_of_frames_to_average))
+                raw_data = np.reshape(raw_data, [int(data_frame_length * 8 / 2), no_of_frames_to_average], order='F')
+                raw_data = raw_data[16: , :]
+                raw_data = np.reshape(raw_data, [int((data_frame_length * 8 / 2)-16) * no_of_frames_to_average], order='F')
 
-        channel_profiles = np.array(channel_profiles)
-        profile = np.array(profile)
-        print(channel_profiles.shape)
-        print(profile.shape)
 
-        Title = 'File: ' + filename + ', recorded on ' + str(dt_file_start) +', samples averaged: ' + str(no_of_samples_to_average)
+                unpacked_data = np.zeros((int(num_of_channels), int(no_of_frames_to_average * 4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
 
-        plot1D(profile, 'Fig.2_sum_of_channels.png', 'Sum of channels', Title, 'Averaged samples, #', 'Amplitude, AU', 300)
+                unpacked_data[0, :] = raw_data[:] & 3
+                unpacked_data[1, :] = np.right_shift(raw_data[:] & 12, 2)
+                unpacked_data[2, :] = np.right_shift(raw_data[:] & 48, 4)
+                unpacked_data[3, :] = np.right_shift(raw_data[:] & 192, 6)
+                unpacked_data[4, :] = np.right_shift(raw_data[:] & 768, 8)
+                unpacked_data[5, :] = np.right_shift(raw_data[:] & 3072, 10)
+                unpacked_data[6, :] = np.right_shift(raw_data[:] & 12288, 12)
+                unpacked_data[7, :] = np.right_shift(raw_data[:] & 49152, 14)
 
-        plt.figure(1, figsize=(14.0, 6.0))
-        plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-        for i in range(num_of_channels):
-            plt.plot(channel_profiles[:, i], label='Channel '+str(i+1))
-        plt.title(Title, fontsize=10, fontweight='bold', y=1.025)
-        plt.legend(loc='upper right', fontsize=8)
-        plt.ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
-        plt.xlabel('Averaged samples, #', fontsize=10, fontweight='bold')
-        plt.yticks(fontsize=8, fontweight='bold')
-        plt.xticks(fontsize=8, fontweight='bold')
-        pylab.savefig('Fig.1_channels.png', bbox_inches='tight', dpi=300)
-        plt.close('all')
+                channel_profiles.append(np.sum(unpacked_data, axis = 1))
+                profile.append(np.sum(unpacked_data))
+
+            channel_profiles = np.array(channel_profiles)
+            profile = np.array(profile, dtype = np.uint32)
+
+            # Store averaged data to long DAT file
+            if save_aver_data > 0:
+                temp = profile.copy(order='C')
+                dat_file = open(dat_file_name, 'ab')
+                dat_file.write(temp)
+                dat_file.close()
+
+            if save_figures > 0:
+                # PLOTS
+                Title = 'File: ' + filename + ', recorded on ' + str(dt_file_start) +', samples averaged: ' + str(no_of_samples_to_average)
+                # Sum of channels
+                rc('font', size=8, weight='bold')
+                fig = plt.figure(1, figsize=(12.0, 5.0))
+                ax1 = fig.add_subplot(111)
+                fig.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+                ax1.plot(profile, label='Sum of channels')
+                ax1.set_xlim([0, points_in_bunch])
+                ax1.set_ylim([y_min_sum, y_max_sum])
+                ax1.set_title(Title, fontsize=10, fontweight='bold', y=1.025)
+                ax1.legend(loc='upper right', fontsize=8)
+                ax1.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
+                ax1.set_xlabel('Averaged samples, #', fontsize=10, fontweight='bold')
+                fig.text(0.78, -0.07, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=5,
+                         transform=plt.gcf().transFigure)
+                fig.text(0.1, -0.07, 'Software version: ' + Software_version + ' yerin.serge@gmail.com, IRA NASU', fontsize=5,
+                         transform=plt.gcf().transFigure)
+                pylab.savefig(result_path + '/MARK5_sum_of_channels_fig.'+str(bunch+1)+' of '+str(no_of_bunches)+'.png',
+                              bbox_inches='tight', dpi=300)
+                plt.close('all')
+
+                # Each of channels
+                fig = plt.figure(1, figsize=(12.0, 5.0))
+                ax1 = fig.add_subplot(111)
+                fig.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+                for i in range(num_of_channels):
+                    ax1.plot(channel_profiles[:, i], label='Channel '+str(i+1))
+                ax1.set_xlim([0, points_in_bunch])
+                ax1.set_ylim([y_min_chan, y_max_chan])
+                ax1.set_title(Title, fontsize=10, fontweight='bold', y=1.025)
+                ax1.legend(loc='upper right', fontsize=8)
+                ax1.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
+                ax1.set_xlabel('Averaged samples, #', fontsize=10, fontweight='bold')
+                fig.text(0.78, -0.07, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=5,
+                         transform=plt.gcf().transFigure)
+                fig.text(0.1, -0.07, 'Software version: ' + Software_version + ' yerin.serge@gmail.com, IRA NASU', fontsize=5,
+                         transform=plt.gcf().transFigure)
+                pylab.savefig(result_path + '/MARK5_channels_fig.'+str(bunch+1)+' of '+str(no_of_bunches)+'.png',
+                              bbox_inches='tight', dpi=300)
+                plt.close('all')
 
 
         # Reading frame header
-        data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
+        #data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
+
+endTime = time.time()    # Time of calculations
+
+print ('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+                                                round((endTime - startTime)/60, 2), 'min. ) \n')
+print ('\n          *** ', Software_name, ' has finished! *** \n\n\n')
+
 
 
 '''
