@@ -134,7 +134,7 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
     print('\n * Data of ' + data_directory_name + ' observation were copied and processed.')
 
     # Sending message to Telegram
-    message = 'Data of ' + data_directory_name + ' observation were copied and processed.'
+    message = 'Data of ' + data_directory_name.replace('_',' ') + ' observation were copied and processed.'
     try:
         test = telegram_bot_sendtext(telegram_chat_id, message)
     except:
@@ -245,7 +245,7 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
 
 
         # Sending message to Telegram
-        message = 'GURT ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
+        message = 'GURT: ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
                 +schedule[obs_no][0] + '\nStop time: '+schedule[obs_no][1] + \
                 '\nReceiver: '+ parameters_dict["receiver_name"].replace('_',' ') + \
                 '\nDescription: ' + parameters_dict["file_description"].replace('_',' ') + \
