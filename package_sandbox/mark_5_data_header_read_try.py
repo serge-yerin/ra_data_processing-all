@@ -6,13 +6,13 @@ Software_name = 'MARK5 reader'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 directory = 'DATA/'
-filename = 'pulsar_ir_no40.m5a'
+filename = 'pul_b1133+16_ir_no0048.m5a'
 no_of_samples_to_average = 512000  # 64000
 points_in_bunch = 1280
-y_min_sum = 6170000
-y_max_sum = 6185000
-y_min_chan = 765000
-y_max_chan = 781000
+y_min_sum = 6180000   #6170000
+y_max_sum = 6195000   #6185000
+y_min_chan = 766000   # 765000
+y_max_chan = 783000   # 781000
 save_aver_data = 1
 save_figures = 1
 #*******************************************************************************
@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
 
 
-        no_of_bunches = 30
+        no_of_bunches = no_of_bunches
 
         for bunch in range(no_of_bunches):
             currentTime = time.strftime("%H:%M:%S")
@@ -272,7 +272,7 @@ print ('\n          *** ', Software_name, ' has finished! *** \n\n\n')
 
 
 '''
-Частота оцифровки была 64 МГц. На выходе нужно примерно 1 кГц. Т.е. 
+Частота оцифровки была 64 МГц. На выходе нужно примерно 1 кГц. Т.е.
 сжать массив данных в 64К раз.
  хотелось бы сделать уплотненный массив, у которого
 можно было бы менять параметр сжатия (например, можно взять 8 мс, как на
