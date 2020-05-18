@@ -7,11 +7,12 @@ Software_name = 'ADR control script'
 # *******************************************************************************
 source_to_observe = 'Sun'       # Name of source to observe (used for folder name construction)
 host = '192.168.1.171'          # Receiver IP address in local network
-process_data = 1                # Copy data from receiver and process them?
+#host = '10.0.12.172'             # Receiver IP address in local network
+process_data = 1                 # Copy data from receiver and process them?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-04-25 06:05:00'
-date_time_stop =  '2020-04-25 18:05:00'
+date_time_start = '2020-05-18 18:38:00'
+date_time_stop =  '2020-05-18 18:40:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -65,6 +66,7 @@ from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_
 from package_receiver_control.f_wait_predefined_time_connected import f_wait_predefined_time_connected
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
+from package_receiver_control.f_initialize_adr import f_initialize_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
@@ -84,6 +86,9 @@ print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
 # Connect to the ADR receiver via socket
 serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, 1, 1)  # 1 - control, 1 - delay in sec
+
+# Initialize ADR
+#f_initialize_adr(serversocket, 1)
 
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, host)

@@ -25,7 +25,8 @@ def f_synchronize_adr(serversocket, host):
         print(str(s))
     else:
         print('\n   SSH session login successful')
-        s.sendline('sntp -P no -r 192.168.1.150')
+        s.sendline('sntp -P no -r 10.0.12.57')
+        #s.sendline('sntp -P no -r 192.168.1.150')
         s.prompt()  # match the prompt
         print('\n   Answer: ', s.before)  # print everything before the prompt.
         s.logout()
@@ -33,8 +34,6 @@ def f_synchronize_adr(serversocket, host):
     time.sleep(1)
 
     now = datetime.now()
-    #seconds_since_midnight = int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
-    #serversocket.send(('set prc/dsp/ctl/clc 0 ' + str(seconds_since_midnight) + '\0').encode())  # seconds since midnight
     serversocket.send(b'set prc/dsp/ctl/clc 0 1\0')
     data_0 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
@@ -46,7 +45,6 @@ def f_synchronize_adr(serversocket, host):
 
     time.sleep(3)
 
-    #serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # tune second
     serversocket.send(b'set prc/dsp/ctl/clc 0 0\0')  # tune second
     data_0 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # tune second
