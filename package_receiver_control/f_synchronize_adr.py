@@ -10,10 +10,11 @@ from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 def f_synchronize_adr(serversocket, host, time_server):
     '''
     Function reads a message from ADR radio astronomy receiver
+    ntp server must be installed on server PC (sudo apt install ntp)
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         host                - IP address of host to connect for sntp synchro from server
-        time_server         -
+        time_server         - IP address of the ntp time server (probably PC where the script runs)
     Output parameters:
     '''
     # Update synchronization of PC and ADR

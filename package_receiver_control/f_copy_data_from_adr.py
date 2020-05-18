@@ -7,7 +7,10 @@ from pexpect import pxssh
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
+
+
 def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, print_or_not):
+
     '''
     Function initializes ADR receiver if it was just turned on
     Input parameters:
@@ -40,6 +43,7 @@ def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, p
         #           ' gurt@192.168.1.150:'+ dir_data_on_server + data_directory_name + '/')
         command = ('rsync -r ' + '/data/' + data_directory_name + '/ ' + this_pc_user +'@' +
                    this_pc_ip + ':' + dir_data_on_server + data_directory_name + '/')
+        #print(command)
         s.sendline(command)
         s.prompt()  # match the prompt
         if print_or_not > 0:
@@ -55,61 +59,9 @@ def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, p
 
 if __name__ == '__main__':
 
-    host = '192.168.1.171'
+    receiver_ip = '192.168.1.171'
     port = 38386
     control = 1
     delay = 5
 
-    parameters_dict = f_get_adr_parameters(serversocket, 1)
-
-    '''
-    get prc/dsp/ctl/set
-    1387701331 - Start Second (sec)
-    1387701332 - Stop Second (sec)
-    0 - Test mode (index)
-    16384 - Norm1 (rel. un.)
-    16384 - Norm2 (rel. un.)
-    2000 - Delay (ps)
-
-    get prc/dsp/ctl/clc
-    0 - UTC second (sec)
-    0 - Seconds Tuning (sec)
-    160000001 - Measured F_ADC (Hz)
-    1 - Synchro state (On/Off)
-    1 - Synchro end (On/Off)
-
-    get prc/srv/ctl/adr
-    0 - ADRS Status: OFF
-    0 - WatchDog Thread: OFF
-    0 - Data Thread: OFF
-    0 - ADRS Param. Apply: OFF
-    1 - New Param. Apply: ON
-    0 - Apply DSP settings: OFF
-    0 - Apply DSP synchro: OFF
-    1 - Start/Stop: ON
-    0 - DSP Status Update: OFF
-    '''
-'''
-get prc/srv/ctl/srd
-1 - Save on/off  (On/Off)
-1 - Autocreation  (On/Off)
-2000 - Size restriction  (MB)
-2000 - Time restriction  (ms)
-
-get prc/srv/ctl/adr 0
-ADR Mode: 6
-Flags: 143
-DSP Time: 1387859967
-PC1 Time: 1387859967:893
-PC2 Time: 1387859968:331
-FileSize: 0
-FileTime: 0
-F_ADC: 160000002
-FS_FREE: 1.35e+04
-FS_PERC: 41.6
-'''
-
-
-
-
-    # get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group
+    ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, print_or_not)
