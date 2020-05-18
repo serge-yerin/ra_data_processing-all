@@ -5,10 +5,12 @@ Software_name = 'ADR control by schedule'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-host = '192.168.1.171'          # Receiver IP address in local network
+receiver_ip = '192.168.1.171'   # Receiver IP address in local network
+time_server = '10.0.12.57'      # IP of the time server (usually the control PC) '192.168.1.150'
 schedule_txt_file = 'Observations.txt'
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
-process_data = 1                # Copy data from receiver and process them?
+copy_data = 1                   # Copy data from receiver?
+process_data = 1                # Process copies data?
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -61,6 +63,7 @@ from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_
 from package_receiver_control.f_wait_predefined_time_connected import f_wait_predefined_time_connected
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
+from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_receiver_control.f_read_schedule_txt_for_adr import f_read_schedule_txt_for_adr
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
@@ -68,7 +71,7 @@ from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 
-def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, host,
+def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_directory_name, telegram_chat_id, receiver_ip,
                         MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                         VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
@@ -76,11 +79,15 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
 
     time.sleep(10)
 
+    if copy_data > 0:
+        ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, 0)
+
+    '''
     # Copy data from receiver to server with SSH login on receiver and using rsync
     print('\n * Copying recorded data to server')
 
     s = pxssh.pxssh(timeout=120000)
-    if not s.login(host, 'root', 'ghbtvybr'):
+    if not s.login(receiver_ip, 'root', 'ghbtvybr'):
         print('\n   ERROR! SSH session failed on login!')
         print(str(s))
     else:
@@ -95,55 +102,66 @@ def copy_and_process(dir_data_on_server, data_directory_name, telegram_chat_id, 
     # Execute commands directly on the receiver or via ssh:
     # ssh-keygen
     # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
+    '''
 
-    time.sleep(5)
+    if process_data > 0:
 
-    # Processing data with ADR reader and DAT reader
+        time.sleep(5)
 
-    # Find all files in folder once more:
-    file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server+data_directory_name+'/','.adr')
+        # Processing data with ADR reader and DAT reader
 
-    file_name_list_current.sort()
+        # Find all files in folder once more:
+        file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server+data_directory_name+'/','.adr')
 
-    print('\n\n * ADR reader analyses data... \n')
+        file_name_list_current.sort()
 
-    # Making a name of folder for storing the result figures and txt files
-    result_path = dir_data_on_server + data_directory_name + '/' + 'ADR_Results_' + data_directory_name
+        print('\n\n * ADR reader analyses data... \n')
 
-    for file in range(len(file_name_list_current)):
-        file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
+        # Making a name of folder for storing the result figures and txt files
+        result_path = dir_data_on_server + data_directory_name + '/' + 'ADR_Results_' + data_directory_name
 
-    # Run ADR reader for the current folder
-    ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
-                                                       RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-                                                       VminCorrMag, VmaxCorrMag, customDPI, colormap,
-                                                       CorrelationProcess, 0, 1, 1, 1, 1, 0,
-                                                       DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
-                                                       CorrSpecSaveCleaned,
-                                                       SpecterFileSaveSwitch, ImmediateSpNo, 0)
+        for file in range(len(file_name_list_current)):
+            file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
 
-    print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
+        # Run ADR reader for the current folder
+        ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+                                                           RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                           VminCorrMag, VmaxCorrMag, customDPI, colormap,
+                                                           CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                           DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                           CorrSpecSaveCleaned,
+                                                           SpecterFileSaveSwitch, ImmediateSpNo, 0)
 
-    result_path = dir_data_on_server + data_directory_name + '/'
+        print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
-    # Run DAT reader for the results of current folder
-    ok = DAT_file_reader('', DAT_file_name, DAT_file_list, result_path, data_directory_name,
-                         averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
-                         RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+        result_path = dir_data_on_server + data_directory_name + '/'
 
-    print('\n * Data of ' + data_directory_name + ' observation were copied and processed.')
+        # Run DAT reader for the results of current folder
+        ok = DAT_file_reader('', DAT_file_name, DAT_file_list, result_path, data_directory_name,
+                             averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                             RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+
+
+    message = ''
+    if process_data > 0:
+        print('\n * Data of ' + data_directory_name + ' observation were copied and processed.')
+        message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied and processed.'
+    else:
+        if copy_data > 0:
+            print('\n * Data of ' + data_directory_name + ' observation were copied.')
+            message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied.'
 
     # Sending message to Telegram
-    message = 'Data of ' + data_directory_name.replace('_',' ') + ' observation were copied and processed.'
     try:
-        test = telegram_bot_sendtext(telegram_chat_id, message)
+       test = telegram_bot_sendtext(telegram_chat_id, message)
     except:
         pass
 
     return 1
 
 
-def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, process_data, telegram_chat_id,
+def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_server, copy_data, process_data,
+                             telegram_chat_id,
                             Software_version, Software_name, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
@@ -162,8 +180,12 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
     currentDate = time.strftime("%d.%m.%Y")
     print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
+    # process only copied from receiver data
+    if process_data > 0: copy_data = 1
+
     # Read schedule
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
+
 
     '''
     Check correctness and recalculate the parameters to variables sent to ADR receiver
@@ -176,10 +198,10 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
 
 
     # Connect to the ADR receiver via socket
-    serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, 1, 1)  # 1 - control, 1 - delay in sec
+    serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
     # Update synchronization of PC and ADR
-    f_synchronize_adr(serversocket, host)
+    f_synchronize_adr(serversocket, receiver_ip, time_server)
 
     # Making separated IDs for each observation processing process
     p_processing = [None]*len(schedule)
@@ -226,7 +248,7 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
 
         # Waiting time to start record
         print('\n * Waiting time to synchronize and start recording...')
-        ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1, host)
+        ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1, receiver_ip, time_server)
 
         # Start record
         serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
@@ -235,7 +257,7 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
             print ('\n * Recording started')
 
         # Waiting time to stop record
-        ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket)
+        ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket, 0, receiver_ip, time_server)
 
         # Stop record
         serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
@@ -261,8 +283,9 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
 
         # Data copying processing
         if process_data > 0:
-            p_processing[obs_no] = Process(target = copy_and_process, args=(dir_data_on_server, data_directory_name,
-                             telegram_chat_id, host, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+            p_processing[obs_no] = Process(target = copy_and_process_adr, args=(copy_data, process_data,
+                             dir_data_on_server, data_directory_name,
+                             telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                              DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                              ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
@@ -272,14 +295,16 @@ def main_observation_control(host, port, schedule_txt_file, dir_data_on_server, 
         for obs_no in range(len(schedule)):
             p_processing[obs_no].join()
 
+
+
     print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
 ################################################################################
 
 if __name__ == '__main__':
 
-    p_main = Process(target=main_observation_control, args=(host, port, schedule_txt_file, dir_data_on_server,
-                            process_data, telegram_chat_id,
+    p_main = Process(target=main_observation_control, args=(receiver_ip, port, schedule_txt_file, dir_data_on_server,
+                            copy_data, process_data, telegram_chat_id,
                             Software_version, Software_name, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,

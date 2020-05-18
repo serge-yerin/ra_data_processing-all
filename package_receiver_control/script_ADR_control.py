@@ -6,9 +6,10 @@ Software_name = 'ADR control script'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 source_to_observe = 'Sun'       # Name of source to observe (used for folder name construction)
-host = '192.168.1.171'          # Receiver IP address in local network
-#host = '10.0.12.172'             # Receiver IP address in local network
-process_data = 1                 # Copy data from receiver and process them?
+receiver_ip = '10.0.12.172'     # Receiver IP address in local network '192.168.1.171'
+time_server = '10.0.12.57'      # '192.168.1.150'
+copy_data = 1                   # Copy data from receiver?
+process_data = 1                # Process data copied from receiver?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
 date_time_start = '2020-05-18 18:38:00'
@@ -67,6 +68,7 @@ from package_receiver_control.f_wait_predefined_time_connected import f_wait_pre
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_receiver_control.f_initialize_adr import f_initialize_adr
+from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
@@ -84,14 +86,17 @@ currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
 print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
+# process only copied from receiver data
+if process_data > 0: copy_data = 1
+
 # Connect to the ADR receiver via socket
-serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, 1, 1)  # 1 - control, 1 - delay in sec
+serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
 # Initialize ADR
 #f_initialize_adr(serversocket, 1)
 
 # Update synchronization of PC and ADR
-f_synchronize_adr(serversocket, host)
+f_synchronize_adr(serversocket, receiver_ip, time_server)
 
 # Construct the name of data directory
 data_directory_name = date_time_start[0:10].replace('-','.') + '_GURT_' + source_to_observe
@@ -122,7 +127,7 @@ else:
 
 # Waiting time to start record
 print('\n * Waiting time to synchronize and start recording...')
-ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1, host)
+ok = f_wait_predefined_time_connected(dt_time_to_start_record, serversocket, 1, receiver_ip, time_server)
 
 # Start record
 serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
@@ -131,7 +136,7 @@ if data.startswith('SUCCESS'):
     print ('\n * Recording started')
 
 # Waiting time to stop record
-ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket)
+ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket, 0, receiver_ip, time_server)
 
 # Stop record
 serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
@@ -141,7 +146,6 @@ if data.startswith('SUCCESS'):
 
 
 # Sending message to Telegram
-#message = 'GURT ' + source_to_observe + ' observations completed!\nStart time: '+date_time_start+'\nStop time:  '+date_time_stop
 message = 'GURT ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
             +date_time_start + '\nStop time: '+date_time_stop + \
             '\nReceiver: '+ parameters_dict["receiver_name"].replace('_',' ') + \
@@ -159,16 +163,17 @@ except:
     pass
 
 
-# Data copying processing
-if process_data > 0:
+# Data copying and processing
 
+if copy_data > 0:
     time.sleep(1)
-
+    ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, 0)
+    '''
     # Copy data from receiver to server with SSH login on receiver and using rsync
     print('\n * Copying recorded data to server')
 
     s = pxssh.pxssh(timeout = 12000)
-    if not s.login(host, 'root', 'ghbtvybr'):
+    if not s.login(receiver_ip, 'root', 'ghbtvybr'):
         print('\n   ERROR! SSH session failed on login!')
         print(str(s))
     else:
@@ -183,6 +188,9 @@ if process_data > 0:
     # Execute commands directly on the receiver or via ssh:
     # ssh-keygen
     # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
+    '''
+
+if process_data > 0:
 
     time.sleep(1)
 

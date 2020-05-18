@@ -8,7 +8,7 @@ def telegram_bot_sendtext(chat_id, bot_message):
     Output variables:
         return - response of the bot with message status (json format)
     '''
-    token_file = open('bot.txt', 'r')
+    token_file = open('service_data/bot.txt', 'r')
     bot_token = token_file.readline()[:-1]
     token_file.close()
 

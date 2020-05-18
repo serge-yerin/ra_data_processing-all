@@ -7,12 +7,13 @@ from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 #*************************************************************
 #                       MAIN FUNCTION                        *
 #*************************************************************
-def f_synchronize_adr(serversocket, host):
+def f_synchronize_adr(serversocket, host, time_server):
     '''
     Function reads a message from ADR radio astronomy receiver
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         host                - IP address of host to connect for sntp synchro from server
+        time_server         -
     Output parameters:
     '''
     # Update synchronization of PC and ADR
@@ -25,7 +26,8 @@ def f_synchronize_adr(serversocket, host):
         print(str(s))
     else:
         print('\n   SSH session login successful')
-        s.sendline('sntp -P no -r 10.0.12.57')
+        s.sendline('sntp -P no -r ' + time_server)
+        #s.sendline('sntp -P no -r 10.0.12.57')
         #s.sendline('sntp -P no -r 192.168.1.150')
         s.prompt()  # match the prompt
         print('\n   Answer: ', s.before)  # print everything before the prompt.
@@ -59,5 +61,5 @@ def f_synchronize_adr(serversocket, host):
 if __name__ == '__main__':
 
     host = '192.168.1.171'
-    f_synchronize_adr(serversocket, host)
+    f_synchronize_adr(serversocket, host, time_server)
 
