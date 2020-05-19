@@ -38,12 +38,17 @@ def f_initialize_adr(serversocket, print_or_not):
     serversocket.send((b"set prc/dsp/ctl/mdo 0 6'\0"))  #
     data = f_read_adr_meassage(serversocket, print_or_not)
 
+    serversocket.send((b"set prc/srv/ctl/adr 3 1'\0"))  # To apply the ADR DSP parameters (which is set in the [mdo]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+
+
     '''
     # Messages sent by ADR in seen in low-level mode
     serversocket.send((b"set prc/dsp/net/dsa '192.168.10.204:48391'\0"))  #
     data = f_read_adr_meassage(serversocket, print_or_not)
 
-    serversocket.send((b'set prc/srv/ctl/adr 4 1\0'))  #
+    serversocket.send((b'set prc/srv/ctl/adr 4 1\0'))  # Do not use! Used only for Official ADR Control Client!
     data = f_read_adr_meassage(serversocket, print_or_not)
     '''
 

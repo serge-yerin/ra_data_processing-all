@@ -12,8 +12,8 @@ copy_data = 1                   # Copy data from receiver?
 process_data = 1                # Process data copied from receiver?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-19 12:45:00'
-date_time_stop =  '2020-05-19 12:46:00'
+date_time_start = '2020-05-19 12:57:00'
+date_time_stop =  '2020-05-19 12:58:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
