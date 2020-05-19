@@ -35,37 +35,22 @@ def f_initialize_adr(serversocket, print_or_not):
     DSP parameters apply: Ok!
     '''
 
+    serversocket.send((b"set prc/dsp/ctl/mdo 0 6'\0"))  #
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    '''
+    # Messages sent by ADR in seen in low-level mode
     serversocket.send((b"set prc/dsp/net/dsa '192.168.10.204:48391'\0"))  #
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     serversocket.send((b'set prc/srv/ctl/adr 4 1\0'))  #
     data = f_read_adr_meassage(serversocket, print_or_not)
-
+    '''
 
     '''
     serversocket.send((b'get prc/srv/ctl/pth\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
     parameters_dict["save_data_path"] = find_between(data,'SUCCESS\n','\n')
-
-    serversocket.send((b'get prc/srv/ctl/sys\0'))  # read directory where data are stored
-    data =  f_read_adr_meassage(serversocket, 0)
-    parameters_dict["receiver_name"] = find_between(data,'SUCCESS\n','\n')
-
-    serversocket.send((b'get prc/srv/ctl/plc\0'))  # read directory where data are stored
-    data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["observation_place"] = find_between(data, 'SUCCESS\n', '\n')
-
-    serversocket.send((b'get prc/srv/ctl/dsc\0'))  # read directory where data are stored
-    data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["file_description"] = find_between(data, 'SUCCESS\n', '\n')
-
-    serversocket.send((b'get prc/dsp/ctl/opt\0'))  #
-    data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["synchro_start"] = find_between(data, 'SyncStart: ', '\n')
-    parameters_dict["external_clock"] = find_between(data, 'Ext.CLC: ', '\n')
-    parameters_dict["fft_window"] = find_between(data, 'FFT_Window: ', '\n')
-    parameters_dict["sum_diff_mode"] = find_between(data, 'A+B/A-B: ', '\n')
-
 
     '''
     return
@@ -79,56 +64,5 @@ if __name__ == '__main__':
     control = 1
     delay = 5
 
-    parameters_dict = f_get_adr_parameters(serversocket, 1)
+    parameters_dict = f_initialize_adr(serversocket, 1)
 
-    '''
-    get prc/dsp/ctl/set
-    1387701331 - Start Second (sec)
-    1387701332 - Stop Second (sec)
-    0 - Test mode (index)
-    16384 - Norm1 (rel. un.)
-    16384 - Norm2 (rel. un.)
-    2000 - Delay (ps)
-
-    get prc/dsp/ctl/clc
-    0 - UTC second (sec)
-    0 - Seconds Tuning (sec)
-    160000001 - Measured F_ADC (Hz)
-    1 - Synchro state (On/Off)
-    1 - Synchro end (On/Off)
-
-    get prc/srv/ctl/adr
-    0 - ADRS Status: OFF
-    0 - WatchDog Thread: OFF
-    0 - Data Thread: OFF
-    0 - ADRS Param. Apply: OFF
-    1 - New Param. Apply: ON
-    0 - Apply DSP settings: OFF
-    0 - Apply DSP synchro: OFF
-    1 - Start/Stop: ON
-    0 - DSP Status Update: OFF
-    '''
-'''
-get prc/srv/ctl/srd
-1 - Save on/off  (On/Off)
-1 - Autocreation  (On/Off)
-2000 - Size restriction  (MB)
-2000 - Time restriction  (ms)
-
-get prc/srv/ctl/adr 0
-ADR Mode: 6
-Flags: 143
-DSP Time: 1387859967
-PC1 Time: 1387859967:893
-PC2 Time: 1387859968:331
-FileSize: 0
-FileTime: 0
-F_ADC: 160000002
-FS_FREE: 1.35e+04
-FS_PERC: 41.6
-'''
-
-
-
-
-    # get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group
