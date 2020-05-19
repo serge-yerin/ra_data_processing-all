@@ -12,8 +12,8 @@ copy_data = 1                   # Copy data from receiver?
 process_data = 1                # Process data copied from receiver?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-19 13:27:00'
-date_time_stop =  '2020-05-19 13:28:00'
+date_time_start = '2020-05-19 13:47:00'
+date_time_stop =  '2020-05-19 13:48:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -92,8 +92,8 @@ if process_data > 0: copy_data = 1
 # Connect to the ADR receiver via socket
 serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
-# Initialize ADR
-f_initialize_adr(serversocket, 1)
+# Initialize ADR and set ADR parameters
+#f_initialize_adr(serversocket, 1)
 
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, receiver_ip, time_server)

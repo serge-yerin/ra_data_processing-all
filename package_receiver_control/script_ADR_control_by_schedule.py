@@ -146,6 +146,8 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
     if process_data > 0:
         print('\n * Data of ' + data_directory_name + ' observation were copied and processed.')
         message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied and processed.'
+        #message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
+        #    "receiver_name"].replace('_', ' ') + ' receiver) were copied and processed.'
     else:
         if copy_data > 0:
             print('\n * Data of ' + data_directory_name + ' observation were copied.')

@@ -25,6 +25,16 @@ def f_initialize_adr(serversocket, print_or_not):
     "set prc/srv/ctl/adr 2 1"; //start UDP data processing threads
     "set prc/srv/ctl/adr 7 1"; //start DSP
 
+    # This commands are run when "Data on PC" is pressed
+    set prc/srv/ctl/adr 7 0
+    set prc/srv/ctl/adr 2 0
+    set prc/dsp/net/udp '192.168.10.60:48396'
+    set prc/dsp/net/wvf '192.168.11.60:48395'
+    set prc/srv/ctl/adr 3 1
+    set prc/srv/ctl/adr 5 1
+    set prc/srv/ctl/adr 2 1
+    set prc/srv/ctl/adr 7 1
+
 
     set prc/dsp/net/dsa '192.168.10.204:48391'
     SUCCESS
@@ -36,7 +46,7 @@ def f_initialize_adr(serversocket, print_or_not):
     '''
 
     # MDO parameters
-    serversocket.send((b"set prc/dsp/ctl/mdo 0 5\0"))  # Set operation mode 0-6 (6 - correlation)
+    serversocket.send((b"set prc/dsp/ctl/mdo 0 6\0"))  # Set operation mode 0-6 (6 - correlation)
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     serversocket.send((b"set prc/dsp/ctl/mdo 1 16384\0"))  # Set FFT size 2048,4096,8192,16384,32768
@@ -48,7 +58,7 @@ def f_initialize_adr(serversocket, print_or_not):
     serversocket.send((b"set prc/dsp/ctl/mdo 3 0\0"))  # Start frequency line of the band in 1024-steps. SLINE range [0 … (SFFT-1024)/1024]
     data = f_read_adr_meassage(serversocket, print_or_not)
 
-    serversocket.send((b"set prc/dsp/ctl/mdo 4 16384\0"))  # Width of  frequency band in 1024-steps. WIDTH range [1 … (SFFT-SLINE*1024)/1024]
+    serversocket.send((b"set prc/dsp/ctl/mdo 4 16\0"))  # Width of  frequency band in 1024-steps. WIDTH range [1 … (SFFT-SLINE*1024)/1024]
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     # OPT parameters
@@ -62,6 +72,10 @@ def f_initialize_adr(serversocket, print_or_not):
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     serversocket.send((b"set prc/dsp/ctl/opt 3 0\0"))  # On/Off the “sum-difference” mode A±B
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    # SET parameters
+    serversocket.send((b"set prc/dsp/ctl/set 5 0\0"))  # Differential delay (DDEL) between CH-A and CH-B ADC sampling (CLC front) in picoseconds
     data = f_read_adr_meassage(serversocket, print_or_not)
 
 

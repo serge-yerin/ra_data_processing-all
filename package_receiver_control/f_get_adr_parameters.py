@@ -48,11 +48,11 @@ def f_get_adr_parameters(serversocket, print_or_not):
     parameters_dict["operation_mode_num"] = int(find_between(data, 'SUCCESS\n', ' - Mode'))
     if   parameters_dict["operation_mode_num"] == 0: parameters_dict["operation_mode_str"] = 'Waveform ch. A'
     elif parameters_dict["operation_mode_num"] == 1: parameters_dict["operation_mode_str"] = 'Waveform ch. B'
-    elif parameters_dict["operation_mode_num"] == 2: parameters_dict["operation_mode_str"] = 'Waveform ch. A & B'
+    elif parameters_dict["operation_mode_num"] == 2: parameters_dict["operation_mode_str"] = 'Waveform ch. A and B'
     elif parameters_dict["operation_mode_num"] == 3: parameters_dict["operation_mode_str"] = 'Spectra ch. A'
     elif parameters_dict["operation_mode_num"] == 4: parameters_dict["operation_mode_str"] = 'Spectra ch. B'
-    elif parameters_dict["operation_mode_num"] == 5: parameters_dict["operation_mode_str"] = 'Spectra ch. A & B'
-    elif parameters_dict["operation_mode_num"] == 6: parameters_dict["operation_mode_str"] = 'Correlation ch. A & B'
+    elif parameters_dict["operation_mode_num"] == 5: parameters_dict["operation_mode_str"] = 'Spectra ch. A and B'
+    elif parameters_dict["operation_mode_num"] == 6: parameters_dict["operation_mode_str"] = 'Correlation ch. A and B'
     else: parameters_dict["operation_mode_str"] = 'Unknown mode'
 
     parameters_dict["FFT_size_samples"] = int(find_between(data, 'Mode (index)\n', ' - FFT Size'))
