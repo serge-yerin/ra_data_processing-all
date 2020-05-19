@@ -12,8 +12,8 @@ copy_data = 1                   # Copy data from receiver?
 process_data = 1                # Process data copied from receiver?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-19 12:57:00'
-date_time_stop =  '2020-05-19 12:58:00'
+date_time_start = '2020-05-19 13:27:00'
+date_time_stop =  '2020-05-19 13:28:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -168,27 +168,6 @@ except:
 if copy_data > 0:
     time.sleep(1)
     ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, 0)
-    '''
-    # Copy data from receiver to server with SSH login on receiver and using rsync
-    print('\n * Copying recorded data to server')
-
-    s = pxssh.pxssh(timeout = 12000)
-    if not s.login(receiver_ip, 'root', 'ghbtvybr'):
-        print('\n   ERROR! SSH session failed on login!')
-        print(str(s))
-    else:
-        print('\n   SSH login successful, copying data to server...\n')
-        command = ('rsync -r ' + '/data/' + data_directory_name + '/' +
-                   ' gurt@192.168.1.150:/media/data/DATA/To_process/' + data_directory_name + '/')
-        s.sendline(command)
-        s.prompt()  # match the prompt
-        #print('\n   Answer: ', s.before)  # print everything before the prompt.
-        s.logout()
-    # To make this work properly one needs to pair receiver and server via SSH to not ask password each time
-    # Execute commands directly on the receiver or via ssh:
-    # ssh-keygen
-    # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
-    '''
 
 if process_data > 0:
 
@@ -227,7 +206,7 @@ if process_data > 0:
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
     # Sending message to Telegram
-    message = 'Data of last observations were copied and processed.'
+    message = 'Data of '+ data_directory_name.replace('_',' ') + ' observations ('+ parameters_dict["receiver_name"].replace('_',' ') +' receiver) were copied and processed.'
     try:
         test = telegram_bot_sendtext(telegram_chat_id, message)
     except:

@@ -35,11 +35,46 @@ def f_initialize_adr(serversocket, print_or_not):
     DSP parameters apply: Ok!
     '''
 
-    serversocket.send((b"set prc/dsp/ctl/mdo 0 6'\0"))  #
+    # MDO parameters
+    serversocket.send((b"set prc/dsp/ctl/mdo 0 5\0"))  # Set operation mode 0-6 (6 - correlation)
     data = f_read_adr_meassage(serversocket, print_or_not)
 
-    serversocket.send((b"set prc/srv/ctl/adr 3 1'\0"))  # To apply the ADR DSP parameters (which is set in the [mdo]
+    serversocket.send((b"set prc/dsp/ctl/mdo 1 16384\0"))  # Set FFT size 2048,4096,8192,16384,32768
     data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/dsp/ctl/mdo 2 1000\0"))  # Set number of averages spectra in range [16 … 32768]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/dsp/ctl/mdo 3 0\0"))  # Start frequency line of the band in 1024-steps. SLINE range [0 … (SFFT-1024)/1024]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/dsp/ctl/mdo 4 16384\0"))  # Width of  frequency band in 1024-steps. WIDTH range [1 … (SFFT-SLINE*1024)/1024]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    # OPT parameters
+    serversocket.send((b"set prc/dsp/ctl/opt 0 0\0"))  # On/Off the synchro start of ADR data processing by front of the PPS signal.
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/dsp/ctl/opt 1 0\0"))  # On/Off the external source of ADC CLC
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/dsp/ctl/opt 2 1\0"))  # On/Off the FFT Hanning window
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/dsp/ctl/opt 3 0\0"))  # On/Off the “sum-difference” mode A±B
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+
+
+    serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))  # To apply the ADR DSP parameters (which is set in the [mdo]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/srv/ctl/adr 5 1\0"))  # To apply the ADR DSP settings, which are defined in [set]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/srv/ctl/adr 6 1\0"))  # To apply the ADR DSP options, which are defined in [opt]
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
 
 
 
