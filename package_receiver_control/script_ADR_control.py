@@ -12,8 +12,8 @@ copy_data = 1                   # Copy data from receiver?
 process_data = 1                # Process data copied from receiver?
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-20 12:42:00'
-date_time_stop =  '2020-05-20 12:44:00'
+date_time_start = '2020-05-20 15:59:00'
+date_time_stop =  '2020-05-20 16:00:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -34,7 +34,7 @@ DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
+ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
 where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
@@ -68,6 +68,7 @@ from package_receiver_control.f_wait_predefined_time_connected import f_wait_pre
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_receiver_control.f_initialize_adr import f_initialize_adr
+from package_receiver_control.f_set_adr_parameters import f_set_adr_parameters
 from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
@@ -94,6 +95,9 @@ serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port
 
 # Initialize ADR and set ADR parameters
 f_initialize_adr(serversocket, 1)
+
+# Set initial ADR parameters
+f_set_adr_parameters(serversocket, 1)
 
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, receiver_ip, time_server)
