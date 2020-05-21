@@ -18,6 +18,12 @@ date_time_stop =  '2020-05-21 16:27:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
+# ADR PARAMETERS
+
+#schedule = []
+#schedule.append([date_time_start, date_time_stop, 16384,
+#                             0.1, 0, 80, 'data_directory', observation_description, 1, 1])
+
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
@@ -101,6 +107,7 @@ f_set_adr_parameters(serversocket, 1)
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, receiver_ip, time_server)
 
+
 # Construct the name of data directory
 data_directory_name = date_time_start[0:10].replace('-','.') + '_GURT_' + source_to_observe
 
@@ -110,6 +117,7 @@ data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Directory name changed to: ', data_directory_name)
 
+
 # Set observation description:
 serversocket.send(('set prc/srv/ctl/dsc ' + observation_description + '\0').encode())
 data = f_read_adr_meassage(serversocket, 0)
@@ -117,6 +125,7 @@ data = f_read_adr_meassage(serversocket, 0)
 
 # Requesting and printing current ADR parameters
 parameters_dict = f_get_adr_parameters(serversocket, 1)
+
 
 # Construct datetime variables to start and stop observations
 dt_time_to_start_record = datetime(int(date_time_start[0:4]), int(date_time_start[5:7]), int(date_time_start[8:10]),

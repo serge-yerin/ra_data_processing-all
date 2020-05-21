@@ -1,5 +1,6 @@
 # Python 3
 import sys
+from os import path
 from datetime import datetime
 from package_common_modules.text_manipulations import find_between
 
@@ -86,7 +87,13 @@ def find_parameter_value(line, string_name):
 ################################################################################
 
 if __name__ == '__main__':
+
+    # To change system path to main directory of the project:
+    if __package__ is None:
+        sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
     schedule_txt_file = 'Observations.txt'
+
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
     for i in range (len(schedule)):
         print(schedule[i])

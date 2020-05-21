@@ -4,8 +4,10 @@
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 
+import sys, time
+from os import path
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
-import time
+from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
 
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
@@ -80,12 +82,17 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.5):
 
 if __name__ == '__main__':
 
-    host = '192.168.1.171'
-    port = 38386
-    control = 1
-    delay = 5
+    # To change system path to main directory of the project:
+    if __package__ is None:
+        sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-    f_initialize_adr(serversocket, 1)
+    port = 38386
+    receiver_ip = '192.168.1.171'
+
+    # Connect to the ADR receiver via socket
+    serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
+
+    f_initialize_adr(serversocket, 1, pause = 0.5)
 
 '''
     "set prc/srv/ctl/adr 7 0"; //stop  DSP
