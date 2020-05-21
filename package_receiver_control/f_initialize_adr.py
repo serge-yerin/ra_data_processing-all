@@ -10,7 +10,7 @@ import time
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
-def f_initialize_adr(serversocket, print_or_not, pause = 1):
+def f_initialize_adr(serversocket, print_or_not, pause = 0.5):
     '''
     Function initializes ADR receiver if it was just turned on
     Input parameters:
@@ -19,10 +19,6 @@ def f_initialize_adr(serversocket, print_or_not, pause = 1):
     Output parameters:
 
     '''
-
-    ###################################################################################################################
-    #                 RECEIVER INITIALIZATION
-    ###################################################################################################################
     time.sleep(pause)
 
     # DSP Connect button
@@ -61,12 +57,21 @@ def f_initialize_adr(serversocket, print_or_not, pause = 1):
     serversocket.send((b"set prc/srv/ctl/adr 7 1\0"))  #
     data = f_read_adr_meassage(serversocket, print_or_not)
 
-    # Check here if all commands returned SUCCESS respond !!!
+    # Be sure variables are without spaces! Use underscore instead
+    receiver_name = 'B_ADRS02'
+    observatory_name = 'Volokhiv_Yar_(Kharkiv_region)_Ukraine'
+
+    # Set system name (receiver name):
+    serversocket.send(('prc/srv/ctl/sys ' + receiver_name + '\0').encode())
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    # Set observatory name (place name):
+    serversocket.send(('prc/srv/ctl/sys ' + observatory_name + '\0').encode())
+    data = f_read_adr_meassage(serversocket, print_or_not)
 
     time.sleep(pause)
 
     return
-
 
 
 

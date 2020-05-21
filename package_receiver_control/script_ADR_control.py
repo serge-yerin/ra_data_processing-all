@@ -10,6 +10,7 @@ receiver_ip = '10.0.12.172'     # Receiver IP address in local network '192.168.
 time_server = '10.0.12.57'      # '192.168.1.150'
 copy_data = 1                   # Copy data from receiver?
 process_data = 1                # Process data copied from receiver?
+observation_description = 'Test_observations'  # (do not use spaces, use underscores instead)
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
 date_time_start = '2020-05-20 15:59:00'
@@ -110,6 +111,11 @@ serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode()
 data = f_read_adr_meassage(serversocket, 0)
 if data.startswith('SUCCESS'):
     print ('\n * Directory name changed to: ', data_directory_name)
+
+# Set observation description:
+serversocket.send(('prc/srv/ctl/dsc ' + observation_description + '\0').encode())
+data = f_read_adr_meassage(serversocket, 0)
+
 
 # Requesting and printing current ADR parameters
 parameters_dict = f_get_adr_parameters(serversocket, 1)
