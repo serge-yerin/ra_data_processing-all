@@ -13,8 +13,8 @@ process_data = 1                # Process data copied from receiver?
 observation_description = 'Test_observations'  # (do not use spaces, use underscores instead)
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-20 15:59:00'
-date_time_stop =  '2020-05-20 16:00:00'
+date_time_start = '2020-05-21 16:25:00'
+date_time_stop =  '2020-05-21 16:27:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -29,11 +29,11 @@ VminCorrMag = -150            # Lower limit of figure dynamic range for correlat
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-CorrelationProcess = 0        # Process correlation data or save time?  (1 = process, 0 = save)
+CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
 where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
@@ -53,11 +53,9 @@ telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '92753468
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 from datetime import datetime
-from pexpect import pxssh
 from os import path
 import time
 import sys
-import os
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -113,7 +111,7 @@ if data.startswith('SUCCESS'):
     print ('\n * Directory name changed to: ', data_directory_name)
 
 # Set observation description:
-serversocket.send(('prc/srv/ctl/dsc ' + observation_description + '\0').encode())
+serversocket.send(('set prc/srv/ctl/dsc ' + observation_description + '\0').encode())
 data = f_read_adr_meassage(serversocket, 0)
 
 
@@ -159,6 +157,7 @@ if data.startswith('SUCCESS'):
 message = 'GURT ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
             +date_time_start + '\nStop time: '+date_time_stop + \
             '\nReceiver: '+ parameters_dict["receiver_name"].replace('_',' ') + \
+            '\nReceiver IP: '+ receiver_ip + \
             '\nDescription: ' + parameters_dict["file_description"].replace('_',' ') + \
             '\nMode: ' + parameters_dict["operation_mode_str"] + \
             '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
@@ -216,7 +215,8 @@ if process_data > 0:
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
     # Sending message to Telegram
-    message = 'Data of '+ data_directory_name.replace('_',' ') + ' observations ('+ parameters_dict["receiver_name"].replace('_',' ') +' receiver) were copied and processed.'
+    message = 'Data of '+ data_directory_name.replace('_',' ') + ' observations ('+ parameters_dict["receiver_name"].replace('_',' ') \
+              +' receiver, IP: ' + receiver_ip + ') were copied and processed.'
     try:
         test = telegram_bot_sendtext(telegram_chat_id, message)
     except:

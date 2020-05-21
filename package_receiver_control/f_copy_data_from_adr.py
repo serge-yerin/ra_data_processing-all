@@ -33,14 +33,11 @@ def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, p
     this_pc_file.close()
 
     s = pxssh.pxssh(timeout=120000)
-    #if not s.login(receiver_ip, 'root', 'ghbtvybr'):
     if not s.login(receiver_ip, rec_user, password):
         print('\n   ERROR! SSH session failed on login!')
         print(str(s))
     else:
         print('\n   SSH login successful, copying data to server...\n')
-        #command = ('rsync -r ' + '/data/' + data_directory_name + '/' +
-        #           ' gurt@192.168.1.150:'+ dir_data_on_server + data_directory_name + '/')
         command = ('rsync -r ' + '/data/' + data_directory_name + '/ ' + this_pc_user +'@' +
                    this_pc_ip + ':' + dir_data_on_server + data_directory_name + '/')
         #print(command)

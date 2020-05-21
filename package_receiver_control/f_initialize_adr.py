@@ -39,22 +39,23 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.5):
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
+
     # "Data on PC"
-    serversocket.send((b"set prc/srv/ctl/adr 7 0\0"))  #
+    serversocket.send((b"set prc/srv/ctl/adr 7 0\0"))  # stop  DSP
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/srv/ctl/adr 2 0\0"))  #
+    serversocket.send((b"set prc/srv/ctl/adr 2 0\0"))  # stop UDP data processing threads
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/dsp/net/udp '192.168.10.60:48396'\0"))  #
+    serversocket.send((b"set prc/dsp/net/udp '192.168.10.60:48396'\0"))  # set UDP target address:port
     data = f_read_adr_meassage(serversocket, print_or_not)
     serversocket.send((b"set prc/dsp/net/wvf '192.168.11.60:48395'\0"))  #
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))  #
+    serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))  # apply ADR DSP parameters
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/srv/ctl/adr 5 1\0"))  #
+    serversocket.send((b"set prc/srv/ctl/adr 5 1\0"))  # apply ADR DSP settings
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/srv/ctl/adr 2 1\0"))  #
+    serversocket.send((b"set prc/srv/ctl/adr 2 1\0"))  # start UDP data processing threads
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/srv/ctl/adr 7 1\0"))  #
+    serversocket.send((b"set prc/srv/ctl/adr 7 1\0"))  # start DSP
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     # Be sure variables are without spaces! Use underscore instead
@@ -62,11 +63,11 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.5):
     observatory_name = 'Volokhiv_Yar_(Kharkiv_region)_Ukraine'
 
     # Set system name (receiver name):
-    serversocket.send(('prc/srv/ctl/sys ' + receiver_name + '\0').encode())
+    serversocket.send(('set prc/srv/ctl/sys ' + receiver_name + '\0').encode())
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     # Set observatory name (place name):
-    serversocket.send(('prc/srv/ctl/sys ' + observatory_name + '\0').encode())
+    serversocket.send(('set prc/srv/ctl/plc ' + observatory_name + '\0').encode())
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     time.sleep(pause)
