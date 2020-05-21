@@ -55,4 +55,22 @@ These scripts are in "package_cas_a_secular_decrease" folder
 ### script_TXT5_casA_secular_decrease_time_variations.py
 
 ## Scripts to process pulsar data
-These scripts are in "package_pulsar_processing" folder
+These scripts are mostly stored in "package_pulsar_processing" folder.
+
+# Searching of pulsar AIPs appearance time
+To obtain integrated over frequency profile of dedsipersed spectra data from waveform data
+one should:
+
+1) use "script_JDS_WF_reader.py" from main project directory with parameters
+ 
+* no_of_spectra_to_average = 16 (for 33 MHz clock it results in 7.942 ms time resolution)
+
+* save_long_file_aver = 1 (to save '.dat' and 'timeline.txt' files)
+
+  to convert from WF to spectra data in '.dat' file.
+
+2) process the '.dat' and 'timeline.txt' files with script "script_pulsar_single_pulses.py" from 
+"package_pulsar_processing" folder using
+as parameters the name of the pulsar observed (DM will be taken from local pulsar catalogue automatically), and
+the name of the '.dat' file from first stage.
+The pictures will appear in folder "RESULTS_pulsar_single_pulses_..." in the main project folder.
