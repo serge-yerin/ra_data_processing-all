@@ -6,7 +6,7 @@ Software_name = 'NenuFAR tf reader'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 directory = 'DATA/'
-filename = 'pul_b0329+54_ir_no0004.m5a '
+filename = 'JUPITER_TRACKING_20200510_030440_0.spectra'
 
 
 
@@ -26,11 +26,6 @@ import os
 import time
 
 
-# To change system path to main directory of the project:
-if __package__ is None:
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
-
 def nenufar_tf_data_header_read(file):
     '''
     First try to read NenuFAR spectra data header
@@ -38,24 +33,24 @@ def nenufar_tf_data_header_read(file):
 
     # *** Data file header read ***
 
-    sample_index_of_block = np.uint64(file.read(8))
-    time_stamp = np.uint64(file.read(8))
-    block_seq_number = np.uint64(file.read(8))
-    fft_length = np.int32(file.read(4))
-    intergrated_spectra_num = np.int32(file.read(4))
-    fft_overlap = np.int32(file.read(4))
-    apodization = np.int32(file.read(4))
-    fft_per_beamlet = np.int32(file.read(4))
-    channels_beamlets_no = np.int32(file.read(4))
+    sample_index_of_block = np.uint64(int.from_bytes(file.read(8), byteorder='little', signed=False))
+    time_stamp = np.uint64(int.from_bytes(file.read(8), byteorder='little', signed=False))
+    block_seq_number = np.uint64(int.from_bytes(file.read(8), byteorder='little', signed=False))
+    fft_length = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+    intergrated_spectra_num = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+    fft_overlap = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+    apodization = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+    fft_per_beamlet = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+    channels_beamlets_no = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
 
 
     frequency_resolution = 0.1953125 / fft_length  # MHz
     time_resolution = fft_length * intergrated_spectra_num * 5.12  # uS
 
     for beamlet in range(1): # channels_beamlets_no
-        lane_index = np.int32(file.read(4))
-        beam_index = np.int32(file.read(4))
-        beamlet_index = np.int32(file.read(4))
+        lane_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+        beam_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+        beamlet_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
 
     print('\n   DATA FRAME HEADER:')
 
@@ -69,19 +64,24 @@ def nenufar_tf_data_header_read(file):
     print('   FFTs per beamlet:                 ', fft_per_beamlet)
     print('   Number of beamlets / channels:    ', channels_beamlets_no)
 
-    print('\n   Frequency resolution:             ', sample_index_of_block, ' MHz')
-    print('   Time resolution:                  ', sample_index_of_block, ' uS')
+    print('\n   Frequency resolution:             ', frequency_resolution*1000, ' kHz')
+    print('   Time resolution:                  ', time_resolution/1000, ' mS')
+    time_1 = time.gmtime(time_stamp)
+    print('   Time satmp:                       ',time.strftime("%Y %b %d (%a) %H:%M:%S +0000", time_1))  #time_1.strftime("%H:%M:%S"))
 
-    print('\n   Lane index:                       ', sample_index_of_block, ' uS')
-    print('   Beam index:                       ', sample_index_of_block, ' uS')
-    print('   Beamlet index:                    ', sample_index_of_block, ' uS')
-
+    print('\n   Lane index:                       ', lane_index)
+    print('   Beam index:                       ', beam_index)
+    print('   Beamlet index:                    ', beamlet_index)
 
     return
 
 ################################################################################
 
 if __name__ == '__main__':
+
+    # To change system path to main directory of the project:
+    if __package__ is None:
+        sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
     print('\n\n\n\n\n\n\n\n   **************************************************************************')
     print('   *               ', Software_name, ' v.', Software_version, '              *      (c) YeS 2020')
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     '''
     filepath = directory + filename
 
-    file_size = (os.stat(filepath).st_size)  # Size of file
+    file_size = os.stat(filepath).st_size  # Size of file
     print('\n   File size:                    ', round(file_size / 1024 / 1024, 3), ' Mb (', file_size, ' bytes )')
 
     with open(filepath, 'rb') as file:
