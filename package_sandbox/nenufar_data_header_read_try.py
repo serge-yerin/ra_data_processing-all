@@ -102,7 +102,27 @@ if __name__ == '__main__':
         # Reading first frame header
         print('\n *  First data frame header info:')
         fft_length, fft_per_beamlet, channels_beamlets_no = nenufar_tf_data_header_read(file)
+        ######################################################
+        '''
+        file.seek(0)  # Jumping to the file beginning
 
+        block_header_length = 48 # bytes
+        beamlet_header_length = 12 # bytes
+        data_beamlet_length = 2 * fft_length * fft_per_beamlet * 4
+        block_length = block_header_length + channels_beamlets_no * (beamlet_header_length + data_beamlet_length)
+
+        n = 2
+        raw_data = np.fromfile(file, dtype='f4', count=int(n * block_length))
+
+        raw_data = np.reshape(raw_data, [block_length, n], order='F')
+        block_headers = raw_data[:12, :]
+        raw_data = raw_data[12:, :]
+        raw_data = np.reshape(raw_data, [(block_length - 12) * n], order='F')
+
+
+
+        '''
+        ######################################################
         for beamlet in range(channels_beamlets_no):  # channels_beamlets_no
 
             lane_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
@@ -113,7 +133,7 @@ if __name__ == '__main__':
             print('   Beam index:                       ', beam_index)
             print('   Beamlet index:                    ', beamlet_index)
 
-            raw_data = np.fromfile(file, dtype='f4', count=int(4 * fft_length * fft_per_beamlet))
+            raw_data = np.fromfile(file, dtype='i4', count=int(4 * fft_length * fft_per_beamlet))
 
             #raw_data = np.reshape(raw_data, [fft_per_beamlet, fft_length], order='F')
 
