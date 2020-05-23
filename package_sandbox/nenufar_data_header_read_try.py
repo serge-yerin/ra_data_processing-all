@@ -24,6 +24,7 @@ from matplotlib import rc
 import pylab
 import os
 import time
+from astropy.time import Time
 
 
 def nenufar_tf_data_header_read(file):
@@ -66,8 +67,11 @@ def nenufar_tf_data_header_read(file):
 
     print('\n   Frequency resolution:             ', frequency_resolution*1000, ' kHz')
     print('   Time resolution:                  ', time_resolution/1000, ' mS')
-    time_1 = time.gmtime(time_stamp)
-    print('   Time satmp:                       ',time.strftime("%Y %b %d (%a) %H:%M:%S +0000", time_1))  #time_1.strftime("%H:%M:%S"))
+    print('   Time satmp:                       ',time.strftime("%Y.%m.%d %H:%M:%S", time.gmtime(time_stamp)))  #"%Y %b %d (%a) %H:%M:%S +0000"
+    #t = Time(time.gmtime(time_stamp), scale = 'utc')
+    dt_object = datetime.fromtimestamp(time_stamp)
+    t = Time(dt_object, format = 'datetime', scale='utc')
+    print('   Time satmp (jd):                  ', t.jd )
 
     print('\n   Lane index:                       ', lane_index)
     print('   Beam index:                       ', beam_index)
