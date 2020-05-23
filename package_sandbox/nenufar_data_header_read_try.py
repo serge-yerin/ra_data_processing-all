@@ -48,11 +48,6 @@ def nenufar_tf_data_header_read(file):
     frequency_resolution = 0.1953125 / fft_length  # MHz
     time_resolution = fft_length * intergrated_spectra_num * 5.12  # uS
 
-    for beamlet in range(1): # channels_beamlets_no
-        lane_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
-        beam_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
-        beamlet_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
-
     print('\n   DATA FRAME HEADER:')
 
     print('   Sample index of block:            ', sample_index_of_block)
@@ -73,11 +68,7 @@ def nenufar_tf_data_header_read(file):
     t = Time(dt_object, format = 'datetime', scale='utc')
     print('   Time satmp (jd):                  ', t.jd )
 
-    print('\n   Lane index:                       ', lane_index)
-    print('   Beam index:                       ', beam_index)
-    print('   Beamlet index:                    ', beamlet_index)
-
-    return
+    return fft_length, fft_per_beamlet, channels_beamlets_no
 
 ################################################################################
 
@@ -110,7 +101,52 @@ if __name__ == '__main__':
 
         # Reading first frame header
         print('\n *  First data frame header info:')
-        nenufar_tf_data_header_read(file)
+        fft_length, fft_per_beamlet, channels_beamlets_no = nenufar_tf_data_header_read(file)
+
+        for beamlet in range(channels_beamlets_no):  # channels_beamlets_no
+
+            lane_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+            beam_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+            beamlet_index = np.int32(int.from_bytes(file.read(4), byteorder='little', signed=True))
+
+            print('\n   Lane index:                       ', lane_index)
+            print('   Beam index:                       ', beam_index)
+            print('   Beamlet index:                    ', beamlet_index)
+
+            raw_data = np.fromfile(file, dtype='f4', count=int(4 * fft_length * fft_per_beamlet))
+
+            #raw_data = np.reshape(raw_data, [fft_per_beamlet, fft_length], order='F')
+
+
+        fft_length, fft_per_beamlet, channels_beamlets_no = nenufar_tf_data_header_read(file)
+
+        '''
+        # PLOTS
+        Title = 'File: , recorded on , samples averaged: '
+        rc('font', size=8, weight='bold')
+        fig = plt.figure(1, figsize=(12.0, 5.0))
+        ax1 = fig.add_subplot(111)
+        fig.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
+        ax1.plot(raw_data[:,0], label='First spectrum')
+        #ax1.set_xlim([0, points_in_bunch])
+        #ax1.set_ylim([y_min_sum, y_max_sum])
+        ax1.set_title('Title', fontsize=10, fontweight='bold', y=1.025)
+        ax1.legend(loc='upper right', fontsize=8)
+        ax1.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
+        ax1.set_xlabel('Freq, ', fontsize=10, fontweight='bold')
+        #fig.text(0.78, -0.07, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=5,
+        #         transform=plt.gcf().transFigure)
+        #fig.text(0.1, -0.07, 'Software version: ' + Software_version + ' yerin.serge@gmail.com, IRA NASU', fontsize=5,
+        #         transform=plt.gcf().transFigure)
+        pylab.savefig('NenuFAR_first_specrum.png', bbox_inches='tight', dpi=300)
+        plt.close('all')
+        '''
+
+
+
+
+
+
 
 
         '''
