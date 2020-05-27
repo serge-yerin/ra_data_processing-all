@@ -67,6 +67,18 @@ if process_data > 0: copy_data = 1
 # Connect to the ADR receiver via socket
 serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
+# Check if the receiver is initialized, if it is not - initialize it
+serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
+data = f_read_adr_meassage(serversocket, 1)
+
+if ('Failed!' in data or 'Stopped' in data):
+
+    serversocket.send((b"set prc/dsp/net/dsa '192.168.10.204:48391'\0"))
+    data = f_read_adr_meassage(serversocket, 1)
+    serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
+    data = f_read_adr_meassage(serversocket, 1)
+
+'''
 # Initialize ADR and set ADR parameters
 f_initialize_adr(serversocket, 1)
 
@@ -95,6 +107,6 @@ data = f_read_adr_meassage(serversocket, 0)
 # Requesting and printing current ADR parameters
 parameters_dict = f_get_adr_parameters(serversocket, 1)
 
-
+#'''
 print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 

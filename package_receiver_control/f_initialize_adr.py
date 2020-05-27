@@ -12,7 +12,7 @@ from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
-def f_initialize_adr(serversocket, print_or_not, pause = 0.5):
+def f_initialize_adr(serversocket, print_or_not, pause = 0.1):
     '''
     Function initializes ADR receiver if it was just turned on
     Input parameters:
@@ -62,7 +62,7 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.5):
 
     # Be sure variables are without spaces! Use underscore instead
     receiver_name = 'B_ADRS02'
-    observatory_name = 'Volokhiv_Yar_(Kharkiv_region)_Ukraine'
+    observatory_name = 'GURT_Volokhiv_Yar_(Kharkiv_region)_Ukraine'
 
     # Set system name (receiver name):
     serversocket.send(('set prc/srv/ctl/sys ' + receiver_name + '\0').encode())

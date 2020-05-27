@@ -13,8 +13,8 @@ process_data = 1                # Process data copied from receiver?
 observation_description = 'Test_observations'  # (do not use spaces, use underscores instead)
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-21 16:25:00'
-date_time_stop =  '2020-05-21 16:27:00'
+date_time_start = '2020-05-27 23:42:00'
+date_time_stop =  '2020-05-27 23:44:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
@@ -96,13 +96,19 @@ print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 if process_data > 0: copy_data = 1
 
 # Connect to the ADR receiver via socket
-serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
+serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 0.1)  # 1 - control, 1 - delay in sec
 
-# Initialize ADR and set ADR parameters
-f_initialize_adr(serversocket, 1)
+# Check if the receiver is initialized, if it is not - initialize it
+serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
+data = f_read_adr_meassage(serversocket, 0)
+
+if ('Failed!' in data or 'Stopped' in data):
+
+    # Initialize ADR and set ADR parameters
+    f_initialize_adr(serversocket, 0)
 
 # Set initial ADR parameters
-f_set_adr_parameters(serversocket, 1)
+f_set_adr_parameters(serversocket, 0)
 
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, receiver_ip, time_server)
