@@ -80,7 +80,7 @@ if ('Failed!' in data or 'Stopped' in data):
 
 '''
 # Initialize ADR and set ADR parameters
-f_initialize_adr(serversocket, 1)
+f_initialize_adr(serversocket, receiver_ip, 1)
 
 # Set initial ADR parameters
 f_set_adr_parameters(serversocket, 1)

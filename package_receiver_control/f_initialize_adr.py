@@ -12,7 +12,7 @@ from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
-def f_initialize_adr(serversocket, print_or_not, pause = 0.1):
+def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
     '''
     Function initializes ADR receiver if it was just turned on
     Input parameters:
@@ -21,6 +21,14 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.1):
     Output parameters:
 
     '''
+    # Be sure variables are without spaces! Use underscore instead
+
+    observatory_name = 'GURT_Volokhiv_Yar_(Kharkiv_region)_Ukraine'
+
+    receiver_name = 'Test'
+    if receiver_ip[-3:] == '171': receiver_name = 'A_ADRS01'
+    if receiver_ip[-3:] == '172': receiver_name = 'B_ADRS02'
+
     time.sleep(pause)
 
     # DSP Connect button
@@ -41,7 +49,6 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.1):
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-
     # "Data on PC"
     serversocket.send((b"set prc/srv/ctl/adr 7 0\0"))  # stop  DSP
     data = f_read_adr_meassage(serversocket, print_or_not)
@@ -60,9 +67,6 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.1):
     serversocket.send((b"set prc/srv/ctl/adr 7 1\0"))  # start DSP
     data = f_read_adr_meassage(serversocket, print_or_not)
 
-    # Be sure variables are without spaces! Use underscore instead
-    receiver_name = 'B_ADRS02'
-    observatory_name = 'GURT_Volokhiv_Yar_(Kharkiv_region)_Ukraine'
 
     # Set system name (receiver name):
     serversocket.send(('set prc/srv/ctl/sys ' + receiver_name + '\0').encode())
@@ -70,6 +74,12 @@ def f_initialize_adr(serversocket, print_or_not, pause = 0.1):
 
     # Set observatory name (place name):
     serversocket.send(('set prc/srv/ctl/plc ' + observatory_name + '\0').encode())
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/srv/ctl/srd 1 1\0"))  # Files auto create ON
+    data = f_read_adr_meassage(serversocket, print_or_not)
+
+    serversocket.send((b"set prc/srv/ctl/srd 2 2048\0"))  # Data file size 2048 MB
     data = f_read_adr_meassage(serversocket, print_or_not)
 
     time.sleep(pause)

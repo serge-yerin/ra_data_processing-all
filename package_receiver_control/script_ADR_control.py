@@ -105,7 +105,7 @@ data = f_read_adr_meassage(serversocket, 0)
 if ('Failed!' in data or 'Stopped' in data):
 
     # Initialize ADR and set ADR parameters
-    f_initialize_adr(serversocket, 0)
+    f_initialize_adr(serversocket, receiver_ip, 0)
 
 # Set initial ADR parameters
 f_set_adr_parameters(serversocket, 0)

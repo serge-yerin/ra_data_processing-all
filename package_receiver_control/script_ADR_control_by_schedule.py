@@ -1,16 +1,16 @@
 # Python3
-Software_version = '2020.04.26'
+Software_version = '2020.05.28'
 Software_name = 'ADR control by schedule'
 # Script controls the ADR radio astronomy receiver according to schedule txt file
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-receiver_ip = '192.168.1.171'   # Receiver IP address in local network
+receiver_ip = '10.0.12.171'     # Receiver IP address in local network '192.168.1.171'
 time_server = '10.0.12.57'      # IP of the time server (usually the control PC) '192.168.1.150'
-schedule_txt_file = 'Observations.txt'
-dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 copy_data = 1                   # Copy data from receiver?
-process_data = 1                # Process copies data?
+process_data = 1                # Process copied data?
+schedule_txt_file = 'Observations.txt'
+
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -40,8 +40,8 @@ VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spec
 AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
-
 # Rarely changes parameters:
+dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 port = 38386                    # Port of the receiver to connect (always 38386)
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
 # *******************************************************************************
@@ -71,8 +71,8 @@ from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 
-def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_directory_name, telegram_chat_id, receiver_ip,
-                        MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
+                        telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                         VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                         ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm):
@@ -82,27 +82,6 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
     if copy_data > 0:
         ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, 0)
 
-    '''
-    # Copy data from receiver to server with SSH login on receiver and using rsync
-    print('\n * Copying recorded data to server')
-
-    s = pxssh.pxssh(timeout=120000)
-    if not s.login(receiver_ip, 'root', 'ghbtvybr'):
-        print('\n   ERROR! SSH session failed on login!')
-        print(str(s))
-    else:
-        print('\n   SSH login successful, copying data to server...\n')
-        command = ('rsync -r ' + '/data/' + data_directory_name + '/' +
-                   ' gurt@192.168.1.150:'+ dir_data_on_server + data_directory_name + '/')
-        s.sendline(command)
-        s.prompt()  # match the prompt
-        # print('\n   Answer: ', s.before)  # print everything before the prompt.
-        s.logout()
-    # To make this work properly one needs to pair receiver and server via SSH to not ask password each time
-    # Execute commands directly on the receiver or via ssh:
-    # ssh-keygen
-    # ssh-copy-id -i /root/.ssh/id_rsa.pub gurt@192.168.1.150
-    '''
 
     if process_data > 0:
 
@@ -144,14 +123,27 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
 
     message = ''
     if process_data > 0:
-        print('\n * Data of ' + data_directory_name + ' observation were copied and processed.')
-        message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied and processed.'
+        #message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied and processed.'
+
+        message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
+            "receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied and processed.'
+
+        # print('\n * ' + message)
+
         #message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
         #    "receiver_name"].replace('_', ' ') + ' receiver) were copied and processed.'
     else:
         if copy_data > 0:
-            print('\n * Data of ' + data_directory_name + ' observation were copied.')
-            message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied.'
+
+            # message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied.'
+
+            message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
+            "receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied.'
+
+            #print('\n * Data of ' + data_directory_name + ' observation were copied.')
+
+    print('\n * ' + message)
+
 
     # Sending message to Telegram
     try:
@@ -177,7 +169,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     print ('   *            ', Software_name, '  v.', Software_version,'              *      (c) YeS 2020')
     print ('   ********************************************************************* \n\n\n')
 
-    startTime = time.time()
+    #startTime = time.time()
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
     print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
@@ -192,6 +184,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     '''
     Check correctness and recalculate the parameters to variables sent to ADR receiver
     '''
+
     # Printing overall schedule
     print('\n   *********************** OBSERVATIONS SCHEDULE ***********************')
     for obs_no in range (len(schedule)):
@@ -201,6 +194,19 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 
     # Connect to the ADR receiver via socket
     serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
+
+
+    '''
+    # Check if the receiver is initialized, if it is not - initialize it
+    serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
+    data = f_read_adr_meassage(serversocket, 0)
+
+    if ('Failed!' in data or 'Stopped' in data):
+
+        # Initialize ADR and set ADR parameters
+        f_initialize_adr(serversocket, receiver_ip, 0)
+    '''
+
 
     # Update synchronization of PC and ADR
     f_synchronize_adr(serversocket, receiver_ip, time_server)
@@ -240,13 +246,28 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         #if data.startswith('SUCCESS'):
         #    print ('\n * Directory name changed to: ', data_directory_name)
 
+
+        '''
+        To apply other parameters set in schedule
+        # Set ADR parameters
+        f_set_adr_parameters(serversocket, 0)
+        '''
+
+
         # Requesting and printing current ADR parameters
         parameters_dict = f_get_adr_parameters(serversocket, 1)
 
 
-        '''
-        To apply other parameters set in schedule
-        '''
+
+        if obs_no+1 == len(schedule):
+            message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      ' (IP: '+ receiver_ip +') was set. It will end on: ' + schedule[obs_no][1] + \
+                      '. Please, consider adding of a new schedule!'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+
 
         # Waiting time to start record
         print('\n * Waiting time to synchronize and start recording...')
@@ -269,6 +290,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 
 
         # Sending message to Telegram
+        '''
         message = 'GURT: ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
                 +schedule[obs_no][0] + '\nStop time: '+schedule[obs_no][1] + \
                 '\nReceiver: '+ parameters_dict["receiver_name"].replace('_',' ') + \
@@ -278,6 +300,21 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
                 '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
                 '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
                 str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+        '''
+        message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
+                  + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+                  '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                  '\nReceiver IP: ' + receiver_ip + \
+                  '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+                  '\nMode: ' + parameters_dict["operation_mode_str"] + \
+                  '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+                  '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
+                  '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
+                  str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+        if process_data > 0:
+            message = message + '\nData will be copied to GURT server and processed.'
+        if obs_no + 1 == len(schedule):
+            message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
         try:
             test = telegram_bot_sendtext(telegram_chat_id, message)
         except:
@@ -286,7 +323,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         # Data copying processing
         if process_data > 0:
             p_processing[obs_no] = Process(target = copy_and_process_adr, args=(copy_data, process_data,
-                             dir_data_on_server, data_directory_name,
+                             dir_data_on_server, data_directory_name, parameters_dict,
                              telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                              DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
