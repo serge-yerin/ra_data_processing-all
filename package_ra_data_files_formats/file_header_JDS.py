@@ -193,10 +193,11 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         print(' DSP soft version:              ', df_DSP_vers)
         print('\n')
 
-    if Mode == 0: # For waveform mode correct NAvr = 1
-        Navr = 1
+    # Receiver developers made NAvr = 2 for single spectrum, so for waveform we correct the value:
+    if Mode == 0: # For waveform mode correct NAvr = 2
+        Navr = 2
     if Navr == 0:
-        Navr = 1
+        Navr = 2
 
     # *** Temporal and frequency resolutions ***
     if FFT_Size < 1:
