@@ -9,9 +9,9 @@ Software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-filename = 'E280120_205409.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E310120_204449.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
-pulsar_name = 'B0809+74' #'B1133+16' # 'B0950+08'
+pulsar_name = 'B0950+08' #'B0809+74' #'B1133+16' # 'B0950+08'
 
 average_const = 512            # Number of frequency channels to appear in result picture
 profile_pic_min = -0.15        # Minimum limit of profile picture

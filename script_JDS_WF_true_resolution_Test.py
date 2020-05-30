@@ -8,11 +8,11 @@ Software_name = 'JDS Waveform to DAT spectra converter'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 
-source_directory = '/media/server2a/PSR_2020.01/B0809p74_28_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'      # Directory with JDS files to be analyzed
+source_directory = 'DATA/'# '/media/server2a/PSR_2020.01/B0809p74_28_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
-no_of_points_for_fft = 262144    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
-no_of_bunches_per_file = 8     # Number of bunches to read one file (depends on RAM volume)
+no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
+no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
 
 # ###############################################################################
 # *******************************************************************************
@@ -190,12 +190,14 @@ for fileNo in range(len(fileList)):   # loop by files
 
     # Real time resolution of averaged spectra
     real_spectra_dt = (1 / fine_CLCfrq) * (no_of_points_for_fft)
+    real_spectra_df = float (fine_CLCfrq / no_of_points_for_fft)
 
     if fileNo == 0:
-        print(' Number of blocks in file:               ', no_of_blocks_in_file)
-        print(' Number of spectra in bunch:             ', no_of_spectra_in_bunch)
-        print(' Number of bunches to read in file:      ', no_of_bunches_per_file)
-        print(' Time resolution of calculated spectra:  ', round(real_spectra_dt*1000, 3), ' ms.')
+        print(' Number of blocks in file:                    ', no_of_blocks_in_file)
+        print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
+        print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
+        print(' Time resolution of calculated spectra:       ', round(real_spectra_dt*1000, 3), ' ms')
+        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df/1000, 3), ' kHz')
         print('\n  *** Reading data from file *** \n')
 
 
