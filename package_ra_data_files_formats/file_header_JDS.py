@@ -199,11 +199,11 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         Navr = 1
 
     # *** Temporal and frequency resolutions ***
-    if FFT_Size == 0:
+    if FFT_Size < 1:
         FFT_Size = 16384.0
     #else:
     #    Sfft = float(FFT_Size/2)
-    TimeRes = Navr * (FFT_Size / CLCfrq)
+    TimeRes = Navr * (FFT_Size / CLCfrq / 2)
     df = float((float(CLCfrq) / 2) / float(FFT_Size / 2))
     #df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
     if (print_or_not == 1):
