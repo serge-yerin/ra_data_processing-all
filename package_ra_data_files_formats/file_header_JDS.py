@@ -155,7 +155,6 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
                 print(' Data records:                   without time gaps \n\n')
             else:
                 print(' Data records:                   probable time gaps \n\n')
-            NAvr = 1  # To calculate correctly the temporal resolution
         else:
             print(' Number of averaged spectra:    ', Navr, '\n\n')
 
@@ -194,16 +193,19 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         print(' DSP soft version:              ', df_DSP_vers)
         print('\n')
 
+    if Mode == 0: # For waveform mode correct NAvr = 1
+        Navr = 1
     if Navr == 0:
-        Navr = 2
+        Navr = 1
 
     # *** Temporal and frequency resolutions ***
     if FFT_Size == 0:
-        Sfft = 8192.0
-    else:
-        Sfft = float(FFT_Size/2)
-    TimeRes = Navr * (Sfft / CLCfrq)
-    df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
+        FFT_Size = 16384.0
+    #else:
+    #    Sfft = float(FFT_Size/2)
+    TimeRes = Navr * (FFT_Size / CLCfrq)
+    df = float((float(CLCfrq) / 2) / float(FFT_Size / 2))
+    #df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
     if (print_or_not == 1):
         print (' Temporal resolution:           ', round((TimeRes*1000), 3), '  ms')
         print (' Real frequency resolution:     ', round((df/1000), 3), ' kHz')

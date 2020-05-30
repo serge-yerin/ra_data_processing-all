@@ -12,7 +12,7 @@ source_directory = 'DATA/'# '/media/server2a/PSR_2020.01/B0809p74_28_Jan_2020_Cl
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
 no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
-no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
+no_of_bunches_per_file = 8      # Number of bunches to read one file (depends on RAM volume)
 
 # ###############################################################################
 # *******************************************************************************
@@ -172,7 +172,7 @@ for fileNo in range(len(fileList)):   # loop by files
             file_data_B.write(np.int32(FreqPointsNum).tobytes())
             file_data_B.seek(636)  # Navr place in header
             #file_data_B.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
-            file_data_B.write(np.int32(no_of_points_for_fft / 8192).tobytes())
+            file_data_B.write(np.int32(1).tobytes())
             file_data_B.close()
 
         del file_header
@@ -189,8 +189,8 @@ for fileNo in range(len(fileList)):   # loop by files
     fine_CLCfrq = (int(CLCfrq/1000000.0) * 1000000.0)
 
     # Real time resolution of averaged spectra
-    real_spectra_dt = (1 / fine_CLCfrq) * (no_of_points_for_fft)
-    real_spectra_df = float (fine_CLCfrq / no_of_points_for_fft)
+    real_spectra_dt = float(no_of_points_for_fft / fine_CLCfrq)
+    real_spectra_df = float((fine_CLCfrq / 2) / (no_of_points_for_fft / 2 ))
 
     if fileNo == 0:
         print(' Number of blocks in file:                    ', no_of_blocks_in_file)
