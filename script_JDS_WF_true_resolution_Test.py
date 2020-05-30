@@ -2,17 +2,17 @@
 # pip install progress
 Software_version = '2020.03.27'
 Software_name = 'JDS Waveform to DAT spectra converter'
-# Program intended to convert data from DSPZ receivers in waveform mode to spectra in DAT files
+# Program intended to convert data from DSPZ receivers in waveform mode to spectra in DAT files without data loss
 # !!! Time is not correct !!!
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 
-source_directory = 'DATA/'      # Directory with JDS files to be analyzed
+source_directory = '/media/server2a/PSR_2020.01/B0809p74_28_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
-no_of_points_for_fft = 32768    # Number of true wf data points for FFT calculation # 8192, 16384, 32768 ...
-no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
+no_of_points_for_fft = 262144    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
+no_of_bunches_per_file = 8     # Number of bunches to read one file (depends on RAM volume)
 
 # ###############################################################################
 # *******************************************************************************
@@ -110,19 +110,23 @@ for fileNo in range(len(fileList)):   # loop by files
 
     # Manually set frequencies for one channel mode
 
-    # if (Channel == 0 and int(CLCfrq/1000000) == 66) or (Channel == 1 and int(CLCfrq/1000000) == 66):
+    FreqPointsNum = int(no_of_points_for_fft/2)
+
+    '''
+    if (Channel == 0 and int(CLCfrq/1000000) == 66) or (Channel == 1 and int(CLCfrq/1000000) == 66):
     #    FreqPointsNum = 8192
-    #    frequency = np.linspace(0.0, 33.0, FreqPointsNum)
+        frequency = np.linspace(0.0, 33.0, FreqPointsNum)
 
     # Manually set frequencies for two channels mode
     if Channel == 2 or (Channel == 0 and int(CLCfrq/1000000) == 33) or (Channel == 1 and int(CLCfrq/1000000) == 33):
-        FreqPointsNum = 8192
+        #FreqPointsNum = 8192
         frequency = np.linspace(16.5, 33.0, FreqPointsNum)
+
     # For new receiver (temporary):
     if Channel == 2 and int(CLCfrq/1000000) == 80:
-        FreqPointsNum = 8192
+        #FreqPointsNum = 8192
         frequency = np.linspace(0.0, 40.0, FreqPointsNum)
-
+    '''
 
     # Create long data files and copy first data file header to them
     if fileNo == 0:
@@ -130,7 +134,7 @@ for fileNo in range(len(fileList)):   # loop by files
         with open(fname, 'rb') as file:
             # *** Data file header read ***
             file_header = file.read(1024)
-        
+
         # *** Creating a name for long timeline TXT file ***
         TLfile_name = df_filename + '_Timeline.txt'
         TLfile = open(TLfile_name, 'w')  # Open and close to delete the file with the same name
@@ -140,27 +144,32 @@ for fileNo in range(len(fileList)):   # loop by files
         file_data_A_name = df_filename + '_Data_chA.dat'
         file_data_A = open(file_data_A_name, 'wb')
         file_data_A.write(file_header)
+        file_data_A.seek(574)  # FFT size place in header
+        file_data_A.write(np.int32(no_of_points_for_fft).tobytes())
         file_data_A.seek(624)  # Lb place in header
         file_data_A.write(np.int32(0).tobytes())
         file_data_A.seek(628)  # Hb place in header
-        file_data_A.write(np.int32(no_of_points_for_fft/2).tobytes())
+        file_data_A.write(np.int32(FreqPointsNum).tobytes())
         file_data_A.seek(632)  # Wb place in header
-        file_data_A.write(np.int32(no_of_points_for_fft/2).tobytes())
+        file_data_A.write(np.int32(FreqPointsNum).tobytes())
         file_data_A.seek(636)  # Navr place in header
         #file_data_A.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
-        file_data_A.write(np.int32(no_of_points_for_fft/8192).tobytes())
+        #file_data_A.write(np.int32(no_of_points_for_fft/8192).tobytes()) # !!! Check for correctness !!!
+        file_data_A.write(np.int32(1).tobytes()) # !!! Check for correctness !!!
         file_data_A.close()
 
         if Channel == 2:
             file_data_B_name = df_filename + '_Data_chB.dat'
             file_data_B = open(file_data_B_name, 'wb')
             file_data_B.write(file_header)
+            file_data_B.seek(574)  # FFT size place in header
+            file_data_B.write(np.int32(no_of_points_for_fft).tobytes())
             file_data_B.seek(624)  # Lb place in header
             file_data_B.write(np.int32(0).tobytes())
             file_data_B.seek(628)  # Hb place in header
-            file_data_B.write(np.int32(no_of_points_for_fft/2).tobytes())
+            file_data_B.write(np.int32(FreqPointsNum).tobytes())
             file_data_B.seek(632)  # Wb place in header
-            file_data_B.write(np.int32(no_of_points_for_fft/2).tobytes())
+            file_data_B.write(np.int32(FreqPointsNum).tobytes())
             file_data_B.seek(636)  # Navr place in header
             #file_data_B.write(bytes([np.int32(Navr)]))  # !!! To correct !!!
             file_data_B.write(np.int32(no_of_points_for_fft / 8192).tobytes())
@@ -281,10 +290,8 @@ for fileNo in range(len(fileList)):   # loop by files
             # Calculation of spectra
             for i in range(no_of_spectra_to_compute):
                 spectra_chA[:, i] = np.power(np.abs(np.fft.fft(ready_wf_array_chA[:, i])), 2)
-                #spectra_chA = np.power(np.abs(np.fft.fft(ready_wf_array_chA[:, :])), 2)
                 if Channel == 2:  # Two channels mode
                     spectra_chB[:, i] = np.power(np.abs(np.fft.fft(ready_wf_array_chB[:, i])), 2)
-                    #spectra_chB = np.power(np.abs(np.fft.fft(ready_wf_array_chB[:, :])), 2)
 
             # Storing only first (left) mirror part of spectra
             spectra_chA = spectra_chA[: int(no_of_points_for_fft/2), :]
@@ -299,7 +306,7 @@ for fileNo in range(len(fileList)):   # loop by files
 
             '''
             '''
-            # Saving spectra data to dat file 
+            # Saving spectra data to dat file
             temp = spectra_chA.transpose().copy(order='C')
             file_data_A = open(file_data_A_name, 'ab')
             file_data_A.write(temp)

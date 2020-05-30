@@ -9,9 +9,9 @@ Software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-filename = 'E310120_204627.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E280120_205409.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
-pulsar_name = 'B0809+74' # 'B0950+08'
+pulsar_name = 'B0809+74' #'B1133+16' # 'B0950+08'
 
 average_const = 512            # Number of frequency channels to appear in result picture
 profile_pic_min = -0.15        # Minimum limit of profile picture
@@ -30,7 +30,7 @@ freqStart = 20.0               # Lower frequency of dynamic spectrum (MHz)
 freqStop = 30.0                # Higher frequency of dynamic spectrum (MHz)
 
 save_profile_txt = 1           # Save profile data to TXT file?
-save_compensated_data = 1      # Save data with compensated DM to DAT file?
+save_compensated_data = 0      # Save data with compensated DM to DAT file?
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
 # *******************************************************************************
@@ -160,7 +160,7 @@ if receiver_type == '.jds':
 
 # Manually set frequencies for two channels mode
 if int(CLCfrq/1000000) == 33:
-    FFTsize = 8192
+    #FFTsize = 8192
     fmin = 16.5
     fmax = 33.0
     frequency_list = np.linspace(fmin, fmax, FFTsize)

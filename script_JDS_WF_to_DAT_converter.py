@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform to DAT spectra converter'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 
-source_directory = 'DATA/'      # Directory with JDS files to be analyzed
+source_directory = '/media/server2a/Pulsar_Jan_2020_2/B0809p74_30_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
 no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)

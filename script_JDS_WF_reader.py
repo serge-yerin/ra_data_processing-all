@@ -1,8 +1,7 @@
 # Python3
 # pip install progress
-#
-#   !!!! NOT FINISHED !!!
-# Add storing data files of raw data
+# Program to read DSPZ WF data (with nulling data of timestamps), averaging and saving
+#   
 # Read frequency list from header, not create it
 #
 Software_version = '2020.01.19'
@@ -12,9 +11,9 @@ Software_version = '2020.01.19'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'  #
+directory = '/media/server2a/PSR_2020.01/B0809p74_31_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'  #
 
-no_of_spectra_to_average = 32   # Number of spectra to average for dynamic spectra (64)
+no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (64)
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 10                   # Upper limit of figure dynamic range for normalized spectra
@@ -157,9 +156,9 @@ for fileNo in range(len(fileList)):   # loop by files
             file_data_B.seek(636)   # Navr place in header
             file_data_B.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
             file_data_B.close()
-        
+
         del file_header
-        
+
     # !!! Make automatic calculations of time and frequency resolutions for waveform mode!!!
 
     # Manually set frequencies for one channel mode

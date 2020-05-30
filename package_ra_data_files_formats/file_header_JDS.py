@@ -155,6 +155,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
                 print(' Data records:                   without time gaps \n\n')
             else:
                 print(' Data records:                   probable time gaps \n\n')
+            NAvr = 1  # To calculate correctly the temporal resolution
         else:
             print(' Number of averaged spectra:    ', Navr, '\n\n')
 
@@ -165,6 +166,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         print(' Snap shot Mode (always 1):     ', SSht)
         print(' Smd:                           ', Smd)
         print(' Offt:                          ', Offt)
+        print(' FFT size                       ', FFT_Size)
         print(' Lowest channel number:         ', Lb)
         print(' Highest channel number:        ', Hb)
         print(' Number of channels:            ', Wb)
@@ -196,7 +198,10 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         Navr = 2
 
     # *** Temporal and frequency resolutions ***
-    Sfft = 8192.0
+    if FFT_Size == 0:
+        Sfft = 8192.0
+    else:
+        Sfft = float(FFT_Size/2)
     TimeRes = Navr * (Sfft / CLCfrq)
     df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
     if (print_or_not == 1):
@@ -231,7 +236,8 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         if (print_or_not == 1):
             print ('\n Number of spectra in file:     ', SpInFile, '\n\n')
 
-    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb, dataBlockSize
+    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, \
+            ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb, dataBlockSize
 
 
 
