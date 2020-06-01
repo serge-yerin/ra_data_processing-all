@@ -1,5 +1,6 @@
 # Python 3
-import sys, time
+import sys
+import time
 from os import path
 from pexpect import pxssh
 from datetime import datetime
@@ -13,6 +14,7 @@ def f_synchronize_adr(serversocket, receiver_ip, time_server):
     '''
     Function reads a message from ADR radio astronomy receiver
     ntp server must be installed on server PC (sudo apt install ntp)
+    to start ntp-server on server pc use "sudo /etc/init.d/ntp start" or/and "sudo systemctl restart ntp"
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         receiver_ip                - IP address of receiver_ip to connect for sntp synchro from server
@@ -30,15 +32,12 @@ def f_synchronize_adr(serversocket, receiver_ip, time_server):
 
     # SSH connection to ADR receiver to send sntp command to synchronize with server
     s = pxssh.pxssh()
-    #if not s.login(receiver_ip, 'root', 'ghbtvybr'):
     if not s.login(receiver_ip, rec_user, password):
         print('\n   ERROR! SSH session failed on login!')
         print(str(s))
     else:
         print('\n   SSH session login successful')
         s.sendline('sntp -P no -r ' + time_server)
-        #s.sendline('sntp -P no -r 10.0.12.57')
-        #s.sendline('sntp -P no -r 192.168.1.150')
         s.prompt()  # match the prompt
         print('\n   Answer: ', s.before)  # print everything before the prompt.
         s.logout()
