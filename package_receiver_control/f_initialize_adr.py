@@ -26,8 +26,14 @@ def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
     observatory_name = 'GURT_Volokhiv_Yar_(Kharkiv_region)_Ukraine'
 
     receiver_name = 'Test'
-    if receiver_ip[-3:] == '171': receiver_name = 'A_ADRS01'
-    if receiver_ip[-3:] == '172': receiver_name = 'B_ADRS02'
+    if receiver_ip[-3:] == '171':
+        receiver_name = 'A_ADRS01'
+        udp_port = '48395'
+        wvf_port = '48396'
+    if receiver_ip[-3:] == '172':
+        receiver_name = 'B_ADRS02'
+        udp_port = '48396'
+        wvf_port = '48395'
 
     time.sleep(pause)
 
@@ -54,9 +60,13 @@ def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
     data = f_read_adr_meassage(serversocket, print_or_not)
     serversocket.send((b"set prc/srv/ctl/adr 2 0\0"))  # stop UDP data processing threads
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/dsp/net/udp '192.168.10.60:48396'\0"))  # set UDP target address:port
+    #serversocket.send((b"set prc/dsp/net/udp '192.168.10.60:48395'\0"))  # set UDP target address:port (192.168.10.60:48395 on ADR 1) 6
+    serversocket.send(("set prc/dsp/net/udp '192.168.10.60:" + udp_port + "'\0").encode())
+    #serversocket.send((b"set prc/dsp/net/udp '192.168.10.60:'" + udp_port + "\0"))  # set UDP target address:port (192.168.10.60:48395 on ADR 1) 6
     data = f_read_adr_meassage(serversocket, print_or_not)
-    serversocket.send((b"set prc/dsp/net/wvf '192.168.11.60:48395'\0"))  #
+    #serversocket.send((b"set prc/dsp/net/wvf '192.168.11.60:48396'\0"))  # (192.168.11.60:48396 on ADR 1) 5
+    serversocket.send(("set prc/dsp/net/wvf '192.168.11.60:" + wvf_port + "'\0").encode())
+    #serversocket.send((b"set prc/dsp/net/wvf '192.168.11.60:48396'\0"))  # (192.168.11.60:48396 on ADR 1) 5
     data = f_read_adr_meassage(serversocket, print_or_not)
     serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))  # apply ADR DSP parameters
     data = f_read_adr_meassage(serversocket, print_or_not)
