@@ -29,7 +29,7 @@ def f_set_adr_parameters(serversocket, print_or_not, pause = 0.5):
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    serversocket.send((b"set prc/dsp/ctl/mdo 2 2000\0"))  # Set number of averages spectra in range [16 … 32768]
+    serversocket.send((b"set prc/dsp/ctl/mdo 2 2000\0"))  # Set number of averaged spectra in range [16 … 32768]
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
