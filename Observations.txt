@@ -8,8 +8,9 @@
 # DESCR and DIR strings must not have spaces
 #***********************************************************************************************************************
 
-START: 2020-05-28 23:35:00, DIR: 2020.05.28_Test_1
-STOP:  2020-05-28 23:36:00, COPY: 1, PROC: 1
+START: 2020-06-05 02:00:00, DIR: 2020.06.05_GURT_SygA, DESCR: GURT_SygA_interferometer_SA09-blue_SA10-red, PARAM: Param_full_band_1.0s_4096_corr_int-clc.txt
+STOP:  2020-06-05 05:25:00, COPY: 1, PROC: 1
 
-START: 2020-05-28 23:38:00, DIR: 2020.05.28_Test_2
-STOP:  2020-05-28 23:40:00, COPY: 1, PROC: 1
+START: 2020-06-05 05:30:00, DIR: 2020.06.05_GURT_Sun, DESCR: GURT_Sun_interferometer_SA09-blue_SA10-red, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2020-06-05 20:00:00, COPY: 1, PROC: 1
+

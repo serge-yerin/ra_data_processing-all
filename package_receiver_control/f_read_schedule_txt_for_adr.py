@@ -29,6 +29,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
             stop_frequency =   find_parameter_value(line, 'FSTOP:')
             data_directory =   find_parameter_value(line, 'DIR:')
             file_description = find_parameter_value(line, 'DESCR:')
+            param_file_name =  find_parameter_value(line, 'PARAM:')
         elif line.strip().startswith('STOP:'):
             line = line.replace(' ', '').rstrip('\n')
             stop_time =      find_parameter_value(line, 'STOP:')
@@ -37,7 +38,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
             # Adding parameters to list
             schedule.append([start_time[:10]+' '+start_time[10:], stop_time[:10]+' '+stop_time[10:], fft_size,
                              time_resolution, start_frequency, stop_frequency, data_directory, file_description,
-                             copy_or_not, process_or_not])
+                             copy_or_not, process_or_not, param_file_name])
         else:
             pass
 

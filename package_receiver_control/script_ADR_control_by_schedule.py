@@ -5,10 +5,10 @@ Software_name = 'ADR control by schedule'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-receiver_ip = '10.0.12.172'     # Receiver IP address in local network '192.168.1.171'
-time_server = '10.0.12.57'      # IP of the time server (usually the control PC) '192.168.1.150'
-copy_data = 1                   # Copy data from receiver?
-process_data = 1                # Process copied data?
+receiver_ip = '192.168.1.171'     # Receiver IP address in local network '192.168.1.171'
+time_server = '192.168.1.150'     # IP of the time server (usually the control PC) '192.168.1.150'
+copy_data = 1                     # Copy data from receiver?
+process_data = 1                  # Process copied data?
 schedule_txt_file = 'Observations.txt'
 
 
@@ -29,7 +29,7 @@ DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
+ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
 where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
@@ -49,7 +49,6 @@ telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '92753468
 # *******************************************************************************
 from multiprocessing import Process
 from datetime import datetime
-from pexpect import pxssh
 from os import path
 import time
 import sys
@@ -58,15 +57,21 @@ import sys
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
-from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
 from package_receiver_control.f_wait_predefined_time_connected import f_wait_predefined_time_connected
-from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
-from package_receiver_control.f_synchronize_adr import f_synchronize_adr
-from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_receiver_control.f_read_schedule_txt_for_adr import f_read_schedule_txt_for_adr
-from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
+from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
+from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
+from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
+from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
+from package_receiver_control.f_synchronize_adr import f_synchronize_adr
+from package_receiver_control.f_initialize_adr import f_initialize_adr
+
+from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
+from package_receiver_control.f_read_and_set_adr_parameters import f_check_adr_parameters_correctness
+from package_receiver_control.f_read_and_set_adr_parameters import f_set_adr_parameters
+
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
+from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
@@ -123,27 +128,14 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
 
     message = ''
     if process_data > 0:
-        #message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied and processed.'
-
         message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
             "receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied and processed.'
-
-        # print('\n * ' + message)
-
-        #message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
-        #    "receiver_name"].replace('_', ' ') + ' receiver) were copied and processed.'
     else:
         if copy_data > 0:
-
-            # message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observation were copied.'
-
-            message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
-            "receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied.'
-
-            #print('\n * Data of ' + data_directory_name + ' observation were copied.')
+             message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + \
+                       parameters_dict["receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied.'
 
     print('\n * ' + message)
-
 
     # Sending message to Telegram
     try:
@@ -196,7 +188,6 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
 
-    '''
     # Check if the receiver is initialized, if it is not - initialize it
     serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
     data = f_read_adr_meassage(serversocket, 0)
@@ -205,7 +196,6 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 
         # Initialize ADR and set ADR parameters
         f_initialize_adr(serversocket, receiver_ip, 0)
-    '''
 
 
     # Update synchronization of PC and ADR
@@ -246,12 +236,16 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         #if data.startswith('SUCCESS'):
         #    print ('\n * Directory name changed to: ', data_directory_name)
 
+        # Set observation description:
+        serversocket.send(('set prc/srv/ctl/dsc ' + schedule[obs_no][7] + '\0').encode())
+        data = f_read_adr_meassage(serversocket, 0)
 
-        '''
-        To apply other parameters set in schedule
-        # Set ADR parameters
-        f_set_adr_parameters(serversocket, 0)
-        '''
+        # Apply other receiver parameters set in schedule (parameters file)
+        parameters_file = 'service_data/' + schedule[obs_no][10]
+        parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+        parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+        f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
+
 
 
         # Requesting and printing current ADR parameters
@@ -290,17 +284,6 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 
 
         # Sending message to Telegram
-        '''
-        message = 'GURT: ' + data_directory_name.replace('_',' ') + ' observations completed!\nStart time: '\
-                +schedule[obs_no][0] + '\nStop time: '+schedule[obs_no][1] + \
-                '\nReceiver: '+ parameters_dict["receiver_name"].replace('_',' ') + \
-                '\nDescription: ' + parameters_dict["file_description"].replace('_',' ') + \
-                '\nMode: ' + parameters_dict["operation_mode_str"] + \
-                '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
-                '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
-                '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
-                str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
-        '''
         message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
                   + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
                   '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \

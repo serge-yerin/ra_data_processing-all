@@ -4,8 +4,8 @@
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 
-#from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
-#import time
+from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
+import time
 import sys
 
 # *******************************************************************************
@@ -18,7 +18,7 @@ def f_read_adr_parameters_from_csv_file(parameters_file):
     Input parameters:
         parameters_file         - path to parameters file (txt or csv)
     Output parameters:
-        parameters_dict         - dictionray with ADR receiver parameters
+        parameters_dict         - dictionary with ADR receiver parameters
     '''
     parameters_dict = {}
     file = open(parameters_file, "r")
@@ -34,10 +34,36 @@ def f_read_adr_parameters_from_csv_file(parameters_file):
             parameters_dict["width_line_freq"] = line[4]
             parameters_dict["clock_source"] = line[5]
             parameters_dict["sum_diff_mode_num"] = line[6]
-            parameters_dict["chan_diff_dalay"] = line[7]
+            parameters_dict["chan_diff_delay"] = line[7]
 
     return parameters_dict
 
+
+def f_read_adr_parameters_from_txt_file(parameters_file):
+    '''
+    Function reads ADR receiver parameters from csv (txt) file and return a dictionary with parameters
+    Input parameters:
+        parameters_file         - path to parameters file (txt or csv)
+    Output parameters:
+        parameters_dict         - dictionary with ADR receiver parameters
+    '''
+    parameters_dict = {}
+    file = open(parameters_file, "r")
+    for line in file:
+        if line.strip().startswith('#') or line.strip().startswith('Parameter'):
+            pass
+        else:
+            line = line.strip().replace(' ', '').split(',')
+            if line[0] == 'ADR_mode':         parameters_dict["operation_mode_num"] = line[1]
+            if line[0] == 'FFT_size':         parameters_dict["FFT_size_samples"] = line[1]
+            if line[0] == 'Averaged_spectra': parameters_dict["spectra_averaging"] = line[1]
+            if line[0] == 'Start_freq_line':  parameters_dict["start_line_freq"] = line[1]
+            if line[0] == 'Width_freq_lines': parameters_dict["width_line_freq"] = line[1]
+            if line[0] == 'CLC_source':       parameters_dict["clock_source"] = line[1]
+            if line[0] == 'Sum_diff_mode':    parameters_dict["sum_diff_mode_num"] = line[1]
+            if line[0] == 'Dif_delay':        parameters_dict["chan_diff_delay"] = line[1]
+
+    return parameters_dict
 
 
 def f_check_adr_parameters_correctness(parameters_dict):
@@ -57,12 +83,16 @@ def f_check_adr_parameters_correctness(parameters_dict):
         print('\n  Error!!! Spectra averaging number is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["start_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7 ,8):
+    if int(parameters_dict["start_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8):   # 0 … (SFFT-1024)/1024
         print('\n  Error!!! Start frequency line is wrong!\n')
         sys.exit('  Program stopped!')
 
     if int(parameters_dict["width_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8):
-        print('\n  Error!!! Wrequency width line is wrong!\n')
+        print('\n  Error!!! Frequency width line is wrong!\n')
+        sys.exit('  Program stopped!')
+
+    if int(parameters_dict["width_line_freq"]) > ((int(parameters_dict["FFT_size_samples"]) - int(parameters_dict["start_line_freq"]) * 1024) / 2048): #1 … (SFFT-SLINE*1024)/1024
+        print('\n  Error!!! Frequency width is bigger than FFT size allows!\n')
         sys.exit('  Program stopped!')
 
     if int(parameters_dict["clock_source"]) not in (0, 1):
@@ -74,11 +104,11 @@ def f_check_adr_parameters_correctness(parameters_dict):
         sys.exit('  Program stopped!')
 
     '''
-    if (int(parameters_dict["chan_diff_dalay"]) < 0 or int(parameters_dict["chan_diff_dalay"]) > 1024):
-        print('\n  Error!!! Cahnnel difference delay is wrong!\n')
+    if (int(parameters_dict["chan_diff_delay"]) < 0 or int(parameters_dict["chan_diff_dalay"]) > 1024):
+        print('\n  Error!!! Channel difference delay is wrong!\n')
         sys.exit('  Program stopped!')
     '''
-    print('\n  ADR parameters are correct!\n')
+    print('\n   ADR parameters from file are correct!\n')
 
     return parameters_dict
 
@@ -93,28 +123,23 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
     '''
 
     # MDO parameters
-    #serversocket.send((b"set prc/dsp/ctl/mdo 0 6\0"))  # Set operation mode 0-6 (6 - correlation)
-    serversocket.send(('set prc/dsp/ctl/mdo 0 ' + str(parameters_dict["operation_mode_num"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/mdo 0 ' + str(parameters_dict["operation_mode_num"]) + '\0').encode())  # Set operation mode 0-6 (6 - correlation)
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    #serversocket.send((b"set prc/dsp/ctl/mdo 1 16384\0"))  # Set FFT size 2048,4096,8192,16384,32768
-    serversocket.send(('set prc/dsp/ctl/mdo 1 ' + str(parameters_dict["FFT_size_samples"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/mdo 1 ' + str(parameters_dict["FFT_size_samples"]) + '\0').encode())  # Set FFT size 2048,4096,8192,16384,32768
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    #serversocket.send((b"set prc/dsp/ctl/mdo 2 2000\0"))  # Set number of averaged spectra in range [16 … 32768]
-    serversocket.send(('set prc/dsp/ctl/mdo 2 ' + str(parameters_dict["spectra_averaging"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/mdo 2 ' + str(parameters_dict["spectra_averaging"]) + '\0').encode())  # Set number of averaged spectra in range [16 … 32768]
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    #serversocket.send((b"set prc/dsp/ctl/mdo 3 0\0"))  # Start frequency line of the band in 1024-steps. SLINE range [0 … (SFFT-1024)/1024]
-    serversocket.send(('set prc/dsp/ctl/mdo 3 ' + str(parameters_dict["start_line_freq"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/mdo 3 ' + str(parameters_dict["start_line_freq"]) + '\0').encode())  # Start frequency line of the band in 1024-steps. SLINE range [0 … (SFFT-1024)/1024]
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    #serversocket.send((b"set prc/dsp/ctl/mdo 4 8\0"))  # Width of  frequency band in 1024-steps. WIDTH range [1 … (SFFT-SLINE*1024)/1024]
-    serversocket.send(('set prc/dsp/ctl/mdo 4 ' + str(parameters_dict["width_line_freq"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/mdo 4 ' + str(parameters_dict["width_line_freq"]) + '\0').encode())  # Width of frequency band in 1024-steps. WIDTH range [1 … (SFFT-SLINE*1024)/1024]
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
@@ -129,8 +154,7 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    #serversocket.send((b"set prc/dsp/ctl/opt 1 0\0"))  # On/Off the external source of ADC CLC
-    serversocket.send(('set prc/dsp/ctl/opt 1 ' + str(parameters_dict["clock_source"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/opt 1 ' + str(parameters_dict["clock_source"]) + '\0').encode())  # On/Off the external source of ADC CLC
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
@@ -138,8 +162,7 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
-    #serversocket.send((b"set prc/dsp/ctl/opt 3 0\0"))  # On/Off the “sum-difference” mode A±B
-    serversocket.send(('set prc/dsp/ctl/opt 3 ' + str(parameters_dict["sum_diff_mode_num"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/opt 3 ' + str(parameters_dict["sum_diff_mode_num"]) + '\0').encode())  # On/Off the “sum-difference” mode A±B
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
@@ -149,8 +172,7 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
 
 
     # SET parameters
-    #serversocket.send((b"set prc/dsp/ctl/set 5 0\0"))  # Differential delay (DDEL) between CH-A and CH-B ADC sampling (CLC front) in picoseconds
-    serversocket.send(('set prc/dsp/ctl/set 5 ' + str(parameters_dict["chan_diff_dalay"]) + '\0').encode())
+    serversocket.send(('set prc/dsp/ctl/set 5 ' + str(parameters_dict["chan_diff_delay"]) + '\0').encode())  # Differential delay (DDEL) between CH-A and CH-B ADC sampling (CLC front) in picoseconds
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
@@ -161,14 +183,13 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
     return
 
 
-
 ################################################################################
 
 if __name__ == '__main__':
 
     parameters_file = 'service_data/Param_full_band_0.1s_4096_spectra.txt'
 
-    parameters_dict = f_read_adr_parameters_from_csv_file(parameters_file)
+    parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
     parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
 
     #f_set_adr_parameters_from_file(serversocket, parameters_dict, print_or_not, pause = 0.5):

@@ -5,24 +5,20 @@ Software_name = 'ADR control script'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-source_to_observe = 'Sun'       # Name of source to observe (used for folder name construction)
-receiver_ip = '10.0.12.172'     # Receiver IP address in local network '192.168.1.171'
-time_server = '10.0.12.57'      # '192.168.1.150'
-copy_data = 1                   # Copy data from receiver?
-process_data = 1                # Process data copied from receiver?
+source_to_observe = 'Sun'          # Name of source to observe (used for folder name construction)
+receiver_ip = '192.168.1.171'      # Receiver IP address in local network  '10.0.12.172'
+time_server = '192.168.1.150'      #  '10.0.12.57'
+copy_data = 1                      # Copy data from receiver?
+process_data = 1                   # Process data copied from receiver?
 observation_description = 'Test_observations'  # (do not use spaces, use underscores instead)
+parameters_file = 'Param_full_band_0.1s_4096_spectra_int-clc.txt'
 
 # Manual start and stop time ('yyyy-mm-dd hh:mm:ss')
-date_time_start = '2020-05-27 23:42:00'
-date_time_stop =  '2020-05-27 23:44:00'
+date_time_start = '2020-06-04 22:15:00'
+date_time_stop =  '2020-06-04 22:17:00'
 
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 
-# ADR PARAMETERS
-
-#schedule = []
-#schedule.append([date_time_start, date_time_stop, 16384,
-#                             0.1, 0, 80, 'data_directory', observation_description, 1, 1])
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -73,12 +69,16 @@ from package_receiver_control.f_wait_predefined_time_connected import f_wait_pre
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_receiver_control.f_initialize_adr import f_initialize_adr
-from package_receiver_control.f_set_adr_parameters import f_set_adr_parameters
+#from package_receiver_control.f_set_adr_parameters import f_set_adr_parameters
 from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
+from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
+from package_receiver_control.f_read_and_set_adr_parameters import f_check_adr_parameters_correctness
+from package_receiver_control.f_read_and_set_adr_parameters import f_set_adr_parameters
+
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -94,6 +94,7 @@ print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
 # process only copied from receiver data
 if process_data > 0: copy_data = 1
+parameters_file = 'service_data/' + parameters_file
 
 # Connect to the ADR receiver via socket
 serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 0.1)  # 1 - control, 1 - delay in sec
@@ -108,10 +109,14 @@ if ('Failed!' in data or 'Stopped' in data):
     f_initialize_adr(serversocket, receiver_ip, 0)
 
 # Set initial ADR parameters
-f_set_adr_parameters(serversocket, 0)
+#f_set_adr_parameters(serversocket, 0)
+parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
 
 # Update synchronization of PC and ADR
 f_synchronize_adr(serversocket, receiver_ip, time_server)
+
 
 
 # Construct the name of data directory

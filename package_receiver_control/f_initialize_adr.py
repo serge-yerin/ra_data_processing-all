@@ -37,6 +37,8 @@ def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
 
     time.sleep(pause)
 
+    print('\n  Receiver initialization...')
+
     # DSP Connect button
     serversocket.send((b"set prc/dsp/net/dsa '192.168.10.204:48391'\0"))
     data = f_read_adr_meassage(serversocket, print_or_not)
