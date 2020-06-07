@@ -1,6 +1,6 @@
 # ********** EXAMPLE OF OBSERVATION SET SHOWN BELOW AND MARKED WITH # SIGNS, PLEASE DO NOT DELETE **********************
 #
-# START: 2020-06-29 18:30:00, FFT: 16384, DT: 0.1, FSTART: 0, FSTOP: 80, DIR: 2020.06.29_GURT_Sun, DESCR: GURT_Sun_one_section
+# START: 2020-06-29 18:30:00, DIR: 2020.06.29_GURT_Sun, DESCR: GURT_Sun_one_section
 # STOP:  2020-06-29 20:00:00, COPY: 1, PROC: 1
 #
 # START: and STOP: values are necessary, other parameters are optional. Separate parameters with comas.
@@ -8,9 +8,32 @@
 # DESCR and DIR strings must not have spaces
 #***********************************************************************************************************************
 
-START: 2020-06-05 02:00:00, DIR: 2020.06.05_GURT_SygA, DESCR: GURT_SygA_interferometer_SA09-blue_SA10-red, PARAM: Param_full_band_1.0s_4096_corr_int-clc.txt
-STOP:  2020-06-05 05:25:00, COPY: 1, PROC: 1
+#START: 2020-06-05 02:45:00, DIR: 2020.06.05_GURT_SygA, DESCR: GURT_SygA_interferometer_SA09-blue_SA10-red, PARAM: Param_full_band_1.0s_4096_corr_int-clc.txt
+#STOP:  2020-06-05 05:00:00, COPY: 1, PROC: 1
 
-START: 2020-06-05 05:30:00, DIR: 2020.06.05_GURT_Sun, DESCR: GURT_Sun_interferometer_SA09-blue_SA10-red, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2020-06-05 20:00:00, COPY: 1, PROC: 1
+START: 2020-06-08 05:15:00, DIR: 2020.06.08_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-08 20:00:00, COPY: 1, PROC: 1
 
+START: 2020-06-09 05:15:00, DIR: 2020.06.09_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-09 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-10 05:15:00, DIR: 2020.06.10_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-10 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-11 05:15:00, DIR: 2020.06.11_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-11 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-12 05:15:00, DIR: 2020.06.12_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-12 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-13 05:15:00, DIR: 2020.06.13_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-13 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-14 05:15:00, DIR: 2020.06.14_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-14 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-15 05:15:00, DIR: 2020.06.15_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-15 20:00:00, COPY: 1, PROC: 1
+
+START: 2020-06-16 05:15:00, DIR: 2020.06.16_GURT_Sun, DESCR: GURT_Sun_interf_SA09red-blue_SA10red-red, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
+STOP:  2020-06-16 20:00:00, COPY: 1, PROC: 1

@@ -23,11 +23,11 @@ VminCorrMag = -150            # Lower limit of figure dynamic range for correlat
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-CorrelationProcess = 0        # Process correlation data or save time?  (1 = process, 0 = save)
+CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
 where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)

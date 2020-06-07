@@ -9,9 +9,9 @@ Software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-filename = 'E310120_204449.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E040620_201501.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
-pulsar_name = 'B0950+08' #'B0809+74' #'B1133+16' # 'B0950+08'
+pulsar_name = 'B1604-00' # 'B1919+21' #'B0809+74' #'B1133+16' # 'B0950+08'
 
 average_const = 512            # Number of frequency channels to appear in result picture
 profile_pic_min = -0.15        # Minimum limit of profile picture
@@ -26,8 +26,8 @@ pic_in_line = 10               # Number of pixels in line
 std_pixels_clean = 2.8         # Parameter of pixels cleaning based on StD value estimation
 
 SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
-freqStart = 20.0               # Lower frequency of dynamic spectrum (MHz)
-freqStop = 30.0                # Higher frequency of dynamic spectrum (MHz)
+freqStart = 2.0                # Lower frequency of dynamic spectrum (MHz)
+freqStop = 8.0                 # Higher frequency of dynamic spectrum (MHz)
 
 save_profile_txt = 1           # Save profile data to TXT file?
 save_compensated_data = 0      # Save data with compensated DM to DAT file?
@@ -90,7 +90,8 @@ def plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fi
                   ' ms.  Max. shift: '+ str(np.round(max_time_shift,3))+' s.', fontsize = 5, fontweight='bold')
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
-    ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
+    #ax2.imshow(np.flipud(averaged_array), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
+    ax2.imshow(np.flipud(averaged_array), vmin=0, vmax=5, aspect='auto', cmap=colormap, extent=[0,len(profile),frequency_list[0],frequency_list[num_frequencies-1]])
     ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
     text = ax2.get_xticks().tolist()
@@ -385,6 +386,12 @@ for block in range (num_of_blocks):   # main loop by number of blocks in file
         averaged_array  = average_some_lines_of_array(array_compensated_DM, int(num_frequencies/average_const))
         freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
         max_time_shift = max_shift * TimeRes
+
+        # NEW start
+        averaged_array = averaged_array - np.mean(averaged_array)
+        # NEW stop
+
+
 
         plot_ready_data(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale, filename,
                         pulsar_name, DM, freq_resolution, TimeRes, max_time_shift, block, num_of_blocks-1,

@@ -4,9 +4,10 @@
 
 def catalogue_pulsar(pulsar_name):
     pulsar_name = pulsar_name.upper()
-    pulsar_ra = ''; pulsar_dec = ''; pulsar_DM = ''
+    pulsar_ra = ''; pulsar_dec = ''; pulsar_DM = 0; p_bar = 0
 
-    if   'B0000+00'   in pulsar_name: pulsar_ra = '00h00m00.0s';    pulsar_dec = '+00d00m00.0s';   pulsar_DM = 0.6;      p_bar = 1.0
+    if   'B0000+00'   in pulsar_name: pulsar_ra = '00h00m00.0s';    pulsar_dec = '+00d00m00.0s';   pulsar_DM = 15.0;     p_bar = 1.0
+
     elif 'J0006+1834' in pulsar_name: pulsar_ra = '00h06m04.8s';    pulsar_dec = '+18d34m59.0s';   pulsar_DM = 0;        p_bar = 0.69374767047
     elif 'J0007+7303' in pulsar_name: pulsar_ra = '00h07m0.5819s';  pulsar_dec = '+73d3m6.964s';   pulsar_DM = 0;        p_bar = 0.31587319
     elif 'B0031-07'   in pulsar_name: pulsar_ra = '00h34m08.86s';   pulsar_dec = '-07d21m53.4s';   pulsar_DM = 10.89;    p_bar = 0.9429509945598
@@ -75,7 +76,7 @@ def catalogue_pulsar(pulsar_name):
     elif 'B1541+09'   in pulsar_name: pulsar_ra = '15h43m38.815s';  pulsar_dec = '+09d29m16.50s';  pulsar_DM = 0;        p_bar = 0.748448416229
     elif 'J1549+2113' in pulsar_name: pulsar_ra = '15h49m40.941s';  pulsar_dec = '+21d13m26.9s';   pulsar_DM = 0;        p_bar = 1.262471311613
 
-    elif 'B1604-00'   in pulsar_name: pulsar_ra = '16h07m12.1s';    pulsar_dec = '-00d32m40.83';   pulsar_DM = 10.68;    p_bar = 0.42181623358258
+    elif 'B1604-00'   in pulsar_name: pulsar_ra = '16h07m12.1s';    pulsar_dec = '-00d32m40.83';   pulsar_DM = 10.6823;  p_bar = 0.42181623358258
     elif 'B1612+07'   in pulsar_name: pulsar_ra = '16h14m40.91s';   pulsar_dec = '+07d37m31s';     pulsar_DM = 0;        p_bar = 1.206801436397
     elif 'B1633+24'   in pulsar_name: pulsar_ra = '16h35m25.781s';  pulsar_dec = '+24d18m47.3s';   pulsar_DM = 0;        p_bar = 0.4905065128003
     elif 'B1642-03'   in pulsar_name: pulsar_ra = '16h45m02.041s';  pulsar_dec = '-03d17m58.32s';  pulsar_DM = 35.727;   p_bar = 0.387689698034

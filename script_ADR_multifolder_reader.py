@@ -8,9 +8,9 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = '/media/data/DATA/To_process/' # 'h:/To_process/'
+path_to_data = 'DATA/' # 'h:/To_process/'
 
-print_or_not = 1              # Print progress of data processing and figures making (1) or not (0)
+print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
@@ -21,14 +21,14 @@ VminCorrMag = -150            # Lower limit of figure dynamic range for correlat
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-CorrelationProcess = 0        # Process correlation data or save time?  (1 = process, 0 = save)
+CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 100           # Number of immediate specter to save to TXT file
-where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
+ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
+where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range

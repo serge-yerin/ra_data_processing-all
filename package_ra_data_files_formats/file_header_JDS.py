@@ -194,8 +194,8 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         print('\n')
 
     # Receiver developers made NAvr = 2 for single spectrum, so for waveform we correct the value:
-    if Mode == 0: # For waveform mode correct NAvr = 2
-        Navr = 2
+    #if Mode == 0:   # For waveform mode correct NAvr = 2
+    #    Navr = 2
     if Navr == 0:
         Navr = 2
 
@@ -207,13 +207,13 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
     TimeRes = Navr * (FFT_Size / CLCfrq / 2)
     df = float((float(CLCfrq) / 2) / float(FFT_Size / 2))
     #df = float((float(CLCfrq) / 2.0 / float(Sfft) ))
-    if (print_or_not == 1):
+    if print_or_not == 1:
         print (' Temporal resolution:           ', round((TimeRes*1000), 3), '  ms')
         print (' Real frequency resolution:     ', round((df/1000), 3), ' kHz')
 
 
     # *** Frequncy calculation (in MHz) ***
-    f0 = (Lb * df)
+    f0 = Lb * df
     FreqPointsNum = Wb
     frequency = [0 for col in range(FreqPointsNum)]
     for i in range (0, FreqPointsNum):
@@ -221,8 +221,8 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
 
     fmin = round(frequency[0], 3)
     fmax = round(frequency[FreqPointsNum-1] + (df/pow(10,6)), 3)
-    if (print_or_not == 1):
-        print (' Frequency band:                ', fmin, ' - ', fmax, ' MHz \n')
+    if print_or_not == 1:
+        print(' Frequency band:                ', fmin, ' - ', fmax, ' MHz \n')
 
     file.close()
 
@@ -235,8 +235,8 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
     if Mode == 2:
         SpInFile = int(df_filesize - 1024)/(4*4*FreqPointsNum)    # Number of frequency points in specter
         ReceiverMode = 'Correlation mode'
-    if ((Mode == 1) or (Mode == 2)):
-        if (print_or_not == 1):
+    if Mode == 1 or Mode == 2:
+        if print_or_not == 1:
             print ('\n Number of spectra in file:     ', SpInFile, '\n\n')
 
     return df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile, \
@@ -247,7 +247,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
 
 if __name__ == '__main__':
 
-    filename = 'DATA/A191022_070249-001.jds'
+    filename = 'E040620_201501.jds_Data_chA.dat' #'DATA/A191022_070249-001.jds'
 
     print('\n\n Parameters of the file: ')
 
