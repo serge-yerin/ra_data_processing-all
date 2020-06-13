@@ -9,9 +9,9 @@ Software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # Directory of DAT file to be analyzed:
-filename = 'E040620_201501.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
+filename = 'B0000+00_DM_175.0_E040620_201501.jds_Data_chA.dat' # 'E220213_201439.jds_Data_chA.dat'
 
-pulsar_name = 'B1604-00' # 'B1919+21' #'B0809+74' #'B1133+16' # 'B0950+08'
+pulsar_name = 'B0000+00' # 'B1919+21' #'B0809+74' #'B1133+16' #  'B1604-00' 'B0950+08'
 
 average_const = 512            # Number of frequency channels to appear in result picture
 profile_pic_min = -0.15        # Minimum limit of profile picture
@@ -30,7 +30,7 @@ freqStart = 2.0                # Lower frequency of dynamic spectrum (MHz)
 freqStop = 8.0                 # Higher frequency of dynamic spectrum (MHz)
 
 save_profile_txt = 1           # Save profile data to TXT file?
-save_compensated_data = 0      # Save data with compensated DM to DAT file?
+save_compensated_data = 1      # Save data with compensated DM to DAT file?
 customDPI = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
 # *******************************************************************************
@@ -234,7 +234,7 @@ num_of_blocks = int(sp_in_file / (1 * max_shift))
 print (' Number of spectra in file:     ', sp_in_file, ' ')
 print (' Maximal shift is:              ', max_shift, ' pixels ')
 print (' Number of blocks in file:      ', num_of_blocks, ' \n')
-
+print (' Dispersion measure:            ', DM, ' pc / cm3 \n')
 
 if receiver_type == '.jds':
     num_frequencies_initial = len(frequency_list)-4
