@@ -1,7 +1,7 @@
 # Python3
 # pip install progress
 # Program to read DSPZ WF data (with nulling data of timestamps), averaging and saving
-#   
+#
 # Read frequency list from header, not create it
 #
 Software_version = '2020.01.19'
@@ -11,7 +11,7 @@ Software_version = '2020.01.19'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/server2a/PSR_2020.01/B0809p74_31_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'  #
+directory = '/media/server2a/PSR_06_2020/PSR_03_06_2020_DSPZ5_WF/PSR_1508+55/'  #
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (64)
 skip_data_blocks = 0            # Number of data blocks to skip before reading
@@ -145,6 +145,16 @@ for fileNo in range(len(fileList)):   # loop by files
         file_data_A_name = df_filename + '_Data_chA.dat'
         file_data_A = open(file_data_A_name, 'wb')
         file_data_A.write(file_header)
+        # New
+        file_data_A.seek(574)  # FFT size place in header
+        file_data_A.write(np.int32(data_block_size).tobytes())
+        file_data_A.seek(624)  # Lb place in header
+        file_data_A.write(np.int32(0).tobytes())
+        file_data_A.seek(628)  # Hb place in header
+        file_data_A.write(np.int32(data_block_size/2).tobytes())
+        file_data_A.seek(632)  # Wb place in header
+        file_data_A.write(np.int32(data_block_size/2).tobytes())
+        # New
         file_data_A.seek(636)  # Navr place in header
         file_data_A.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
         file_data_A.close()
@@ -153,6 +163,16 @@ for fileNo in range(len(fileList)):   # loop by files
             file_data_B_name = df_filename + '_Data_chB.dat'
             file_data_B = open(file_data_B_name, 'wb')
             file_data_B.write(file_header)
+            # New
+            file_data_B.seek(574)  # FFT size place in header
+            file_data_B.write(np.int32(data_block_size).tobytes())
+            file_data_B.seek(624)  # Lb place in header
+            file_data_B.write(np.int32(0).tobytes())
+            file_data_B.seek(628)  # Hb place in header
+            file_data_B.write(np.int32(data_block_size/2).tobytes())
+            file_data_B.seek(632)  # Wb place in header
+            file_data_B.write(np.int32(data_block_size/2).tobytes())
+            # New
             file_data_B.seek(636)   # Navr place in header
             file_data_B.write(bytes([np.int32(Navr * no_of_spectra_to_average)]))
             file_data_B.close()
