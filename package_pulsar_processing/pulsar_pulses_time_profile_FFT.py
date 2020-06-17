@@ -9,12 +9,12 @@ Software_name = 'Pulsar long time profile spectrum calculation'
 common_path = 'RESULTS_pulsar_single_pulses/'
 
 # Name of TXT file to be analyzed:
-filename = 'E310120_204449.jds_Data_chB.dat_time_profile.txt'
+filename = 'E030620_233201.jds_Data_chA.dat_time_profile.txt'
 
-pulsar_name = 'B0809+74'
+pulsar_name = 'B1919+21'
 
-time_resolution = 0.015887     # Data time resolution, s   # 0.007944
-
+time_resolution = 0.007944     # Data time resolution, s   # 0.007944
+#spectrum_max = 25000
 profile_pic_min = -0.1         # Minimum limit of profile picture
 profile_pic_max = 0.5          # Maximum limit of profile picture
 customDPI = 300                # Resolution of images of dynamic spectra
@@ -77,7 +77,8 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
 
     profile_spectrum = np.power(np.real(np.fft.fft(profile_data[:])),2)  # calculation of the spectrum
     profile_spectrum = profile_spectrum[0:int(len(profile_spectrum)/2)]  # delete second part of the spectrum
-    profile_spectrum[0:10] = 0.0
+
+    profile_spectrum[0:200] = 0.0
 
     frequency_axis = [frequency_resolution * i for i in range(len(profile_spectrum))]
 
@@ -96,7 +97,8 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
     ax2 = fig.add_subplot(212)
     ax2.axvline(x = pulsar_frequency, color = 'C1', linestyle = '-', linewidth = 2.0, alpha=0.5, label='Frequency of pulses')
     ax2.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
-    ax2.axis([frequency_axis[0], frequency_axis[-1], -np.max(profile_spectrum)*0.05, np.max(profile_spectrum)*1.05])
+    ax2.axis([frequency_axis[0], frequency_axis[-1], -np.max(profile_spectrum)*0.05, np.max(profile_spectrum)*1.05])  #
+    #ax2.axis([frequency_axis[0], frequency_axis[-1], -10, spectrum_max])
     ax2.legend(loc='upper right', fontsize=5)
     ax2.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
