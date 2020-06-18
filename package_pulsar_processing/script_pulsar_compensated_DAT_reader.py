@@ -2,6 +2,9 @@
 Software_version = '2020.03.19'
 Software_name = 'Pulsar DM delay compensated DAT reader'
 # Program intended to read and show pulsar data from DAT files (with compensated DM delay)
+
+# Make figures overlap by one pulse!!!
+
 #*******************************************************************************
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
@@ -9,18 +12,18 @@ Software_name = 'Pulsar DM delay compensated DAT reader'
 common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = 'B0809+74_DM_5.75_E280120_212713.jds_Data_chA.dat'
+filename = 'B0809+74_DM_5.75066_E280120_205409.jds_Data_chA.dat'
 
 profile_pic_min = -0.15           # Minimum limit of profile picture
 profile_pic_max = 0.55            # Maximum limit of profile picture
-ListOrAllFreq = 0                 # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
-customDPI = 300                   # Resolution of images of dynamic spectra
+spectrum_pic_min = -0.2           # Minimum limit of dynamic spectrum picture
+spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
+
+periods_per_fig = 3
+
+customDPI = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
-#StartStopSwitch = 0             # Read the whole file (0) or specified time limits (1)
-# Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-#dateTimeStart = '2017-05-18 18:36:30'
-#dateTimeStop =  '2017-05-18 18:36:50'
 
 
 ################################################################################
@@ -61,7 +64,7 @@ currentDate = time.strftime("%d.%m.%Y")
 print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
 
 # Creating a folder where all pictures and results will be stored (if it doesn't exist)
-result_path = "RESULTS_pulsar_DAT_reader"
+result_path = "RESULTS_pulsar_DAT_reader_" + filename
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 
@@ -109,14 +112,14 @@ timeline, dt_timeline = time_line_file_reader(timeline_filepath)
 
 # Calculation of the dimensions of arrays to read taking into account the pulsar period
 spectra_in_file = int((df_filesize - 1024) / (8 * FreqPointsNum))    # int(df_filesize - 1024)/(2*4*FreqPointsNum)
-spectra_to_read = int(np.round((3 * p_bar / time_resolution),0))
+spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution),0))
 num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
 
 print (' Pulsar period:                           ', p_bar, 's.')
 print (' Time resolution:                         ', time_resolution, 's.')
-print (' Number of spectra to read in 3 periods:  ', spectra_to_read, ' ')
+print (' Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
 print (' Number of spectra in file:               ', spectra_in_file, ' ')
-print (' Number of 3 periods blocks in file:      ', num_of_blocks, '\n')
+print (' Number of', periods_per_fig,'periods blocks in file:      ', num_of_blocks, '\n')
 
 
 #  Data reading and making figures
@@ -142,6 +145,7 @@ for block in range(num_of_blocks+1):   # Main loop by blocks of data
     # Preparing single averaged data profile for figure
     profile = data.mean(axis=0)[:]
     profile = profile - np.mean(profile)
+    data = data - np.mean(data)
 
     # Time line
     fig_time_scale = timeline[block * spectra_to_read : (block+1) * spectra_to_read]
@@ -156,11 +160,11 @@ for block in range(num_of_blocks+1):   # Main loop by blocks of data
     ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
     ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
     ax1.set_title('File: '+ filename + '  Description: ' + df_description + '  Resolution: '+
-                  str(np.round(df, 3))+' kHz and '+str(np.round(time_resolution*1000,3))+' ms.',
+                  str(np.round(df/1000, 3))+' kHz and '+str(np.round(time_resolution*1000,3))+' ms.',
                   fontsize = 5, fontweight='bold')
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
-    ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, extent=[0,len(profile),frequency[0],frequency[-1]])
+    ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin = spectrum_pic_min, vmax = spectrum_pic_max, extent=[0,len(profile),frequency[0],frequency[-1]])
     ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
     text = ax2.get_xticks().tolist()
