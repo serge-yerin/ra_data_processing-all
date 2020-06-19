@@ -6,15 +6,17 @@ Software_name = 'Pulsar long time profile spectrum calculation'
 #                     M A N U A L    P A R A M E T E R S                        *
 # *******************************************************************************
 # Path to initial and results files
-common_path = 'RESULTS_pulsar_single_pulses/'
+common_path = 'RESULTS_pulsar_single_pulses_B0000+00_B0000+00_DM_7.0_E290120_201402.jds_Data_chA.dat/'
 
 # Name of TXT file to be analyzed:
-filename = 'E030620_233201.jds_Data_chA.dat_time_profile.txt'
+filename = 'B0000+00_DM_7.0_E290120_201402.jds_Data_chA.dat_time_profile.txt'
 
-pulsar_name = 'B1919+21'
+pulsar_name = 'J0740+6620'
 
 time_resolution = 0.007944     # Data time resolution, s   # 0.007944
-#spectrum_max = 25000
+
+spectrum_max = 2000
+
 profile_pic_min = -0.1         # Minimum limit of profile picture
 profile_pic_max = 0.5          # Maximum limit of profile picture
 customDPI = 300                # Resolution of images of dynamic spectra
@@ -78,7 +80,7 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
     profile_spectrum = np.power(np.real(np.fft.fft(profile_data[:])),2)  # calculation of the spectrum
     profile_spectrum = profile_spectrum[0:int(len(profile_spectrum)/2)]  # delete second part of the spectrum
 
-    profile_spectrum[0:200] = 0.0
+    profile_spectrum[0:100] = 0.0
 
     frequency_axis = [frequency_resolution * i for i in range(len(profile_spectrum))]
 
