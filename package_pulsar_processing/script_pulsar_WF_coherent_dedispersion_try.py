@@ -1,5 +1,5 @@
 # Python3
-#
+# Possibly to delete
 #   !!!! NOT FINISHED !!!
 #
 Software_version = '2020.01.04'
