@@ -13,7 +13,7 @@ result_directory = ''           # Directory where DAT files to be stored (empty 
 
 no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
 no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
-
+no_of_points_for_fft_dedisp = 16384
 
 
 # ###############################################################################
@@ -178,8 +178,116 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     
     return result_wf32_files
 
+
 # *******************************************************************************
-#                           M A I N    P R O G R A M                            *
+#        WAVEFORM FLOAT32 TO WAVEFORM FLOAT32 COHERENT DEDISPERSION             *
+# *******************************************************************************
+
+def coherent_wf_to_wf_dedispersion(DM, path, fname, no_of_points_for_fft_dedisp):
+    pass
+# Reading data from file
+# Making FFT complex
+# Dispersion delay compensation
+# Invere FFT
+# Write to file
+# Set result file parameters in header
+
+    # *** Data file header read ***
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
+        df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+
+    # Manually set frequencies for one channel mode
+    freq_points_num = int(no_of_points_for_fft/2)
+
+    # Create long data files and copy first data file header to them
+
+    with open(fname, 'rb') as file:
+        # *** Data file header read ***
+        file_header = file.read(1024)
+
+        # *** Creating a name for long timeline TXT file ***
+        TLfile_name = df_filename + '_Timeline.txt'
+        TLfile = open(TLfile_name, 'w')  # Open and close to delete the file with the same name
+        TLfile.close()
+
+        # !!! Create ne file name with DM value and old name !!!
+
+        # *** Creating a binary file with data for long data storage ***
+        file_data_A_name = df_filename + '_Data_chA.wf32'
+        result_wf32_files.append(file_data_A_name)
+        file_data_A = open(file_data_A_name, 'wb')
+        file_data_A.write(file_header)
+        file_data_A.close()
+
+        del file_header
+        #'''
+
+    # Calculation of number of blocks and number of spectra in the file
+
+        # !!! Calculate number of bunches using file size, fft_size and DM !!!
+
+        no_of_spectra_in_bunch = 0
+
+        no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * 4))
+
+        fine_CLCfrq = (int(CLCfrq/1000000.0) * 1000000.0)
+
+        # Real time resolution of averaged spectra
+        real_spectra_dt = float(no_of_points_for_fft / fine_CLCfrq)
+        real_spectra_df = float((fine_CLCfrq / 2) / (no_of_points_for_fft / 2 ))
+
+        print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
+        print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
+        print(' Time resolution of calculated spectra:       ', round(real_spectra_dt*1000, 3), ' ms')
+        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df/1000, 3), ' kHz')
+        print('\n  *** Reading data from file *** \n')
+
+        # *** DATA READING process ***
+
+        # !!! Fake timing. Real timing to be done!!!
+        #TimeFigureScaleFig = np.linspace(0, no_of_bunches_per_file, no_of_bunches_per_file+1)
+        #for i in range(no_of_bunches_per_file):
+        #    TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
+
+        time_scale_bunch = []
+
+        file.seek(1024)  # Jumping to 1024 byte from file beginning
+
+        for bunch in range(no_of_bunches_per_file):
+
+            # Reading and reshaping all data with time data
+            wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft)
+            wf_data = np.reshape(wf_data, [no_of_points_for_fft, no_of_spectra_in_bunch], order='F')
+
+            # preparing matrices for spectra
+            spectra_chA = np.zeros_like(wf_data)
+
+            #no_of_spectra_to_compute = int(np.floor(len(wf_data) / no_of_points_for_fft))
+
+            # Calculation of spectra
+            for i in range(no_of_spectra_in_bunch):
+                spectra_chA[:, i] = np.fft.fft(wf_data[:, i])
+
+
+
+    return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# *******************************************************************************
+#        W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                  *
 # *******************************************************************************
 
 def convert_wf32_to_dat(fname, result_directory, no_of_points_for_fft):
@@ -315,12 +423,12 @@ if __name__ == '__main__':
 
 
 
-    #result_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
+    result_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     
-    #print(result_wf32_files)
+    print('\n List of files: ', result_wf32_files, '\n')
 
-    fname = 'E310120_204449.jds_Data_chA.wf32'
-    convert_wf32_to_dat(fname, result_directory, no_of_points_for_fft)
+    #fname = ['E310120_204449.jds_Data_chA.wf32']
+    convert_wf32_to_dat(result_wf32_files[0], result_directory, no_of_points_for_fft)
     
     
     endTime = time.time()
