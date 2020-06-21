@@ -35,6 +35,8 @@ if __package__ is None:
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 
 
 
@@ -183,22 +185,28 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
 #        WAVEFORM FLOAT32 TO WAVEFORM FLOAT32 COHERENT DEDISPERSION             *
 # *******************************************************************************
 
-def coherent_wf_to_wf_dedispersion(DM, path, fname, no_of_points_for_fft_dedisp):
+def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
     pass
 # Reading data from file
 # Making FFT complex
 # Dispersion delay compensation
-# Invere FFT
+# Inverse FFT
 # Write to file
 # Set result file parameters in header
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+        df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
     # Manually set frequencies for one channel mode
-    freq_points_num = int(no_of_points_for_fft/2)
+    freq_points_num = int(no_of_points_for_fft_dedisp/2)
+
+    # Manually set frequencies for 33 MHz clock frequency
+    if int(CLCfrq / 1000000) == 33:
+        fmin = 16.5
+        fmax = 33.0
+        df = 16500000 / freq_points_num
 
     # Create long data files and copy first data file header to them
 
@@ -214,22 +222,36 @@ def coherent_wf_to_wf_dedispersion(DM, path, fname, no_of_points_for_fft_dedisp)
         # !!! Create ne file name with DM value and old name !!!
 
         # *** Creating a binary file with data for long data storage ***
-        file_data_A_name = df_filename + '_Data_chA.wf32'
-        result_wf32_files.append(file_data_A_name)
-        file_data_A = open(file_data_A_name, 'wb')
-        file_data_A.write(file_header)
-        file_data_A.close()
+        file_data_name = 'DM_' + str(DM) + '_' + fname
+        result_wf32_files.append(file_data_name)
+        file_data = open(file_data_name, 'wb')
+        file_data.write(file_header)
+        file_data.close()
 
         del file_header
         #'''
 
-    # Calculation of number of blocks and number of spectra in the file
+        # Calculation of the time shifts
+        shift_vector = DM_full_shift_calc(freq_points_num, fmin, fmax, df / pow(10, 6), time_resolution, DM, 'jds')
+        max_shift = np.abs(shift_vector[0])
+
+        # Preparing buffer array
+        buffer_array = np.zeros((freq_points_num, 2 * max_shift))
+
+        #num_of_blocks = int(sp_in_file / (1 * max_shift))
+
+        print(' Maximal shift is:              ', max_shift, ' pixels ')
+        #print(' Number of blocks in file:      ', num_of_blocks, ' ')
+        print(' Dispersion measure:            ', DM, ' pc / cm3 \n')
+
+
+        # Calculation of number of blocks and number of spectra in the file
 
         # !!! Calculate number of bunches using file size, fft_size and DM !!!
 
-        no_of_spectra_in_bunch = 0
+        no_of_spectra_in_bunch = max_shift
 
-        no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * 4))
+        no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_dedisp * 4))
 
         fine_CLCfrq = (int(CLCfrq/1000000.0) * 1000000.0)
 
@@ -246,9 +268,6 @@ def coherent_wf_to_wf_dedispersion(DM, path, fname, no_of_points_for_fft_dedisp)
         # *** DATA READING process ***
 
         # !!! Fake timing. Real timing to be done!!!
-        #TimeFigureScaleFig = np.linspace(0, no_of_bunches_per_file, no_of_bunches_per_file+1)
-        #for i in range(no_of_bunches_per_file):
-        #    TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
 
         time_scale_bunch = []
 
@@ -256,20 +275,57 @@ def coherent_wf_to_wf_dedispersion(DM, path, fname, no_of_points_for_fft_dedisp)
 
         for bunch in range(no_of_bunches_per_file):
 
+            print('  Bunch #', bunch)
+
             # Reading and reshaping all data with time data
-            wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft)
-            wf_data = np.reshape(wf_data, [no_of_points_for_fft, no_of_spectra_in_bunch], order='F')
+            wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
+            wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
 
             # preparing matrices for spectra
-            spectra_chA = np.zeros_like(wf_data)
-
-            #no_of_spectra_to_compute = int(np.floor(len(wf_data) / no_of_points_for_fft))
+            #spectra = np.zeros_like(wf_data, dtype='complex')
+            spectra = np.zeros((no_of_points_for_fft_dedisp, max_shift), dtype='complex')
 
             # Calculation of spectra
             for i in range(no_of_spectra_in_bunch):
-                spectra_chA[:, i] = np.fft.fft(wf_data[:, i])
+                spectra[:, i] = np.fft.fft(wf_data[:, i])
+
+            # !!! Cut half of the spectra !!!!
+
+            # Dispersion delay compensation
+            data_space = np.zeros((freq_points_num, 2 * max_shift), dtype='complex')
+            data_space[:, max_shift:] = spectra[:, :]
+            temp_array = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
+            del spectra, data_space
+
+            # Adding the next data block
+            buffer_array += temp_array
+
+            # Making and filling the array with fully ready data for plotting and saving to a file
+            array_compensated_DM = buffer_array[:, 0: max_shift]
+
+            if bunch > 0:
+                # Saving data with compensated DM
+                spectra = array_compensated_DM.copy()
+                # Making IFFT
+                # !!! Uncut half of the spectra !!!!
+
+                for i in range(no_of_spectra_in_bunch):
+                    wf_data[:, i] = np.real(np.fft.ifft(spectra[:, i]))
+                del spectra
+                # Reshaping the waveform to single dimension (real)
+                wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp * no_of_spectra_in_bunch, 1], order='F')
+                # Saving waveform data to wf32 file
+                file_data = open(file_data_name, 'ab')
+                file_data.write(np.float32(wf_data).transpose().copy(order='C'))
+                file_data.close()
+
+                # Saving time data to ling timeline file
 
 
+
+            # Rolling temp_array to put current data first
+            buffer_array = np.roll(buffer_array, - max_shift)
+            buffer_array[:, max_shift:] = 0
 
     return
 
@@ -294,7 +350,7 @@ def convert_wf32_to_dat(fname, result_directory, no_of_points_for_fft):
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
+        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
      # !!! Make automatic calculations of time and frequency resolutions for waveform mode!!!
@@ -423,11 +479,14 @@ if __name__ == '__main__':
 
 
 
-    result_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
+    #result_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     
-    print('\n List of files: ', result_wf32_files, '\n')
+    #print('\n List of files: ', result_wf32_files, '\n')
 
-    #fname = ['E310120_204449.jds_Data_chA.wf32']
+    result_wf32_files = ['E310120_204449.jds_Data_chA.wf32']
+
+    coherent_wf_to_wf_dedispersion(0.1, result_wf32_files[0], no_of_points_for_fft_dedisp)
+
     convert_wf32_to_dat(result_wf32_files[0], result_directory, no_of_points_for_fft)
     
     
