@@ -176,8 +176,8 @@ plt.close('all')
 filtered_signal_im = np.imag(np.fft.ifft(initial_spectra))
 filtered_signal_re = np.real(np.fft.ifft(initial_spectra))
 
-responce_plot(1 * filtered_signal_re, 'Interferometric responce  after FFT and inverse FFT',
-            '02 - Interferometric responce 01a.png', path_to_data, Vmin, Vmax, date_time)
+responce_plot(1 * filtered_signal_re, 'Interferometric response  after FFT and inverse FFT',
+            '02 - Interferometric response 01a.png', path_to_data, Vmin, Vmax, date_time)
 
 
 
