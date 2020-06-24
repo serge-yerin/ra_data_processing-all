@@ -188,8 +188,8 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         print(' ATT0:                          ', ATT0)
         print(' ATT1:                          ', ATT1)
 
-        print(' Softvare name:                 ', df_softname)
-        print(' Softvare version:              ', df_softvers)
+        print(' Software name:                 ', df_softname)
+        print(' Software version:              ', df_softvers)
         print(' DSP soft version:              ', df_DSP_vers)
         print('\n')
 
