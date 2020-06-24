@@ -6,16 +6,16 @@ Software_name = 'Pulsar long time profile spectrum calculation'
 #                     M A N U A L    P A R A M E T E R S                        *
 # *******************************************************************************
 # Path to initial and results files
-common_path = 'RESULTS_pulsar_single_pulses_B0000+00_B0000+00_DM_7.0_E290120_201402.jds_Data_chA.dat/'
+common_path = 'DATA/'
 
 # Name of TXT file to be analyzed:
-filename = 'B0000+00_DM_7.0_E290120_201402.jds_Data_chA.dat_time_profile.txt'
+filename = 'E310120_203908.jds_Data_chA.dat_time_profile.txt'
 
-pulsar_name = 'J0740+6620'
+pulsar_name = 'B0809+74'
 
 time_resolution = 0.007944     # Data time resolution, s   # 0.007944
 
-spectrum_max = 2000
+spectrum_max = 8000
 
 profile_pic_min = -0.1         # Minimum limit of profile picture
 profile_pic_max = 0.5          # Maximum limit of profile picture
@@ -80,7 +80,7 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
     profile_spectrum = np.power(np.real(np.fft.fft(profile_data[:])),2)  # calculation of the spectrum
     profile_spectrum = profile_spectrum[0:int(len(profile_spectrum)/2)]  # delete second part of the spectrum
 
-    profile_spectrum[0:100] = 0.0
+    #profile_spectrum[0:100] = 0.0
 
     frequency_axis = [frequency_resolution * i for i in range(len(profile_spectrum))]
 
@@ -99,8 +99,8 @@ def pulsar_pulses_time_profile_FFT (common_path, filename, pulsar_name, time_res
     ax2 = fig.add_subplot(212)
     ax2.axvline(x = pulsar_frequency, color = 'C1', linestyle = '-', linewidth = 2.0, alpha=0.5, label='Frequency of pulses')
     ax2.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
-    ax2.axis([frequency_axis[0], frequency_axis[-1], -np.max(profile_spectrum)*0.05, np.max(profile_spectrum)*1.05])  #
-    #ax2.axis([frequency_axis[0], frequency_axis[-1], -10, spectrum_max])
+    #ax2.axis([frequency_axis[0], frequency_axis[-1], -np.max(profile_spectrum)*0.05, np.max(profile_spectrum)*1.05])  #
+    ax2.axis([frequency_axis[0], frequency_axis[-1], -10, spectrum_max])
     ax2.legend(loc='upper right', fontsize=5)
     ax2.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
