@@ -1,6 +1,6 @@
 # Python3
 # pip install progress
-Software_version = '2020.06.27'
+Software_version = '2020.07.03'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
 # Program intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files and make coherent dedispersion
 # !!! Time is not correct !!!
@@ -14,7 +14,7 @@ result_directory = ''           # Directory where DAT files to be stored (empty 
 no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
 no_of_points_for_fft = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
 no_of_points_for_fft_dedisp = 16384
-
+typesOfData = ['chA']
 
 # ###############################################################################
 # *******************************************************************************
@@ -37,15 +37,18 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
+from package_common_modules.text_manipulations import find_between
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
-
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 
 # ###############################################################################
+# *******************************************************************************
+#      W A V E F O R M   J D S   T O   W A V E F O R M    F L O A T 3 2         *
+# *******************************************************************************
 
 def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file):
 
@@ -56,7 +59,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        CLCfrq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
+        clock_freq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(source_directory + fileList[0], 0, 1)
 
     result_wf32_files = []
@@ -73,9 +76,9 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 file_header = file.read(1024)
             
             # *** Creating a name for long timeline TXT file ***
-            TLfile_name = df_filename + '_Timeline.wtxt'
-            TLfile = open(TLfile_name, 'w')  # Open and close to delete the file with the same name
-            TLfile.close()
+            tl_file_name = df_filename + '_Timeline.wtxt'
+            tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
+            tl_file.close()
 
             # *** Creating a binary file with data for long data storage ***
             file_data_A_name = df_filename + '_Data_chA.wf32'
@@ -137,11 +140,11 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     
     
                 # Timing
-                timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+                timeline_block_str = JDS_waveform_time(wf_data, clock_freq, data_block_size)
                 if channel == 2:                    # Two channels mode
-                    timeline_block_str = timeline_block_str[0:int(len(timeline_block_str)/2)] # Cut the timeline of second channel
+                    timeline_block_str = timeline_block_str[0:int(len(timeline_block_str)/2)]  # Cut the timeline of second channel
                 for i in range (len(timeline_block_str)):
-                    time_scale_bunch.append(df_creation_timeUTC[0:10] + ' ' +timeline_block_str[i])  #  [0:12]
+                    time_scale_bunch.append(df_creation_timeUTC[0:10] + ' ' +timeline_block_str[i])  # [0:12]
     
                 # Deleting the time blocks from waveform data
                 real_data_block_size = data_block_size - 4
@@ -156,8 +159,8 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     
                     # Separating the data into two channels
                     wf_data = np.reshape(wf_data, [2 * real_data_block_size * no_of_spectra_in_bunch, 1], order='F')
-                    wf_data_chA = wf_data[0 : (2 * real_data_block_size * no_of_spectra_in_bunch) : 2]  # Separation to channel A
-                    wf_data_chB = wf_data[1 : (2 * real_data_block_size * no_of_spectra_in_bunch) : 2]  # Separation to channel B
+                    wf_data_chA = wf_data[0 : (2 * real_data_block_size * no_of_spectra_in_bunch) : 2]  # A
+                    wf_data_chB = wf_data[1 : (2 * real_data_block_size * no_of_spectra_in_bunch) : 2]  # B
                     del wf_data
     
                 # Saving WF data to dat file
@@ -170,14 +173,16 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     file_data_B.close()
     
                 # Saving time data to ling timeline file
-                with open(TLfile_name, 'a') as TLfile:
+                with open(tl_file_name, 'a') as tl_file:
                     for i in range(no_of_spectra_in_bunch):
-                        TLfile.write((str(time_scale_bunch[i][:])) + ' \n')  # str
+                        tl_file.write((str(time_scale_bunch[i][:])) + ' \n')  # str
     
             bar.finish()
     
         file.close()  # Close the data file
-    
+        del file_data_A
+        if channel == 2: del file_data_B
+
     return result_wf32_files
 
 
@@ -189,14 +194,14 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+        clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
         df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
     # Manually set frequencies for one channel mode
     freq_points_num = int(no_of_points_for_fft_dedisp/2)
 
     # Manually set frequencies for 33 MHz clock frequency
-    if int(CLCfrq / 1000000) == 33:
+    if int(clock_freq / 1000000) == 33:
         fmin = 16.5
         fmax = 33.0
         df = 16500000 / freq_points_num
@@ -207,19 +212,17 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         # *** Data file header read ***
         file_header = file.read(1024)
 
-        # *** Creating a name for long timeline TXT file ***
-        TLfile_name = df_filename + '_Timeline.txt'
-        TLfile = open(TLfile_name, 'w')  # Open and close to delete the file with the same name
-        TLfile.close()
-
         # *** Creating a binary file with data for long data storage ***
         file_data_name = 'DM_' + str(DM) + '_' + fname
-
         file_data = open(file_data_name, 'wb')
         file_data.write(file_header)
         file_data.close()
-
         del file_header
+
+        # *** Creating a new timeline TXT file ***
+        new_tl_file_name = file_data_name.split("_Data_ch", 1)[0] + '_Timeline.txt'
+        new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+        new_tl_file.close()
 
         # Calculation of the time shifts
         shift_vector = DM_full_shift_calc(freq_points_num, fmin, fmax, df / pow(10, 6), time_resolution, DM, 'jds')
@@ -236,9 +239,9 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_dedisp * 4))
 
         # Real time resolution of spectra
-        fine_CLCfrq = (int(CLCfrq / 1000000.0) * 1000000.0)
-        real_spectra_dt = float(no_of_points_for_fft / fine_CLCfrq)
-        real_spectra_df = float((fine_CLCfrq / 2) / (no_of_points_for_fft / 2))
+        fine_clock_freq = (int(clock_freq / 1000000.0) * 1000000.0)
+        real_spectra_dt = float(no_of_points_for_fft / fine_clock_freq)
+        real_spectra_df = float((fine_clock_freq / 2) / (no_of_points_for_fft / 2))
 
         print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
@@ -251,13 +254,18 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
+        bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file-1, suffix='%(percent)d%%')
+
         for bunch in range(no_of_bunches_per_file-1):
 
-            print('  Dispersion delay removing bunch #', bunch+1, ' of ', no_of_bunches_per_file-1)
+            bar.next()
+
+            #print('  Dispersion delay removing bunch #', bunch+1, ' of ', no_of_bunches_per_file-1)
 
             # Reading and reshaping all data with time data
             wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
-
+            
+            '''
             fig = plt.figure(figsize=(9, 5))
             ax1 = fig.add_subplot(111)
             ax1.plot(wf_data, linestyle='-', linewidth='1.00', label='Initial waveform')
@@ -266,7 +274,8 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
             pylab.savefig('00_Initial_waveform_' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
             plt.close('all')
-
+            '''
+            
             wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
 
             # preparing matrices for spectra
@@ -275,9 +284,9 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             # Calculation of spectra
             for i in range(no_of_spectra_in_bunch):
                 spectra[:, i] = np.fft.fft(wf_data[:, i])
-
             del wf_data
 
+            '''
             fig = plt.figure(figsize=(9, 5))
             ax1 = fig.add_subplot(111)
             ax1.plot(10 * np.log10(np.power(np.abs(spectra[:, 0]), 2)), linestyle='-', linewidth='1.00',
@@ -287,11 +296,12 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
             pylab.savefig('00a_Initial_doubled_imm_spectra' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
             plt.close('all')
-
+            '''
+            
             # Cut half of the spectra
             spectra = spectra[int(no_of_points_for_fft_dedisp/2):, :]
 
-            # making figures
+            ''' # making figures
             fig = plt.figure(figsize=(9, 5))
             ax1 = fig.add_subplot(111)
             ax1.imshow(np.flipud(10*np.log10(np.power(np.abs(spectra), 2))), aspect='auto', cmap='jet')
@@ -308,7 +318,8 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
             pylab.savefig('02_Initial_imm_spectra' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
             plt.close('all')
-
+            '''
+            
             #  Dispersion delay removing
             data_space = np.zeros((freq_points_num, 2 * max_shift), dtype='complex')
             data_space[:, max_shift:] = spectra[:, :]
@@ -325,6 +336,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 # Saving data with compensated DM
                 spectra = array_compensated_DM.copy()
 
+                '''
                 # making figures
                 fig = plt.figure(figsize=(9, 5))
                 ax1 = fig.add_subplot(111)
@@ -342,7 +354,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
                 pylab.savefig('04_Compensated_imm_spectra' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
                 plt.close('all')
-
+                '''
 
                 wf_data = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch))
 
@@ -352,6 +364,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 second_spectra_half = np.flipud(second_spectra_half)
                 spectra = np.concatenate((second_spectra_half, spectra), axis=0)  # Changed places!!!
 
+                '''
                 fig = plt.figure(figsize=(9, 5))
                 ax1 = fig.add_subplot(111)
                 ax1.plot(10*np.log10(np.power(np.abs(spectra[:,0]), 2)), linestyle='-', linewidth='1.00', label='Initial waveform')
@@ -360,17 +373,17 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
                 pylab.savefig('05_Compensated_doubled_imm_spectra' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
                 plt.close('all')
-
+                '''
 
                 # Making IFFT
                 for i in range(no_of_spectra_in_bunch):
                     wf_data[:, i] = np.real(np.fft.ifft(spectra[:, i]))
-
                 del spectra
+
                 # Reshaping the waveform to single dimension (real)
                 wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp * no_of_spectra_in_bunch, 1], order='F')
 
-                # making figures
+                ''' # making figures
                 fig = plt.figure(figsize=(9, 5))
                 ax1 = fig.add_subplot(111)
                 ax1.plot(wf_data, linestyle='-', linewidth='1.00', label='Initial waveform')
@@ -379,7 +392,8 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
                 pylab.savefig('06_Compensated_waveform_' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
                 plt.close('all')
-
+                '''
+                
                 # Saving waveform data to wf32 file
                 file_data = open(file_data_name, 'ab')
                 file_data.write(np.float32(wf_data).transpose().copy(order='C'))  # C
@@ -391,31 +405,37 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             buffer_array = np.roll(buffer_array, - max_shift)
             buffer_array[:, max_shift:] = 0
 
+        bar.finish()
+
     return file_data_name
 
 
 # *******************************************************************************
-#        W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                  *
+#          W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                *
 # *******************************************************************************
 
 def convert_wf32_to_dat(fname, no_of_points_for_fft):
+    '''
+    function converts waverform data in .wf32 format to spectra in .dat format
+    Input parameters:
+        fname -                 name of .wf32 file with waveform data
+        no_of_points_for_fft -  number of points for FFT to provide necessary time-frequency resolution
+    Output parameters:
+        file_data_name -        name of .dat file with result spectra
+    
+
+    '''
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+        clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
     freq_points_num = int(no_of_points_for_fft/2)
 
-
     with open(fname, 'rb') as file:
         # *** Data file header read ***
         file_header = file.read(1024)
-
-        # *** Creating a name for long timeline TXT file ***
-        # TLfile_name = df_filename + '_Timeline.txt'
-        # TLfile = open(TLfile_name, 'w')  # Open and close to delete the file with the same name
-        # TLfile.close()
 
         # *** Creating a binary file with data for long data storage ***
         file_data_name = fname[:-5] + '.dat'
@@ -432,17 +452,21 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft):
         file_data.seek(636)  # Navr place in header
         file_data.write(np.int32(1).tobytes()) # !!! Check for correctness !!!
         file_data.close()
-
         del file_header
+
+        # *** Creating a name for long timeline TXT file ***
+        tl_file_name = file_data_name + '_Timeline.txt'
+        tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
+        tl_file.close()
 
         # Calculation of number of blocks and number of spectra in the file
         no_of_spectra_in_bunch = 512
         no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft * 4))
 
         # Real time resolution of averaged spectra
-        fine_CLCfrq = (int(CLCfrq / 1000000.0) * 1000000.0)
-        real_spectra_dt = float(no_of_points_for_fft / fine_CLCfrq)
-        real_spectra_df = float((fine_CLCfrq / 2) / (no_of_points_for_fft / 2 ))
+        fine_clock_freq = (int(clock_freq / 1000000.0) * 1000000.0)
+        real_spectra_dt = float(no_of_points_for_fft / fine_clock_freq)
+        real_spectra_df = float((fine_clock_freq / 2) / (no_of_points_for_fft / 2 ))
 
         print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
@@ -459,9 +483,13 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft):
 
         time_scale_bunch = []
 
+        bar = IncrementalBar(' Conversion from waveform to spectra: ', max=no_of_bunches_per_file-1, suffix='%(percent)d%%')
+
         for bunch in range(no_of_bunches_per_file-1):
 
-            print(' Making spectra bunch # ', bunch+1, ' of ', no_of_bunches_per_file-1)
+            bar.next()
+
+            #print(' Making spectra bunch # ', bunch+1, ' of ', no_of_bunches_per_file-1)
 
             # Reading and reshaping all data with time data
 
@@ -479,7 +507,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft):
             spectra = spectra[: int(no_of_points_for_fft/2), :]
 
             # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
-            if int(CLCfrq/1000000) == 33:
+            if int(clock_freq/1000000) == 33:
                 spectra = np.flipud(spectra)
 
             # Saving spectra data to dat file
@@ -489,11 +517,14 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft):
             file_data.close()
 
             # Saving time data to ling timeline file
-            #with open(TLfile_name, 'a') as TLfile:
+            #with open(tl_file_name, 'a') as tl_file:
             #    for i in range(no_of_spectra_in_bunch):
-            #        TLfile.write((str(time_scale_bunch[i][:])) + ' \n')  # str
+            #        tl_file.write((str(time_scale_bunch[i][:])) + ' \n')  # str
+
+        bar.finish()
 
     file.close()  # Close the data file
+    return file_data_name
 
 
 ################################################################################
@@ -504,9 +535,9 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft):
 
 if __name__ == '__main__':
 
-    print('\n\n\n\n\n\n\n\n   *******************************************************************')
+    print('\n\n\n\n\n\n\n\n   ********************************************************************')
     print('   * ', Software_name, ' v.', Software_version, ' *      (c) YeS 2020')
-    print('   ******************************************************************* \n\n\n')
+    print('   ******************************************************************** \n\n\n')
     
     startTime = time.time()
     previousTime = startTime
@@ -514,33 +545,31 @@ if __name__ == '__main__':
     currentDate = time.strftime("%d.%m.%Y")
     print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
+    dedispersed_wf32_files = []
+    dedispersed_dat_files = []
+
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
-    #result_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
-    
-    #print('\n List of files: ', result_wf32_files, '\n')
+    initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
+    print('\n List of WF32 files: ', initial_wf32_files, '\n')
 
-    result_wf32_files = ['E280120_205409.jds_Data_chA.wf32']
-
-    dedispersed_wf32_files = []
-
+    # result_wf32_files = ['E280120_205409.jds_Data_chA.wf32']
     print('\n\n  * Making coherent dispersion delay removing... \n\n')
+    file_name = coherent_wf_to_wf_dedispersion(0.3, initial_wf32_files[0], no_of_points_for_fft_dedisp)
+    dedispersed_wf32_files.append(file_name)
+    print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
-    file = coherent_wf_to_wf_dedispersion(0.3, result_wf32_files[0], no_of_points_for_fft_dedisp)
-    dedispersed_wf32_files.append(file)
-    
-    #dedispersed_wf32_files = ['DM_0.3_E280120_205409.jds_Data_chA.wf32']
-
+    # dedispersed_wf32_files = ['DM_0.3_E280120_205409.jds_Data_chA.wf32']
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
-
-    convert_wf32_to_dat(dedispersed_wf32_files[0], no_of_points_for_fft)
+    file_name = convert_wf32_to_dat(dedispersed_wf32_files[0], no_of_points_for_fft)
+    dedispersed_dat_files.append(file_name)
+    print('\n List of dedispersed DAT files: ', dedispersed_dat_files, '\n')
 
     print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
-
-    typesOfData = ['chA']
     result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-    dedispersed_data_file_list = ['DM_0.3_E280120_205409.jds']
-    ok = DAT_file_reader('', dedispersed_data_file_list[0], typesOfData, '', result_folder_name,
+    #dedispersed_dat_files = ['DM_0.3_E280120_205409.jds']
+    file_name = dedispersed_dat_files[0].replace('_Data_chA.dat', '')
+    ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10 ** (-12),
                          16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
