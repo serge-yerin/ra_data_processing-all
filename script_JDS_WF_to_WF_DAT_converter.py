@@ -2,19 +2,23 @@
 # pip install progress
 Software_version = '2020.07.03'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
-# Program intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files and make coherent dedispersion
-# !!! Time is not correct !!!
+# Program intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
+# and make coherent dedispersion
+# !!! Time possibly is not correct !!!
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
+pulsar_name = 'B0950+08'
 
 source_directory = 'DATA/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
-no_of_bunches_per_file = 16     # Number of bunches to read one file (depends on RAM volume)
-no_of_points_for_fft_spectr = 16384    # Number of true wf data points for FFT calculation # 8192, 16384, 32768, 65536, 131072 ...
-no_of_points_for_fft_dedisp = 16384
-no_of_spectra_in_bunch = 512
+dm_step = 1.0
+no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
+no_of_points_for_fft_dedisp = 16384     # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
+no_of_spectra_in_bunch = 512            # Number of spectra samples to read while conversion to dat (depends on RAM)
+no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
+
 typesOfData = ['chA']
 
 # ###############################################################################
@@ -43,7 +47,7 @@ from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-
+from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 # ###############################################################################
 # *******************************************************************************
@@ -213,7 +217,6 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         file_data_name -                name of file with processed data
     '''
 
-
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
@@ -251,10 +254,10 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         max_shift = np.abs(shift_vector[0])
 
         # Preparing buffer array
-        buffer_array = np.zeros((freq_points_num, 2 * max_shift), dtype='complex')
+        buffer_array = np.zeros((freq_points_num, 2 * max_shift), dtype='complex64')
 
-        print(' Maximal shift is:              ', max_shift, ' pixels ')
-        print(' Dispersion measure:            ', DM, ' pc / cm3 \n')
+        print(' Maximal shift is:                            ', max_shift, ' pixels ')
+        print(' Dispersion measure:                          ', DM, ' pc / cm3 ')
 
         # Calculation of number of blocks and number of spectra in the file
         no_of_spectra_in_bunch = max_shift
@@ -268,8 +271,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
         print(' Time resolution of calculated spectra:       ', round(real_spectra_dt*1000, 3), ' ms')
-        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df/1000, 3), ' kHz')
-        print('\n  *** Reading data from file *** \n')
+        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df/1000, 3), ' kHz \n')
 
         # !!! Fake timing. Real timing to be done!!!
         # *** Reading timeline file ***
@@ -307,7 +309,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
 
             # preparing matrices for spectra
-            spectra = np.zeros((no_of_points_for_fft_dedisp, max_shift), dtype='complex')
+            spectra = np.zeros((no_of_points_for_fft_dedisp, max_shift), dtype='complex64')
 
             # Calculation of spectra
             for i in range(no_of_spectra_in_bunch):
@@ -349,7 +351,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             '''
             
             #  Dispersion delay removing
-            data_space = np.zeros((freq_points_num, 2 * max_shift), dtype='complex')
+            data_space = np.zeros((freq_points_num, 2 * max_shift), dtype='complex64')
             data_space[:, max_shift:] = spectra[:, :]
             data_space = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
             del spectra
@@ -364,7 +366,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
                 # Saving time data to new file
                 for i in range(len(time_scale_bunch)):
-                    new_tl_file.write((time_scale_bunch[i][:]) + ' \n')
+                    new_tl_file.write((time_scale_bunch[i][:]) + '')
 
                 # Saving data with compensated DM
                 spectra = array_compensated_DM.copy()
@@ -488,9 +490,9 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         del file_header
 
         # *** Creating a name for long timeline TXT file ***
-        tl_file_name = file_data_name + '_Timeline.txt'
-        tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
-        tl_file.close()
+        #tl_file_name = file_data_name + '_Timeline.txt'
+        #tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
+        #tl_file.close()
 
         # Calculation of number of blocks and number of spectra in the file
         no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_spectr * 4))
@@ -582,15 +584,22 @@ if __name__ == '__main__':
 
     dedispersed_wf32_files = []
     dedispersed_dat_files = []
+    pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
     initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     print('\n List of WF32 files: ', initial_wf32_files, '\n')
 
-    # result_wf32_files = ['E280120_205409.jds_Data_chA.wf32']
-    print('\n\n  * Making coherent dispersion delay removing... \n\n')
-    file_name = coherent_wf_to_wf_dedispersion(0.3, initial_wf32_files[0], no_of_points_for_fft_dedisp)
+    #initial_wf32_files = ['E280120_205409.jds_Data_chA.wf32']
+    print('\n\n  * Making coherent dispersion delay removing... \n')
+
+    file_name = initial_wf32_files[0]
+    for i in range(int(pulsar_dm//dm_step)):  #
+        print('\n Step ', i , ' of ', int((pulsar_dm//dm_step)+1), '\n')
+        file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
+    print('\n Last step of ', pulsar_dm % dm_step, 6, ' pc/cm3')
+    file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
     dedispersed_wf32_files.append(file_name)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
