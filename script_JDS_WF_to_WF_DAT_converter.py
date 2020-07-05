@@ -4,6 +4,8 @@ Software_version = '2020.07.03'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
 # Program intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dedispersion
+# !!! Normalize data in DAT file !!!
+# !!! Make possibility to add data from chA and chB files !!!
 # !!! Time possibly is not correct !!!
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
@@ -16,7 +18,7 @@ result_directory = ''           # Directory where DAT files to be stored (empty 
 dm_step = 1.0
 no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
 no_of_points_for_fft_dedisp = 16384     # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
-no_of_spectra_in_bunch = 512            # Number of spectra samples to read while conversion to dat (depends on RAM)
+no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
 
 typesOfData = ['chA']
@@ -48,7 +50,7 @@ from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_s
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
-
+from package_ra_data_processing.spectra_normalization import Normalization_lin
 # ###############################################################################
 # *******************************************************************************
 #      W A V E F O R M   J D S   T O   W A V E F O R M    F L O A T 3 2         *
@@ -152,7 +154,6 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     wf_data = np.fromfile(file, dtype='i2', count = 2 * no_of_spectra_in_bunch * data_block_size)
                     wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
     
-    
                 # Timing
                 timeline_block_str = JDS_waveform_time(wf_data, clock_freq, data_block_size)
                 if channel == 2:                    # Two channels mode
@@ -164,7 +165,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 real_data_block_size = data_block_size - 4
                 wf_data = wf_data[0 : real_data_block_size, :]
     
-               # Separation data into channels
+                # Separation data into channels
                 if channel == 0 or channel == 1:    # Single channel mode
                     wf_data_chA = np.reshape(wf_data, [real_data_block_size * no_of_spectra_in_bunch, 1], order='F')
                     del wf_data                     # Deleting unnecessary array name just in case
@@ -238,7 +239,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         file_header = file.read(1024)
 
         # *** Creating a binary file with data for long data storage ***
-        file_data_name = 'DM_' + str(DM) + '_' + fname
+        file_data_name = 'DM_' + str(np.round(DM, 6)) + '_' + fname
         file_data = open(file_data_name, 'wb')
         file_data.write(file_header)
         file_data.close()
@@ -532,7 +533,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
                 time_scale_bunch.append(str(old_tl_file.readline()))
             # Saving time data to new file
             for i in range(len(time_scale_bunch)):
-                new_tl_file.write((time_scale_bunch[i][:]) + ' \n')
+                new_tl_file.write((time_scale_bunch[i][:]) + '')
 
             # Reading and reshaping data of the bunch
             wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
@@ -547,6 +548,8 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 
             # Storing only first (left) mirror part of spectra
             spectra = spectra[: int(no_of_points_for_fft_spectr/2), :]
+
+            spectra = Normalization_lin(spectra, int(no_of_points_for_fft_spectr/2), no_of_spectra_in_bunch)
 
             # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
             if int(clock_freq/1000000) == 33:
@@ -596,14 +599,14 @@ if __name__ == '__main__':
 
     file_name = initial_wf32_files[0]
     for i in range(int(pulsar_dm//dm_step)):  #
-        print('\n Step ', i , ' of ', int((pulsar_dm//dm_step)+1), '\n')
+        print('\n Step ', i+1, ' of ', int((pulsar_dm//dm_step)+1), '\n')
         file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
-    print('\n Last step of ', pulsar_dm % dm_step, 6, ' pc/cm3')
+    print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
     dedispersed_wf32_files.append(file_name)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
-    # dedispersed_wf32_files = ['DM_0.3_E280120_205409.jds_Data_chA.wf32']
+    #dedispersed_wf32_files = ['DM_0.96927_DM_1.0_DM_1.0_E310120_225435.jds_Data_chA.wf32']
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
     file_name = convert_wf32_to_dat(dedispersed_wf32_files[0], no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     dedispersed_dat_files.append(file_name)
