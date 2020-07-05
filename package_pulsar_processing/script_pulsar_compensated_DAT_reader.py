@@ -11,8 +11,10 @@ Software_name = 'Pulsar DM delay compensated DAT reader'
 common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = 'B0950+08_DM_2.973_E280120_223012.jds_Data_chA.dat'
+filename = 'DM_0.96927_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat'
 
+pulsar_name = 'B0950+08'
+normalize_response = 0            # Normalize (1) or not (0) the frequency response
 profile_pic_min = -0.15           # Minimum limit of profile picture
 profile_pic_max = 0.55            # Maximum limit of profile picture
 spectrum_pic_min = -0.2           # Minimum limit of dynamic spectrum picture
@@ -44,15 +46,18 @@ if __package__ is None:
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
-from package_common_modules.text_manipulations import find_between
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
+from package_ra_data_processing.spectra_normalization import Normalization_dB
 ################################################################################
-#*******************************************************************************
-#                         M A I N    F U N C T I O N                           *
-#*******************************************************************************
 
-def pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, profile_pic_max, spectrum_pic_min, spectrum_pic_max,
-                                        periods_per_fig, customDPI, colormap):
+
+# *******************************************************************************
+#                          M A I N    F U N C T I O N                           *
+# *******************************************************************************
+
+def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
+                                      profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
+                                      colormap):
 
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
@@ -63,7 +68,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, pr
         os.makedirs(result_path)
 
     # Finding pulsar name from file name
-    pulsar_name = find_between(filename, '', '_')
+    #pulsar_name = find_between(filename, '', '_')
 
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
@@ -91,7 +96,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, pr
 
         FreqPointsNum = len(frequency)
 
-    if df_filepath[-4:] == '.jds':     # If data obrained from DSPZ receiver
+    if df_filepath[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
@@ -117,7 +122,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, pr
 
 
     #  Data reading and making figures
-    print ('\n\n  *** Data reading and making figures *** \n\n')
+    print('\n\n  *** Data reading and making figures *** \n\n')
 
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
@@ -135,6 +140,8 @@ def pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, pr
         data = np.fromfile(data_file, dtype=np.float64, count = spectra_to_read * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
         data = 10*np.log10(data)
+        if normalize_response > 0:
+            Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
 
         # Preparing single averaged data profile for figure
         profile = data.mean(axis=0)[:]
@@ -175,15 +182,14 @@ def pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, pr
         pylab.savefig(result_path + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
         plt.close('all')
 
-
     data_file.close()
 
-#*******************************************************************************
-#                          M A I N    P R O G R A M                            *
-#*******************************************************************************
+
+# *******************************************************************************
+#                           M A I N    P R O G R A M                            *
+# *******************************************************************************
 
 if __name__ == '__main__':
-
 
     print ('\n\n\n\n\n\n\n\n   *****************************************************************')
     print('   *    ', Software_name, ' v.', Software_version,'    *      (c) YeS 2020')
@@ -194,9 +200,9 @@ if __name__ == '__main__':
     currentDate = time.strftime("%d.%m.%Y")
     print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
 
-
-    pulsar_period_DM_compensated_pics(common_path, filename, profile_pic_min, profile_pic_max, spectrum_pic_min, spectrum_pic_max,
-                                            periods_per_fig, customDPI, colormap)
+    pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
+                                      profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
+                                      colormap)
 
     endTime = time.time()    # Time of calculations
 
