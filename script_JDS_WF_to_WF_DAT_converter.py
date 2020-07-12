@@ -28,6 +28,7 @@ typesOfData = ['chA']
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 # Common functions
+import os
 import sys
 import time
 import pylab
@@ -45,6 +46,7 @@ if __package__ is None:
 # My functions
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
@@ -549,7 +551,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
             # Storing only first (left) mirror part of spectra
             spectra = spectra[: int(no_of_points_for_fft_spectr/2), :]
 
-            spectra = Normalization_lin(spectra, int(no_of_points_for_fft_spectr/2), no_of_spectra_in_bunch)
+            #spectra = Normalization_lin(spectra, int(no_of_points_for_fft_spectr/2), no_of_spectra_in_bunch)
 
             # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
             if int(clock_freq/1000000) == 33:
@@ -566,6 +568,119 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
     file.close()  # Close the data file
     return file_data_name
 
+
+# *******************************************************************************
+#         N O R M A L I Z A T I O N   O F   D A T   S P E C T R A               *
+# *******************************************************************************
+def normalize_dat_file(directory, filename):
+    '''
+    function calculates the average spectrum  in DAT file and normalizes all spectra in file to average spectra
+    Input parameters:
+        directory - name of directory with initial dat file
+        filename - name of initial dat file
+    Output parameters:
+        output_file_name -  name of result normalized .dat file
+    '''
+
+    output_file_name = directory + 'Norm_' + filename
+    filename = directory + filename
+
+    # *** Opening DAT datafile ***
+    file = open(filename, 'rb')
+
+    # *** Data file header read ***
+    df_filesize = os.stat(filename).st_size                         # Size of file
+    df_filename = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
+    file.close()
+
+    if df_filename[-4:] == '.adr':
+
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+                CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
+                NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine,
+                Width, BlockSize] = FileHeaderReaderADR(filename, 0, 0)
+
+    if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
+
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+                CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
+                df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(filename, 0, 0)
+
+    # Calculation of the dimensions of arrays to read
+    nx = len(frequency)                     # the first dimension of the array
+    ny = int(((df_filesize-1024)/(nx*8)))   # the second dimension of the array: file size - 1024 bytes
+
+    num_of_blocks = int(ny // 16384)
+
+    file = open(filename, 'rb')
+    file.seek(1024)
+    average_array = np.empty((nx, 0), float)
+    for block in range(num_of_blocks):
+        if block == (num_of_blocks-1):
+            spectra_num_in_bunch = ny - (num_of_blocks-1) * 16384
+        else:
+            spectra_num_in_bunch = 16384
+
+        data = np.fromfile(file, dtype=np.float64, count=nx * spectra_num_in_bunch)
+        data = np.reshape(data, [nx, spectra_num_in_bunch], order='F')
+        tmp = np.empty((nx, 1), float)
+        tmp[:, 0] = data.mean(axis=1)[:]
+        average_array = np.append(average_array, tmp, axis=1)  #
+
+    average_profile = average_array.mean(axis=1)
+
+    fig = plt.figure(figsize=(9, 5))
+    ax1 = fig.add_subplot(111)
+    ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00', label='Average spectra')
+    ax1.legend(loc='upper right', fontsize=6)
+    ax1.grid(b=True, which='both', color='silver', linestyle='-')
+    ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
+    ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
+    pylab.savefig('Averaged_spectra.png', bbox_inches='tight', dpi=160)
+    plt.close('all')
+
+    file.seek(0)
+    file_header = file.read(1024)
+    normalized_file = open(output_file_name, 'wb')
+    normalized_file.write(file_header)
+    del file_header
+
+    for block in range(num_of_blocks):
+        if block == (num_of_blocks - 1):
+            spectra_num_in_bunch = ny - (num_of_blocks - 1) * 16384
+        else:
+            spectra_num_in_bunch = 16384
+
+        data = np.fromfile(file, dtype=np.float64, count=nx * spectra_num_in_bunch)
+        data = np.reshape(data, [nx, spectra_num_in_bunch], order='F')
+        for i in range(spectra_num_in_bunch):
+            data[:, i] = data[:, i] / average_profile[:]
+        temp = data.transpose().copy(order='C')
+        normalized_file.write(np.float64(temp))
+    file.close()
+    normalized_file.close()
+
+    # *** Creating a new timeline TXT file for results ***
+    new_tl_file_name = output_file_name.split("_Data_ch", 1)[0] + '_Timeline.txt'
+    new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+    new_tl_file.close()
+
+    # *** Reading timeline file ***
+    old_tl_file_name = filename.split("_Data_ch", 1)[0] + '_Timeline.txt'
+    old_tl_file = open(old_tl_file_name, 'r')
+    new_tl_file = open(new_tl_file_name, 'w')
+
+    # Read time from timeline file
+    time_scale_bunch = old_tl_file.readlines()
+
+    # Saving time data to new file
+    for i in range(len(time_scale_bunch)):
+        new_tl_file.write((time_scale_bunch[i][:]) + '')
+
+    old_tl_file.close()
+    new_tl_file.close()
+
+    return output_file_name
 
 ################################################################################
 # *******************************************************************************
@@ -606,16 +721,19 @@ if __name__ == '__main__':
     dedispersed_wf32_files.append(file_name)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
-    #dedispersed_wf32_files = ['DM_0.96927_DM_1.0_DM_1.0_E310120_225435.jds_Data_chA.wf32']
+    #dedispersed_wf32_files = ['DM_0.96927_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.wf32']
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
     file_name = convert_wf32_to_dat(dedispersed_wf32_files[0], no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     dedispersed_dat_files.append(file_name)
     print('\n List of dedispersed DAT files: ', dedispersed_dat_files, '\n')
 
+    print('\n\n  * Making normalization of the dedispersed data... \n\n')
+    output_file_name = normalize_dat_file('', dedispersed_dat_files[0])
+
     print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
     result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
     # dedispersed_dat_files = ['DM_0.3_E280120_205409.jds']
-    file_name = dedispersed_dat_files[0].replace('_Data_chA.dat', '')
+    file_name = output_file_name.replace('_Data_chA.dat', '')
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10 ** (-12),
                          16.5, 33.0, '', '', 16.5, 33.0, [], 0)
