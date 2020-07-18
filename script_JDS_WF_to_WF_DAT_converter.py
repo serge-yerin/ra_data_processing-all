@@ -4,8 +4,6 @@ Software_version = '2020.07.03'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
 # Program intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dedispersion
-# !!! Normalize data in DAT file !!!
-# !!! Make possibility to add data from chA and chB files !!!
 # !!! Time possibly is not correct !!!
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
@@ -15,13 +13,12 @@ pulsar_name = 'B0950+08'
 source_directory = 'DATA/'      # Directory with JDS files to be analyzed
 result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
+make_sum = 1
 dm_step = 1.0
 no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
 no_of_points_for_fft_dedisp = 16384     # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
 no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
-
-typesOfData = ['chA']
 
 # ###############################################################################
 # *******************************************************************************
@@ -36,8 +33,6 @@ import numpy as np
 from os import path
 from progress.bar import IncrementalBar
 import matplotlib.pyplot as plt
-from matplotlib import rc
-
 
 # To change system path to main source_directory of the project:
 if __package__ is None:
@@ -52,11 +47,12 @@ from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_s
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
-from package_ra_data_processing.spectra_normalization import Normalization_lin
+from package_pulsar_processing.script_pulsar_compensated_DAT_reader import pulsar_period_DM_compensated_pics
 # ###############################################################################
 # *******************************************************************************
 #      W A V E F O R M   J D S   T O   W A V E F O R M    F L O A T 3 2         *
 # *******************************************************************************
+
 
 def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file):
     '''
@@ -198,14 +194,102 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     
         file.close()  # Close the data file
         del file_data_A
-        if channel == 2: del file_data_B
+        if channel == 2:
+            del file_data_B
 
     return result_wf32_files
+
+# *******************************************************************************
+#     M A K I N G   S U M   O F   T W O   F I L E S   I F   N E E D E D         *
+# *******************************************************************************
+
+
+def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
+    '''
+    Function that takes two wf32 files and makes sum of signals from these files in output wf32 file
+    '''
+
+    if   'chA' in file_name_1 and 'chB' in file_name_2:
+        result_file_name = file_name_1.replace('chA', 'wfA+B')
+    elif 'chB' in file_name_1 and 'chA' in file_name_2:
+        result_file_name = file_name_1.replace('chB', 'wfA+B')
+    else:
+        result_file_name = file_name_1[:-4] + '_sum_' + file_name_2
+
+    df_filesize_1 = os.stat(file_name_1).st_size                         # Size of file
+    df_filesize_2 = os.stat(file_name_2).st_size                         # Size of file
+    if df_filesize_1 != df_filesize_2:
+        print('  Size of file 1:    ', df_filesize_1, '\n  Size of file 2:', df_filesize_2)
+        sys.exit('   ERROR!!! Files have different sizes!')
+
+    # Calculation of the dimensions of arrays to read
+    ny = int((df_filesize_1 - 1024) / 4)   # number of samples to read: file size - 1024 bytes
+    num_of_blocks = int(ny // (no_of_spectra_in_bunch * 10000))
+
+    file_1 = open(file_name_1, 'rb')
+    file_2 = open(file_name_2, 'rb')
+    out_file = open(result_file_name, 'wb')
+
+    file_header = file_1.read(1024)
+    out_file.write(file_header)
+    del file_header
+    file_2.seek(1024)
+
+    bar = IncrementalBar(' Making sum of two signals: ', max=num_of_blocks - 1,
+                         suffix='%(percent)d%%')
+
+    for block in range(num_of_blocks):
+
+        bar.next()
+
+        if block == (num_of_blocks - 1):
+            samples_num_in_bunch = ny - (num_of_blocks - 1) * no_of_spectra_in_bunch * 10000
+        else:
+            samples_num_in_bunch = no_of_spectra_in_bunch * 10000
+
+        data_1 = np.fromfile(file_1, dtype=np.float32, count=samples_num_in_bunch)
+        data_2 = np.fromfile(file_2, dtype=np.float32, count=samples_num_in_bunch)
+        data = data_1 + data_2
+        #temp = data.copy(order='C')
+        #out_file.write(np.float32(temp))
+        out_file.write(np.float32(data).transpose().copy(order='C'))
+
+    bar.finish()
+    file_1.close()
+    file_2.close()
+    out_file.close()
+
+    #'''
+    # Making copy of timeline file with needed name and extension
+    initial_timeline_name = file_name_1.split('_Data')[0] + '_Timeline.wtxt'
+    result_timeline_name = result_file_name + '_Timeline.wtxt'
+
+    # Creating a new timeline TXT file for results
+    new_tl_file = open(result_timeline_name, 'w')  # Open and close to delete the file with the same name
+    new_tl_file.close()
+
+    # Reading timeline file
+    old_tl_file = open(initial_timeline_name, 'r')
+    new_tl_file = open(result_timeline_name, 'w')
+
+    # Read time from timeline file
+    time_scale_bunch = old_tl_file.readlines()
+
+    # Saving time data to new file
+    for i in range(len(time_scale_bunch)):
+        new_tl_file.write((time_scale_bunch[i][:]) + '')
+
+    old_tl_file.close()
+    new_tl_file.close()
+    #'''
+
+    return result_file_name
 
 
 # *******************************************************************************
 #        WAVEFORM FLOAT32 TO WAVEFORM FLOAT32 COHERENT DEDISPERSION             *
 # *******************************************************************************
+
 
 def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
     '''
@@ -454,6 +538,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 #          W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                *
 # *******************************************************************************
 
+
 def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch):
     '''
     function converts waveform data in .wf32 format to spectra in .dat format
@@ -492,11 +577,6 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         file_data.close()
         del file_header
 
-        # *** Creating a name for long timeline TXT file ***
-        #tl_file_name = file_data_name + '_Timeline.txt'
-        #tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
-        #tl_file.close()
-
         # Calculation of number of blocks and number of spectra in the file
         no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_spectr * 4))
 
@@ -514,12 +594,12 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
         # *** Creating a new timeline TXT file for results ***
-        new_tl_file_name = file_data_name.split("_Data_ch", 1)[0] + '_Timeline.txt'
+        new_tl_file_name = file_data_name.split('_Data_', 1)[0] + '_Timeline.txt'
         new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
         new_tl_file.close()
 
         # *** Reading timeline file ***
-        old_tl_file_name = fname.split("_Data_ch", 1)[0] + '_Timeline.wtxt'
+        old_tl_file_name = fname.split("_Data_", 1)[0] + '_Timeline.wtxt'
         old_tl_file = open(old_tl_file_name, 'r')
         new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
 
@@ -551,8 +631,6 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
             # Storing only first (left) mirror part of spectra
             spectra = spectra[: int(no_of_points_for_fft_spectr/2), :]
 
-            #spectra = Normalization_lin(spectra, int(no_of_points_for_fft_spectr/2), no_of_spectra_in_bunch)
-
             # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
             if int(clock_freq/1000000) == 33:
                 spectra = np.flipud(spectra)
@@ -572,7 +650,9 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 # *******************************************************************************
 #         N O R M A L I Z A T I O N   O F   D A T   S P E C T R A               *
 # *******************************************************************************
-def normalize_dat_file(directory, filename):
+
+
+def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
     '''
     function calculates the average spectrum  in DAT file and normalizes all spectra in file to average spectra
     Input parameters:
@@ -585,7 +665,7 @@ def normalize_dat_file(directory, filename):
     output_file_name = directory + 'Norm_' + filename
     filename = directory + filename
 
-    # *** Opening DAT datafile ***
+    # Opening DAT datafile
     file = open(filename, 'rb')
 
     # *** Data file header read ***
@@ -607,19 +687,19 @@ def normalize_dat_file(directory, filename):
                 df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(filename, 0, 0)
 
     # Calculation of the dimensions of arrays to read
-    nx = len(frequency)                     # the first dimension of the array
-    ny = int(((df_filesize-1024)/(nx*8)))   # the second dimension of the array: file size - 1024 bytes
+    nx = len(frequency)                           # the first dimension of the array
+    ny = int(((df_filesize - 1024) / (nx * 8)))   # the second dimension of the array: file size - 1024 bytes
 
-    num_of_blocks = int(ny // 16384)
+    num_of_blocks = int(ny // no_of_spectra_in_bunch)
 
     file = open(filename, 'rb')
     file.seek(1024)
     average_array = np.empty((nx, 0), float)
     for block in range(num_of_blocks):
         if block == (num_of_blocks-1):
-            spectra_num_in_bunch = ny - (num_of_blocks-1) * 16384
+            spectra_num_in_bunch = ny - (num_of_blocks-1) * no_of_spectra_in_bunch
         else:
-            spectra_num_in_bunch = 16384
+            spectra_num_in_bunch = no_of_spectra_in_bunch
 
         data = np.fromfile(file, dtype=np.float64, count=nx * spectra_num_in_bunch)
         data = np.reshape(data, [nx, spectra_num_in_bunch], order='F')
@@ -636,7 +716,7 @@ def normalize_dat_file(directory, filename):
     ax1.grid(b=True, which='both', color='silver', linestyle='-')
     ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-    pylab.savefig('Averaged_spectra.png', bbox_inches='tight', dpi=160)
+    pylab.savefig('Averaged_spectra_'+filename[:-4]+'.png', bbox_inches='tight', dpi=160)
     plt.close('all')
 
     file.seek(0)
@@ -647,9 +727,9 @@ def normalize_dat_file(directory, filename):
 
     for block in range(num_of_blocks):
         if block == (num_of_blocks - 1):
-            spectra_num_in_bunch = ny - (num_of_blocks - 1) * 16384
+            spectra_num_in_bunch = ny - (num_of_blocks - 1) * no_of_spectra_in_bunch
         else:
-            spectra_num_in_bunch = 16384
+            spectra_num_in_bunch = no_of_spectra_in_bunch
 
         data = np.fromfile(file, dtype=np.float64, count=nx * spectra_num_in_bunch)
         data = np.reshape(data, [nx, spectra_num_in_bunch], order='F')
@@ -661,12 +741,12 @@ def normalize_dat_file(directory, filename):
     normalized_file.close()
 
     # *** Creating a new timeline TXT file for results ***
-    new_tl_file_name = output_file_name.split("_Data_ch", 1)[0] + '_Timeline.txt'
+    new_tl_file_name = output_file_name.split('_Data_', 1)[0] + '_Timeline.txt'
     new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
     new_tl_file.close()
 
     # *** Reading timeline file ***
-    old_tl_file_name = filename.split("_Data_ch", 1)[0] + '_Timeline.txt'
+    old_tl_file_name = filename.split('_Data_', 1)[0] + '_Timeline.txt'
     old_tl_file = open(old_tl_file_name, 'r')
     new_tl_file = open(new_tl_file_name, 'w')
 
@@ -681,6 +761,7 @@ def normalize_dat_file(directory, filename):
     new_tl_file.close()
 
     return output_file_name
+
 
 ################################################################################
 # *******************************************************************************
@@ -704,39 +785,53 @@ if __name__ == '__main__':
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
+    #'''
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
     initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     print('\n List of WF32 files: ', initial_wf32_files, '\n')
+    #'''
 
-    #initial_wf32_files = ['E280120_205409.jds_Data_chA.wf32']
+    #initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+    if len(initial_wf32_files) > 1 and make_sum > 0:
+        print('\n\n  * Making sum of two WF32 files... \n')
+        file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
+        print('  Sum file:', file_name, '\n')
+        typesOfData = ['wfA+B']
+    else:
+        file_name = initial_wf32_files[0]  # [0] or [1]
+        typesOfData = ['chA']  # ['chA'] or ['chB']
+
     print('\n\n  * Making coherent dispersion delay removing... \n')
 
-    file_name = initial_wf32_files[0]
-    for i in range(int(pulsar_dm//dm_step)):  #
-        print('\n Step ', i+1, ' of ', int((pulsar_dm//dm_step)+1), '\n')
+    # file_name = 'E280120_205409.jds_Data_chA.wf32'
+    for i in range(int(pulsar_dm // dm_step)):  #
+        print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), '\n')
         file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
-    dedispersed_wf32_files.append(file_name)
+    # dedispersed_wf32_files.append(file_name)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
-    #dedispersed_wf32_files = ['DM_0.96927_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.wf32']
+
+    #file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
-    file_name = convert_wf32_to_dat(dedispersed_wf32_files[0], no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    dedispersed_dat_files.append(file_name)
-    print('\n List of dedispersed DAT files: ', dedispersed_dat_files, '\n')
+    file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    print('\n Dedispersed DAT file: ', file_name, '\n')
 
     print('\n\n  * Making normalization of the dedispersed data... \n\n')
-    output_file_name = normalize_dat_file('', dedispersed_dat_files[0])
+    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch)
+    #'''
+
+    print('\n\n  * Making figures of 3 pulsar periods... \n\n')
+    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15,
+                                      0.55, -0.2, 3.0, 3, 500, 'Greys')
 
     print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
     result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-    # dedispersed_dat_files = ['DM_0.3_E280120_205409.jds']
-    file_name = output_file_name.replace('_Data_chA.dat', '')
-    ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name,
-                         0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10 ** (-12),
-                         16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+    file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
+    ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
+                         0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
     endTime = time.time()
     print('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
