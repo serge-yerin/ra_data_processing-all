@@ -48,6 +48,7 @@ from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes impor
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_pulsar_processing.script_pulsar_compensated_DAT_reader import pulsar_period_DM_compensated_pics
+from package_pulsar_processing.script_pulsar_compensated_DAT_reader import cut_needed_pulsar_period_from_dat
 # ###############################################################################
 # *******************************************************************************
 #      W A V E F O R M   J D S   T O   W A V E F O R M    F L O A T 3 2         *
@@ -233,6 +234,7 @@ def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
     file_header = file_1.read(1024)
     out_file.write(file_header)
     del file_header
+    file_1.seek(1024)
     file_2.seek(1024)
 
     bar = IncrementalBar(' Making sum of two signals: ', max=num_of_blocks - 1,
@@ -249,7 +251,7 @@ def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
 
         data_1 = np.fromfile(file_1, dtype=np.float32, count=samples_num_in_bunch)
         data_2 = np.fromfile(file_2, dtype=np.float32, count=samples_num_in_bunch)
-        data = data_1 + data_2
+        data = np.add(data_1, data_2)
         #temp = data.copy(order='C')
         #out_file.write(np.float32(temp))
         out_file.write(np.float32(data).transpose().copy(order='C'))
@@ -259,7 +261,8 @@ def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
     file_2.close()
     out_file.close()
 
-    #'''
+    # Time line file copying
+
     # Making copy of timeline file with needed name and extension
     initial_timeline_name = file_name_1.split('_Data')[0] + '_Timeline.wtxt'
     result_timeline_name = result_file_name + '_Timeline.wtxt'
@@ -281,7 +284,6 @@ def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
 
     old_tl_file.close()
     new_tl_file.close()
-    #'''
 
     return result_file_name
 
@@ -785,14 +787,14 @@ if __name__ == '__main__':
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
-    #'''
+    '''
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
     initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     print('\n List of WF32 files: ', initial_wf32_files, '\n')
-    #'''
+    '''
 
-    #initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+    initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
     if len(initial_wf32_files) > 1 and make_sum > 0:
         print('\n\n  * Making sum of two WF32 files... \n')
         file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
@@ -832,6 +834,14 @@ if __name__ == '__main__':
     file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+
+    print('\n\n  * Cutting the data of found pulse ... \n  Examine 3 pulses pics and enter the number of period to cut:')
+    #  Manual input of the pulsar period where pulse is found
+    period_number   = int(input('\n    Enter the number of period where the pulse is:  '))
+    periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
+
+    cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number, -0.15,
+                                      0.55, -0.2, 3.0, periods_per_fig, 500, 'Greys')
 
     endTime = time.time()
     print('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
