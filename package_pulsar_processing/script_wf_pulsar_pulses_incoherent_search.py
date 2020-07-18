@@ -18,7 +18,7 @@ no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spect
 # *******************************************************************************
 from script_JDS_WF_reader import jds_wf_simple_reader
 from package_pulsar_processing.script_pulsar_single_pulses import pulsar_incoherent_dedispersion
-from package_pulsar_processing.script_pulsar_compensated_DAT_reader import pulsar_period_DM_compensated_pics
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 # ###############################################################################
 

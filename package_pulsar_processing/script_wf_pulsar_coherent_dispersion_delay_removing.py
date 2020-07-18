@@ -47,8 +47,8 @@ from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_s
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
-from package_pulsar_processing.script_pulsar_compensated_DAT_reader import pulsar_period_DM_compensated_pics
-from package_pulsar_processing.script_pulsar_compensated_DAT_reader import cut_needed_pulsar_period_from_dat
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import cut_needed_pulsar_period_from_dat
 # ###############################################################################
 # *******************************************************************************
 #      W A V E F O R M   J D S   T O   W A V E F O R M    F L O A T 3 2         *

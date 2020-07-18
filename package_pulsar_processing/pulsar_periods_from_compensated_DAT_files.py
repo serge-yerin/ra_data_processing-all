@@ -322,6 +322,7 @@ if __name__ == '__main__':
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
     print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
+
     '''
     pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
