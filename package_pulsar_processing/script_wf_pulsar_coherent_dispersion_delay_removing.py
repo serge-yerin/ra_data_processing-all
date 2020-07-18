@@ -1,17 +1,14 @@
 # Python3
 # pip install progress
-Software_version = '2020.07.03'
+Software_version = '2020.07.18'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
-# Program intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
-# and make coherent dedispersion
+# Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
+# and make coherent dispersion delay removing and saving found pulses
 # !!! Time possibly is not correct !!!
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 pulsar_name = 'B0950+08'
-
-source_directory = 'DATA/'      # Directory with JDS files to be analyzed
-result_directory = ''           # Directory where DAT files to be stored (empty string means project directory)
 
 make_sum = 1
 dm_step = 1.0
@@ -19,6 +16,9 @@ no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spe
 no_of_points_for_fft_dedisp = 16384     # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
 no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
+source_directory = 'DATA/'              # Directory with JDS files to be analyzed
+result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
+
 
 # ###############################################################################
 # *******************************************************************************
@@ -50,6 +50,7 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import cut_needed_pulsar_period_from_dat
 # ###############################################################################
+
 # *******************************************************************************
 #      W A V E F O R M   J D S   T O   W A V E F O R M    F L O A T 3 2         *
 # *******************************************************************************
@@ -199,6 +200,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
             del file_data_B
 
     return result_wf32_files
+
 
 # *******************************************************************************
 #     M A K I N G   S U M   O F   T W O   F I L E S   I F   N E E D E D         *
@@ -787,14 +789,14 @@ if __name__ == '__main__':
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
-    '''
+    #'''
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
     initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     print('\n List of WF32 files: ', initial_wf32_files, '\n')
-    '''
+    #'''
 
-    initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+    #initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
     if len(initial_wf32_files) > 1 and make_sum > 0:
         print('\n\n  * Making sum of two WF32 files... \n')
         file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
@@ -812,24 +814,25 @@ if __name__ == '__main__':
         file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
-    # dedispersed_wf32_files.append(file_name)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
-
-    #file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
+
+    # file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
     file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     print('\n Dedispersed DAT file: ', file_name, '\n')
 
     print('\n\n  * Making normalization of the dedispersed data... \n\n')
+
     output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch)
     #'''
 
     print('\n\n  * Making figures of 3 pulsar periods... \n\n')
-    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15,
-                                      0.55, -0.2, 3.0, 3, 500, 'Greys')
+
+    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys')
 
     print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
+
     result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
     file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
