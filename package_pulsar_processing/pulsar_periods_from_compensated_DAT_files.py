@@ -277,7 +277,9 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
 
     single_pulse_txt = open(result_path + '/' + filename + ' - Extracted pulse.txt', "w")
     for freq in range(len(frequency) - 1):
-        single_pulse_txt.write(''.join(format(data[freq, i], "12.5f") for i in range(spectra_to_read)) + ' \n')
+        #single_pulse_txt.write(' '.join(format(data[freq, i], "12.7e") for i in range(spectra_to_read)) + ' \n')
+        single_pulse_txt.write(' '.join('  {:+12.7E}'.format(data[freq, i]) for i in range(spectra_to_read)) + ' \n')
+
     single_pulse_txt.close()
 
     # Time line
@@ -337,7 +339,7 @@ def incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
 
     single_pulse_txt = open('Incoherent sum of extracted pulses.txt', "w")
     for freq in range(result_array.shape[0] - 1):
-        single_pulse_txt.write(''.join(format(result_array[freq, i], "12.5f") for i in range(result_array.shape[1])) + ' \n')
+        single_pulse_txt.write(' '.join('  {:+12.7E}'.format(result_array[freq, i]) for i in range(result_array.shape[1])) + ' \n')
     single_pulse_txt.close()
 
     # Making result picture
@@ -356,6 +358,47 @@ def incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
     plt.close('all')
 
     return 0
+
+
+
+def cut_needed_time_points_from_dat(filename, start_point, end_point):
+
+    currentTime = time.strftime("%H:%M:%S")
+    currentDate = time.strftime("%d.%m.%Y")
+
+    file = open(filename, 'r')
+    array = np.array([[float(digit) for digit in line.split()] for line in file])
+    file.close()
+
+    print('  Shape of the array: ', array.shape)
+
+    result_array = array[:, start_point : end_point]
+    del array
+
+    print('  Shape of result array:', result_array.shape)
+
+    single_pulse_txt = open('Incoherent sum of extracted pulses_selected_points.txt', "w")
+    for freq in range(result_array.shape[0] - 1):
+        single_pulse_txt.write(' '.join('  {:+12.7E}'.format(result_array[freq, i]) for i in range(result_array.shape[1])) + ' \n')
+    single_pulse_txt.close()
+
+    # Making result picture
+    fig = plt.figure(figsize=(9.2, 4.5))
+    rc('font', size=5, weight='bold')
+    ax2 = fig.add_subplot(111)
+    ax2.set_title('Cut time points: ' + str(start_point) + ' - ' + str(end_point), fontsize=5, fontweight='bold')
+    ax2.imshow(np.flipud(result_array), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max)
+    ax2.set_xlabel('Time points', fontsize=6, fontweight='bold')
+    ax2.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
+    fig.subplots_adjust(hspace=0.05, top=0.91)
+    fig.suptitle('Sum of two matrices', fontsize=7, fontweight='bold')
+    fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
+    pylab.savefig('Incoherent sum of extracted pulses_selected_points.png', bbox_inches='tight', dpi=customDPI)
+    plt.close('all')
+
+    return 0
+
 
 
 # *******************************************************************************
@@ -379,19 +422,25 @@ if __name__ == '__main__':
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap)
     
-
-    filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat'
+    
+    filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat'
     period_number = 23
     periods_per_fig = 1
     cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period_number, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap)
-    '''
-
+    
+    
     common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds/'
     filename_1 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat - Extracted pulse.txt'
     filename_2 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chB.dat - Extracted pulse.txt'
     incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
+    '''
+
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds/'
+    filename = 'Incoherent sum of extracted pulses.txt'
+    cut_needed_time_points_from_dat(common_path+filename, 420, 540)
+
 
     endTime = time.time()    # Time of calculations
 
