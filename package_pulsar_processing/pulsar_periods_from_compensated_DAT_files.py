@@ -307,6 +307,57 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     pylab.savefig(result_path + '/' + filename + ' - Extracted pulse.png', bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
+    return 0
+
+
+def incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2):
+    '''
+    Function takes two 2D txt files with matrices and adds the matrices, makes another txt file and a figure
+    '''
+
+    currentTime = time.strftime("%H:%M:%S")
+    currentDate = time.strftime("%d.%m.%Y")
+
+    file = open(common_path + filename_1, 'r')
+    array_1 = np.array([[float(digit) for digit in line.split()] for line in file])
+    file.close()
+
+    file = open(common_path + filename_2, 'r')
+    array_2 = np.array([[float(digit) for digit in line.split()] for line in file])
+    file.close()
+
+    print('  Shape of first array: ', array_1.shape)
+    print('  Shape of second array:', array_2.shape)
+    if array_1.shape != array_2.shape:
+        sys.exit('\n\n   Error!!! Arrays have different shapes!\n\n      Program stopped!')
+
+    result_array = array_1 + array_2
+    print('  Shape of result array:', result_array.shape)
+    del array_1, array_2
+
+    single_pulse_txt = open('Incoherent sum of extracted pulses.txt', "w")
+    for freq in range(result_array.shape[0] - 1):
+        single_pulse_txt.write(''.join(format(result_array[freq, i], "12.5f") for i in range(result_array.shape[1])) + ' \n')
+    single_pulse_txt.close()
+
+    # Making result picture
+    fig = plt.figure(figsize=(9.2, 4.5))
+    rc('font', size=5, weight='bold')
+    ax2 = fig.add_subplot(111)
+    ax2.set_title(filename_1 + ' + ' + filename_2, fontsize=5, fontweight='bold')
+    ax2.imshow(np.flipud(result_array), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max)
+    ax2.set_xlabel('Time points', fontsize=6, fontweight='bold')
+    ax2.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
+    fig.subplots_adjust(hspace=0.05, top=0.91)
+    fig.suptitle('Sum of two matrices', fontsize=7, fontweight='bold')
+    fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
+    pylab.savefig('Incoherent sum of extracted pulses.png', bbox_inches='tight', dpi=customDPI)
+    plt.close('all')
+
+    return 0
+
+
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
@@ -327,7 +378,7 @@ if __name__ == '__main__':
     pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap)
-    '''
+    
 
     filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat'
     period_number = 23
@@ -335,6 +386,12 @@ if __name__ == '__main__':
     cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period_number, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap)
+    '''
+
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds/'
+    filename_1 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat - Extracted pulse.txt'
+    filename_2 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chB.dat - Extracted pulse.txt'
+    incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
 
     endTime = time.time()    # Time of calculations
 
