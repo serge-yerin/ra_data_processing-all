@@ -9,7 +9,7 @@ Software_version = '2019.05.08'
 common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'B0809+74_DM_5.75_E280120_212713.jds_Data_chA.dat'
+filename = common_path + 'Norm_E300120_011142.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 #typesOfData = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
@@ -26,7 +26,7 @@ SpecFreqRange = 0                # Specify particular frequency range (1) or who
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 15                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 6                  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')

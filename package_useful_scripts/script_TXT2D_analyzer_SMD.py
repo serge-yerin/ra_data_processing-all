@@ -5,6 +5,7 @@
 #*************************************************************
 
 filename = 'DATA/Average profile vs DM 2D (initial DM).txt'
+filename = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat/Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat - Extracted pulse.txt'
 #filename = []
 
 # TXT files to be analyzed:
@@ -65,13 +66,6 @@ print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
 #                            R E A D I N G   D A T A                                *
 #************************************************************************************
 
-file = open(filename, 'r')
-param = []
-for line in file:
-    num = line.rstrip().split()
-    floatnum = [float(i) for i in num]
-    param.append(floatnum)
-file.close()
 
 
 param = np.array((param))

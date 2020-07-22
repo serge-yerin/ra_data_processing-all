@@ -15,7 +15,8 @@ def DM_full_shift_calc(freq_points, fmin, fmax, df, TimeRes, DM0, receiver_type)
     shiftPar = np.zeros((freq_points), dtype = 'int')            # number of steps to shift each row
 
     for i in range (freq_points):
-        dt[i] = (DM0 / 2.410331) * ((10000./math.pow((fmin + df * i), 2)) - (10000./math.pow(fmax, 2)))
+        #dt[i] = (DM0 / 2.410331) * ((10000./math.pow((fmin + df * i), 2)) - (10000./math.pow(fmax, 2)))
+        dt[i] = (DM0 / 2.4102873860269) * ((10000./math.pow((fmin + df * i), 2)) - (10000./math.pow(fmax, 2)))  # Constant from Alice
         #if receiver_type == '.adr':
         #    shiftPar[i] = -1 * round((1/2.) * pulsarPeriod * (dt[i] / pulsarPeriod - math.floor(dt[i] / pulsarPeriod)) / TimeRes)
         #if receiver_type == '.jds':
