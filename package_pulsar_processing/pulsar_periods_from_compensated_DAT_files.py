@@ -13,7 +13,7 @@ common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
 # Directory of DAT file to be analyzed:
 filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat'
 
-pulsar_name = 'B0950+08'
+pulsar_name = 'B0809+74' #'B0950+08'
 normalize_response = 0            # Normalize (1) or not (0) the frequency response
 profile_pic_min = -0.15           # Minimum limit of profile picture
 profile_pic_max = 0.55            # Maximum limit of profile picture
@@ -192,7 +192,6 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     data_file.close()
 
 
-
 def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period_number, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap):
@@ -300,7 +299,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     for i in range(len(text)-1):
         k = int(text[i])
         text[i] = fig_time_scale[k][11:23]
-    ax2.set_xticklabels(text, fontsize = 5, fontweight = 'bold')
+    ax2.set_xticklabels(text, fontsize=5, fontweight='bold')
     fig.subplots_adjust(hspace=0.05, top=0.91)
     fig.suptitle('Extracted single pulse of '+pulsar_name+' (DM: '+str(DM)+r' $\mathrm{pc \cdot cm^{-3}}$'+', Period: '+
                  str(p_bar) + ' s.)', fontsize=7, fontweight='bold')
@@ -360,8 +359,7 @@ def incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
     return 0
 
 
-
-def cut_needed_time_points_from_dat(filename, start_point, end_point):
+def cut_needed_time_points_from_txt(filename, start_point, end_point):
 
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
@@ -400,7 +398,6 @@ def cut_needed_time_points_from_dat(filename, start_point, end_point):
     return 0
 
 
-
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
@@ -423,9 +420,9 @@ if __name__ == '__main__':
                                       colormap)
     
     
-    filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat'
-    period_number = 23
-    periods_per_fig = 1
+    filename = 'Norm_DM_0.75066_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_212713.jds_Data_chA.dat'
+    period_number = 25
+    periods_per_fig = 2
     cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period_number, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap)
@@ -435,12 +432,11 @@ if __name__ == '__main__':
     filename_1 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat - Extracted pulse.txt'
     filename_2 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chB.dat - Extracted pulse.txt'
     incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
+    
     '''
-
-    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds/'
-    filename = 'Incoherent sum of extracted pulses.txt'
-    cut_needed_time_points_from_dat(common_path+filename, 420, 540)
-
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.75066_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_212713.jds_Data_chA.dat/'
+    filename = 'Norm_DM_0.75066_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_212713.jds_Data_chA.dat - Extracted pulse.txt'
+    cut_needed_time_points_from_txt(common_path+filename, 6100, 6300)
 
     endTime = time.time()    # Time of calculations
 
