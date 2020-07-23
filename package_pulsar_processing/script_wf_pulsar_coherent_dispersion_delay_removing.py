@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0950+08'
+pulsar_name = 'B0809+74'  # 'B0950+08'
 
 make_sum = 1
 dm_step = 1.0
@@ -77,6 +77,8 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         clock_freq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(source_directory + fileList[0], 0, 1)
+    if Mode > 0:
+        sys.exit('  ERROR!!! Data recorded in wrong mode! Waveform mode needed.\n\n    Program stopped!')
 
     result_wf32_files = []
     # Main loop by files start
@@ -253,9 +255,8 @@ def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
 
         data_1 = np.fromfile(file_1, dtype=np.float32, count=samples_num_in_bunch)
         data_2 = np.fromfile(file_2, dtype=np.float32, count=samples_num_in_bunch)
-        data = np.add(data_1, data_2)
-        #temp = data.copy(order='C')
-        #out_file.write(np.float32(temp))
+        #data = np.add(data_1, data_2)
+        data = data_1 + data_2
         out_file.write(np.float32(data).transpose().copy(order='C'))
 
     bar.finish()
