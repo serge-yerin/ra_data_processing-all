@@ -172,9 +172,9 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
         # Manually set frequencies for one channel mode
 
-        # if (Channel == 0 and int(CLCfrq/1000000) == 66) or (Channel == 1 and int(CLCfrq/1000000) == 66):
-        #    FreqPointsNum = 8192
-        #    frequency = np.linspace(0.0, 33.0, FreqPointsNum)
+        if (Channel == 0 and int(CLCfrq/1000000) == 66) or (Channel == 1 and int(CLCfrq/1000000) == 66):
+            FreqPointsNum = 8192
+            frequency = np.linspace(0.0, 33.0, FreqPointsNum)
 
         # Manually set frequencies for two channels mode
         if Channel == 2 or (Channel == 0 and int(CLCfrq/1000000) == 33) or (Channel == 1 and int(CLCfrq/1000000) == 33):
