@@ -72,33 +72,38 @@ def f_relay_control(host, port):
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.connect((host, port))
 
-    f_send_command_to_relay(serversocket, 0, 0) # Check status
+    # Check the relay current state
+    f_send_command_to_relay(serversocket, 0, 0)
 
-    time.sleep(3)
-    #f_send_command_to_relay(serversocket, 1, 'ON_ON-OFF')
-    f_send_command_to_relay(serversocket, 1, 'OFF_ON-OFF')
+    # Wait some time till the next command
+    time.sleep(5)
 
-    '''
-    f_send_command_to_relay(serversocket, 1, 'ON')
-    time.sleep(1)
-    f_send_command_to_relay(serversocket, 2, 'ON')
-    time.sleep(3)
-    f_send_command_to_relay(serversocket, 1, 'OFF')
-    time.sleep(1)
-    f_send_command_to_relay(serversocket, 2, 'OFF')
-    '''
+    # Turn OFF the ADR #1
+    # f_send_command_to_relay(serversocket, 1, 'OFF_ON-OFF')
+
+    # time.sleep(25)
+
+    # Turn ON the ADR #1
+    # f_send_command_to_relay(serversocket, 1, 'ON_ON-OFF')
+
+    # Turn OFF GURT central control unit
+    # f_send_command_to_relay(serversocket, 2, 'OFF')
+
+    # time.sleep(25)
+
+    # Turn ON GURT central control unit
+    # f_send_command_to_relay(serversocket, 2, 'ON')
 
     print('  Relay control finished!')
 
     return
 
-
-
 ################################################################################
 
 if __name__ == '__main__':
 
-    host = '10.0.15.170'
+    host = '192.168.1.170'
+    #host = '10.0.15.170'
     port = 6722
 
     print('\n\n * Connecting to the SR-201 relay... \n')
