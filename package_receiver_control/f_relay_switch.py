@@ -94,16 +94,17 @@ def f_relay_control(host, port):
     # Turn ON GURT central control unit
     # f_send_command_to_relay(serversocket, 2, 'ON')
 
-    print('  Relay control finished!')
+    print('\n  Relay control finished!')
 
     return
 
+
 ################################################################################
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     host = '192.168.1.170'
-    #host = '10.0.15.170'
+    # host = '10.0.15.170'
     port = 6722
 
     print('\n\n * Connecting to the SR-201 relay... \n')
