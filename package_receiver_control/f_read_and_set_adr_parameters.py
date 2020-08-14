@@ -12,9 +12,10 @@ import sys
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
 
+
 def f_read_adr_parameters_from_csv_file(parameters_file):
     '''
-    Function reads ADR receiver parameters from csv (txt) file and return a dictionary with parameters
+    Function reads ADR receiver parameters from csv (txt) file and returns a dictionary with parameters
     Input parameters:
         parameters_file         - path to parameters file (txt or csv)
     Output parameters:
@@ -35,6 +36,7 @@ def f_read_adr_parameters_from_csv_file(parameters_file):
             parameters_dict["clock_source"] = line[5]
             parameters_dict["sum_diff_mode_num"] = line[6]
             parameters_dict["chan_diff_delay"] = line[7]
+            parameters_dict["data_file_size"] = line[8]
 
     return parameters_dict
 
@@ -47,70 +49,75 @@ def f_read_adr_parameters_from_txt_file(parameters_file):
     Output parameters:
         parameters_dict         - dictionary with ADR receiver parameters
     '''
-    parameters_dict = {}
+    dict = {}
     file = open(parameters_file, "r")
     for line in file:
         if line.strip().startswith('#') or line.strip().startswith('Parameter'):
             pass
         else:
             line = line.strip().replace(' ', '').split(',')
-            if line[0] == 'ADR_mode':         parameters_dict["operation_mode_num"] = line[1]
-            if line[0] == 'FFT_size':         parameters_dict["FFT_size_samples"] = line[1]
-            if line[0] == 'Averaged_spectra': parameters_dict["spectra_averaging"] = line[1]
-            if line[0] == 'Start_freq_line':  parameters_dict["start_line_freq"] = line[1]
-            if line[0] == 'Width_freq_lines': parameters_dict["width_line_freq"] = line[1]
-            if line[0] == 'CLC_source':       parameters_dict["clock_source"] = line[1]
-            if line[0] == 'Sum_diff_mode':    parameters_dict["sum_diff_mode_num"] = line[1]
-            if line[0] == 'Dif_delay':        parameters_dict["chan_diff_delay"] = line[1]
+            if line[0] == 'ADR_mode':         dict["operation_mode_num"] = line[1]
+            if line[0] == 'FFT_size':         dict["FFT_size_samples"] = line[1]
+            if line[0] == 'Averaged_spectra': dict["spectra_averaging"] = line[1]
+            if line[0] == 'Start_freq_line':  dict["start_line_freq"] = line[1]
+            if line[0] == 'Width_freq_lines': dict["width_line_freq"] = line[1]
+            if line[0] == 'CLC_source':       dict["clock_source"] = line[1]
+            if line[0] == 'Sum_diff_mode':    dict["sum_diff_mode_num"] = line[1]
+            if line[0] == 'Dif_delay':        dict["chan_diff_delay"] = line[1]
+            if line[0] == 'File_size':        dict["data_file_size"] = line[1]
 
-    return parameters_dict
+    return dict
 
 
-def f_check_adr_parameters_correctness(parameters_dict):
+def f_check_adr_parameters_correctness(dict):
     '''
     Checks dictionary with ADR parameters to set for correct values
     '''
 
-    if int(parameters_dict["operation_mode_num"]) not in (0, 1, 2, 3, 4, 5, 6):
+    if int(dict["operation_mode_num"]) not in (0, 1, 2, 3, 4, 5, 6):
         print('\n  Error!!! Operation mode is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["FFT_size_samples"]) not in (2048, 4096, 8192, 16384, 32768):
+    if int(dict["FFT_size_samples"]) not in (2048, 4096, 8192, 16384, 32768):
         print('\n  Error!!! FFT size is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if (int(parameters_dict["spectra_averaging"]) < 16 or int(parameters_dict["spectra_averaging"]) > 32768):
+    if int(dict["spectra_averaging"]) < 16 or int(dict["spectra_averaging"]) > 32768:
         print('\n  Error!!! Spectra averaging number is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["start_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8):   # 0 … (SFFT-1024)/1024
+    if int(dict["start_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16):   # 0 … (SFFT-1024)/1024
         print('\n  Error!!! Start frequency line is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["width_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8):
+    if int(dict["width_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16):
         print('\n  Error!!! Frequency width line is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["width_line_freq"]) > ((int(parameters_dict["FFT_size_samples"]) - int(parameters_dict["start_line_freq"]) * 1024) / 2048): #1 … (SFFT-SLINE*1024)/1024
+    #if int(parameters_dict["width_line_freq"]) > ((int(parameters_dict["FFT_size_samples"]) - int(parameters_dict["start_line_freq"]) * 1024) / 2048): #1 … (SFFT-SLINE*1024)/1024
+    if int(dict["width_line_freq"]) > ((int(dict["FFT_size_samples"]) - int(dict["start_line_freq"]) * 1024) / 1024): #1 … (SFFT-SLINE*1024)/1024
         print('\n  Error!!! Frequency width is bigger than FFT size allows!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["clock_source"]) not in (0, 1):
+    if int(dict["clock_source"]) not in (0, 1):
         print('\n  Error!!! Clock source is wrong!\n')
         sys.exit('  Program stopped!')
 
-    if int(parameters_dict["sum_diff_mode_num"]) not in (0, 1):
+    if int(dict["sum_diff_mode_num"]) not in (0, 1):
         print('\n  Error!!! Sum-diff mode is wrong!\n')
+        sys.exit('  Program stopped!')
+    if int(dict["data_file_size"]) < -1 or int(dict["data_file_size"]) > 4096:
+        print('\n  Error!!! File size value is wrong!\n')
         sys.exit('  Program stopped!')
 
     '''
-    if (int(parameters_dict["chan_diff_delay"]) < 0 or int(parameters_dict["chan_diff_dalay"]) > 1024):
+    if (int(dict["chan_diff_delay"]) < 0 or int(parameters_dict["chan_diff_dalay"]) > 1024):
         print('\n  Error!!! Channel difference delay is wrong!\n')
         sys.exit('  Program stopped!')
     '''
     print('\n   ADR parameters from file are correct!\n')
 
-    return parameters_dict
+    return dict
 
 
 def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.5):
@@ -180,6 +187,12 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
     data = f_read_adr_meassage(serversocket, print_or_not)
     time.sleep(pause)
 
+    # DATA SAVING parameters
+    # serversocket.send((b"set prc/srv/ctl/srd 2 2048\0"))  # Data file size 2048 MB
+    serversocket.send(('set prc/srv/ctl/srd 2 ' + str(parameters_dict["data_file_size"]) + '\0').encode())
+    data = f_read_adr_meassage(serversocket, print_or_not)
+    time.sleep(pause)
+
     return
 
 
@@ -187,7 +200,7 @@ def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.
 
 if __name__ == '__main__':
 
-    parameters_file = 'service_data/Param_full_band_0.1s_4096_spectra.txt'
+    parameters_file = 'service_data/Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt'
 
     parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
     parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
@@ -195,4 +208,4 @@ if __name__ == '__main__':
     #f_set_adr_parameters_from_file(serversocket, parameters_dict, print_or_not, pause = 0.5):
 
     for y in parameters_dict:
-        print (y, ' : ', parameters_dict[y])
+        print(y, ' : ', parameters_dict[y])

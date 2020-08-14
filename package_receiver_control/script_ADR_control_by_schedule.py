@@ -161,10 +161,9 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     print ('   *            ', Software_name, '  v.', Software_version,'              *      (c) YeS 2020')
     print ('   ********************************************************************* \n\n\n')
 
-    #startTime = time.time()
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
-    print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
+    print('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
     # process only copied from receiver data
     if process_data > 0: copy_data = 1
@@ -172,31 +171,27 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     # Read schedule
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
 
-
     '''
     Check correctness and recalculate the parameters to variables sent to ADR receiver
     '''
 
     # Printing overall schedule
     print('\n   *********************** OBSERVATIONS SCHEDULE ***********************')
-    for obs_no in range (len(schedule)):
+    for obs_no in range(len(schedule)):
         print('   ' + schedule[obs_no][0] + ' - ' + schedule[obs_no][1] + '   DIR: ' + schedule[obs_no][6])
     print('   *********************************************************************')
 
-
     # Connect to the ADR receiver via socket
     serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
-
 
     # Check if the receiver is initialized, if it is not - initialize it
     serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
     data = f_read_adr_meassage(serversocket, 0)
 
-    if ('Failed!' in data or 'Stopped' in data):
+    if 'Failed!' in data or 'Stopped' in data:
 
         # Initialize ADR and set ADR parameters
         f_initialize_adr(serversocket, receiver_ip, 0)
-
 
     # Update synchronization of PC and ADR
     f_synchronize_adr(serversocket, receiver_ip, time_server)
@@ -228,13 +223,14 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         else:
             sys.exit('\n\n * ERROR! Time limits are wrong!!! \n\n')
 
-
         # Prepare directory for data recording
-        data_directory_name = schedule[obs_no][6]
-        serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())    # set directory to store data
+        dt_time = schedule[obs_no][0]  # Taking date from schedule start time
+        data_directory_name = dt_time[0:10].replace('-', '.') + '_GURT_' + schedule[obs_no][6]
+        serversocket.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())  # set directory to store data
         data = f_read_adr_meassage(serversocket, 0)
-        #if data.startswith('SUCCESS'):
-        #    print ('\n * Directory name changed to: ', data_directory_name)
+
+        # if data.startswith('SUCCESS'):
+        #     print ('\n * Directory name changed to: ', data_directory_name)
 
         # Set observation description:
         serversocket.send(('set prc/srv/ctl/dsc ' + schedule[obs_no][7] + '\0').encode())
@@ -246,22 +242,17 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
         f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
 
-
-
         # Requesting and printing current ADR parameters
         parameters_dict = f_get_adr_parameters(serversocket, 1)
 
-
-
         if obs_no+1 == len(schedule):
             message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-                      ' (IP: '+ receiver_ip +') was set. It will end on: ' + schedule[obs_no][1] + \
+                      ' (IP: ' + receiver_ip + ') was set. It will end on: ' + schedule[obs_no][1] + \
                       '. Please, consider adding of a new schedule!'
             try:
                 test = telegram_bot_sendtext(telegram_chat_id, message)
             except:
                 pass
-
 
         # Waiting time to start record
         print('\n * Waiting time to synchronize and start recording...')
@@ -281,7 +272,6 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         data = f_read_adr_meassage(serversocket, 0)
         if data.startswith('SUCCESS'):
             print ('\n * Recording stopped')
-
 
         # Sending message to Telegram
         message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
@@ -317,11 +307,10 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         for obs_no in range(len(schedule)):
             p_processing[obs_no].join()
 
-
-
-    print ('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
+    print('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
 
 ################################################################################
+
 
 if __name__ == '__main__':
 
