@@ -24,10 +24,13 @@ import os
 import sys
 import time
 import pylab
+from scipy import ndimage
 import numpy as np
 from os import path
 from progress.bar import IncrementalBar
+from matplotlib import rc
 import matplotlib.pyplot as plt
+
 
 # To change system path to main source_directory of the project:
 if __package__ is None:
@@ -47,7 +50,7 @@ from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import 
 from package_pulsar_processing.script_wf_pulsar_coherent_dispersion_delay_removing import convert_jds_wf_to_wf32
 # ###############################################################################
 
-# Linearization of data
+
 def phase_linearization_rad(matrix):
     '''
     Makes a vector of phase values linear without 360 deg subtraction
@@ -67,23 +70,12 @@ def phase_linearization_rad(matrix):
     return matrix_lin
 
 
-def strided_app(a, L, S ):  # Window len = L, Stride len/stepsize = S
-    nrows = ((a.size-L)//S)+1
-    n = a.strides[0]
-    return np.lib.stride_tricks.as_strided(a, shape=(nrows,L), strides=(S*n,n))
-
-
 def median_filter(data, window_len):
-    fitered_data = np.median(strided_app(data, window_len, 1), axis=1)
+    fitered_data = ndimage.median_filter(data, size=window_len)
     return fitered_data
 
 
-def minimal_filter(data, window_len):
-    fitered_data = np.min(strided_app(data, window_len, 1), axis=1)
-    return fitered_data
-
-
-def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, plot_or_not):
+def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, filter_or_not, plot_or_not):
     '''
         function reads two wf32 waveform data files and make correlation of the data to calibrate observations
         Input parameters:
@@ -161,11 +153,13 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, p
             plt.close('all')
 
         cross_spectrum_abs = np.abs(cross_spectrum_av[no_of_points_for_fft//2:])
-        cross_spectrum_abs = median_filter(cross_spectrum_abs, 30)
+        if filter_or_not:
+            cross_spectrum_abs = median_filter(cross_spectrum_abs, 30)
 
         cross_spectrum_arg = np.angle(cross_spectrum_av[no_of_points_for_fft//2:])
         cross_spectrum_arg = phase_linearization_rad(cross_spectrum_arg)
-        cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
+        if filter_or_not:
+            cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
 
         if plot_or_not:
             fig = plt.figure(figsize=(18, 10))
@@ -335,18 +329,19 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
     return result_wf32_files
 
 
-def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data):
+def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of_points_for_fft):
 
-    fileList = find_and_check_files_in_current_folder(path_to_calibr_data, '.jds')
+    file_list = find_and_check_files_in_current_folder(path_to_calibr_data, '.jds')
 
     labels = []
     ampl_data = []
     angl_data = []
+    file_names = []
 
     # Main loop by files start
-    for file_no in range(len(fileList)):  # loop by files
+    for file_no in range(len(file_list)):  # loop by files
 
-        fname = path_to_calibr_data + fileList[file_no]
+        fname = path_to_calibr_data + file_list[file_no]
 
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -354,33 +349,43 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data):
          df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
         labels.append(df_system_name + ' ' + df_description.replace('_', ' '))
+        file_names.append(df_filename)
 
-        print('\n  Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(fileList),'\n')
+        print('\n  Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(file_list),'\n')
 
         wf32_files = convert_one_jds_wf_to_wf32(fname, result_directory, 16)
 
-        ampl_corr, angle_corr = correlate_two_wf32_signals(wf32_files[0], wf32_files[1], no_of_points_for_fft, False)
+        ampl_corr, angle_corr = correlate_two_wf32_signals(wf32_files[0], wf32_files[1], no_of_points_for_fft, True, False)
         ampl_data.append(ampl_corr)
         angl_data.append(angle_corr)
 
-    fig = plt.figure(figsize=(24, 14))
+    # Plot calibration correlation matrix
+    rc('font', size=10, weight='bold')
+    fig = plt.figure(figsize=(18, 10))
     fig.suptitle('Calibration matrix of waveform signals correlation', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(211)
+    ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
     for i in range(len(ampl_data)):
-        ax1.plot(np.log10(ampl_data[i]), linestyle='-', linewidth='1.00', label=labels[i])
+        ax1.plot(np.log10(ampl_data[i]), linestyle='-', linewidth='1.30', label=labels[i])
     ax1.legend(loc='upper right', fontsize=10)
-    ax1.set(xlim=(0, 8192))
+    ax1.set(xlim=(0, no_of_points_for_fft//2))
     ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
     ax2 = fig.add_subplot(212)
     for i in range(len(angl_data)):
-        ax2.plot(angl_data[i], linestyle='-', linewidth='1.00', label=labels[i])
-    ax2.set(xlim=(0, 8192))
+        ax2.plot(angl_data[i], linestyle='-', linewidth='1.30', label=labels[i])
+    ax2.set(xlim=(0, no_of_points_for_fft//2))
     ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
-    fig.subplots_adjust(hspace=0.05, top=0.94)
+    fig.subplots_adjust(hspace=0.07, top=0.94)
     pylab.savefig('Calibration_matrix.png', bbox_inches='tight', dpi=160)
     plt.close('all')
+
+    # Save phase matrix to txt file
+    phase_txt_file = open('Calibration_' + file_names[0] + '-' + file_names[-1] + '_correlation_phase.txt', "w")
+    for freq in range(no_of_points_for_fft//2):
+        phase_txt_file.write(' '.join('  {:+12.7E}'.format(angl_data[i][freq]) for i in range(len(angl_data))) + ' \n')
+    phase_txt_file.close()
 
     return
 
@@ -413,7 +418,7 @@ if __name__ == '__main__':
     # initial_wf32_files = ['E300120_233404.jds_Data_chA.wf32', 'E300120_233404.jds_Data_chB.wf32']
     # correlate_two_wf32_signals(initial_wf32_files[0], initial_wf32_files[1], no_of_points_for_fft, False)
 
-    obtain_calibr_matrix_for_2_channel_wf_calibration(source_directory)
+    obtain_calibr_matrix_for_2_channel_wf_calibration(source_directory, no_of_points_for_fft)
 
     endTime = time.time()
     print('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
