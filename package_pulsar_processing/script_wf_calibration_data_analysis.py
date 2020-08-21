@@ -306,7 +306,7 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
     no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
 
     print('  Number of blocks in file:                  ', no_of_blocks_in_file)
-    print('  Number of bunches to read in file:         ', no_of_bunches_per_file)
+    print('  Number of bunches to read in file:         ', no_of_bunches_per_file, '\n')
     #print('\n  *** Reading data from file *** \n')
 
     # *******************************************************************************
@@ -323,7 +323,7 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
 
         time_scale_bunch = []
 
-        bar = IncrementalBar('\n File reading: ', max=no_of_bunches_per_file, suffix='%(percent)d%%')
+        bar = IncrementalBar('  File reading: ', max=no_of_bunches_per_file, suffix='%(percent)d%%')
 
         for bunch in range(no_of_bunches_per_file):
 
@@ -451,6 +451,27 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         pylab.savefig(result_path + 'Signal_spectra_' + file_names[i] + '.png', bbox_inches='tight', dpi=160)
         plt.close('all')
 
+        # Plot calibration correlation matrix
+        rc('font', size=10, weight='bold')
+        fig = plt.figure(figsize=(18, 10))
+        fig.suptitle('Calibration matrix of waveform signals correlation for ' + file_list[i] +
+                     ' (' + labels[i] + ')', fontsize=12, fontweight='bold')
+        ax1 = fig.add_subplot(211)
+        ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
+        ax1.plot(np.log10(ampl_data[i]), linestyle='-', linewidth='1.30', label='Correlation amplitude')
+        ax1.legend(loc='upper right', fontsize=10)
+        ax1.set(xlim=(0, no_of_points_for_fft // 2))
+        ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
+        ax2 = fig.add_subplot(212)
+        ax2.plot(angl_data[i], linestyle='-', linewidth='1.30', label='Correlation phase')
+        ax2.set(xlim=(0, no_of_points_for_fft // 2))
+        ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+        ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=10)
+        fig.subplots_adjust(hspace=0.07, top=0.94)
+        pylab.savefig(result_path + 'WF_signal_correlation_' + file_names[i] + '.png', bbox_inches='tight', dpi=160)
+        plt.close('all')
+
     # Plot calibration spectra matrix
     rc('font', size=10, weight='bold')
     fig = plt.figure(figsize=(18, 10))
@@ -495,11 +516,14 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     pylab.savefig(result_path + 'Calibration_matrix_wf_correlation.png', bbox_inches='tight', dpi=160)
     plt.close('all')
 
-    # Save phase matrix to txt file
-    phase_txt_file = open(result_path + 'Calibration_' + file_names[0] + '-' + file_names[-1] + '_correlation_phase.txt', "w")
-    for freq in range(no_of_points_for_fft//2):
-        phase_txt_file.write(' '.join('  {:+12.7E}'.format(angl_data[i][freq]) for i in range(len(angl_data))) + ' \n')
-    phase_txt_file.close()
+    # Save phase matrix to txt files
+    for i in range(len(file_list)):
+        # phase_txt_file = open(result_path + 'Calibration_' + file_names[0] + '-' + file_names[-1] + '_correlation_phase.txt', "w")
+        phase_txt_file = open(result_path + 'Calibration_' + file_names[i] + '_correlation_phase.txt', "w")
+        for freq in range(no_of_points_for_fft//2):
+            # phase_txt_file.write(' '.join('  {:+12.7E}'.format(angl_data[i][freq]) for i in range(len(angl_data))) + ' \n')
+            phase_txt_file.write(''.join(' {:+12.7E}'.format(angl_data[i][freq])) + ' \n')
+        phase_txt_file.close()
 
     return
 
