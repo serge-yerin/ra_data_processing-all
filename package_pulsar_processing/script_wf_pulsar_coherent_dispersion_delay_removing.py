@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0809+74'  # 'B0950+08'
+pulsar_name = 'B0950+08'  # 'B0950+08'
 
 make_sum = 1
 dm_step = 1.0
@@ -18,9 +18,9 @@ no_of_spectra_in_bunch = 16384          # Number of spectra samples to read whil
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
-calibrate_phase = True                  # Do we need to calibrate phases between two channels?
+calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
-phase_calibr_file_name = 'Calibration_E300120_233256.jds-E300120_233256.jds_correlation_phase.txt'
+phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 # ###############################################################################
 # *******************************************************************************
@@ -46,12 +46,13 @@ from package_common_modules.find_and_check_files_in_current_folder import find_a
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
+from package_ra_data_processing.filtering import median_filter
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
-from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import cut_needed_pulsar_period_from_dat
+from package_astronomy.catalogue_pulsar import catalogue_pulsar
 # ###############################################################################
 
 # *******************************************************************************
@@ -210,7 +211,153 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
 # *******************************************************************************
 #        WAVEFORM FLOAT32 TO WAVEFORM FLOAT32 COHERENT DEDISPERSION             *
 # *******************************************************************************
+#
+#
+# def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of_spectra_in_bunch, phase_calibr_txt_file):
+#     '''
+#     function reads waveform data in wf32 format, makes FFT, cuts the symmetrical half of the spectra and
+#     multiplies complex data by phase calibration data read from txt file. Then a symmetrcal part of spectra
+#     are made and joined to the shifted one, inverse FFT as applied and data are stored in waveform wf32 format
+#     Input parameters:
+#         fname -                         name of file with initial wf32 data
+#         no_of_points_for_fft_dedisp -   number of waveform data points to use for FFT
+#         phase_calibr_txt_file -         txt file with phase calibration data
+#     Output parameters:
+#         file_data_name -                name of file with calibrated data
+#     !!! Reads only number of batches, not the whole file, fix this !!!
+#
+#     '''
+#
+#     # Rename the data file to make the new data file of the same name as initial one
+#     non_calibrated_fname = fname[:-5] + '_without_phase_calibration' + '.wf32'
+#     calibrated_fname = fname
+#     print('\n  Phase calibration of one channel \n')
+#     print('  Old filename of initial file:  ', calibrated_fname)
+#     print('  New filename of initial file:  ', non_calibrated_fname)
+#
+#     os.rename(calibrated_fname, non_calibrated_fname)
+#
+#     #  *** Data file header read ***
+#     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+#      clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+#      df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
+#
+#     # Read phase calibration txt file
+#     phase_calibr_file = open(phase_calibr_txt_file, 'r')
+#     phase_vs_freq = []
+#     for line in phase_calibr_file:
+#         phase_vs_freq.append(np.float(line))
+#     phase_calibr_file.close()
+#
+#     # Making second mirror copy of the phase
+#     second_phase_half = phase_vs_freq.copy()
+#     second_phase_half = np.flipud(second_phase_half)
+#     phase_vs_freq = np.concatenate((second_phase_half, phase_vs_freq), axis=0)
+#
+#     fig = plt.figure(figsize=(9, 5))
+#     ax1 = fig.add_subplot(111)
+#     ax1.plot(phase_vs_freq, linestyle='-', linewidth='1.00', label='Phase to add')
+#     ax1.legend(loc='upper right', fontsize=6)
+#     ax1.grid(b=True, which='both', color='silver', linestyle='-')
+#     ax1.set_ylabel('Phase, a.u.', fontsize=6, fontweight='bold')
+#     pylab.savefig('00_Phase to add.png', bbox_inches='tight', dpi=160)
+#     plt.close('all')
+#
+#     # Converting phase to complex numbers
+#     cmplx_phase = np.zeros((len(phase_vs_freq)), dtype=np.complex)
+#     for i in range(len(phase_vs_freq)):
+#         cmplx_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
+#
+#     # Create long data files and copy first data file header to them
+#     # with open(non_calibrated_fname, 'rb') as file:
+#     non_calibr_file_data = open(non_calibrated_fname, 'rb')
+#     # *** Data file header read ***
+#     file_header = non_calibr_file_data.read(1024)
+#
+#     # *** Creating a binary file with data for long data storage ***
+#     calibr_file_data = open(calibrated_fname, 'wb')
+#     calibr_file_data.write(file_header)
+#     calibr_file_data.close()
+#     del file_header
+#
+#     # Calculation of number of blocks and number of spectra in the file
+#     # no_of_bunches_per_file = np.int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_dedisp * 4))
+#     no_of_spectra_per_file = int((df_filesize - 1024) / (no_of_points_for_fft_dedisp * 4))
+#     no_of_bunches_per_file = math.ceil(no_of_spectra_per_file / no_of_spectra_in_bunch)
+#     print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
+#     print('  Number of batches per file:    ', no_of_bunches_per_file, '')
+#     print('  Number of spectra per file:    ', no_of_spectra_per_file, '\n')
+#
+#     non_calibr_file_data.seek(1024)  # Jumping to 1024 byte from file beginning
+#
+#     # bar = IncrementalBar(' Phase calibration of the file: ', max=no_of_bunches_per_file - 1,
+#     #                     suffix='%(percent)d%%')
+#
+#     for bunch in range(no_of_bunches_per_file):
+#
+#         if bunch < no_of_bunches_per_file-1:
+#             pass
+#         else:
+#             no_of_spectra_in_bunch = no_of_spectra_per_file - bunch * no_of_spectra_in_bunch
+#             print(' Last bunch ', bunch, ', spectra in bunch: ', no_of_spectra_in_bunch)
+#
+#         #bar.next()
+#
+#         # Reading and reshaping all data with time data
+#         wf_data = np.fromfile(non_calibr_file_data, dtype='f4',
+#                               count=no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
+#
+#         wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
+#
+#         # preparing matrices for spectra
+#         spectra = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch), dtype='complex64')
+#
+#         # Calculation of spectra
+#         for i in range(no_of_spectra_in_bunch):
+#             spectra[:, i] = np.fft.fft(wf_data[:, i])
+#         del wf_data
+#
+#         '''
+#         fig = plt.figure(figsize=(9, 5))
+#         ax1 = fig.add_subplot(111)
+#         ax1.plot(10 * np.log10(np.power(np.abs(spectra[:, 0]), 2)), linestyle='-', linewidth='1.00',
+#                  label='Initial spectra before cut')
+#         ax1.legend(loc='upper right', fontsize=6)
+#         ax1.grid(b=True, which='both', color='silver', linestyle='-')
+#         ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
+#         pylab.savefig('00_Initial_doubled_imm_spectra' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
+#         plt.close('all')
+#         '''
+#
+#         # Add phase to the data (multiply by complex number)
+#
+#         for i in range (no_of_spectra_in_bunch):
+#             spectra[:, i] = spectra[:, i] * cmplx_phase[:]
+#
+#         # Preparing array for new waveform
+#         wf_data = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch))
+#
+#         # Making IFFT
+#         for i in range(no_of_spectra_in_bunch):
+#             wf_data[:, i] = np.real(np.fft.ifft(spectra[:, i]))
+#         del spectra
+#
+#         # Reshaping the waveform to single dimension (real)
+#         wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp * no_of_spectra_in_bunch, 1], order='F')
+#
+#         # Saving waveform data to wf32 file
+#         calibr_file_data = open(calibrated_fname, 'ab')
+#         calibr_file_data.write(np.float32(wf_data).transpose().copy(order='C'))  # C
+#         calibr_file_data.close()
+#
+#     #bar.finish()
+#
+#     return
 
+
+# *******************************************************************************
+#     M A K I N G   S U M   O F   T W O   F I L E S   I F   N E E D E D         *
+# *******************************************************************************
 
 def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of_spectra_in_bunch, phase_calibr_txt_file):
     '''
@@ -223,8 +370,6 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
         phase_calibr_txt_file -         txt file with phase calibration data
     Output parameters:
         file_data_name -                name of file with calibrated data
-    !!! Reads only number of batches, not the whole file, fix this !!!
-
     '''
 
     # Rename the data file to make the new data file of the same name as initial one
@@ -248,11 +393,6 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
         phase_vs_freq.append(np.float(line))
     phase_calibr_file.close()
 
-    # Making second mirror copy of the phase
-    second_phase_half = phase_vs_freq.copy()
-    second_phase_half = np.flipud(second_phase_half)
-    phase_vs_freq = np.concatenate((second_phase_half, phase_vs_freq), axis=0)
-
     fig = plt.figure(figsize=(9, 5))
     ax1 = fig.add_subplot(111)
     ax1.plot(phase_vs_freq, linestyle='-', linewidth='1.00', label='Phase to add')
@@ -268,9 +408,7 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
         cmplx_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
 
     # Create long data files and copy first data file header to them
-    # with open(non_calibrated_fname, 'rb') as file:
     non_calibr_file_data = open(non_calibrated_fname, 'rb')
-    # *** Data file header read ***
     file_header = non_calibr_file_data.read(1024)
 
     # *** Creating a binary file with data for long data storage ***
@@ -280,7 +418,6 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
     del file_header
 
     # Calculation of number of blocks and number of spectra in the file
-    # no_of_bunches_per_file = np.int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_dedisp * 4))
     no_of_spectra_per_file = int((df_filesize - 1024) / (no_of_points_for_fft_dedisp * 4))
     no_of_bunches_per_file = math.ceil(no_of_spectra_per_file / no_of_spectra_in_bunch)
     print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
@@ -289,8 +426,8 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
 
     non_calibr_file_data.seek(1024)  # Jumping to 1024 byte from file beginning
 
-    # bar = IncrementalBar(' Phase calibration of the file: ', max=no_of_bunches_per_file - 1,
-    #                     suffix='%(percent)d%%')
+    bar = IncrementalBar(' Phase calibration of the file: ', max=no_of_bunches_per_file - 1,
+                         suffix='%(percent)d%%')
 
     for bunch in range(no_of_bunches_per_file):
 
@@ -298,9 +435,9 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
             pass
         else:
             no_of_spectra_in_bunch = no_of_spectra_per_file - bunch * no_of_spectra_in_bunch
-            print(' Last bunch ', bunch, ', spectra in bunch: ', no_of_spectra_in_bunch)
+            # print(' Last bunch ', bunch, ', spectra in bunch: ', no_of_spectra_in_bunch)
 
-        #bar.next()
+        bar.next()
 
         # Reading and reshaping all data with time data
         wf_data = np.fromfile(non_calibr_file_data, dtype='f4',
@@ -316,20 +453,7 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
             spectra[:, i] = np.fft.fft(wf_data[:, i])
         del wf_data
 
-        '''
-        fig = plt.figure(figsize=(9, 5))
-        ax1 = fig.add_subplot(111)
-        ax1.plot(10 * np.log10(np.power(np.abs(spectra[:, 0]), 2)), linestyle='-', linewidth='1.00',
-                 label='Initial spectra before cut')
-        ax1.legend(loc='upper right', fontsize=6)
-        ax1.grid(b=True, which='both', color='silver', linestyle='-')
-        ax1.set_ylabel('Intensity, a.u.', fontsize=6, fontweight='bold')
-        pylab.savefig('00_Initial_doubled_imm_spectra' + str(bunch) + '.png', bbox_inches='tight', dpi=160)
-        plt.close('all')
-        '''
-
         # Add phase to the data (multiply by complex number)
-
         for i in range (no_of_spectra_in_bunch):
             spectra[:, i] = spectra[:, i] * cmplx_phase[:]
 
@@ -349,14 +473,9 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
         calibr_file_data.write(np.float32(wf_data).transpose().copy(order='C'))  # C
         calibr_file_data.close()
 
-    #bar.finish()
+    bar.finish()
 
     return
-
-
-# *******************************************************************************
-#     M A K I N G   S U M   O F   T W O   F I L E S   I F   N E E D E D         *
-# *******************************************************************************
 
 
 def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
@@ -871,9 +990,23 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
     ax1.grid(b=True, which='both', color='silver', linestyle='-')
     ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-    pylab.savefig('Averaged_spectra_'+filename[:-4]+'.png', bbox_inches='tight', dpi=160)
+    pylab.savefig('Averaged_spectra_'+filename[:-4]+'_before_filtering.png', bbox_inches='tight', dpi=160)
     plt.close('all')
 
+    # Apply median filter to average profile
+    average_profile = median_filter(average_profile, 30)
+
+    fig = plt.figure(figsize=(9, 5))
+    ax1 = fig.add_subplot(111)
+    ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00', label='Average spectra')
+    ax1.legend(loc='upper right', fontsize=6)
+    ax1.grid(b=True, which='both', color='silver', linestyle='-')
+    ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
+    ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
+    pylab.savefig('Averaged_spectra_'+filename[:-4]+'_after_filtering.png', bbox_inches='tight', dpi=160)
+    plt.close('all')
+
+    # Normalization
     file.seek(0)
     file_header = file.read(1024)
     normalized_file = open(output_file_name, 'wb')
@@ -940,78 +1073,76 @@ if __name__ == '__main__':
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
+    # '''
+    print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
-    # #'''
-    # print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
-    #
-    # initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
-    # print('\n List of WF32 files: ', initial_wf32_files, '\n')
-    # #'''
-    #
-    # if len(initial_wf32_files) > 1 and calibrate_phase:
-    #     print('\n\n  * Making phase calibration of wf32 file... \n')
-    #     wf32_two_cahnnel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, phase_calibr_file_name)
-    #
-    # #initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
-    # if len(initial_wf32_files) > 1 and make_sum > 0:
-    #     print('\n\n  * Making sum of two WF32 files... \n')
-    #     file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
-    #     print('  Sum file:', file_name, '\n')
-    #     typesOfData = ['wfA+B']
-    # else:
-    #     file_name = initial_wf32_files[0]  # [0] or [1]
-    #     typesOfData = ['chA']  # ['chA'] or ['chB']
-    #
-    # print('\n\n  * Making coherent dispersion delay removing... \n')
-    #
-    # # file_name = 'E280120_205409.jds_Data_chA.wf32'
-    # for i in range(int(pulsar_dm // dm_step)):  #
-    #     print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), '\n')
-    #     file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
-    # print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
-    # file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
-    # print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
-    #
-    # print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
-    #
-    # # file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
-    # file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    # print('\n Dedispersed DAT file: ', file_name, '\n')
-    #
-    # print('\n\n  * Making normalization of the dedispersed data... \n\n')
-    #
-    # output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch)
-    # #'''
-    #
-    # print('\n\n  * Making figures of 3 pulsar periods... \n\n')
-    #
-    # pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys')
-    #
-    # print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
-    #
-    # result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-    # file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
-    # ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
-    #                      0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
-    #
-    # print('\n\n  * Cutting the data of found pulse ... \n  Examine 3 pulses pics and enter the number of period to cut:')
-    # #  Manual input of the pulsar period where pulse is found
-    # period_number   = int(input('\n    Enter the number of period where the pulse is:  '))
-    # periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
-    #
-    # cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number, -0.15,
-    #                                   0.55, -0.2, 3.0, periods_per_fig, 500, 'Greys')
-    #
+    initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
+    print('\n List of WF32 files: ', initial_wf32_files, '\n')
+    # '''
 
-    phase_calibr_txt_file = 'Calibration_E300120_232956.jds_correlation_phase.txt'
-    fname = 'E300120_232956.jds_Data_chB.wf32'
-    phase_calibr = True
-    no_of_spectra_in_bunch = 128
-    if phase_calibr:
-        wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
-                                       phase_calibr_txt_file)
+    if len(initial_wf32_files) > 1 and calibrate_phase:
+        print('\n\n  * Making phase calibration of wf32 file... \n')
+        wf32_two_cahnnel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
+                                            phase_calibr_txt_file)
+
+    #initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+    if len(initial_wf32_files) > 1 and make_sum > 0:
+        print('\n\n  * Making sum of two WF32 files... \n')
+        file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
+        print('  Sum file:', file_name, '\n')
+        typesOfData = ['wfA+B']
+    else:
+        file_name = initial_wf32_files[0]  # [0] or [1]
+        typesOfData = ['chA']  # ['chA'] or ['chB']
+
+    print('\n\n  * Making coherent dispersion delay removing... \n')
+
+    # file_name = 'E280120_205409.jds_Data_chA.wf32'
+    for i in range(int(pulsar_dm // dm_step)):  #
+        print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), '\n')
+        file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
+    print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
+    file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
+    print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
+
+    print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
+
+    # file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
+    # typesOfData = ['wfA+B']
+
+    initial_tl_fname = file_name + '_Timeline.wtxt'
+    new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
+    os.rename(initial_tl_fname, new_tl_fname)
+
+    file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    print('\n Dedispersed DAT file: ', file_name, '\n')
+
+    print('\n\n  * Making normalization of the dedispersed data... \n\n')
+
+    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch)
+    # '''
+
+    print('\n\n  * Making figures of 3 pulsar periods... \n\n')
+
+    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys')
+
+    print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
+
+    result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
+    file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
+    ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
+                         0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+
+    print('\n\n  * Cutting the data of found pulse ... \n\n  Examine 3 pulses pics and enter the number of period to cut:')
+    #  Manual input of the pulsar period where pulse is found
+    period_number   = int(input('\n    Enter the number of period where the pulse is:  '))
+    periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
+
+    cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number, -0.15,
+                                      0.55, -0.2, 3.0, periods_per_fig, 500, 'Greys')
 
     endTime = time.time()
+
     print('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                     round((endTime - startTime)/60, 2), 'min. ) \n')
     print('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
