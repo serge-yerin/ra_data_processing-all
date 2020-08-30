@@ -25,10 +25,9 @@ periods_per_fig = 3
 customDPI = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
-
-#*******************************************************************************
-#                    I M P O R T    L I B R A R I E S                          *
-#*******************************************************************************
+# *******************************************************************************
+#                     I M P O R T    L I B R A R I E S                          *
+# *******************************************************************************
 import os
 import sys
 import numpy as np
@@ -37,6 +36,7 @@ import pylab
 import matplotlib.pyplot as plt
 from os import path
 from matplotlib import rc
+from matplotlib.gridspec import GridSpec
 from progress.bar import IncrementalBar
 
 # To change system path to main directory of the project:
@@ -381,14 +381,27 @@ def cut_needed_time_points_from_txt(filename, start_point, end_point):
     single_pulse_txt.close()
 
     # Making result picture
-    fig = plt.figure(figsize=(9.2, 4.5))
+    fig = plt.figure(figsize=(9.2, 4.5)) # constrained_layout=True
+    gs = GridSpec(3, 3, figure=fig)
     rc('font', size=5, weight='bold')
-    ax2 = fig.add_subplot(111)
-    ax2.set_title('Cut time points: ' + str(start_point) + ' - ' + str(end_point), fontsize=5, fontweight='bold')
-    ax2.imshow(np.flipud(result_array), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max)
+    ax1 = fig.add_subplot(gs[0:2, 0:2])
+    ax1.set_title('Cut time points: ' + str(start_point) + ' - ' + str(end_point), fontsize=5, fontweight='bold')
+    ax1.imshow(np.flipud(result_array), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max)
+    # ax1.set_xlabel('Time points', fontsize=6, fontweight='bold')
+    ax1.xaxis.set_ticklabels([])
+    ax1.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
+    ax2 = fig.add_subplot(gs[2, 0:2])
+    ax2.plot(np.mean(result_array, axis=0), linewidth='0.50')
+    ax2.set_xlim(xmin=0, xmax=result_array.shape[1])
     ax2.set_xlabel('Time points', fontsize=6, fontweight='bold')
-    ax2.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
-    fig.subplots_adjust(hspace=0.05, top=0.91)
+    ax3 = fig.add_subplot(gs[0:2, 2])
+    ax3.plot(np.mean(result_array, axis=1), linewidth='0.50')
+    ax3.set_xlim(xmin=0, xmax=result_array.shape[0])
+    ax3.set_xlabel('Frequency points', fontsize=6, fontweight='bold')
+    ax3.yaxis.set_ticklabels([])
+    ax4 = fig.add_subplot(gs[2, 2])
+    ax4.axis('off')
+    fig.subplots_adjust(hspace=0.00, wspace=0.02, top=0.91)
     fig.suptitle('Sum of two matrices', fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
@@ -432,11 +445,11 @@ if __name__ == '__main__':
     filename_1 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chA.dat - Extracted pulse.txt'
     filename_2 = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_chB.dat - Extracted pulse.txt'
     incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
-    
     '''
-    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.75066_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_212713.jds_Data_chA.dat/'
-    filename = 'Norm_DM_0.75066_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_212713.jds_Data_chA.dat - Extracted pulse.txt'
-    cut_needed_time_points_from_txt(common_path+filename, 6100, 6300)
+
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat/'
+    filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat - Extracted pulse.txt'
+    cut_needed_time_points_from_txt(common_path + filename, 470, 520)
 
     endTime = time.time()    # Time of calculations
 
