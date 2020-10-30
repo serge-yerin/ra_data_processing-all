@@ -27,7 +27,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
             time_resolution =  find_parameter_value(line, 'DT:')
             start_frequency =  find_parameter_value(line, 'FSTART:')
             stop_frequency =   find_parameter_value(line, 'FSTOP:')
-            data_directory =   find_parameter_value(line, 'DIR:')
+            data_directory =   find_parameter_value(line, 'NAME:')
             file_description = find_parameter_value(line, 'DESCR:')
             param_file_name =  find_parameter_value(line, 'PARAM:')
         elif line.strip().startswith('STOP:'):

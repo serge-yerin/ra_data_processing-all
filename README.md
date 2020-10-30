@@ -3,7 +3,7 @@ Scripts and functions for visualizing and processing of radio astronomy data,
 mainly from Ukrainian low-frequency radio telescopes UTR-2, URAN, GURT.
 
 Additional libraries needed: 
-numpy, matplotlib, astropy, progress, requests, pandas, pexpect
+numpy, matplotlib, astropy, scipy, progress, requests, pandas, pexpect
 
 Each script has a so-called header, several lines in the beginning of the script
 with all variables to be defined by user, so user does not need to search needed

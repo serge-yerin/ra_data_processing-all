@@ -5,9 +5,9 @@ Software_version = '2020.06.24'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/server2a/PSR_2020.01/B1237p25_30_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'
+directory = '/media/server2a/PSRs_Feb-C_2019/PSR_B0809p74_WF_08-09_Feb_2019/'
 
-pulsar_name = 'B1237+25'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08'
+pulsar_name = 'B0809+74'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
 
@@ -16,6 +16,13 @@ no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spect
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
+import sys
+from os import path
+
+# To change system path to main source_directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
 from script_JDS_WF_reader import jds_wf_simple_reader
 from package_pulsar_processing.script_pulsar_single_pulses import pulsar_incoherent_dedispersion
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
@@ -39,7 +46,7 @@ ok = DAT_file_reader('', results_files_list[0][:-13], typesOfData, '', result_fo
                      0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
                      16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
-# results_files_list = ['E280120_205409.jds_Data_chA.dat']
+#results_files_list = ['E080219_200543.jds_Data_chA.dat']
 
 print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
