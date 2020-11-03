@@ -79,12 +79,12 @@ def f_relay_control(host, port):
     f_send_command_to_relay(serversocket, 0, 0)
 
     # Wait some time till the next command
-    time.sleep(5)
+    time.sleep(15)
 
     # Turn OFF the ADR #1
     # f_send_command_to_relay(serversocket, 1, 'OFF_ON-OFF')
 
-    # time.sleep(25)
+    # time.sleep(45)
 
     # Turn ON the ADR #1
     # f_send_command_to_relay(serversocket, 1, 'ON_ON-OFF')
@@ -92,12 +92,18 @@ def f_relay_control(host, port):
     # Turn OFF GURT central control unit
     # f_send_command_to_relay(serversocket, 2, 'OFF')
 
-    # time.sleep(25)
+    # time.sleep(45)
 
     # Turn ON GURT central control unit
-    # f_send_command_to_relay(serversocket, 2, 'ON')
+    f_send_command_to_relay(serversocket, 2, 'ON')
 
-    print('\n  Relay control finished!')
+    # Wait some time till the next command
+    time.sleep(15)
+
+    # Check the relay current state
+    f_send_command_to_relay(serversocket, 0, 0)
+
+    print('\n  Relay control program finished!')
 
     return
 
