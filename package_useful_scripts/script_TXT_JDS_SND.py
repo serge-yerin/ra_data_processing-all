@@ -6,20 +6,23 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
+common_path =  '' #'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
 filename = []
 
 y_auto = 0
-Vmin = -110
+Vmin = -120
 Vmax =  -30
 
-# TXT files to be analyzed:
-sky_file = common_path + 'Specter_C141019_211935.txt'
-off_file = common_path + 'Specter_C141019_215835.txt'
-open_file = common_path + 'Specter_C141019_213054.txt'
-short_file = common_path + 'Specter_C141019_212543.txt'
+subband_number = 1 # 1 or 2 if the record was obtained in two JDS channels with band splitting
+# channel_number = 1 # 0 or 1 relevant if subband number == 1, else == 0
 
-customDPI = 300                     # Resolution of images of dynamic spectra
+# TXT files to be analyzed:
+sky_file = common_path + 'Specter_B201102_235517.txt'
+# off_file = common_path + 'Specter_C141019_215835.txt'
+open_file = common_path + 'Specter_B201102_235702.txt'
+short_file = common_path + 'Specter_B201102_235829.txt'
+
+customDPI = 400                     # Resolution of images of dynamic spectra
 
 ################################################################################
 #*******************************************************************************
@@ -39,7 +42,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_common_modules.text_manipulations import read_frequency_and_two_values_txt
-
+from package_common_modules.text_manipulations import read_date_time_and_one_value_txt
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -66,42 +69,52 @@ if not os.path.exists(newpath):
 #*******************************************************************************
 
 # *** Reading files ***
-[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([sky_file])
-
+#[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([sky_file])
+[x_value, y1_value] = read_date_time_and_one_value_txt ([sky_file])
 
 freq_num = len(x_value[0])
-frequencies = np.zeros(2 * freq_num)
-sky_responce = np.zeros(2 * freq_num)
+frequencies = np.zeros(subband_number * freq_num)
+sky_responce = np.zeros(subband_number * freq_num)
+
+
 
 for i in range(freq_num):
     frequencies[i] = x_value[0][i]
-    frequencies[i + freq_num] = x_value[0][i] + 33.0
+    #frequencies[i + freq_num] = x_value[0][i] + 33.0
 
 for i in range(freq_num):
     sky_responce[i] = y1_value[0][i]
-    sky_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
+    # sky_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
+
+    #sky_responce[i] = y2_value[0][i]
 
 
-[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([off_file])
+# [x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([off_file])
+#
+# off_responce = np.zeros(2 * freq_num)
+# for i in range(freq_num):
+#     off_responce[i] = y1_value[0][i]
+#     off_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
 
-off_responce = np.zeros(2 * freq_num)
-for i in range(freq_num):
-    off_responce[i] = y1_value[0][i]
-    off_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
+#[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([open_file])
+[x_value, y1_value] = read_date_time_and_one_value_txt ([open_file])
 
-[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([open_file])
-
-open_responce = np.zeros(2 * freq_num)
+open_responce = np.zeros(subband_number * freq_num)
 for i in range(freq_num):
     open_responce[i] = y1_value[0][i]
-    open_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
+    # open_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
 
-[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([short_file])
+    #open_responce[i] = y2_value[0][i]
 
-short_responce = np.zeros(2 * freq_num)
+#[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([short_file])
+[x_value, y1_value] = read_date_time_and_one_value_txt ([short_file])
+
+short_responce = np.zeros(subband_number * freq_num)
 for i in range(freq_num):
     short_responce[i] = y1_value[0][i]
-    short_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
+    # short_responce[i + freq_num] = y2_value[0][freq_num - i - 1]
+
+    #short_responce[i] = y2_value[0][i]
 
 
 #*******************************************************************************
@@ -117,7 +130,7 @@ rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (9, 5))
 ax1 = fig.add_subplot(111)
 ax1.plot(frequencies, sky_responce, color = 'C0', label = 'Sky')
-ax1.plot(frequencies, off_responce, color = 'C1', label = 'Power OFF')
+#ax1.plot(frequencies, off_responce, color = 'C1', label = 'Power OFF')
 ax1.plot(frequencies, open_responce, color = 'C2', label = 'Open circuit (XX)')
 ax1.plot(frequencies, short_responce, color = 'C3', label = 'Short circuit (KZ)')
 ax1.legend(loc = 'upper right', fontsize = 6)
@@ -137,7 +150,7 @@ plt.close('all')
 rc('font', size = 6, weight='bold')
 fig = plt.figure(figsize = (9, 5))
 ax1 = fig.add_subplot(111)
-ax1.plot(frequencies, sky_responce - off_responce, color = 'C1', label = 'Sky - Power OFF')
+#ax1.plot(frequencies, sky_responce - off_responce, color = 'C1', label = 'Sky - Power OFF')
 ax1.plot(frequencies, sky_responce - open_responce, color = 'C2', label = 'Sky - Open circuit (XX)')
 ax1.plot(frequencies, sky_responce - short_responce, color = 'C3', label = 'Sky - Short circuit (KZ)')
 ax1.legend(loc = 'upper right', fontsize = 6)

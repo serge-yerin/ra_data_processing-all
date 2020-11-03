@@ -27,8 +27,9 @@ def read_date_time_and_one_value_txt (filenamelist):
         y_val = []
         for line in file:
             words = line.rstrip().split()
-            x_val.append(words[0] + ' ' + words[1])
-            y_val.append(float(words[2]))
+            x_val.append(words[0]) #+ ' ' + words[1])
+            #y_val.append(float(words[2]))
+            y_val.append(float(words[1]))
         file.close()
 
         x_value.append(x_val)
