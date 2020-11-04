@@ -7,7 +7,7 @@ Software_name = 'JDS reader (single folder)'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/2019.09.27_UTR2_3C405_Interf_sect_09-12/'  #'h:/2019.09.29_UTR2_3C461_Interf_sect_10-11/'
+directory = 'DATA/'  #'h:/2019.09.29_UTR2_3C461_Interf_sect_10-11/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -15,7 +15,7 @@ RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 15                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
