@@ -133,8 +133,8 @@ def file_header_reader_rpr(filepath, start_byte, print_or_not):
 
     # *** Frequency calculation (in MHz) ***
     df = F_ADC / FFT_Size
-    # freq_points_num = int(Width * 1024)                # Number of frequency points in specter
-    freq_points_num = int(Width * 2048)                # Number of frequency points in specter
+    # freq_points_num = int(Width * 1024)                # Number of frequency points in spectrum
+    freq_points_num = int(Width * 2048)                # Number of frequency points in spectrum
     f0 = (SLine * 1024 * df)
     frequency = [0 for col in range(freq_points_num)]
     for i in range (0, freq_points_num):

@@ -13,8 +13,8 @@ path_to_data = 'DATA/' # 'h:/To_process/'
 print_or_not = 1              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
-Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
-Vmax = -50                    # Upper limit of figure dynamic range for initial spectra
+Vmin = 200                   # Lower limit of figure dynamic range for initial spectra
+Vmax = 600                     # Upper limit of figure dynamic range for initial spectra
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
@@ -22,12 +22,12 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 customDPI = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveInitial = 1        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
+SpectrumFileSaveSwitch = 1     # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
+ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
@@ -154,21 +154,21 @@ for folder_no in range (num_of_folders):
                     RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                     VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, 0, 1, 1, 1, 1, 0,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpecterFileSaveSwitch, ImmediateSpNo, print_or_not)
+                    SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)
 
-    # print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
-    #
-    # # Making path to folder with result pictures
-    # if where_save_pics == 0:
-    #     DAT_result_path = path_to_DAT_files
-    # else:
-    #     DAT_result_path = list_of_folder_names[folder_no]
-    #
-    # # Run DAT reader for the results of current folder
-    # done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
-    #                               averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
-    #                             RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
-    #
+    print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
+
+    # Making path to folder with result pictures
+    if where_save_pics == 0:
+        DAT_result_path = path_to_DAT_files
+    else:
+        DAT_result_path = list_of_folder_names[folder_no]
+
+    # Run DAT reader for the results of current folder
+    done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
+                                  averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                                RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+
 
 
 endTime = time.time()    # Time of calculations

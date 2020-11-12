@@ -249,8 +249,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             istart = A.index(min(A))
             istop = B.index(min(B))
             if print_or_not == 1:
-                print('\n Start specter number is:          ', istart)
-                print('\n Stop specter number is:           ', istop)
+                print('\n Start spectrum number is:         ', istart)
+                print('\n Stop spectrum number is:          ', istop)
                 print('\n Total number of spectra to read:  ', istop - istart)
 
         # Calculation of the dimensions of arrays to read
