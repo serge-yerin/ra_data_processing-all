@@ -133,7 +133,8 @@ def file_header_reader_rpr(filepath, start_byte, print_or_not):
 
     # *** Frequency calculation (in MHz) ***
     df = F_ADC / FFT_Size
-    freq_points_num = int(Width * 1024)                # Number of frequency points in specter
+    # freq_points_num = int(Width * 1024)                # Number of frequency points in specter
+    freq_points_num = int(Width * 2048)                # Number of frequency points in specter
     f0 = (SLine * 1024 * df)
     frequency = [0 for col in range(freq_points_num)]
     for i in range (0, freq_points_num):
@@ -141,16 +142,16 @@ def file_header_reader_rpr(filepath, start_byte, print_or_not):
 
     if print_or_not == 1:
         print(' Real frequency resolution:     ', round(df/1000., 3), ' kHz')
-        print(' Frequency band:                ', round(frequency[0],3), ' - ', round(frequency[freq_points_num-1]+(df/pow(10,6)),3), ' MHz')
+        print(' Frequency band:                ', round(frequency[0],3), ' - ', round(frequency[-1]+(df/pow(10,6)),3), ' MHz')
         print('')
 
     file.close()
 
-    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode, NAvr, TimeRes, frequency[0], frequency[freq_points_num-1], df, frequency, FFT_Size, SLine, Width, BlockSize
+    return df_filename, df_filesize, df_system_name, df_obs_place, df_description, F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode, NAvr, TimeRes, frequency[0], frequency[-1], df, frequency, FFT_Size, SLine, Width, BlockSize
 
 ################################################################################
 
-def ChunkHeaderReaderADR(filepath, start_byte, BlockSize, print_or_not):
+def chunk_header_reader_rpr(filepath, start_byte, BlockSize, print_or_not):
     '''
     Reads info from ADR (.adr) data file from chunk headerand returns parameters to the main script
     Input parameters:
@@ -221,4 +222,4 @@ if __name__ == '__main__':
     print('\n\n * Parameters of the chunk in data file: ')
 
     [SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,
-        frm_sec, frm_phase] = ChunkHeaderReaderADR(filename, 0, BlockSize, 1)
+        frm_sec, frm_phase] = chunk_header_reader_rpr(filename, 0, BlockSize, 1)

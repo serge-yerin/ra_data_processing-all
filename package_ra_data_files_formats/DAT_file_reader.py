@@ -379,7 +379,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         'Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*time_resolution,3))+' sec.)')
 
         TwoOrOneValuePlot(1, frequency, array[:,[1]], [],
-                    'Spectrum', ' ', frequency[0], frequency[freq_points_num-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz', 
+                    'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
                     YaxName, ' ', Suptitle, Title,
                     newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] + ' Immediate Spectrum.png',
                     currentDate, currentTime, Software_version)
