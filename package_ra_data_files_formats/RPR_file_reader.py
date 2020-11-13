@@ -28,7 +28,6 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
                     SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not):
 
-    # currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
 
     if not os.path.exists(result_path):
@@ -111,7 +110,6 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                 figMAX = int(math.ceil((ChunksInFile) / MaxNim))
                 if figMAX < 1: figMAX = 1
                 for fig in range (figMAX):
-                    # Time1 = time.time()               # Timing
                     figID = figID + 1
                     currentTime = time.strftime("%H:%M:%S")
                     if print_or_not > 0: print ('   File # ', str(fileNo+1), ' of ', str(len(fileList)), ', figure # ',
@@ -124,10 +122,10 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     # *** Preparing empty matrices ***
                     if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
                         Data_Ch_A = np.zeros((Nim * SpInFrame * FrameInChunk, freq_points_num))
-                        Data_Ch_A0 = np.zeros((Nim * SpInFrame * FrameInChunk, freq_points_num))
+                        # Data_Ch_A0 = np.zeros((Nim * SpInFrame * FrameInChunk, freq_points_num))
                     if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:
                         Data_Ch_B = np.zeros((Nim * SpInFrame * FrameInChunk, freq_points_num))
-                        Data_Ch_B0 = np.zeros((Nim * SpInFrame * FrameInChunk, freq_points_num))
+                        # Data_Ch_B0 = np.zeros((Nim * SpInFrame * FrameInChunk, freq_points_num))
 
                     TimeScale = []
                     TimeFigureScale = []  # Timelime (new) for each figure
@@ -147,10 +145,10 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     # Arranging data in right order
                     if ADRmode == 3:
                         data = np.reshape(data, [freq_points_num, Nim*FrameInChunk*SpInFrame], order='F')
-                        Data_Ch_A0 = data[0:freq_points_num:1, :].transpose()
+                        # Data_Ch_A0 = data[0:freq_points_num:1, :].transpose()
                     if ADRmode == 4:
                         data = np.reshape(data, [freq_points_num, Nim*FrameInChunk*SpInFrame], order='F')
-                        Data_Ch_B0 = data[0:freq_points_num:1, :].transpose()
+                        # Data_Ch_B0 = data[0:freq_points_num:1, :].transpose()
                     if ADRmode == 5:
                         data = np.reshape(data, [freq_points_num*2, Nim*FrameInChunk*SpInFrame], order='F')
                         # Data_Ch_B0 = data[0:(freq_points_num*2):2, :].transpose()
@@ -160,10 +158,10 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
 
                     if (ADRmode == 6):
                         data = np.reshape(data, [freq_points_num*4, Nim*FrameInChunk*SpInFrame], order='F')
-                        Data_C_Im0 = data[0:(freq_points_num*4):4, :].transpose()
-                        Data_C_Re0 = data[1:(freq_points_num*4):4, :].transpose()
-                        Data_Ch_B0 = data[2:(freq_points_num*4):4, :].transpose()
-                        Data_Ch_A0 = data[3:(freq_points_num*4):4, :].transpose()
+                        # Data_C_Im0 = data[0:(freq_points_num*4):4, :].transpose()
+                        # Data_C_Re0 = data[1:(freq_points_num*4):4, :].transpose()
+                        # Data_Ch_B0 = data[2:(freq_points_num*4):4, :].transpose()
+                        # Data_Ch_A0 = data[3:(freq_points_num*4):4, :].transpose()
                     del data
 
 
@@ -189,7 +187,9 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                         # * Time from figure start calculation *
                         if (i == 0): TimeFigureStart = TimeCurrentFrameFloatSec
                         TimeFigureSecondDiff = TimeCurrentFrameFloatSec - TimeFigureStart
-                        TimeFigureAdd = timedelta(0, int(np.fix(TimeFigureSecondDiff)), int(np.fix((TimeFigureSecondDiff - int(np.fix(TimeFigureSecondDiff)))*1000000)))
+                        TimeFigureAdd = timedelta(0, int(np.fix(TimeFigureSecondDiff)),
+                                                  int(np.fix((TimeFigureSecondDiff -
+                                                              int(np.fix(TimeFigureSecondDiff)))*1000000)))
 
                         for iframe in range (0, SpInFrame):
                             TimeScale.append(str((TimeScaleStartTime + TimeAdd)))  #.time()
@@ -213,13 +213,13 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     #         Data_C_Im[:,n] = Data_C_Im0[:,i]
                     #         Data_C_Re[:,n] = Data_C_Re0[:,i]
 
-                    # *** Deleting matrices which were nessesary for index changes ***
+                    # *** Deleting matrices which were necessary for index changes ***
                     # del n
 
-                    if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
-                        del Data_Ch_A0
-                    if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:
-                        del Data_Ch_B0
+                    # if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
+                    #     del Data_Ch_A0
+                    # if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:
+                    #     del Data_Ch_B0
                     # if (ADRmode == 6 and CorrelationProcess == 1):
                     #     del Data_C_Im0, Data_C_Re0
 
@@ -246,13 +246,13 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                         fileData_B = open(fileData_B_name, 'ab')
                         fileData_B.write(Data_Ch_B.copy(order='C'))
                         fileData_B.close()
-                    if  ADRmode == 6 and longFileSaveCRI == 1 and CorrelationProcess == 1:
-                        fileData_C_Re = open(fileData_CRe_name, 'ab')
-                        fileData_C_Re.write(Data_C_Re)
-                        fileData_C_Re.close()
-                        fileData_C_Im = open(fileData_CIm_name, 'ab')
-                        fileData_C_Im.write(Data_C_Im)
-                        fileData_C_Im.close()
+                    # if  ADRmode == 6 and longFileSaveCRI == 1 and CorrelationProcess == 1:
+                    #     fileData_C_Re = open(fileData_CRe_name, 'ab')
+                    #     fileData_C_Re.write(Data_C_Re)
+                    #     fileData_C_Re.close()
+                    #     fileData_C_Im = open(fileData_CIm_name, 'ab')
+                    #     fileData_C_Im.write(Data_C_Im)
+                    #     fileData_C_Im.close()
                     # if((ADRmode == 5 or ADRmode == 6) and Sum_Diff_Calculate == 1 and longFileSaveSSD == 1):
                     #     fileData_Sum = open(fileData_Sum_name, 'ab')
                     #     fileData_Sum.write(Data_Sum)
@@ -274,22 +274,22 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:
                         with np.errstate(divide='ignore'):
                             Data_Ch_B = 10*np.log10(Data_Ch_B)
-                    if ADRmode == 6 and CorrelationProcess == 1:
-                        with np.errstate(divide='ignore'):
-                            CorrModule = ((Data_C_Re)**2 + (Data_C_Im)**2)**(0.5)
-                            CorrModule = 10*np.log10(CorrModule)
-                            CorrPhase = np.arctan2(Data_C_Im, Data_C_Re)
-                        CorrModule[np.isnan(CorrModule)] = 0
-                        CorrPhase[np.isnan(CorrPhase)] = 0
+                    # if ADRmode == 6 and CorrelationProcess == 1:
+                    #     with np.errstate(divide='ignore'):
+                    #         CorrModule = ((Data_C_Re)**2 + (Data_C_Im)**2)**(0.5)
+                    #         CorrModule = 10*np.log10(CorrModule)
+                    #         CorrPhase = np.arctan2(Data_C_Im, Data_C_Re)
+                    #     CorrModule[np.isnan(CorrModule)] = 0
+                    #     CorrPhase[np.isnan(CorrPhase)] = 0
 
-                    # *** Writing correlation data to long files ***
-                    if ADRmode == 6 and longFileSaveCMP == 1 and CorrelationProcess == 1:
-                        fileData_C_M = open(fileData_CM_name, 'ab')
-                        fileData_C_M.write(np.float64(CorrModule))
-                        fileData_C_M.close()
-                        fileData_C_P = open(fileData_CP_name, 'ab')
-                        fileData_C_P.write(np.float64(CorrPhase))
-                        fileData_C_P.close()
+                    # # *** Writing correlation data to long files ***
+                    # if ADRmode == 6 and longFileSaveCMP == 1 and CorrelationProcess == 1:
+                    #     fileData_C_M = open(fileData_CM_name, 'ab')
+                    #     fileData_C_M.write(np.float64(CorrModule))
+                    #     fileData_C_M.close()
+                    #     fileData_C_P = open(fileData_CP_name, 'ab')
+                    #     fileData_C_P.write(np.float64(CorrPhase))
+                    #     fileData_C_P.close()
 
                     # *** Saving immediate spectrum to file ***
                     if(SpectrumFileSaveSwitch == 1 and figID == 0):
@@ -334,25 +334,25 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
 
                         TwoOrOneValuePlot(no_of_sets, frequency,  Data_1, Data_2,
                                     Legend_1, 'Channel B', frequency[0], frequency[-1],
-                                    -120, -20, -120, -20, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
+                                    Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                     Suptitle, Title, Filename,
                                     currentDate, currentTime, Software_version)
 
-                    # *** FIGURE Correlation amplitude and phase immediate spectrum ***
-                    if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):   #  Immediate correlation spectrum channels A & B
-
-                        Suptitle = ('Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B')
-                        Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
-                                    ' kHz,'+sumDifMode + ' Description: '+str(df_description))
-                        Filename = (result_path + '/Service/' + df_filename[0:14] +
-                                    ' Channels A and B Correlation module and phase spectrum.png')
-
-                        TwoOrOneValuePlot(2, frequency,   CorrModule[0][:], CorrPhase[0][:],
-                                    'Correlation module', 'Correlation phase', frequency[0], frequency[freq_points_num-1],
-                                    -150, -20, -4, 4, 'Frequency, MHz', 'Intensity, dB', 'Phase, rad',
-                                    Suptitle, Title, Filename,
-                                    currentDate, currentTime, Software_version)
-
+                    # # *** FIGURE Correlation amplitude and phase immediate spectrum ***
+                    # if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):  # Immediate corr spectrum chan A & B
+                    #
+                    #     Suptitle = ('Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                    #     Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
+                    #                 ' kHz,'+sumDifMode + ' Description: '+str(df_description))
+                    #     Filename = (result_path + '/Service/' + df_filename[0:14] +
+                    #                 ' Channels A and B Correlation module and phase spectrum.png')
+                    #
+                    #     TwoOrOneValuePlot(2, frequency,   CorrModule[0][:], CorrPhase[0][:],
+                    #                 'Correlation module', 'Correlation phase', frequency[0], frequency[freq_points_num-1],
+                    #                 -150, -20, -4, 4, 'Frequency, MHz', 'Intensity, dB', 'Phase, rad',
+                    #                 Suptitle, Title, Filename,
+                    #                 currentDate, currentTime, Software_version)
+                    #
 
                     # *** FIGURE Initial dynamic spectrum of 1 channel (A or B) ***
                     if (ADRmode == 3 or ADRmode == 4) and DynSpecSaveInitial == 1:
@@ -397,39 +397,39 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                                                 currentDate, currentTime, Software_version, customDPI)
 
 
-                    # *** FIGURE Initial correlation spectrum module and phase ***
-                    if ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1:
-
-                        fig_file_name = (result_path + '/Correlation_spectra/' + df_filename[0:14] +
-                                        ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png')
-                        Suptitle = ('Correlation dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+
-                                    str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+
-                                    str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+
-                                    sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
-                                    '\n'+ReceiverMode+', Description: '+str(df_description))
-
-                        TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
-                                                'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
-                                                TimeFigureScaleFig, TimeScaleFig, frequency,
-                                                freq_points_num, colormap, 'Correlation module', 'Correlation phase',
-                                                fig_file_name, currentDate, currentTime, Software_version, customDPI)
-
+                    # # *** FIGURE Initial correlation spectrum module and phase ***
+                    # if ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1:
+                    #
+                    #     fig_file_name = (result_path + '/Correlation_spectra/' + df_filename[0:14] +
+                    #                     ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png')
+                    #     Suptitle = ('Correlation dynamic spectrum (initial) ' + str(df_filename)+' - Fig. '+
+                    #                 str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+
+                    #                 str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+
+                    #                 sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+
+                    #                 '\n'+ReceiverMode+', Description: '+str(df_description))
+                    #
+                    #     TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminCorrMag, VmaxCorrMag, -3.15, 3.15, Suptitle,
+                    #                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
+                    #                             TimeFigureScaleFig, TimeScaleFig, frequency,
+                    #                             freq_points_num, colormap, 'Correlation module', 'Correlation phase',
+                    #                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
+                    #
 
                     # *** Normalizing amplitude-frequency responce ***
                     if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
                         Normalization_dB(Data_Ch_A, freq_points_num, Nim * SpInFrame * FrameInChunk)
                     if (ADRmode == 4 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
                         Normalization_dB(Data_Ch_B, freq_points_num, Nim * SpInFrame * FrameInChunk)
-                    if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
-                        Normalization_dB(CorrModule, freq_points_num, Nim * SpInFrame * FrameInChunk)
+                    # if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
+                    #     Normalization_dB(CorrModule, freq_points_num, Nim * SpInFrame * FrameInChunk)
 
                     # *** Deleting cahnnels with strong RFI ***
                     if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
                         simple_channel_clean(Data_Ch_A, RFImeanConst)
                     if (ADRmode == 4 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
                         simple_channel_clean(Data_Ch_B, RFImeanConst)
-                    if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
-                        simple_channel_clean(CorrModule, 2 * RFImeanConst)
+                    # if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
+                    #     simple_channel_clean(CorrModule, 2 * RFImeanConst)
 
                     #   *** Immediate spectra of normalized data ***    (only for first figure in data file)
                     if figID == 0 and DynSpecSaveCleaned == 1:
@@ -505,15 +505,15 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                                                 currentDate, currentTime, Software_version, customDPI)
 
 
-                    # *** FIGURE Correlation spectrum module and phase cleaned and normalized (python 3 new version) ***
-                    if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
-                        Suptitle = 'Correlation dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
-                        fig_file_name = result_path + '/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
-                        TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
-                                                'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
-                                                TimeFigureScaleFig, TimeScaleFig, frequency, freq_points_num, colormap,
-                                                'Normalized and cleaned correlation module', 'Correlation phase',
-                                                fig_file_name, currentDate, currentTime, Software_version, customDPI)
+                    # # *** FIGURE Correlation spectrum module and phase cleaned and normalized (python 3 new version) ***
+                    # if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
+                    #     Suptitle = 'Correlation dynamic spectrum (normalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    #     fig_file_name = result_path + '/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
+                    #     TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
+                    #                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
+                    #                             TimeFigureScaleFig, TimeScaleFig, frequency, freq_points_num, colormap,
+                    #                             'Normalized and cleaned correlation module', 'Correlation phase',
+                    #                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
                 gc.collect()
             del timeLineSecond
