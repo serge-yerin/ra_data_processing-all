@@ -13,8 +13,8 @@ path_to_data = 'DATA/'  # 'h:/To_process/'
 print_or_not = 1              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
-Vmin = 0                   # Lower limit of figure dynamic range for initial spectra
-Vmax = 120                     # Upper limit of figure dynamic range for initial spectra
+Vmin = 60                   # Lower limit of figure dynamic range for initial spectra
+Vmax = 80                     # Upper limit of figure dynamic range for initial spectra
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 8                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
@@ -26,17 +26,17 @@ DynSpecSaveInitial = 1        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpectrumFileSaveSwitch = 1     # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
+SpectrumFileSaveSwitch = 1    # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
-averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-VminMan = -200                   # Manual lower limit of immediate spectrum figure color range
-VmaxMan = 600                    # Manual upper limit of immediate spectrum figure color range
-VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+aver_or_min = 0               # Use average value (0) per data block or minimum value (1)
+VminMan = 60                  # Manual lower limit of immediate spectrum figure color range
+VmaxMan = 80                  # Manual upper limit of immediate spectrum figure color range
+VminNormMan = 0               # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
+VmaxNormMan = 10              # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 AmplitudeReIm = 1 * 10**(-12) # Color range of Re and Im dynamic spectra
-                                 # 10 * 10**(-12) is typical value enough for CasA for interf of 2 GURT subarrays
+                              # 10 * 10**(-12) is typical value enough for CasA for interf of 2 GURT subarrays
 
 # ###############################################################################
 # *******************************************************************************
@@ -126,7 +126,6 @@ print('\n\n\n   **************************************************************')
 print('   *               D A T A   P R O C E S S I N G                *')
 print('   **************************************************************')
 
-
 # In loop take a folder, make a result folder and process the data
 for folder_no in range (num_of_folders):
 
@@ -163,7 +162,7 @@ for folder_no in range (num_of_folders):
 
     # Run DAT reader for the results of current folder
     done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
-                                  averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                                  aver_or_min, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                 RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 endTime = time.time()  # Time of calculations

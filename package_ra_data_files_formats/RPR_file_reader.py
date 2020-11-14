@@ -144,55 +144,57 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
 
                     # Arranging data in right order
                     if ADRmode == 3:
-                        data = np.reshape(data, [freq_points_num, Nim*FrameInChunk*SpInFrame], order='F')
+                        data = np.reshape(data, [freq_points_num, Nim * FrameInChunk * SpInFrame], order='F')
                         # Data_Ch_A0 = data[0:freq_points_num:1, :].transpose()
                     if ADRmode == 4:
-                        data = np.reshape(data, [freq_points_num, Nim*FrameInChunk*SpInFrame], order='F')
+                        data = np.reshape(data, [freq_points_num, Nim * FrameInChunk * SpInFrame], order='F')
                         # Data_Ch_B0 = data[0:freq_points_num:1, :].transpose()
                     if ADRmode == 5:
-                        data = np.reshape(data, [freq_points_num*2, Nim*FrameInChunk*SpInFrame], order='F')
+                        data = np.reshape(data, [freq_points_num * 2, Nim * FrameInChunk * SpInFrame], order='F')
                         # Data_Ch_B0 = data[0:(freq_points_num*2):2, :].transpose()
                         # Data_Ch_A0 = data[1:(freq_points_num*2):2, :].transpose()
-                        Data_Ch_B = data[0:(freq_points_num*2):2, :].transpose()
-                        Data_Ch_A = data[1:(freq_points_num*2):2, :].transpose()
+                        Data_Ch_B = data[0: (freq_points_num * 2): 2, :].transpose()
+                        Data_Ch_A = data[1: (freq_points_num * 2): 2, :].transpose()
 
                     if (ADRmode == 6):
-                        data = np.reshape(data, [freq_points_num*4, Nim*FrameInChunk*SpInFrame], order='F')
+                        data = np.reshape(data, [freq_points_num * 4, Nim * FrameInChunk * SpInFrame], order='F')
                         # Data_C_Im0 = data[0:(freq_points_num*4):4, :].transpose()
                         # Data_C_Re0 = data[1:(freq_points_num*4):4, :].transpose()
                         # Data_Ch_B0 = data[2:(freq_points_num*4):4, :].transpose()
                         # Data_Ch_A0 = data[3:(freq_points_num*4):4, :].transpose()
                     del data
 
-
                     # *** TimeLine calculations ***
                     for i in range (Nim):
-
                         # *** DSP_INF ***
-                        frm_count = headers[3][i]
+                        # frm_count = headers[3][i]
+                        # frm_sec = headers[4][i]
+                        # frm_phase = headers[5][i]
+
                         frm_sec = headers[4][i]
                         frm_phase = headers[5][i]
 
-                        # * Abosolute time calculation *
-                        timeLineSecond[figID*MaxNim+i] = frm_sec # to check the linearity of seconds
-                        TimeCurrentFramePhase = float(frm_phase)/F_ADC
+                        # * Absolute time calculation *
+                        timeLineSecond[figID * MaxNim + i] = frm_sec  # to check the linearity of seconds
+                        TimeCurrentFramePhase = float(frm_phase) / F_ADC
                         TimeCurrentFrameFloatSec = frm_sec + TimeCurrentFramePhase
                         TimeSecondDiff = TimeCurrentFrameFloatSec - TimeFirstFrameFloatSec
-                        TimeAdd = timedelta(0, int(np.fix(TimeSecondDiff)), int(np.fix((TimeSecondDiff - int(np.fix(TimeSecondDiff)))*1000000)))
+                        TimeAdd = timedelta(0, int(np.fix(TimeSecondDiff)),
+                                            int(np.fix((TimeSecondDiff - int(np.fix(TimeSecondDiff))) * 1000000)))
 
                         # Adding of time point to time line is in loop by spectra because
                         # for each spectra in frame there is one time point but it should
                         # appear for all spectra to fit the dimensions of arrays
 
                         # * Time from figure start calculation *
-                        if (i == 0): TimeFigureStart = TimeCurrentFrameFloatSec
+                        if i == 0: TimeFigureStart = TimeCurrentFrameFloatSec
                         TimeFigureSecondDiff = TimeCurrentFrameFloatSec - TimeFigureStart
                         TimeFigureAdd = timedelta(0, int(np.fix(TimeFigureSecondDiff)),
                                                   int(np.fix((TimeFigureSecondDiff -
-                                                              int(np.fix(TimeFigureSecondDiff)))*1000000)))
+                                                  int(np.fix(TimeFigureSecondDiff))) * 1000000)))
 
                         for iframe in range (0, SpInFrame):
-                            TimeScale.append(str((TimeScaleStartTime + TimeAdd)))  #.time()
+                            TimeScale.append(str((TimeScaleStartTime + TimeAdd)))  # .time()
                             TimeFigureScale.append(str((TimeFigureStartTime+TimeFigureAdd).time()))
 
                     # Exact string timescales to show on plots
@@ -267,13 +269,13 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                             for i in range(SpInFrame * FrameInChunk * Nim):
                                 TLfile.write((TimeScale[i][:])+' \n')   # str
 
-                    # *** Converting to logarythmic scale matrices ***
+                    # *** Converting to logarithmic scale matrices ***
                     if ADRmode == 3 or ADRmode == 5 or ADRmode == 6:
                         with np.errstate(divide='ignore'):
-                            Data_Ch_A = 10*np.log10(Data_Ch_A)
+                            Data_Ch_A = 10 * np.log10(Data_Ch_A)
                     if ADRmode == 4 or ADRmode == 5 or ADRmode == 6:
                         with np.errstate(divide='ignore'):
-                            Data_Ch_B = 10*np.log10(Data_Ch_B)
+                            Data_Ch_B = 10 * np.log10(Data_Ch_B)
                     # if ADRmode == 6 and CorrelationProcess == 1:
                     #     with np.errstate(divide='ignore'):
                     #         CorrModule = ((Data_C_Re)**2 + (Data_C_Im)**2)**(0.5)
@@ -292,9 +294,9 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                     #     fileData_C_P.close()
 
                     # *** Saving immediate spectrum to file ***
-                    if(SpectrumFileSaveSwitch == 1 and figID == 0):
+                    if SpectrumFileSaveSwitch == 1 and figID == 0:
                         SpFile = open(result_path + '/Service/Spectrum_'+df_filename[0:14]+'.txt', 'w')
-                        for i in range(freq_points_num-1):
+                        for i in range(freq_points_num - 1):
                             if ADRmode == 3:
                                 SpFile.write(str('{:10.6f}'.format(frequency[i]))+'  '+str('{:16.10f}'.format(Data_Ch_A[ImmediateSpNo][i]))+' \n')
                             if ADRmode == 4:
@@ -321,12 +323,12 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                             Filename = (result_path + '/Service/'+df_filename[0:14]+' '+
                                         Legend_1 + ' Immediate Spectrum before cleaning and normalizing.png')
 
-                        if (ADRmode == 5 or ADRmode == 6) :     # Immediate spectrum channels A & B
+                        if ADRmode == 5 or ADRmode == 6:  # Immediate spectrum channels A & B
                             Data_1 = Data_Ch_A[0][:]
                             Data_2 = Data_Ch_B[0][:]
                             Legend_1 = 'Channel A'
                             no_of_sets = 2
-                            Suptitle = ('Immediate spectrum '+str(df_filename[0:18])+ ' channels A & B')
+                            Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' channels A & B')
                             Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
                                     ' kHz,'+sumDifMode + ' Description: '+str(df_description))
                             Filename = (result_path + '/Service/' + df_filename[0:14] +
@@ -361,13 +363,13 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
                         if ADRmode == 4:
                             Data = Data_Ch_B.transpose()
 
-                        Suptitle = ('Dynamic spectrum (initial) '+str(df_filename[0:18])+
-                                    ' - Fig. '+str(figID+1)+ ' of '+str(figMAX)+
-                                    '\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+
-                                    ' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+
-                                    ' Receiver: '+str(df_system_name)+
-                                    ', Place: '+str(df_obs_place) +
-                                    '\n Description: '+str(df_description))
+                        Suptitle = ('Dynamic spectrum (initial) ' + str(df_filename[0:18]) +
+                                    ' - Fig. '+str(figID+1) + ' of '+str(figMAX) +
+                                    '\n Initial parameters: dt = ' + str(round(TimeRes*1000,3)) +
+                                    ' ms, df = ' + str(round(df/1000.,3)) + ' kHz, ' + sumDifMode +
+                                    ' Receiver: ' + str(df_system_name) +
+                                    ', Place: ' + str(df_obs_place) +
+                                    '\n Description: ' + str(df_description))
 
                         fig_file_name = (result_path + '/Initial_spectra/' + df_filename[0:14] +
                                             ' Initial dynamic spectrum fig.' + str(figID+1) + '.png')
