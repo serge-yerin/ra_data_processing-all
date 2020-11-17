@@ -30,6 +30,7 @@ send_command = 'set prc/ccp/ctl/osf 0 { \
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
 
+
 def read_output(serversocket):
     byte = b'a'
     message = bytearray([])
@@ -54,8 +55,10 @@ serversocket.send(send_command.encode())
 t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 print('\n ', t,'GMT:  Message sent! Trying to read the reply...')
 
+# Read reply
 message = read_output(serversocket)
 
+# Keep connection on
 while True:
     time.sleep(90)
     serversocket.send(b'\0')
