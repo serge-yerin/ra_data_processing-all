@@ -6,24 +6,26 @@ Software_version = '2019.05.06'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to data files
-common_path =  '' #'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
+common_path =  'DATA/' # 'e:/PYTHON/ra_data_processing-all/DAT_Results/'
 file_name_list = []
 plot_name_list = []
 
 y_auto = 0
-Vmin = -120
-Vmax =  -30
+Vmin = -115
+Vmax =  -85
 
 
 # TXT files to be analyzed:
 file_name_list.append(common_path + 'Specter_B201102_235517_sky.txt')
-file_name_list.append(common_path + 'Specter_B201102_235702_open.txt')
+file_name_list.append(common_path + 'Specter_B201105_233415.txt')
 file_name_list.append(common_path + 'Specter_B201102_235829_short.txt')
+file_name_list.append(common_path + 'Specter_B201105_234111.txt')
 
-
-plot_name_list.append('Noise generator at antenna amplifier input')
-plot_name_list.append('Noise generator at antenna amplifier output')
-plot_name_list.append('Noise generator at last amplifier with filter input')
+# Names of curves to appear on the plot
+plot_name_list.append('Spectrum_B201102_235517_sky_dipole_on_ground')
+plot_name_list.append('Spectrum_B201105_233415_82_cm_elevated_dipole')
+plot_name_list.append('Spectrum_B201102_235829_short_dipole_on_ground_short_noise')
+plot_name_list.append('Spectrum_B201105_234111_82_cm_elevated_dipole_short_noise')
 
 
 customDPI = 400                     # Resolution of images of dynamic spectra
@@ -47,6 +49,7 @@ if __package__ is None:
 
 from package_common_modules.text_manipulations import read_frequency_and_two_values_txt
 from package_common_modules.text_manipulations import read_date_time_and_one_value_txt
+from package_ra_data_processing.filtering import median_filter
 ################################################################################
 #*******************************************************************************
 #                          M A I N    P R O G R A M                            *
@@ -96,6 +99,8 @@ fig = plt.figure(figsize = (9, 5))
 ax1 = fig.add_subplot(111)
 for i in range (number_of_files):
     ax1.plot(frequencies[i], responce[i], label=plot_name_list[i])
+# for i in range (number_of_files):
+#     ax1.plot(frequencies[i], median_filter(responce[i], 30), label=plot_name_list[i])
 ax1.legend(loc = 'upper right', fontsize = 6)
 ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
 if y_auto == 0: ax1.set_ylim([Vmin, Vmax])
@@ -107,6 +112,27 @@ fig.suptitle('File: ', fontsize = 8, fontweight='bold')
 fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
 pylab.savefig(newpath + '/' + ' 01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
+plt.close('all')
+
+# Processing, check if you need it!
+rc('font', size = 6, weight='bold')
+fig = plt.figure(figsize = (9, 5))
+ax1 = fig.add_subplot(111)
+#ax1.plot(frequencies[i], median_filter(responce[0]-responce[2], 30), label='SND on the ground')
+#ax1.plot(frequencies[i], median_filter(responce[1]-responce[3], 30), label='SND of 82 cm elevated dipole')
+ax1.plot(frequencies[i], responce[0]-responce[2], label='SND on the ground')
+ax1.plot(frequencies[i], responce[1]-responce[3], label='SND of 82 cm elevated dipole')
+ax1.legend(loc = 'upper right', fontsize = 6)
+ax1.grid(b = True, which = 'both', color = 'silver', linestyle = '-')
+ax1.set_ylim([-5, 25])
+ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
+ax1.set_title('   ', fontsize = 6)
+ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
+fig.subplots_adjust(top=0.92)
+fig.suptitle('File: ', fontsize = 8, fontweight='bold')
+fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
+fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
+pylab.savefig(newpath + '/' + ' 02 - Processed.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 
 
