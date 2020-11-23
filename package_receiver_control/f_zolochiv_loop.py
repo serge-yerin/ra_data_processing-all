@@ -103,6 +103,7 @@ if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_reco
 else:
     sys.exit('\n\n * ERROR! Time limits are wrong!!! \n\n')
 
+# !!! Check the time is more than 3.5 hours till the start !!!!
 
 print('   The record will start in: ', dt_time_to_start_record - datetime.now())
 
@@ -113,33 +114,32 @@ json_string = json.dumps(data_json)
 send_command = 'set prc/ccp/ctl/osf 0 ' + json_string + '\0'
 
 
-
-# print('\n Host: ', host)
-# print('\n Port: ', port)
+print('\n Host: ', host)
+print('\n Port: ', port)
 # print('\n Command: ', send_command)
-#
-# t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-# print('\n ', t, 'GMT:  Connecting to the server...')
-#
-# # Connecting to server
-# serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# serversocket.connect((host, port))
-#
-# t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-# print('\n ', t, 'GMT:  Connected to the server!')
-#
-# # Sending the main command from file
-# serversocket.send(send_command.encode())
-#
-# t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-# print('\n ', t, 'GMT:  Message sent! Trying to read the reply...')
-#
-# # Read reply
-# message = read_output(serversocket)
-#
-# # Keep connection live with sending /0 each 90 seconds
-# while True:
-#     time.sleep(90)
-#     serversocket.send(b'\0')
-#     t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-#     print('\n ', t, 'GMT:  Sent command to keep connection')
+
+t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+print('\n ', t, 'GMT:  Connecting to the server...')
+
+# Connecting to server
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+serversocket.connect((host, port))
+
+t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+print('\n ', t, 'GMT:  Connected to the server!')
+
+# Sending the main command from file
+serversocket.send(send_command.encode())
+
+t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+print('\n ', t, 'GMT:  Message sent! Trying to read the reply...')
+
+# Read reply
+message = read_output(serversocket)
+
+# Keep connection live with sending /0 each 90 seconds
+while True:
+    time.sleep(90)
+    serversocket.send(b'\0')
+    t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    print('\n ', t, 'GMT:  Sent command to keep connection')
