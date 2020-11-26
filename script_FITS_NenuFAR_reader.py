@@ -4,7 +4,7 @@ Software_version = '2019.04.13'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 foldpath = 'DATA/'
-filename = '20190410_113700_BST.fits'
+filename = '20200520_111700_BST.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot

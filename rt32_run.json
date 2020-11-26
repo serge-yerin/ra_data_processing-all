@@ -1,0 +1,16 @@
+{
+    "calibration_schedule": [],
+    "channels_switch_mode": "c",
+    "dec": 1.0265154,
+    "frequency_corrections_schedule": [],
+    "frequency_ranges": 
+        {"cfa": 9440,"cfb": 9440,"cfc": 3200,"cfd": 3200,"kfa": 16600,"kfb":16600,"kfc": 3200,"kfd": 3200,"xfa": null,"xfb": null,"xfc": null,"xfd": null
+        },
+    "frequency_switching_schedule": [],"name": "TEST",
+    "operating_mode": "wck",
+    "ra": 6.1234877,
+    "start_date": "2020-11-25",
+    "start_time":"15:45:00",
+    "stop_date": "2020-11-25",
+    "stop_time": "16:00:00"
+}
