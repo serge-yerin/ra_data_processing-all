@@ -222,8 +222,16 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
             plt.close('all')
 
         corr_function = np.fft.ifft(cross_spectrum)
+        print(' Corr function size ', corr_function.shape)
         corr_function_av = np.mean(corr_function, axis=1)
+        print(' Av corr function size ', corr_function_av.shape)
         corr_function_av[0] = 0
+        corr_function_av_abs = np.abs(corr_function_av)
+        corr_function_av_re = np.real(corr_function_av)
+        corr_function_av_arg = np.angle(corr_function_av)
+        # corr_function_av_arg = phase_linearization_rad(corr_function_av_arg)
+        #if filter_or_not:
+        #    cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
 
         if plot_or_not:
             rc('font', size=10, weight='bold')
@@ -231,12 +239,12 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
             fig.suptitle('Waveform signals averaged correlation function', fontsize=12, fontweight='bold')
             ax1 = fig.add_subplot(211)
             # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-            ax1.plot(np.log10(np.abs(corr_function_av[8192:])), linestyle='-', linewidth='1.00', label='Correlation Abs')
+            ax1.plot(np.log10(corr_function_av_abs[8192:]), linestyle='-', linewidth='1.00', label='Correlation Abs')
             # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
             ax1.set(xlim=(0, no_of_points_for_fft // 2))
             ax1.legend(loc='upper right', fontsize=10)
             ax2 = fig.add_subplot(212)
-            ax2.plot(np.angle(corr_function_av[8192:]), linestyle='-', linewidth='1.00', label='Correlation Phase')
+            ax2.plot(corr_function_av_arg[8192:], linestyle='-', linewidth='1.00', label='Correlation Phase')
             # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
             ax2.set(xlim=(0, no_of_points_for_fft // 2))
             ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
@@ -245,7 +253,8 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
             pylab.savefig('03_Correlation_function_Abs-Ang.png', bbox_inches='tight', dpi=160)
             plt.close('all')
 
-    return cross_spectrum_abs, cross_spectrum_arg, spectrum_av_1, spectrum_av_2, first_spectrum_1, first_spectrum_2
+    return cross_spectrum_abs, cross_spectrum_arg, spectrum_av_1, spectrum_av_2, first_spectrum_1, first_spectrum_2, \
+            corr_function_av_abs, corr_function_av_arg, corr_function_av_re
 
 
 def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_file):
@@ -307,7 +316,6 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
 
     print('  Number of blocks in file:                  ', no_of_blocks_in_file)
     print('  Number of bunches to read in file:         ', no_of_bunches_per_file, '\n')
-    #print('\n  *** Reading data from file *** \n')
 
     # *******************************************************************************
     #                           R E A D I N G   D A T A                             *
@@ -391,13 +399,17 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     file_list = find_and_check_files_in_current_folder(path_to_calibr_data, '.jds')
 
     labels = []
-    ampl_data = []
-    angl_data = []
+    cross_sp_ampl = []
+    cross_sp_angl = []
     file_names = []
     spectrum_ch_1 = []
     spectrum_ch_2 = []
     imed_spectrum_ch_1 = []
     imed_spectrum_ch_2 = []
+    corr_f_abs = []
+    corr_f_ang = []
+    corr_f_re = []
+
 
     result_path = 'RESULTS_WF_calibration_analyzer/'
     if not os.path.exists(result_path):
@@ -405,7 +417,9 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
 
     # Main loop by files start
     for file_no in range(len(file_list)):  # loop by files
+    #for file_no in range(1):  # loop by files
 
+        #'''
         fname = path_to_calibr_data + file_list[file_no]
 
         # *** Data file header read ***
@@ -419,15 +433,25 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         print('\n  Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
         wf32_files = convert_one_jds_wf_to_wf32(fname, result_directory, 16)
+        #'''
 
-        ampl_corr, angle_corr, av_sp_1, av_sp_2, sp_1, sp_2 = correlate_two_wf32_signals(wf32_files[0], wf32_files[1],
-                                                                                no_of_points_for_fft, True, False)
-        ampl_data.append(ampl_corr)
-        angl_data.append(angle_corr)
+        #labels.append('test data')
+        #file_names.append('test data')
+        #file_list = ['E300120_232956.jds_Data_chA.wf32']
+        #wf32_files = ['E300120_232956.jds_Data_chA.wf32', 'E300120_232956.jds_Data_chB.wf32']
+
+        ampl_corr, angle_corr, av_sp_1, av_sp_2, sp_1, sp_2, cf_abs, cf_arg, cf_re = correlate_two_wf32_signals(wf32_files[0],
+                                    wf32_files[1], no_of_points_for_fft, True, False)
+
+        cross_sp_ampl.append(ampl_corr)
+        cross_sp_angl.append(angle_corr)
         spectrum_ch_1.append(av_sp_1)
         spectrum_ch_2.append(av_sp_2)
         imed_spectrum_ch_1.append(sp_1)
         imed_spectrum_ch_2.append(sp_2)
+        corr_f_abs.append(cf_abs)
+        corr_f_ang.append(cf_arg)
+        corr_f_re.append(cf_re)
 
     # Figures of initial and averaged spectra for each file
     for i in range(len(file_list)):
@@ -451,19 +475,19 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         pylab.savefig(result_path + 'Signal_spectra_' + file_names[i] + '.png', bbox_inches='tight', dpi=160)
         plt.close('all')
 
-        # Plot calibration correlation matrix
+        # Plot cross spectra matrix
         rc('font', size=10, weight='bold')
         fig = plt.figure(figsize=(18, 10))
         fig.suptitle('Calibration matrix of waveform signals correlation for ' + file_list[i] +
                      ' (' + labels[i] + ')', fontsize=12, fontweight='bold')
         ax1 = fig.add_subplot(211)
         ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-        ax1.plot(np.log10(ampl_data[i]), linestyle='-', linewidth='1.30', label='Correlation amplitude')
+        ax1.plot(np.log10(cross_sp_ampl[i]), linestyle='-', linewidth='1.30', label='Cross spectra amplitude')
         ax1.legend(loc='upper right', fontsize=10)
         ax1.set(xlim=(0, no_of_points_for_fft // 2))
         ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
         ax2 = fig.add_subplot(212)
-        ax2.plot(angl_data[i], linestyle='-', linewidth='1.30', label='Correlation phase')
+        ax2.plot(cross_sp_angl[i], linestyle='-', linewidth='1.30', label='Cross spectra phase')
         ax2.set(xlim=(0, no_of_points_for_fft // 2))
         ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
         ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
@@ -478,13 +502,13 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     fig.suptitle('Calibration matrix of waveform signals', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(211)
     ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-    for i in range(len(ampl_data)):
+    for i in range(len(spectrum_ch_1)):
         ax1.plot(spectrum_ch_1[i], linestyle='-', linewidth='1.30', label=labels[i])
     ax1.legend(loc='upper right', fontsize=10)
     ax1.set(xlim=(0, no_of_points_for_fft//2))
     ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
     ax2 = fig.add_subplot(212)
-    for i in range(len(angl_data)):
+    for i in range(len(spectrum_ch_2)):
         ax2.plot(spectrum_ch_2[i], linestyle='-', linewidth='1.30', label=labels[i])
     ax2.set(xlim=(0, no_of_points_for_fft//2))
     ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
@@ -494,21 +518,43 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     pylab.savefig(result_path + 'Calibration_matrix_wf_spectra.png', bbox_inches='tight', dpi=160)
     plt.close('all')
 
-    # Plot calibration correlation matrix
+    # Plot cross spectra matrix
     rc('font', size=10, weight='bold')
     fig = plt.figure(figsize=(18, 10))
-    fig.suptitle('Calibration matrix of waveform signals correlation', fontsize=12, fontweight='bold')
+    fig.suptitle('Cross spectra matrix of waveform signals correlation', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(211)
     ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-    for i in range(len(ampl_data)):
-        ax1.plot(np.log10(ampl_data[i]), linestyle='-', linewidth='1.30', label=labels[i])
+    for i in range(len(cross_sp_ampl)):
+        ax1.plot(np.log10(cross_sp_ampl[i]), linestyle='-', linewidth='1.30', label=labels[i])
     ax1.legend(loc='upper right', fontsize=10)
     ax1.set(xlim=(0, no_of_points_for_fft//2))
     ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
     ax2 = fig.add_subplot(212)
-    for i in range(len(angl_data)):
-        ax2.plot(angl_data[i], linestyle='-', linewidth='1.30', label=labels[i])
+    for i in range(len(cross_sp_angl)):
+        ax2.plot(cross_sp_angl[i], linestyle='-', linewidth='1.30', label=labels[i])
     ax2.set(xlim=(0, no_of_points_for_fft//2))
+    ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+    ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
+    ax2.legend(loc='upper right', fontsize=10)
+    fig.subplots_adjust(hspace=0.07, top=0.94)
+    pylab.savefig(result_path + 'Calibration_matrix_wf_cross_spectra.png', bbox_inches='tight', dpi=160)
+    plt.close('all')
+
+    # Plot correlation matrix
+    rc('font', size=10, weight='bold')
+    fig = plt.figure(figsize=(18, 10))
+    fig.suptitle('Cross spectra matrix of waveform signals correlation', fontsize=12, fontweight='bold')
+    ax1 = fig.add_subplot(211)
+    ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
+    for i in range(len(corr_f_abs)):
+        ax1.plot(np.log10(corr_f_abs[i]), linestyle='-', linewidth='1.30', label=labels[i])
+    ax1.legend(loc='upper right', fontsize=10)
+    ax1.set(xlim=(0, no_of_points_for_fft // 1))
+    ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
+    ax2 = fig.add_subplot(212)
+    for i in range(len(corr_f_ang)):
+        ax2.plot(corr_f_ang[i], linestyle='-', linewidth='1.30', label=labels[i])
+    ax2.set(xlim=(0, no_of_points_for_fft // 1))
     ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
@@ -516,13 +562,26 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     pylab.savefig(result_path + 'Calibration_matrix_wf_correlation.png', bbox_inches='tight', dpi=160)
     plt.close('all')
 
+    # Plot mutual correlation function
+    rc('font', size=10, weight='bold')
+    fig = plt.figure(figsize=(18, 10))
+    fig.suptitle('Mutual correlation matrix of waveform signals', fontsize=12, fontweight='bold')
+    ax1 = fig.add_subplot(111)
+    ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
+    for i in range(len(corr_f_re)):
+        ax1.plot(corr_f_re[i], linestyle='-', linewidth='1.30', label=labels[i])
+    ax1.legend(loc='upper right', fontsize=10)
+    ax1.set(xlim=(0, no_of_points_for_fft // 1))
+    ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
+    fig.subplots_adjust(top=0.94)
+    pylab.savefig(result_path + 'Calibration_matrix_of_wf_mutual_correlation_function.png', bbox_inches='tight', dpi=160)
+    plt.close('all')
+
     # Save phase matrix to txt files
     for i in range(len(file_list)):
-        # phase_txt_file = open(result_path + 'Calibration_' + file_names[0] + '-' + file_names[-1] + '_correlation_phase.txt', "w")
-        phase_txt_file = open(result_path + 'Calibration_' + file_names[i] + '_correlation_phase.txt', "w")
+        phase_txt_file = open(result_path + 'Calibration_' + file_names[i] + '_cross_spectra_phase.txt', "w")
         for freq in range(no_of_points_for_fft//2):
-            # phase_txt_file.write(' '.join('  {:+12.7E}'.format(angl_data[i][freq]) for i in range(len(angl_data))) + ' \n')
-            phase_txt_file.write(''.join(' {:+12.7E}'.format(angl_data[i][freq])) + ' \n')
+            phase_txt_file.write(''.join(' {:+12.7E}'.format(cross_sp_angl[i][freq])) + ' \n')
         phase_txt_file.close()
 
     return
