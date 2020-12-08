@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0950+08'  # 'B0950+08'
+pulsar_name = 'B0809+74'  # 'B0950+08'
 
 make_sum = 1
 dm_step = 1.0
@@ -967,12 +967,12 @@ if __name__ == '__main__':
 
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
 
-    # file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
-    # typesOfData = ['wfA+B']
+    # file_name = 'DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.wf32'
+    # typesOfData = ['wfA']
 
-    initial_tl_fname = file_name + '_Timeline.wtxt'
-    new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
-    os.rename(initial_tl_fname, new_tl_fname)
+    # initial_tl_fname = file_name + '_Timeline.wtxt'
+    # new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
+    # os.rename(initial_tl_fname, new_tl_fname)
 
     file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     print('\n Dedispersed DAT file: ', file_name, '\n')
@@ -994,6 +994,8 @@ if __name__ == '__main__':
     file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+
+    output_file_name = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat'
 
     print('\n\n  * Cutting the data of found pulse ... ')
     print('\n\n  Examine 3 pulses pics and enter the number of period to cut:')
