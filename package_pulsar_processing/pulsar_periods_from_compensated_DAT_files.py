@@ -128,7 +128,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    bar = IncrementalBar(' Making sum of two signals: ', max=num_of_blocks, suffix='%(percent)d%%')
+    bar = IncrementalBar(' Making pictures of n periods: ', max=num_of_blocks, suffix='%(percent)d%%')
 
     for block in range(num_of_blocks+1):   # Main loop by blocks of data
 
@@ -453,9 +453,9 @@ if __name__ == '__main__':
     incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
     '''
 
-    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat/'
-    filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat - Extracted pulse.txt'
-    cut_needed_time_points_from_txt(common_path + filename, 470, 520)
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat/'
+    filename = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat - Extracted pulse.txt'
+    cut_needed_time_points_from_txt(common_path + filename, 900, 1100)
 
     endTime = time.time()    # Time of calculations
 
