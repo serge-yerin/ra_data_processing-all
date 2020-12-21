@@ -44,7 +44,6 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
     Function intended to analyze long spectra '.dat' files of radio astronomy data
     '''
 
-    # startTime = time.time()
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
 
@@ -174,7 +173,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         file = open(filename, 'rb')
 
         # *** Data file header read ***
-        df_filesize = (os.stat(filename).st_size)                       # Size of file
+        df_filesize = os.stat(filename).st_size                       # Size of file
         df_filename = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
         file.close()
 
@@ -356,27 +355,28 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             print('\n TimeLine length is now:        ', len(dateTimeNew))
 
 
-    #*******************************************************************************
-    #                                F I G U R E S                                 *
-    #*******************************************************************************
+    # *******************************************************************************
+    #                                 F I G U R E S                                 *
+    # *******************************************************************************
         if print_or_not == 1:
             print('\n\n\n  *** Building images *** \n\n')
 
         # Exact string timescales to show on plots
         TimeScaleFig = np.empty_like(dateTimeNew)
         for i in range (len(dateTimeNew)):
-            TimeScaleFig[i] = str(dateTimeNew[i][0:11]+'\n'+dateTimeNew[i][11:23])
+            TimeScaleFig[i] = str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23])
 
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
-        if typesOfData[j]== 'CRe' or typesOfData[j] == 'CIm':
+        if typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
             Vmin = 0 - AmplitudeReIm
             Vmax = 0 + AmplitudeReIm
 
         # *** Immediate spectrum ***
 
         Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
-        Title = ('Initial parameters: dt = '+str(round(time_resolution,3))+' Sec, df = '+str(round(df/1000,3))+' kHz '+sumDifMode+
-        'Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*time_resolution,3))+' sec.)')
+        Title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' + str(round(df/1000, 3)) +
+                 ' kHz ' + sumDifMode + 'Processing: ' + reducing_type + str(averageConst) +
+                 ' spectra (' + str(round(averageConst * time_resolution, 3)) + ' sec.)')
 
         TwoOrOneValuePlot(1, frequency, array[:,[1]], [],
                     'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
@@ -432,7 +432,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                     SingleChannelData.close()
 
         # Cutting the array inside frequency range specified by user
-        if SpecFreqRange == 1 and (frequency[0] <= freqStart<=frequency[freq_points_num-1]) and \
+        if SpecFreqRange == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
                 (frequency[0] <= freqStop <= frequency[freq_points_num-1]) and (freqStart < freqStop):
             print('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
             A = []
@@ -457,31 +457,33 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
         # Dynamic spectrum of initial signal
 
-        Suptitle = ('Dynamic spectrum starting from file '+str(df_filename[0:18])+
-                    ' '+nameAdd+'\n Initial parameters: dt = '+str(round(time_resolution,3))+
-                    ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                    ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*time_resolution,3))+
-                    ' sec.)\n' + ' Receiver: '+str(df_system_name) +
-                    ', Place: '+str(df_obs_place) + ', Description: ' + str(df_description))
-        fig_file_name = (newpath + '/' + fileNameAdd + df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum.png')
+        Suptitle = ('Dynamic spectrum starting from file ' + str(df_filename[0:18]) + ' ' + nameAdd +
+                    '\n Initial parameters: dt = ' + str(round(time_resolution, 3)) +
+                    ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sumDifMode +
+                    ' Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
+                    str(round(averageConst * time_resolution, 3)) + ' sec.)\n' +
+                    ' Receiver: ' + str(df_system_name) + ', Place: ' + str(df_obs_place) +
+                    ', Description: ' + str(df_description))
+        fig_file_name = (newpath + '/' + fileNameAdd + df_filename[0:14]+'_' + typesOfData[j] + ' Dynamic spectrum.png')
 
         OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freqLine,
                         len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
                         currentDate, currentTime, Software_version, customDPI)
 
-        if (typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm'):
+        if typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm':
             # Normalization and cleaning of dynamic spectra 
             Normalization_dB(array.transpose(), len(freqLine), len(dateTimeNew))
             simple_channel_clean(array.transpose(), RFImeanConst)
 
             # *** Dynamic spectra of cleaned and normalized signal ***
 
-            Suptitle = ('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+
-                        ' '+nameAdd+'\n Initial parameters: dt = '+str(round(time_resolution,3))+
-                        ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sumDifMode+
-                        ' Processing: ' + reducing_type + str(averageConst)+' spectra ('+str(round(averageConst*time_resolution,3))+
-                        ' sec.)\n'+' Receiver: '+str(df_system_name)+
-                        ', Place: '+str(df_obs_place) + ', Description: ' + str(df_description))
+            Suptitle = ('Dynamic spectrum cleaned and normalized starting from file ' + str(df_filename[0:18]) +
+                        ' ' + nameAdd + '\n Initial parameters: dt = ' + str(round(time_resolution, 3)) +
+                        ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sumDifMode +
+                        ' Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
+                        str(round(averageConst * time_resolution, 3)) +
+                        ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
+                        ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
             fig_file_name = (newpath + '/' + fileNameAddNorm + df_filename[0:14] + '_'+typesOfData[j] +
                             ' Dynamic spectrum cleanned and normalized' + '.png')
 
@@ -524,14 +526,13 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                                                                                  #filename[-7:-4:]
             plt.close('all')
             '''
-
     ok = 1
     return ok
 
+# *******************************************************************************
+#                           M A I N    P R O G R A M                            *
+# *******************************************************************************
 
-#*******************************************************************************
-#                          M A I N    P R O G R A M                            *
-#*******************************************************************************
 
 if __name__ == '__main__':
 
