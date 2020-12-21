@@ -8,7 +8,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = 'DATA/' # 'h:/To_process/'
+path_to_data = '/media/data/DATA/To_process'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -26,8 +26,8 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
+SpectrumFileSaveSwitch = 1    # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
+ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
@@ -154,7 +154,7 @@ for folder_no in range (num_of_folders):
                     RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                     VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, 0, 1, 1, 1, 1, 0,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpecterFileSaveSwitch, ImmediateSpNo, print_or_not)
+                    SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
