@@ -19,6 +19,7 @@ no_of_bunches_per_file = 16             # Number of bunches to read one WF file 
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
+median_filter_window = 50               # Window of median filter to smooth the average profile
 
 phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
@@ -785,7 +786,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 # *******************************************************************************
 
 
-def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
+def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filter_window):
     '''
     function calculates the average spectrum  in DAT file and normalizes all spectra in file to average spectra
     Input parameters:
@@ -853,7 +854,8 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
     plt.close('all')
 
     # Apply median filter to average profile
-    average_profile = median_filter(average_profile, 30)
+    #median_filter_window = 50
+    average_profile = median_filter(average_profile, median_filter_window)
 
     fig = plt.figure(figsize=(9, 5))
     ax1 = fig.add_subplot(111)
@@ -981,7 +983,7 @@ if __name__ == '__main__':
 
     # !!! Check the normalization of the file !!!
     # Why do not we use the smooth average spectrum? Is it necessary?
-    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch)
+    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch, median_filter_window)
     # '''
 
     print('\n\n  * Making figures of 3 pulsar periods... \n\n')
