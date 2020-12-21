@@ -3,13 +3,15 @@ import sys
 import time
 from os import path
 from pexpect import pxssh
-from datetime import datetime
+# from datetime import datetime
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
 
-#*************************************************************
-#                       MAIN FUNCTION                        *
-#*************************************************************
+# *************************************************************
+#                        MAIN FUNCTION                        *
+# *************************************************************
+
+
 def f_synchronize_adr(serversocket, receiver_ip, time_server):
     '''
     Function reads a message from ADR radio astronomy receiver
@@ -29,7 +31,6 @@ def f_synchronize_adr(serversocket, receiver_ip, time_server):
     password = receiver_file.readline()[:-1]
     receiver_file.close()
 
-
     # SSH connection to ADR receiver to send sntp command to synchronize with server
     s = pxssh.pxssh()
     if not s.login(receiver_ip, rec_user, password):
@@ -44,12 +45,12 @@ def f_synchronize_adr(serversocket, receiver_ip, time_server):
 
     time.sleep(1)
 
-    now = datetime.now()
+    # now = datetime.now()
     serversocket.send(b'set prc/dsp/ctl/clc 0 1\0')
     data_0 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
     data_1 = f_read_adr_meassage(serversocket, 0)
-    if (data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS')):
+    if data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS'):
         print('\n   UTC absolute second set')
     else:
         print('\n   ERROR! UTC absolute second was not set!')
@@ -62,10 +63,11 @@ def f_synchronize_adr(serversocket, receiver_ip, time_server):
     data_1 = f_read_adr_meassage(serversocket, 0)
     serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
     data_2 = f_read_adr_meassage(serversocket, 0)
-    if (data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS') and data_2.startswith('SUCCESS')):
+    if data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS') and data_2.startswith('SUCCESS'):
         print('\n   UTC absolute second tuned')
 
-################################################################################
+# ###############################################################################
+
 
 if __name__ == '__main__':
 
@@ -74,11 +76,10 @@ if __name__ == '__main__':
         sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
     port = 38386
-    receiver_ip = '192.168.1.171'
+    receiver_ip = '192.168.1.172'
     time_server = '192.168.1.150'
 
-    # Connect to the ADR receiver via socket
-    serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
+    # Connect to the ADR receiver via socket # 1 - control, 1 - delay in sec
+    serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)
 
     f_synchronize_adr(serversocket, receiver_ip, time_server)
-
