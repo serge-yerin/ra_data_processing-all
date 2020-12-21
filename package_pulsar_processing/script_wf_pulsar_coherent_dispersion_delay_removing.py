@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0950+08'  # 'B0950+08'
+pulsar_name = 'B0809+74'  # 'B0950+08'
 
 make_sum = 1
 dm_step = 1.0
@@ -19,6 +19,7 @@ no_of_bunches_per_file = 16             # Number of bunches to read one WF file 
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
+median_filter_window = 50               # Window of median filter to smooth the average profile
 
 phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
@@ -324,7 +325,7 @@ def wf32_two_cahnnel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
 
         # Saving waveform data to wf32 file
         calibr_file_data = open(calibrated_fname, 'ab')
-        calibr_file_data.write(np.float32(wf_data).transpose().copy(order='C'))  # C
+        calibr_file_data.write(np.float32(wf_data).transpose().copy(order='C'))
         calibr_file_data.close()
 
     bar.finish()
@@ -342,7 +343,7 @@ def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
     Function that takes two wf32 files and makes sum of signals from these files in output wf32 file
     '''
 
-    if   'chA' in file_name_1 and 'chB' in file_name_2:
+    if 'chA' in file_name_1 and 'chB' in file_name_2:
         result_file_name = file_name_1.replace('chA', 'wfA+B')
     elif 'chB' in file_name_1 and 'chA' in file_name_2:
         result_file_name = file_name_1.replace('chB', 'wfA+B')
@@ -443,7 +444,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
     # Manually set frequencies for one channel mode
-    freq_points_num = int(no_of_points_for_fft_dedisp/2)
+    freq_points_num = int(no_of_points_for_fft_dedisp / 2)
 
     # Manually set frequencies for 33 MHz clock frequency
     if int(clock_freq / 1000000) == 33:
@@ -785,7 +786,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 # *******************************************************************************
 
 
-def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
+def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filter_window):
     '''
     function calculates the average spectrum  in DAT file and normalizes all spectra in file to average spectra
     Input parameters:
@@ -853,7 +854,8 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
     plt.close('all')
 
     # Apply median filter to average profile
-    average_profile = median_filter(average_profile, 30)
+    #median_filter_window = 50
+    average_profile = median_filter(average_profile, median_filter_window)
 
     fig = plt.figure(figsize=(9, 5))
     ax1 = fig.add_subplot(111)
@@ -880,8 +882,8 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
 
         data = np.fromfile(file, dtype=np.float64, count=nx * spectra_num_in_bunch)
         data = np.reshape(data, [nx, spectra_num_in_bunch], order='F')
-        for i in range(spectra_num_in_bunch):
-            data[:, i] = data[:, i] / average_profile[:]
+        for j in range(spectra_num_in_bunch):
+            data[:, j] = data[:, j] / average_profile[:]
         temp = data.transpose().copy(order='C')
         normalized_file.write(np.float64(temp))
     file.close()
@@ -901,8 +903,8 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
     time_scale_bunch = old_tl_file.readlines()
 
     # Saving time data to new file
-    for i in range(len(time_scale_bunch)):
-        new_tl_file.write((time_scale_bunch[i][:]) + '')
+    for j in range(len(time_scale_bunch)):
+        new_tl_file.write((time_scale_bunch[j][:]) + '')
 
     old_tl_file.close()
     new_tl_file.close()
@@ -910,7 +912,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch):
     return output_file_name
 
 
-################################################################################
+# ###############################################################################
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
@@ -942,9 +944,10 @@ if __name__ == '__main__':
     if len(initial_wf32_files) > 1 and calibrate_phase:
         print('\n\n  * Making phase calibration of wf32 file... \n')
         wf32_two_cahnnel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
-                                            phase_calibr_txt_file)
+                                           phase_calibr_txt_file)
 
-    #initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+    # initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+
     if len(initial_wf32_files) > 1 and make_sum > 0:
         print('\n\n  * Making sum of two WF32 files... \n')
         file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
@@ -966,19 +969,21 @@ if __name__ == '__main__':
 
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
 
-    # file_name = 'DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.wf32'
-    # typesOfData = ['wfA+B']
+    # file_name = 'DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.wf32'
+    # typesOfData = ['wfA']
 
-    initial_tl_fname = file_name + '_Timeline.wtxt'
-    new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
-    os.rename(initial_tl_fname, new_tl_fname)
+    # initial_tl_fname = file_name + '_Timeline.wtxt'
+    # new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
+    # os.rename(initial_tl_fname, new_tl_fname)
 
     file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     print('\n Dedispersed DAT file: ', file_name, '\n')
 
     print('\n\n  * Making normalization of the dedispersed data... \n\n')
 
-    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch)
+    # !!! Check the normalization of the file !!!
+    # Why do not we use the smooth average spectrum? Is it necessary?
+    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch, median_filter_window)
     # '''
 
     print('\n\n  * Making figures of 3 pulsar periods... \n\n')
@@ -992,9 +997,12 @@ if __name__ == '__main__':
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
-    print('\n\n  * Cutting the data of found pulse ... \n\n  Examine 3 pulses pics and enter the number of period to cut:')
+    output_file_name = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat'
+
+    print('\n\n  * Cutting the data of found pulse ... ')
+    print('\n\n  Examine 3 pulses pics and enter the number of period to cut:')
     #  Manual input of the pulsar period where pulse is found
-    period_number   = int(input('\n    Enter the number of period where the pulse is:  '))
+    period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
     cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number, -0.15,
@@ -1002,6 +1010,6 @@ if __name__ == '__main__':
 
     endTime = time.time()
 
-    print('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
-                                                    round((endTime - startTime)/60, 2), 'min. ) \n')
+    print('\n\n  The program execution lasted for ',
+          round((endTime - startTime), 2), 'seconds (', round((endTime - startTime)/60, 2), 'min. ) \n')
     print('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')

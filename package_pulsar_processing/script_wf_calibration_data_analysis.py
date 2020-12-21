@@ -1,7 +1,7 @@
 # Python3
 # pip install progress
 Software_version = '2020.07.23'
-Software_name = 'JDS Waveform calibarion data analysis'
+Software_name = 'JDS Waveform calibration data analysis'
 
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
@@ -605,14 +605,12 @@ if __name__ == '__main__':
     currentDate = time.strftime("%d.%m.%Y")
     print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
-
     # print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
     #
     # initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_points_for_fft)
     # print('\n List of WF32 files: ', initial_wf32_files, '\n')
     #
-    #
-    # initial_wf32_files = ['E300120_233404.jds_Data_chA.wf32', 'E300120_233404.jds_Data_chB.wf32']
+    # # initial_wf32_files = ['E300120_233404.jds_Data_chA.wf32', 'E300120_233404.jds_Data_chB.wf32']
     # correlate_two_wf32_signals(initial_wf32_files[0], initial_wf32_files[1], no_of_points_for_fft, False)
 
     obtain_calibr_matrix_for_2_channel_wf_calibration(source_directory, no_of_points_for_fft)

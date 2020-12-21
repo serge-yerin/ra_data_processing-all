@@ -69,7 +69,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
         os.makedirs(result_path)
 
     # Finding pulsar name from file name
-    #pulsar_name = find_between(filename, '', '_')
+    # pulsar_name = find_between(filename, '', '_')
 
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
@@ -78,7 +78,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     filepath = common_path + filename
 
     # Timeline file to be analyzed:
-    #timeline_filepath = common_path + filename[:-13] + '_Timeline.txt'
+    # timeline_filepath = common_path + filename[:-13] + '_Timeline.txt'
     timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
@@ -128,8 +128,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    bar = IncrementalBar(' Making sum of two signals: ', max=num_of_blocks,
-                         suffix='%(percent)d%%')
+    bar = IncrementalBar(' Making pictures of n periods: ', max=num_of_blocks, suffix='%(percent)d%%')
 
     for block in range(num_of_blocks+1):   # Main loop by blocks of data
 
@@ -161,7 +160,8 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
         fig = plt.figure(figsize = (9.2, 4.5))
         rc('font', size=5, weight='bold')
         ax1 = fig.add_subplot(211)
-        ax1.plot(profile, color =u'#1f77b4', linestyle = '-', alpha=1.0, linewidth = '0.60', label = '3 pulses time profile')
+        ax1.plot(profile, color =u'#1f77b4', linestyle = '-', alpha=1.0,
+                 linewidth = '0.60', label = '3 pulses time profile')
         ax1.legend(loc = 'upper right', fontsize = 5)
         ax1.grid(b = True, which = 'both', color = 'silver', linewidth = '0.50', linestyle = '-')
         ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
@@ -171,7 +171,8 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
                       fontsize = 5, fontweight='bold')
         ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         ax2 = fig.add_subplot(212)
-        ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin = spectrum_pic_min, vmax = spectrum_pic_max, extent=[0,len(profile),frequency[0],frequency[-1]])
+        ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin = spectrum_pic_min, vmax = spectrum_pic_max,
+                   extent=[0,len(profile),frequency[0],frequency[-1]])
         ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
         ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
         text = ax2.get_xticks().tolist()
@@ -184,8 +185,10 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
                      str(p_bar) + ' s.), fig. ' + str(block + 1) + ' of ' + str(num_of_blocks+1),
                      fontsize = 7, fontweight='bold')
         fig.text(0.80, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
-        fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
-        pylab.savefig(result_path + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png', bbox_inches = 'tight', dpi = customDPI)
+        fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU',
+                 fontsize=3, transform=plt.gcf().transFigure)
+        pylab.savefig(result_path + '/'+ filename + ' fig. ' +str(block+1)+ ' - Combined picture.png',
+                      bbox_inches = 'tight', dpi = customDPI)
         plt.close('all')
 
     bar.finish()
@@ -276,13 +279,14 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
 
     single_pulse_txt = open(result_path + '/' + filename + ' - Extracted pulse.txt', "w")
     for freq in range(len(frequency) - 1):
-        #single_pulse_txt.write(' '.join(format(data[freq, i], "12.7e") for i in range(spectra_to_read)) + ' \n')
+        # single_pulse_txt.write(' '.join(format(data[freq, i], "12.7e") for i in range(spectra_to_read)) + ' \n')
         single_pulse_txt.write(' '.join('  {:+12.7E}'.format(data[freq, i]) for i in range(spectra_to_read)) + ' \n')
 
     single_pulse_txt.close()
 
     # Time line
-    fig_time_scale = timeline[(period_number-1) * spectra_per_period : (period_number - 1 + spectra_to_read) * spectra_per_period]
+    fig_time_scale = timeline[(period_number-1) *
+                              spectra_per_period : (period_number - 1 + spectra_to_read) * spectra_per_period]
 
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))
@@ -304,7 +308,8 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     fig.suptitle('Extracted single pulse of '+pulsar_name+' (DM: '+str(DM)+r' $\mathrm{pc \cdot cm^{-3}}$'+', Period: '+
                  str(p_bar) + ' s.)', fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at '+currentTime, fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU',
+             fontsize=3, transform=plt.gcf().transFigure)
     pylab.savefig(result_path + '/' + filename + ' - Extracted pulse.png', bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
@@ -448,9 +453,9 @@ if __name__ == '__main__':
     incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
     '''
 
-    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat/'
-    filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat - Extracted pulse.txt'
-    cut_needed_time_points_from_txt(common_path + filename, 470, 520)
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat/'
+    filename = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat - Extracted pulse.txt'
+    cut_needed_time_points_from_txt(common_path + filename, 900, 1100)
 
     endTime = time.time()    # Time of calculations
 
