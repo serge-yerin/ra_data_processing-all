@@ -4,11 +4,11 @@ Software_name = 'ADR reader (single folder)'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files for further processing
 
-#*******************************************************************************
-#                             P A R A M E T E R S                              *
-#*******************************************************************************
+# *******************************************************************************
+#                              P A R A M E T E R S                              *
+# *******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'  #'DATA/'
+directory = 'DATA/'  # 'DATA/'
 
 MaxNim = 8192                 # Number of data chunks for one figure
 chunkSkip = 0                 # Number of chunks to skip from data beginning
@@ -32,8 +32,8 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
+SpectrumFileSaveSwitch = 1     # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
+ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
 
 # ###############################################################################
 # *******************************************************************************
@@ -60,14 +60,14 @@ from package_ra_data_processing.spectra_normalization import Normalization_dB
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 
-print ('\n\n\n\n\n\n\n\n   **************************************************************************')
-print ('   *               ', Software_name,' v.',Software_version,'              *      (c) YeS 2018')
-print ('   ************************************************************************** \n\n\n')
+print('\n\n\n\n\n\n\n\n   **************************************************************************')
+print('   *               ', Software_name,' v.',Software_version,'              *      (c) YeS 2018')
+print('   ************************************************************************** \n\n\n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
+print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
 # Check the correctness of path to data
 if directory[-1] != '/':
@@ -80,7 +80,7 @@ if not os.path.exists(result_path + '/Service'):
 if DynSpecSaveInitial == 1:
     if not os.path.exists(result_path + '/Initial_spectra'):
         os.makedirs(result_path + '/Initial_spectra')
-if (DynSpecSaveCleaned == 1 and CorrelationProcess == 1):
+if DynSpecSaveCleaned == 1 and CorrelationProcess == 1:
     if not os.path.exists(result_path + '/Correlation_spectra'):
         os.makedirs(result_path + '/Correlation_spectra')
 
@@ -102,14 +102,13 @@ fileList = find_files_only_in_current_folder(directory, '.adr', 1)
 
 # Main loop by files
 for fileNo in range (len(fileList)):
-    print ('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
-    print ('  *  File path: ', str(fileList[fileNo]))
+    print('\n\n\n  *  File ',  str(fileNo+1), ' of', str(len(fileList)))
+    print('  *  File path: ', str(fileList[fileNo]))
     Log_File = open(result_path + '/Service/Log.txt', "a")
     Log_File.write('\n\n\n  * File '+str(fileNo+1)+' of %s \n' %str(len(fileList)))
     Log_File.write('  * File path: %s \n\n\n' %str(fileList[fileNo]) )
 
-
-#*********************************************************************************
+# *********************************************************************************
 
     # *** Opening datafile ***
     fname = ''
@@ -133,9 +132,7 @@ for fileNo in range (len(fileList)):
     TimeFirstFrameFloatSec = frm_sec + TimeFirstFramePhase
     TimeScaleStartTime = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]), int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]), int(df_creation_timeUTC[6:8]), int(df_creation_timeUTC[9:12])*1000)
 
-
     with open(fname, 'rb') as file:
-
 
         # *** Reading indexes of data from index file '*.fft' ***
         indexes = []
@@ -149,12 +146,10 @@ for fileNo in range (len(fileList)):
             num = num + 1
         indexfile.close()
 
-
         timeLineSecond = np.zeros(ChunksInFile) # List of second values from DSP_INF field
 
-
         # *** If it is the first file - write the header to long data file ***
-        if((longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1 or longFileSaveSSD == 1) and fileNo == 0):
+        if(longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or longFileSaveCMP == 1 or longFileSaveSSD == 1) and fileNo == 0:
             file.seek(0)
             file_header = file.read(1024)
 
@@ -164,40 +159,40 @@ for fileNo in range (len(fileList)):
             TLfile.close()
 
             # *** Creating a binary file with data for long data storage ***
-            if(longFileSaveAch == 1 and (ADRmode == 3 or ADRmode == 5 or ADRmode == 6)):
-                fileData_A_name = df_filename+'_Data_chA.dat'
+            if longFileSaveAch == 1 and (ADRmode == 3 or ADRmode == 5 or ADRmode == 6):
+                fileData_A_name = df_filename + '_Data_chA.dat'
                 fileData_A = open(fileData_A_name, 'wb')
                 fileData_A.write(file_header)
                 fileData_A.close()
-            if(longFileSaveBch == 1 and (ADRmode == 4 or ADRmode == 5 or ADRmode == 6)):
-                fileData_B_name = df_filename+'_Data_chB.dat'
+            if longFileSaveBch == 1 and (ADRmode == 4 or ADRmode == 5 or ADRmode == 6):
+                fileData_B_name = df_filename + '_Data_chB.dat'
                 fileData_B = open(fileData_B_name, 'wb')
                 fileData_B.write(file_header)
                 fileData_B.close()
-            if(CorrelationProcess == 1 and longFileSaveCRI == 1 and ADRmode == 6):
-                fileData_CRe_name = df_filename+'_Data_CRe.dat'
+            if CorrelationProcess == 1 and longFileSaveCRI == 1 and ADRmode == 6:
+                fileData_CRe_name = df_filename + '_Data_CRe.dat'
                 fileData_C_Re = open(fileData_CRe_name, 'wb')
                 fileData_C_Re.write(file_header)
                 fileData_C_Re.close()
-                fileData_CIm_name = df_filename+'_Data_CIm.dat'
+                fileData_CIm_name = df_filename + '_Data_CIm.dat'
                 fileData_C_Im = open(fileData_CIm_name, 'wb')
                 fileData_C_Im.write(file_header)
                 fileData_C_Im.close()
-            if(CorrelationProcess == 1 and longFileSaveCMP == 1 and ADRmode == 6):
-                fileData_CM_name = df_filename+'_Data_C_m.dat'
+            if CorrelationProcess == 1 and longFileSaveCMP == 1 and ADRmode == 6:
+                fileData_CM_name = df_filename + '_Data_C_m.dat'
                 fileData_C_M = open(fileData_CM_name, 'wb')
                 fileData_C_M.write(file_header)
                 fileData_C_M.close()
-                fileData_CP_name = df_filename+'_Data_C_p.dat'
+                fileData_CP_name = df_filename + '_Data_C_p.dat'
                 fileData_C_P = open(fileData_CP_name, 'wb')
                 fileData_C_P.write(file_header)
                 fileData_C_P.close()
-            if(Sum_Diff_Calculate == 1 and longFileSaveSSD == 1 and (ADRmode == 5 or ADRmode == 6)):
-                fileData_Sum_name = df_filename+'_Data_Sum.dat'
+            if Sum_Diff_Calculate == 1 and longFileSaveSSD == 1 and (ADRmode == 5 or ADRmode == 6):
+                fileData_Sum_name = df_filename + '_Data_Sum.dat'
                 fileData_Sum = open(fileData_Sum_name, 'wb')
                 fileData_Sum.write(file_header)
                 fileData_Sum.close()
-                fileData_Dif_name = df_filename+'_Data_Dif.dat'
+                fileData_Dif_name = df_filename + '_Data_Dif.dat'
                 fileData_Dif = open(fileData_Dif_name, 'wb')
                 fileData_Dif.write(file_header)
                 fileData_Dif.close()
@@ -206,15 +201,13 @@ for fileNo in range (len(fileList)):
 
         print('\n  *** Reading data from file *** \n')
 
-
         # ************************************************************************************
         #                             R E A D I N G   D A T A                                *
         # ************************************************************************************
 
         file.seek(1024 + (sizeOfChunk+8) * chunkSkip)  # Jumping to 1024 byte from file beginning
 
-
-        if ADRmode > 2 and ADRmode < 7:           # Specter modes
+        if ADRmode > 2 and ADRmode < 7:           # Spectrum modes
             figID = -1
             figMAX = int(math.ceil((ChunksInFile - chunkSkip) / MaxNim))
             if figMAX < 1: figMAX = 1
@@ -415,10 +408,9 @@ for fileNo in range (len(fileList)):
                     fileData_C_P.write(np.float64(CorrPhase))
                     fileData_C_P.close()
 
-
                 # *** Saving immediate spectrum to file ***
-                if(SpecterFileSaveSwitch == 1 and figID == 0):
-                    SpFile = open(result_path + '/Service/Specter_'+df_filename[0:14]+'.txt', 'w')
+                if SpectrumFileSaveSwitch == 1 and figID == 0:
+                    SpFile = open(result_path + '/Service/Spectrum_'+df_filename[0:14]+'.txt', 'w')
                     for i in range(FreqPointsNum-1):
                         if ADRmode == 3:
                             SpFile.write(str('{:10.6f}'.format(frequency[i]))+'  '+str('{:16.10f}'.format(Data_Ch_A[ImmediateSpNo][i]))+' \n')
@@ -429,7 +421,6 @@ for fileNo in range (len(fileList)):
                         #if ADRmode == 6:
                         #    SpFile.write(str(frequency[i])+'  '+str(Data_Ch_A[ImmediateSpNo][i])+'  '+str(Data_Ch_B[ImmediateSpNo][i])+'  '+str(Data_C_Re[ImmediateSpNo][i])+'  '+str(Data_C_Im[ImmediateSpNo][i])+' \n')
                     SpFile.close()
-
 
                 # *** FIGURE Immediate spectra before cleaning and normalizing ***
                 if figID == 0:
@@ -448,7 +439,7 @@ for fileNo in range (len(fileList)):
                         Filename = (result_path + '/Service/'+df_filename[0:14]+' '+
                                     Legend_1 + ' Immediate Spectrum before cleaning and normalizing.png')
 
-                    if (ADRmode == 5 or ADRmode == 6) :     # Immediate spectrum channels A & B
+                    if ADRmode == 5 or ADRmode == 6 :     # Immediate spectrum channels A & B
                         Data_1 = Data_Ch_A[0][:]
                         Data_2 = Data_Ch_B[0][:]
                         Legend_1 = 'Channel A'
@@ -466,7 +457,7 @@ for fileNo in range (len(fileList)):
                                 currentDate, currentTime, Software_version)
 
                 # *** FIGURE Correlation amplitude and phase immediate spectrum ***
-                if (ADRmode == 6 and figID == 0 and CorrelationProcess == 1):   #  Immediate correlation spectrum channels A & B
+                if ADRmode == 6 and figID == 0 and CorrelationProcess == 1:   #  Immediate correlation spectrum channels A & B
 
                     Suptitle = ('Immediate correlation spectrum '+str(df_filename[0:18])+ ' channels A & B')
                     Title = ('Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+
@@ -480,9 +471,8 @@ for fileNo in range (len(fileList)):
                                 Suptitle, Title, Filename,
                                 currentDate, currentTime, Software_version)
 
-
                 # *** FIGURE Initial dynamic spectrum of 1 channel (A or B) ***
-                if ((ADRmode == 3 or ADRmode == 4) and DynSpecSaveInitial == 1):
+                if (ADRmode == 3 or ADRmode == 4) and DynSpecSaveInitial == 1:
                     if ADRmode == 3:
                         Data = Data_Ch_A.transpose()
                     if ADRmode == 4:
@@ -504,10 +494,8 @@ for fileNo in range (len(fileList)):
                         frequency, FreqPointsNum, colormap, 'UTC Time, HH:MM:SS.msec',
                         fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
-
-
                 # *** FIGURE Initial dynamic spectrum channels A and B ***
-                if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveInitial == 1):
+                if (ADRmode == 5 or ADRmode == 6) and DynSpecSaveInitial == 1:
 
                     fig_file_name = (result_path + '/Initial_spectra/' + df_filename[0:14] +
                                     ' Initial dynamic spectrum fig.' + str(figID+1) + '.png')
@@ -517,16 +505,14 @@ for fileNo in range (len(fileList)):
                                 sumDifMode + ' Receiver: ' + str(df_system_name)+', Place: '+str(df_obs_place) +
                                 '\n' + ReceiverMode + ', Description: ' + str(df_description))
 
-
                     TwoDynSpectraPlot(Data_Ch_A.transpose(), Data_Ch_B.transpose(), Vmin, Vmax, Vmin, Vmax, Suptitle,
                                             'Intensity, dB', 'Intensity, dB', Nim * SpInFrame * FrameInChunk,
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                                             currentDate, currentTime, Software_version, customDPI)
 
-
                 # *** FIGURE Initial correlation spectrum module and phase ***
-                if (ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1):
+                if ADRmode == 6 and CorrSpecSaveInitial == 1 and CorrelationProcess == 1:
 
                     fig_file_name = (result_path + '/Correlation_spectra/' + df_filename[0:14] +
                                     ' Correlation dynamic spectrum fig.' + str(figID+1) + '.png')
@@ -541,7 +527,6 @@ for fileNo in range (len(fileList)):
                                             TimeFigureScaleFig, TimeScaleFig, frequency,
                                             FreqPointsNum, colormap, 'Correlation module', 'Correlation phase',
                                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
-
 
                 # *** Normalizing amplitude-frequency responce ***
                 if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
@@ -576,7 +561,7 @@ for fileNo in range (len(fileList)):
                         Filename = (result_path + '/Service/'+df_filename[0:14]+' '+
                                 Legend_1 + ' Immediate Spectrum after cleaning and normalizing.png')
 
-                    if (ADRmode == 5 or ADRmode == 6):   # Immediate spectrum channels A & B
+                    if ADRmode == 5 or ADRmode == 6:   # Immediate spectrum channels A & B
                         no_of_sets = 2
                         Data_1 = Data_Ch_A[0][:]
                         Data_2 = Data_Ch_B[0][:]
@@ -592,10 +577,9 @@ for fileNo in range (len(fileList)):
                                         -10, 40, -10, 40, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                         Suptitle, Title, Filename, currentDate, currentTime, Software_version)
 
-
                 # *** FIGURE Cleaned and normalized dynamic spectrum of 1 channel A or B
 
-                if ((ADRmode == 3 or ADRmode == 4) and DynSpecSaveCleaned == 1):
+                if (ADRmode == 3 or ADRmode == 4) and DynSpecSaveCleaned == 1:
                     if ADRmode == 3:
                         Data = Data_Ch_A.transpose()
                     if ADRmode == 4:
@@ -617,10 +601,9 @@ for fileNo in range (len(fileList)):
                         frequency, FreqPointsNum, colormap, 'UTC Time, HH:MM:SS.msec',
                         fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
-
                 # *** FIGURE Dynamic spectrum channels A and B cleaned and normalized (python 3 new version) ***
 
-                if ((ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1):
+                if (ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
 
                     fig_file_name = (result_path + '/' + df_filename[0:14] + ' Dynamic spectrum fig.' +
                                     str(figID+1) + '.png')
@@ -636,13 +619,17 @@ for fileNo in range (len(fileList)):
                                             FreqPointsNum, colormap, 'Channel A', 'Channel B', fig_file_name,
                                             currentDate, currentTime, Software_version, customDPI)
 
-
                 # *** FIGURE Correlation spectrum module and phase cleaned and normalized (python 3 new version) ***
-                if (ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1):
+                if ADRmode == 6 and CorrSpecSaveCleaned == 1 and CorrelationProcess == 1:
 
-                    Suptitle = 'Correlation dynamic spectrum (nolmalized) ' + str(df_filename)+' - Fig. '+str(figID+1)+' of '+str(figMAX)+'\n Initial parameters: dt = '+str(round(TimeRes*1000,3))+' ms, df = '+str(round(df/1000.,3))+' kHz, '+sumDifMode+' Receiver: '+str(df_system_name)+', Place: '+str(df_obs_place)+'\n'+ReceiverMode+', Description: '+str(df_description)
+                    Suptitle = 'Correlation dynamic spectrum (nolmalized) ' + str(df_filename) + ' - Fig. ' + \
+                               str(figID+1) + ' of '+str(figMAX) + '\n Initial parameters: dt = ' + \
+                               str(round(TimeRes*1000,3)) + ' ms, df = ' + str(round(df/1000.,3))+' kHz, ' + \
+                               sumDifMode + ' Receiver: ' + str(df_system_name) + ', Place: ' + str(df_obs_place) + \
+                               '\n'+ReceiverMode+', Description: '+str(df_description)
 
-                    fig_file_name = result_path + '/Correlation_spectra/' + df_filename[0:14] + ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
+                    fig_file_name = result_path + '/Correlation_spectra/' + df_filename[0:14] + \
+                                    ' Correlation dynamic spectrum cleaned fig.' + str(figID+1) + '.png'
 
                     TwoDynSpectraPlot(CorrModule.transpose(), CorrPhase.transpose(), VminNorm, 3*VmaxNorm, -3.15, 3.15, Suptitle,
                                             'Intensity, dB', 'Phase, rad', Nim * SpInFrame * FrameInChunk,
@@ -652,15 +639,16 @@ for fileNo in range (len(fileList)):
 
             gc.collect()
         del timeLineSecond
-        print ('\n  Position in file: ', file.tell(), ' File size: ', df_filesize)
-        if (file.tell() == df_filesize): print ('\n  File was read till the end')
-        if (file.tell() < df_filesize):  print ('\n  File was NOT read till the end!!! ERROR')
+        print('\n  Position in file: ', file.tell(), ' File size: ', df_filesize)
+        if file.tell() == df_filesize:
+            print('\n  File was read till the end')
+        if file.tell() < df_filesize:
+            print('\n  File was NOT read till the end!!! ERROR')
 
     # Here we close the data file
 
-
 endTime = time.time()    # Time of calculations
 
-print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+print('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                 round((endTime - startTime)/60, 2), 'min. ) \n')
-print ('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
+print('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
