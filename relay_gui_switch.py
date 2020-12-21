@@ -217,7 +217,6 @@ btn_connect = Button(window, text='Connect', width=10, command=click_connect)
 btn_connect.focus_set()
 lbl_connect = Label(window, text='Disconnected', font='none 12', width=12, bg='gray')
 
-# btn_check_state = Button(window, text='Check state', font='none 9 bold', width=12, command=check_relay_state)
 btn_block_cntrl = Button(window, text='UNBLOCK', font='none 9 bold', width=10, command=block_control)
 
 lbl_txt_0 = Label(window, text='Relay 0:', font='none 12', width=9)
@@ -237,7 +236,6 @@ btn_pc_of_1 = Button(window, text='10 s.', width=4, fg='gray', command=click_of_
 img = ImageTk.PhotoImage(Image.open(logo_path))
 ira_logo = Label(window, image = img)
 
-
 # Place widgets on a grid
 lbl_txt_ip.grid(row=0, column=0, stick='w', padx=x_space, pady=y_space)
 ent_ip_addrs.grid(row=0, column=1, stick='w', padx=x_space, pady=y_space)
@@ -246,7 +244,6 @@ lbl_connect.grid(row=0, column=3, stick='w', padx=x_space, pady=y_space)
 
 ira_logo.grid(row=0, column=4, rowspan=2, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
-# btn_check_state.grid(row=1, column=1, stick='w', padx=x_space, pady=y_space)
 btn_block_cntrl.grid(row=1, column=2, stick='w', padx=x_space, pady=y_space)
 
 lbl_txt_0.grid(row=2, column=0, stick='w', padx=x_space, pady=y_space)

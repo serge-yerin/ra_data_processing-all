@@ -4,11 +4,11 @@ Software_name = 'ADR multifolder data files reader'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files and analyze them
 import os
-#*******************************************************************************
-#                             P A R A M E T E R S                              *
-#*******************************************************************************
+# *******************************************************************************
+#                              P A R A M E T E R S                              *
+# *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = 'DATA/' # 'h:/To_process/'
+path_to_data = '/media/data/DATA/To_process'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -26,8 +26,8 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
+SpectrumFileSaveSwitch = 1    # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
+ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
@@ -38,11 +38,10 @@ VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spec
 AmplitudeReIm = 1 * 10**(-12) # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
-
-################################################################################
-#*******************************************************************************
-#                    I M P O R T    L I B R A R I E S                          *
-#*******************************************************************************
+# ###############################################################################
+# *******************************************************************************
+#                     I M P O R T    L I B R A R I E S                          *
+# *******************************************************************************
 
 import time
 import sys
@@ -55,19 +54,19 @@ from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
-################################################################################
-#*******************************************************************************
-#                          M A I N    P R O G R A M                            *
-#*******************************************************************************
+# ###############################################################################
+# *******************************************************************************
+#                           M A I N    P R O G R A M                            *
+# *******************************************************************************
 
-print ('\n\n\n\n\n\n\n\n   **************************************************************')
-print ('   *    ', Software_name,'  v.',Software_version,'     *      (c) YeS 2019')
-print ('   ************************************************************** \n\n')
+print('\n\n\n\n\n\n\n\n   **************************************************************')
+print('   *    ', Software_name,'  v.',Software_version,'     *      (c) YeS 2019')
+print('   ************************************************************** \n\n')
 
 startTime = time.time()
 currentTime = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print ('  Today is ', currentDate, ' time is ', currentTime, '\n')
+print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
 # Path to intermediate data files (DAT)
 path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
@@ -91,7 +90,7 @@ list_of_folder_names = find_unique_strings_in_list(file_path_list)
 print('\n  Number of ADR files found: ', len(file_name_list))
 print('\n  List of folders to be analyzed: \n')
 for i in range (len(list_of_folder_names)):
-    print('         ',  i+1 ,') ', list_of_folder_names[i])
+    print('         ',  i+1, ') ', list_of_folder_names[i])
 
 
 # Take only one folder, find all files
@@ -100,9 +99,10 @@ same_or_not = np.zeros(num_of_folders)
 equal_or_not = np.zeros(num_of_folders)
 for folder_no in range (num_of_folders):
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
-    print ('\n\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n **********************************************************')
-    for i in range (len(file_name_list_current)):
-        print('         ',  i+1 ,') ', file_name_list_current[i])
+    print('\n\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no],
+          '\n **********************************************************')
+    for i in range(len(file_name_list_current)):
+        print('         ',  i+1,') ', file_name_list_current[i])
     print(' ')
 
     # Check if all files (except the last) have same size
@@ -119,34 +119,33 @@ else:
     print(' *                                                                                   *  \n ************************************************************************************* \n\n\n')
 
 
-decision  = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
+decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
 if decision != 1:
     sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
 
 
+print('\n\n\n   **************************************************************')
+print('   *               D A T A   P R O C E S S I N G                *')
+print('   **************************************************************')
 
-print ('\n\n\n   **************************************************************')
-print ('   *               D A T A   P R O C E S S I N G                *')
-print ('   **************************************************************')
 
-
-# In loop take a folder, make a result folder and process the data
-for folder_no in range (num_of_folders):
+# In a loop take a folder, make a result folder and process the data
+for folder_no in range(num_of_folders):
 
     # Find all files in folder once more:
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
     file_name_list_current.sort()
 
-    print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
+    print('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no], '\n')
 
     # Making a name of folder for storing the result figures and txt files
-    result_folder_name =  list_of_folder_names[folder_no].split('/')[-2]
+    result_folder_name = list_of_folder_names[folder_no].split('/')[-2]
     if where_save_pics == 0:
         result_path = path_to_DAT_files + 'ADR_Results_' + result_folder_name
     else:
         result_path = list_of_folder_names[folder_no] + 'ADR_Results_' + result_folder_name
 
-    for file in range (len(file_name_list_current)):
+    for file in range(len(file_name_list_current)):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
 
     # Run ADR reader for the current folder
@@ -154,7 +153,7 @@ for folder_no in range (num_of_folders):
                     RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                     VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, 0, 1, 1, 1, 1, 0,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpecterFileSaveSwitch, ImmediateSpNo, print_or_not)
+                    SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
@@ -170,8 +169,7 @@ for folder_no in range (num_of_folders):
                                 RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 
-
 endTime = time.time()    # Time of calculations
-print ('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
-                                                round((endTime - startTime)/60, 2), 'min. ) \n')
-print ('    *** Program ', Software_name,' has finished! *** \n\n\n')
+print('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
+                                                   round((endTime - startTime)/60, 2), 'min. ) \n')
+print('    *** Program ', Software_name,' has finished! *** \n\n\n')
