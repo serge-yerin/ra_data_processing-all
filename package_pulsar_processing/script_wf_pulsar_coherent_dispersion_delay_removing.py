@@ -459,7 +459,6 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         # *** Data file header read ***
         file_header = file.read(1024)
 
-        ####################################################################
         # Removing old DM from file name and updating it to current value
         if fname.startswith('DM_'):
             prev_dm_str = fname.split('_')[1]
@@ -469,9 +468,9 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             n = len('DM_' + prev_dm_str + '_')
             file_data_name = 'DM_' + str(np.round(new_dm, 6)) + '_' + fname[n:]
         else:
-            ####################################################################
-            # *** Creating a binary file with data for long data storage ***
             file_data_name = 'DM_' + str(np.round(DM, 6)) + '_' + fname
+
+        # *** Creating a binary file with data for long data storage ***
         file_data = open(file_data_name, 'wb')
         file_data.write(file_header)
         file_data.close()
@@ -998,6 +997,7 @@ if __name__ == '__main__':
     # Why do not we use the smooth average spectrum? Is it necessary?
     output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch, median_filter_window)
     # '''
+    print('!!! ', output_file_name)
 
     print('\n\n  * Making figures of 3 pulsar periods... \n\n')
 
@@ -1010,7 +1010,9 @@ if __name__ == '__main__':
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
-    # output_file_name = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat'
+    # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
+
+    print('!!! ', output_file_name)
 
     print('\n\n  * Cutting the data of found pulse ... ')
     print('\n\n  Examine 3 pulses pics and enter the number of period to cut:')
