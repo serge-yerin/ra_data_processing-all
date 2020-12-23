@@ -1,16 +1,14 @@
 # Python3
-Software_version = '2020.05.28'
+Software_version = '2020.12.23'
 Software_name = 'ADR control by schedule'
 # Script controls the ADR radio astronomy receiver according to schedule txt file
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-receiver_ip = '192.168.1.171'     # Receiver IP address in local network '192.168.1.171'
+receiver_ip = '192.168.1.172'     # Receiver IP address in local network '192.168.1.171'
 time_server = '192.168.1.150'     # IP of the time server (usually the control PC) '192.168.1.150'
 copy_data = 1                     # Copy data from receiver?
 process_data = 1                  # Process copied data?
-schedule_txt_file = 'Observations.txt'
-
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -44,6 +42,17 @@ AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 port = 38386                    # Port of the receiver to connect (always 38386)
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
+
+if receiver_ip.endswith('171'):
+    schedule_txt_file = 'Observations_ADR_01.txt'
+    obs_log_file_name = 'service_data/ADR_01_Observations_log.txt'
+
+elif receiver_ip.endswith('172'):
+    obs_log_file_name = 'service_data/ADR_02_Observations_log.txt'
+    schedule_txt_file = 'Observations_ADR_02.txt'
+else:
+    print('\n\n !!! Unknown receiver address !!!')
+
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -87,7 +96,6 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
     if copy_data > 0:
         ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, 0)
 
-
     if process_data > 0:
 
         time.sleep(5)
@@ -125,7 +133,6 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
                              averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                              RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
-
     message = ''
     if process_data > 0:
         message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
@@ -153,20 +160,20 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                             ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm):
 
-
     # *******************************************************************************
     #                           M A I N    P R O G R A M                            *
     # *******************************************************************************
-    print ('\n\n\n\n\n\n\n\n   *********************************************************************')
-    print ('   *            ', Software_name, '  v.', Software_version,'              *      (c) YeS 2020')
-    print ('   ********************************************************************* \n\n\n')
+    print('\n\n\n\n\n\n\n\n   *********************************************************************')
+    print('   *            ', Software_name, '  v.', Software_version,'              *      (c) YeS 2020')
+    print('   ********************************************************************* \n\n\n')
 
     currentTime = time.strftime("%H:%M:%S")
     currentDate = time.strftime("%d.%m.%Y")
     print('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
     # process only copied from receiver data
-    if process_data > 0: copy_data = 1
+    if process_data > 0:
+        copy_data = 1
 
     # Read schedule
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
@@ -175,17 +182,21 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     Check correctness and recalculate the parameters to variables sent to ADR receiver
     '''
 
+    obs_log_file = open(obs_log_file_name, "a")
+
     # Printing overall schedule
     print('\n   *********************** OBSERVATIONS SCHEDULE ***********************')
     for obs_no in range(len(schedule)):
-        print('   ' + schedule[obs_no][0] + ' - ' + schedule[obs_no][1] + '   DIR: ' + schedule[obs_no][6])
+        line = ' ' + schedule[obs_no][0] + ' - ' + schedule[obs_no][1] + '   DIR: ' + schedule[obs_no][6]
+        print('  ' + line)
+        obs_log_file.write(line)
     print('   *********************************************************************')
 
     # Connect to the ADR receiver via socket
     serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
     # Check if the receiver is initialized, if it is not - initialize it
-    serversocket.send((b"set prc/srv/ctl/adr 3 1\0"))
+    serversocket.send(b"set prc/srv/ctl/adr 3 1\0")
     data = f_read_adr_meassage(serversocket, 0)
 
     if 'Failed!' in data or 'Stopped' in data:
@@ -262,7 +273,23 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         serversocket.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
         data = f_read_adr_meassage(serversocket, 0)
         if data.startswith('SUCCESS'):
-            print ('\n * Recording started')
+            print('\n * Recording started')
+            message = 'GURT ' + data_directory_name.replace('_', ' ') + \
+                      ' observations started successfully!\nStart time: ' + \
+                      schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+                      '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      '\nReceiver IP: ' + receiver_ip + \
+                      '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+                      '\nMode: ' + parameters_dict["operation_mode_str"] + \
+                      '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+                      '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + \
+                      ' kHz.' + '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + \
+                      ' - ' + str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
 
         # Waiting time to stop record
         ok = f_wait_predefined_time_connected(dt_time_to_stop_record, serversocket, 0, receiver_ip, time_server)
@@ -271,7 +298,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         serversocket.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
         data = f_read_adr_meassage(serversocket, 0)
         if data.startswith('SUCCESS'):
-            print ('\n * Recording stopped')
+            print('\n * Recording stopped')
 
         # Sending message to Telegram
         message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
@@ -295,7 +322,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 
         # Data copying processing
         if process_data > 0:
-            p_processing[obs_no] = Process(target = copy_and_process_adr, args=(copy_data, process_data,
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(copy_data, process_data,
                              dir_data_on_server, data_directory_name, parameters_dict,
                              telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
