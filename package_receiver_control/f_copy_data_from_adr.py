@@ -54,6 +54,7 @@ def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, p
 
 ################################################################################
 
+
 if __name__ == '__main__':
 
     receiver_ip = '192.168.1.171'
