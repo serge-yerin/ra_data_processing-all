@@ -41,7 +41,6 @@ def find_and_check_files_in_current_folder(source_directory, extension):
     return fileList
 
 
-
 if __name__ == '__main__':
 
     path = 'DATA/'
