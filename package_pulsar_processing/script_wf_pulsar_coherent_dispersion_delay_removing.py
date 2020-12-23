@@ -19,7 +19,7 @@ no_of_bunches_per_file = 16             # Number of bunches to read one WF file 
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
-median_filter_window = 50               # Window of median filter to smooth the average profile
+median_filter_window = 80               # Window of median filter to smooth the average profile
 
 phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
@@ -35,6 +35,7 @@ import math
 import pylab
 import numpy as np
 from os import path
+from time import gmtime, strftime
 from progress.bar import IncrementalBar
 import matplotlib.pyplot as plt
 
@@ -458,8 +459,18 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         # *** Data file header read ***
         file_header = file.read(1024)
 
+        # Removing old DM from file name and updating it to current value
+        if fname.startswith('DM_'):
+            prev_dm_str = fname.split('_')[1]
+            prev_dm = np.float32(prev_dm_str)
+            new_dm = prev_dm + DM
+            # file_data_name = 'DM_' + str(np.round(new_dm, 6)) + '_' + fname.removeprefix('DM_' + prev_dm_str + '_')
+            n = len('DM_' + prev_dm_str + '_')
+            file_data_name = 'DM_' + str(np.round(new_dm, 6)) + '_' + fname[n:]
+        else:
+            file_data_name = 'DM_' + str(np.round(DM, 6)) + '_' + fname
+
         # *** Creating a binary file with data for long data storage ***
-        file_data_name = 'DM_' + str(np.round(DM, 6)) + '_' + fname
         file_data = open(file_data_name, 'wb')
         file_data.write(file_header)
         file_data.close()
@@ -514,7 +525,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 time_scale_bunch.append(str(old_tl_file.readline()))
 
             # Reading and reshaping all data with time data
-            wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
+            wf_data = np.fromfile(file, dtype='f4', count=no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
             
             '''
             fig = plt.figure(figsize=(9, 5))
@@ -652,7 +663,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
                 
                 # Saving waveform data to wf32 file
                 file_data = open(file_data_name, 'ab')
-                file_data.write(np.float32(wf_data).transpose().copy(order='C'))  # C
+                file_data.write(np.float32(wf_data).transpose().copy(order='C'))
                 file_data.close()
 
                 # !!! Saving time data to timeline file !!!
@@ -737,7 +748,8 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         old_tl_file = open(old_tl_file_name, 'r')
         new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
 
-        bar = IncrementalBar(' Conversion from waveform to spectra: ', max=no_of_bunches_per_file-1, suffix='%(percent)d%%')
+        bar = IncrementalBar(' Conversion from waveform to spectra: ',
+                             max=no_of_bunches_per_file-1, suffix='%(percent)d%%')
 
         for bunch in range(no_of_bunches_per_file-1):
 
@@ -854,7 +866,6 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     plt.close('all')
 
     # Apply median filter to average profile
-    #median_filter_window = 50
     average_profile = median_filter(average_profile, median_filter_window)
 
     fig = plt.figure(figsize=(9, 5))
@@ -961,7 +972,8 @@ if __name__ == '__main__':
 
     # file_name = 'E280120_205409.jds_Data_chA.wf32'
     for i in range(int(pulsar_dm // dm_step)):  #
-        print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), '\n')
+        t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+        print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), ' started at: ', t, '\n')
         file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
@@ -985,6 +997,7 @@ if __name__ == '__main__':
     # Why do not we use the smooth average spectrum? Is it necessary?
     output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch, median_filter_window)
     # '''
+    print('!!! ', output_file_name)
 
     print('\n\n  * Making figures of 3 pulsar periods... \n\n')
 
@@ -997,7 +1010,9 @@ if __name__ == '__main__':
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
-    output_file_name = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat'
+    # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
+
+    print('!!! ', output_file_name)
 
     print('\n\n  * Cutting the data of found pulse ... ')
     print('\n\n  Examine 3 pulses pics and enter the number of period to cut:')
