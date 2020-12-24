@@ -48,8 +48,8 @@ if receiver_ip.endswith('171'):
     obs_log_file_name = 'service_data/ADR_01_Observations_log.txt'
 
 elif receiver_ip.endswith('172'):
-    obs_log_file_name = 'service_data/ADR_02_Observations_log.txt'
     schedule_txt_file = 'Observations_ADR_02.txt'
+    obs_log_file_name = 'service_data/ADR_02_Observations_log.txt'
 else:
     print('\n\n !!! Unknown receiver address !!!')
 
@@ -189,7 +189,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     for obs_no in range(len(schedule)):
         line = ' ' + schedule[obs_no][0] + ' - ' + schedule[obs_no][1] + '   DIR: ' + schedule[obs_no][6]
         print('  ' + line)
-        obs_log_file.write(line)
+        obs_log_file.write(line + '\n')
     print('   *********************************************************************')
 
     # Connect to the ADR receiver via socket
@@ -208,7 +208,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     f_synchronize_adr(serversocket, receiver_ip, time_server)
 
     # Making separated IDs for each observation processing process
-    p_processing = [None]*len(schedule)
+    p_processing = [None] * len(schedule)
 
     # Preparing and starting observations
     for obs_no in range(len(schedule)):
