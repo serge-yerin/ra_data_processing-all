@@ -94,8 +94,7 @@ def f_check_adr_parameters_correctness(dict):
         print('\n  Error!!! Frequency width line is wrong!\n')
         sys.exit('  Program stopped!')
 
-    #if int(parameters_dict["width_line_freq"]) > ((int(parameters_dict["FFT_size_samples"]) - int(parameters_dict["start_line_freq"]) * 1024) / 2048): #1 … (SFFT-SLINE*1024)/1024
-    if int(dict["width_line_freq"]) > ((int(dict["FFT_size_samples"]) - int(dict["start_line_freq"]) * 1024) / 1024): #1 … (SFFT-SLINE*1024)/1024
+    if int(dict["width_line_freq"]) > ((int(dict["FFT_size_samples"]) - int(dict["start_line_freq"]) * 1024) / 1024): # 1 … (SFFT-SLINE*1024)/1024
         print('\n  Error!!! Frequency width is bigger than FFT size allows!\n')
         sys.exit('  Program stopped!')
 
@@ -106,6 +105,7 @@ def f_check_adr_parameters_correctness(dict):
     if int(dict["sum_diff_mode_num"]) not in (0, 1):
         print('\n  Error!!! Sum-diff mode is wrong!\n')
         sys.exit('  Program stopped!')
+
     if int(dict["data_file_size"]) < -1 or int(dict["data_file_size"]) > 4096:
         print('\n  Error!!! File size value is wrong!\n')
         sys.exit('  Program stopped!')
@@ -115,12 +115,13 @@ def f_check_adr_parameters_correctness(dict):
         print('\n  Error!!! Channel difference delay is wrong!\n')
         sys.exit('  Program stopped!')
     '''
+
     print('\n   ADR parameters from file are correct!\n')
 
     return dict
 
 
-def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause = 0.5):
+def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause=0.5):
     '''
     Function sets ADR receiver parameters
     Input parameters:
