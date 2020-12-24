@@ -8,7 +8,8 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = '/media/data/DATA/To_process'  # 'h:/To_process/'
+# path_to_data = '/media/data/DATA/To_process'  # 'h:/To_process/'
+path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure

@@ -4,9 +4,11 @@ from os import path
 from datetime import datetime
 from package_common_modules.text_manipulations import find_between
 
-#*************************************************************
-#                       MAIN FUNCTION                        *
-#*************************************************************
+# *************************************************************
+#                        MAIN FUNCTION                        *
+# *************************************************************
+
+
 def f_read_schedule_txt_for_adr(schedule_txt_file):
     '''
     Function reads a message from ADR radio astronomy receiver
@@ -44,19 +46,19 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
 
     # Check time correctness (later then now, start is before stop): storing them in datetime format in one list
     time_line = []
-    for i in range (len(schedule)):
-        time_point = schedule[i][0]
+    for item in range(len(schedule)):
+        time_point = schedule[item][0]
         dt_time = datetime(int(time_point[0:4]), int(time_point[5:7]), int(time_point[8:10]),
-                                int(time_point[11:13]), int(time_point[14:16]), int(time_point[17:19]), 0)
+                           int(time_point[11:13]), int(time_point[14:16]), int(time_point[17:19]), 0)
         time_line.append(dt_time)
-        time_point = schedule[i][1]
+        time_point = schedule[item][1]
         dt_time = datetime(int(time_point[0:4]), int(time_point[5:7]), int(time_point[8:10]),
                            int(time_point[11:13]), int(time_point[14:16]), int(time_point[17:19]), 0)
         time_line.append(dt_time)
 
     # Verifying that time limits in list go one after another
-    for i in range (2*len(schedule)-1):
-        if (time_line[i+1] > time_line[i]):
+    for item in range(2 * len(schedule) - 1):
+        if time_line[item+1] > time_line[item]:
             pass
         else:
             print('\n  ERROR! Time is not in right order!!! \n\n')
@@ -75,6 +77,7 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
 
     return schedule
 
+
 def find_parameter_value(line, string_name):
     if string_name in line:
         value = (find_between(line, string_name, ','))
@@ -87,6 +90,7 @@ def find_parameter_value(line, string_name):
 
 ################################################################################
 
+
 if __name__ == '__main__':
 
     # To change system path to main directory of the project:
@@ -96,6 +100,6 @@ if __name__ == '__main__':
     schedule_txt_file = 'Observations.txt'
 
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
-    for i in range (len(schedule)):
+    for i in range(len(schedule)):
         print(schedule[i])
 
