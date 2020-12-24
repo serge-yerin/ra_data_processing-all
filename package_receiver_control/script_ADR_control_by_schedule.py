@@ -7,8 +7,6 @@ Software_name = 'ADR control by schedule'
 # *******************************************************************************
 receiver_ip = '192.168.1.172'     # Receiver IP address in local network '192.168.1.171'
 time_server = '192.168.1.150'     # IP of the time server (usually the control PC) '192.168.1.150'
-copy_data = 1                     # Copy data from receiver?
-process_data = 1                  # Process copied data?
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -153,8 +151,8 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
     return 1
 
 
-def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_server, copy_data, process_data,
-                             telegram_chat_id,
+# def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_server, copy_data, process_data,
+def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_server, telegram_chat_id,
                             Software_version, Software_name, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
@@ -171,21 +169,20 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     currentDate = time.strftime("%d.%m.%Y")
     print('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
-    # process only copied from receiver data
-    if process_data > 0:
-        copy_data = 1
+    # # process only copied from receiver data
+    # if process_data > 0:
+    #     copy_data = 1
 
     # Read schedule
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
 
-    ##################################################################################################################
     # Check correctness of parameters in txt files
     for obs_no in range(len(schedule)):
         parameters_file = 'service_data/' + schedule[obs_no][10]
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
         parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
     del parameters_dict, parameters_file
-    ##################################################################################################################
+    print('\n   Parameters of all observations have been checked, they seem OK.')
 
     # Make or open Log file
     obs_log_file = open(obs_log_file_name, "a")
@@ -197,6 +194,9 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         print('  ' + line)
         obs_log_file.write(line + '\n')
     print('   *********************************************************************')
+
+    # Close Log file
+    obs_log_file.close()
 
     # Connect to the ADR receiver via socket
     serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
@@ -317,7 +317,8 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
                   '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
                   '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
                   str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
-        if process_data > 0:
+        # if process_data > 0:
+        if schedule[obs_no][9] > 0:
             message = message + '\nData will be copied to GURT server and processed.'
         if obs_no + 1 == len(schedule):
             message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
@@ -327,8 +328,10 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
             pass
 
         # Data copying processing
-        if process_data > 0:
-            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(copy_data, process_data,
+        # if process_data > 0:
+        if schedule[obs_no][9] > 0:
+            # p_processing[obs_no] = Process(target=copy_and_process_adr, args=(copy_data, process_data,
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
                              dir_data_on_server, data_directory_name, parameters_dict,
                              telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
@@ -336,8 +339,8 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
                              ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
             p_processing[obs_no].start()
 
-    if process_data > 0:
-        for obs_no in range(len(schedule)):
+    for obs_no in range(len(schedule)):
+        if schedule[obs_no][9] > 0:
             p_processing[obs_no].join()
 
     print('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
@@ -348,10 +351,11 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 if __name__ == '__main__':
 
     p_main = Process(target=main_observation_control, args=(receiver_ip, port, schedule_txt_file, dir_data_on_server,
-                            copy_data, process_data, telegram_chat_id,
+                            telegram_chat_id,
                             Software_version, Software_name, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                             ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
+                            # copy_data, process_data, telegram_chat_id,/
     p_main.start()
     p_main.join()
