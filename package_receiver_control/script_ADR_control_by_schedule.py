@@ -178,10 +178,16 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     # Read schedule
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
 
-    '''
-    Check correctness and recalculate the parameters to variables sent to ADR receiver
-    '''
+    ##################################################################################################################
+    # Check correctness of parameters in txt files
+    for obs_no in range(len(schedule)):
+        parameters_file = 'service_data/' + schedule[obs_no][10]
+        parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+        parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+    del parameters_dict, parameters_file
+    ##################################################################################################################
 
+    # Make or open Log file
     obs_log_file = open(obs_log_file_name, "a")
 
     # Printing overall schedule
@@ -220,11 +226,11 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         # Construct datetime variables to start and stop observations
         dt_time = schedule[obs_no][0]
         dt_time_to_start_record = datetime(int(dt_time[0:4]), int(dt_time[5:7]), int(dt_time[8:10]),
-                                    int(dt_time[11:13]), int(dt_time[14:16]), int(dt_time[17:19]), 0)
+                                           int(dt_time[11:13]), int(dt_time[14:16]), int(dt_time[17:19]), 0)
 
         dt_time = schedule[obs_no][1]
         dt_time_to_stop_record = datetime(int(dt_time[0:4]), int(dt_time[5:7]), int(dt_time[8:10]),
-                                    int(dt_time[11:13]), int(dt_time[14:16]), int(dt_time[17:19]), 0)
+                                          int(dt_time[11:13]), int(dt_time[14:16]), int(dt_time[17:19]), 0)
 
         # Check the correctness of start and stop time
         if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
@@ -250,7 +256,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         # Apply other receiver parameters set in schedule (parameters file)
         parameters_file = 'service_data/' + schedule[obs_no][10]
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
-        parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+        # parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
         f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
 
         # Requesting and printing current ADR parameters
