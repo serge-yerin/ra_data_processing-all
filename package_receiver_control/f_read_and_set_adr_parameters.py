@@ -116,7 +116,7 @@ def f_check_adr_parameters_correctness(dict):
         sys.exit('  Program stopped!')
     '''
 
-    print('\n   ADR parameters from file are correct!\n')
+    # print('\n   ADR parameters from file are correct!\n')
 
     return dict
 
