@@ -37,6 +37,11 @@ def f_read_schedule_txt_for_adr(schedule_txt_file):
             stop_time =      find_parameter_value(line, 'STOP:')
             copy_or_not =    int(find_parameter_value(line, 'COPY:'))
             process_or_not = int(find_parameter_value(line, 'PROC:'))
+
+            # The condition: to process you must copy data
+            if process_or_not > 0:
+                copy_or_not = 1
+
             # Adding parameters to list
             schedule.append([start_time[:10]+' '+start_time[10:], stop_time[:10]+' '+stop_time[10:], fft_size,
                              time_resolution, start_frequency, stop_frequency, data_directory, file_description,

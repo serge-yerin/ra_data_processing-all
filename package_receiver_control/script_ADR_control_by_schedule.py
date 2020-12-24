@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2020.12.23'
+Software_version = '2020.12.25'
 Software_name = 'ADR control by schedule'
 # Script controls the ADR radio astronomy receiver according to schedule txt file
 # *******************************************************************************
@@ -40,6 +40,7 @@ AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 port = 38386                    # Port of the receiver to connect (always 38386)
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
+default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
 
 if receiver_ip.endswith('171'):
     schedule_txt_file = 'Observations_ADR_01.txt'
@@ -169,10 +170,6 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     currentDate = time.strftime("%d.%m.%Y")
     print('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
-    # # process only copied from receiver data
-    # if process_data > 0:
-    #     copy_data = 1
-
     # Read schedule
     schedule = f_read_schedule_txt_for_adr(schedule_txt_file)
 
@@ -186,7 +183,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
 
     # Make or open Log file
     obs_log_file = open(obs_log_file_name, "a")
-
+    obs_log_file.write('\n ' + currentDate + ' ' + currentTime + ' New schedule loaded: \n')
     # Printing overall schedule
     print('\n   *********************** OBSERVATIONS SCHEDULE ***********************')
     for obs_no in range(len(schedule)):
@@ -196,6 +193,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
     print('   *********************************************************************')
 
     # Close Log file
+    obs_log_file.write('\n')
     obs_log_file.close()
 
     # Connect to the ADR receiver via socket
@@ -256,7 +254,6 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
         # Apply other receiver parameters set in schedule (parameters file)
         parameters_file = 'service_data/' + schedule[obs_no][10]
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
-        # parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
         f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
 
         # Requesting and printing current ADR parameters
@@ -317,9 +314,18 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
                   '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
                   '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
                   str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
-        # if process_data > 0:
+
+        if schedule[obs_no][8] > 0 and schedule[obs_no][9] == 0:
+            message = message + '\nData will be copied to GURT server.'
+
         if schedule[obs_no][9] > 0:
             message = message + '\nData will be copied to GURT server and processed.'
+
+        # Open Log file and write the data message there
+        obs_log_file = open(obs_log_file_name, "a")
+        obs_log_file.write(message + '\n\n')
+        obs_log_file.close()
+
         if obs_no + 1 == len(schedule):
             message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
         try:
@@ -328,9 +334,7 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
             pass
 
         # Data copying processing
-        # if process_data > 0:
-        if schedule[obs_no][9] > 0:
-            # p_processing[obs_no] = Process(target=copy_and_process_adr, args=(copy_data, process_data,
+        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
             p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
                              dir_data_on_server, data_directory_name, parameters_dict,
                              telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
@@ -339,8 +343,16 @@ def main_observation_control(receiver_ip, port, schedule_txt_file, dir_data_on_s
                              ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
             p_processing[obs_no].start()
 
+        # If it was the last observation, set the default parameters of the receiver
+        if obs_no+1 == len(schedule):
+            # Apply other receiver parameters set in schedule (parameters file)
+            parameters_file = 'service_data/' + default_parameters_file
+            parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+            parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+            f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
+
     for obs_no in range(len(schedule)):
-        if schedule[obs_no][9] > 0:
+        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
             p_processing[obs_no].join()
 
     print('\n\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
@@ -356,6 +368,6 @@ if __name__ == '__main__':
                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                             ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
-                            # copy_data, process_data, telegram_chat_id,/
+
     p_main.start()
     p_main.join()
