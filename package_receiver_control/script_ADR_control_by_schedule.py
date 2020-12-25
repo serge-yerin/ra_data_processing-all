@@ -5,7 +5,7 @@ Software_name = 'ADR control by schedule'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-receiver_ip = '192.168.1.172'     # Receiver IP address in local network '192.168.1.171'
+receiver_ip = '192.168.1.171'     # Receiver IP address in local network '192.168.1.171'
 time_server = '192.168.1.150'     # IP of the time server (usually the control PC) '192.168.1.150'
 
 # PROCESSING PARAMETERS

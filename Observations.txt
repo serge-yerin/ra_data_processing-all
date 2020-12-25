@@ -8,11 +8,23 @@
 # DESCR and DIR strings must not have spaces
 #***********************************************************************************************************************
 
-#START: 2020-08-08 22:50:00, NAME: B0809+74, DESCR: GURT_B0809+74_SA05, PARAM: Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt
-#STOP:  2020-08-08 23:00:00, COPY: 1, PROC: 1
+START: 2020-12-22 21:50:00, NAME: B0809+74, DESCR: GURT_B0809+74_SA09, PARAM: Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt
+STOP:  2020-12-23 00:40:00, COPY: 1, PROC: 1
 
-START: 2020-08-09 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA05, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
-STOP:  2020-08-09 18:30:00, COPY: 1, PROC: 1
+START: 2020-12-23 00:46:00, NAME: B0917+63, DESCR: GURT_B0917+63_SA09, PARAM: Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt
+STOP:  2020-12-23 04:46:00, COPY: 1, PROC: 1
 
-#START: 2020-08-10 06:30:00, NAME: Sun, DESCR:  GURT_Sun_SA05, PARAM: Param_full_band_0.1s_4096_corr_int-clc.txt
-#STOP:  2020-08-10 18:30:00, COPY: 1, PROC: 1
+START: 2020-12-23 08:40:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2020-12-23 11:40:00, COPY: 1, PROC: 1
+
+START: 2020-12-23 11:44:00, NAME: B2020+28, DESCR: GURT_B2020+28_SA09, PARAM: Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt
+STOP:  2020-12-23 15:44:00, COPY: 1, PROC: 1
+
+START: 2020-12-23 22:00:00, NAME: B0809+74, DESCR: GURT_B0809+74_SA09, PARAM: Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt
+STOP:  2020-12-24 04:00:00, COPY: 1, PROC: 1
+
+START: 2020-12-24 08:40:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2020-12-24 13:25:00, COPY: 1, PROC: 1
+
+START: 2020-12-24 13:28:00, NAME: J2208+4056, DESCR: GURT_J2208+4056_SA09, PARAM: Param_Pulsars_30-70_MHz_9.7ms_32768_spectra_int-clc.txt
+STOP:  2020-12-24 17:28:00, COPY: 1, PROC: 1

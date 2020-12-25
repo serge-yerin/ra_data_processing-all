@@ -8,7 +8,7 @@ import os
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = 'DATA/' # 'h:/To process/'
+path_to_data = '/media/gurt/PC2+T_Nov2020/2020.12.22-27_UTR-2_pulsar_survey/2020.12.21_UTR2_J0750p57_processed'  # 'h:/To process/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
@@ -16,7 +16,7 @@ RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 20                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 8                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -38,7 +38,7 @@ averOrMin = 0                     # Use average value (0) per data block or mini
 VminMan = -120                    # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                     # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                   # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 20                  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 10                  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 AmplitudeReIm = 20000 * 10**(-12) # Colour range of Re and Im dynamic spectra
                                   # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
