@@ -25,6 +25,7 @@ if __package__ is None:
 logo_path = 'media_data/ira_logo.gif'
 x_space = (5, 5)
 y_space = (5, 5)
+gurt_lan_log_file_name = 'service_data/gurt_lan_connection_log.txt'
 
 # *******************************************************************************
 #                                F U N C T I O N S                              *
@@ -68,14 +69,31 @@ def check_if_hosts_online():
                     labels[item].config(text='Online', bg='chartreuse2')
                 else:
                     labels[item].config(text='Just ON', bg='SpringGreen2')
+                    t = strftime(" %Y-%m-%d %H:%M:%S", gmtime())
+                    message = t + ' UTC: Device with IP: ' + hosts[item] + ' was connected!'
+                    gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
+                    gurt_lan_log_file.write(message + '\n')
+                    gurt_lan_log_file.close()
             else:
                 if answer == previous_states[item]:
                     labels[item].config(text='Offline', bg='gray')
                 else:
                     labels[item].config(text='Just OFF', bg='orange red')
+                    t = strftime(" %Y-%m-%d %H:%M:%S", gmtime())
+                    message = t + ' UTC: Device with IP: ' + hosts[item] + ' was disconnected!'
+                    gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
+                    gurt_lan_log_file.write(message + '\n')
+                    gurt_lan_log_file.close()
             previous_states[item] = answer
+        # If the program has just started operation
         if first_check:
             lbl_start.config(text='Working', bg='chartreuse2')
+            # # Save to log file all the connected and disconnected devices
+            # gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
+            # for item in range(len(hosts)):
+            #     gurt_lan_log_file.write('  ' + hosts[item] + ' ' + str(previous_states[item]) + '\n')
+            # gurt_lan_log_file.close()
+
         first_check = False
         time.sleep(60)
 
@@ -127,6 +145,13 @@ def turn_on_server():
 
 global server_on_block_flag
 server_on_block_flag = True
+
+t = strftime(" %Y-%m-%d %H:%M:%S", gmtime())
+message = t + ' UTC: GURT online status board software started.'
+gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
+gurt_lan_log_file.write('\n' + message + '\n\n')
+gurt_lan_log_file.close()
+
 
 # Main window creation
 window = Tk()
