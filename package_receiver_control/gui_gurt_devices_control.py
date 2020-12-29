@@ -194,6 +194,13 @@ lbl_relay_02_online_txt = Label(frame_online_status, text='Relay block 02', font
 lbl_relay_02_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
 
+frame_tg_notifications = LabelFrame(frame_online_status)
+
+send_tg_messages = IntVar()
+btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=send_tg_messages)
+lbl_send_tg_messages = Label(frame_tg_notifications, text='Send\nTelegram\nnotifications', font='none 12', width=12)
+
+
 frame_on_server = LabelFrame(window, text="GURT server turning on")
 
 btn_unblock_server_on = Button(frame_on_server, text='UNBLOCK', width=12, command=server_on_block_control)
@@ -248,6 +255,11 @@ lbl_relay_01_online_clr.grid(row=6, column=1, stick='w', padx=x_space, pady=y_sp
 
 lbl_relay_02_online_txt.grid(row=6, column=2, stick='w', padx=x_space, pady=y_space)
 lbl_relay_02_online_clr.grid(row=6, column=3, stick='w', padx=x_space, pady=y_space)
+
+frame_tg_notifications.grid(row=3, column=4, rowspan=4, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+
+btn_send_tg_messages.grid(row=3, column=4, rowspan=2, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+lbl_send_tg_messages.grid(row=5, column=4, rowspan=2, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
 frame_on_server.grid(row=7, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
 
