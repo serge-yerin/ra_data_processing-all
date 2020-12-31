@@ -12,6 +12,7 @@ import sys
 import time
 import socket
 import select
+import requests
 import platform    # For getting the operating system name
 import subprocess  # For executing a shell command
 from wakeonlan import send_magic_packet
@@ -25,7 +26,7 @@ from os import path
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
+#from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 # *******************************************************************************
 #                              V A R I A B L E S                                *
 # *******************************************************************************
@@ -36,10 +37,26 @@ x_space = (5, 5)
 y_space = (5, 5)
 gurt_lan_log_file_name = 'service_data/gurt_lan_connection_log.txt'
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
+token_file_name = 'service_data/bot.txt'
 
 # *******************************************************************************
 #                                F U N C T I O N S                              *
 # *******************************************************************************
+
+
+def telegram_bot_token_send_text(chat_id, bot_token, bot_message):
+    '''
+    Sending message through telegram bot
+    Input variables:
+        chat_id - Telegram chat ID to send the message
+        bot_token - Telegram token to verify the sender
+        bot_message - string of text message to send
+    Output variables:
+        return - response of the bot with message status (json format)
+    '''
+    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + chat_id + '&parse_mode=Markdown&text=' + bot_message
+    response = requests.get(send_text)
+    return response.json()
 
 
 def ping(host):
@@ -91,7 +108,8 @@ def check_if_hosts_online():
                     if not first_check:
                         if send_tg_messages.get():
                             try:
-                                test = telegram_bot_sendtext(telegram_chat_id, message)
+                                # test = telegram_bot_sendtext(telegram_chat_id, message)
+                                test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
                             except:
                                 pass
             else:
@@ -107,7 +125,8 @@ def check_if_hosts_online():
                     # Sending message to Telegram
                     if send_tg_messages.get():
                         try:
-                            test = telegram_bot_sendtext(telegram_chat_id, message)
+                            # test = telegram_bot_sendtext(telegram_chat_id, message)
+                            test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
                         except:
                             pass
 
@@ -265,7 +284,8 @@ def keep_connection_alive():
     while True:
         state = check_relay_state()
         time.sleep(1)
-        if len(state) == 0:
+        if len(state) == 0: # If the connection to relay block is lost
+            block()  # Call block function to block buttons as at the beginning of operation
             break
 
 
@@ -352,6 +372,12 @@ def off_pc_1():
 #                           M A I N     P R O G R A M                           *
 # *******************************************************************************
 
+# Reading Telegram token once at the beginning to store it in RAM not to check disk each time
+token_file = open(token_file_name, 'r')
+bot_token = token_file.readline()[:-1]
+token_file.close()
+
+# Define a global variable to store relay control block flag
 global server_on_block_flag
 server_on_block_flag = True
 
