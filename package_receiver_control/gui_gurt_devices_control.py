@@ -1,5 +1,10 @@
 # Python3
 # The GUI-based program to check status of GURT devices and control them
+
+# !!! Make read bot token only once on the program start !!!
+# Add Settings section to set up the IP addresses of devices
+# Add section for the second relay block
+
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -10,7 +15,7 @@ import select
 import platform    # For getting the operating system name
 import subprocess  # For executing a shell command
 from wakeonlan import send_magic_packet
-from time import gmtime, strftime
+from time import strftime
 from threading import Thread
 from tkinter import *
 from PIL import ImageTk, Image
@@ -31,6 +36,7 @@ x_space = (5, 5)
 y_space = (5, 5)
 gurt_lan_log_file_name = 'service_data/gurt_lan_connection_log.txt'
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
+
 # *******************************************************************************
 #                                F U N C T I O N S                              *
 # *******************************************************************************
@@ -57,6 +63,10 @@ def check_if_hosts_online():
              '172.16.10.1', '172.16.1.1',
              '172.16.10.1', '172.16.1.1',
              '172.16.1.169', '172.16.10.1']
+    device_names = ['Internet connection', 'GURT server',
+                    'ADR 01', 'ADR 02',
+                    'Beam control block 01', 'Beam control block 02',
+                    'Relay block 01', 'Relay block 02']
     labels = [lbl_internet_online_clr, lbl_gurt_server_online_clr,
               lbl_adr01_online_clr, lbl_adr02_online_clr,
               lbl_ctrl_block_01_online_clr, lbl_ctrl_block_02_online_clr,
@@ -74,7 +84,7 @@ def check_if_hosts_online():
                 else:
                     labels[item].config(text='Just ON', bg='SpringGreen2')
                     t = strftime(" %Y-%m-%d %H:%M Loc")
-                    message = t + ': Device with IP: ' + hosts[item] + ' was connected!'
+                    message = t + ': ' + device_names[item] + ' (IP: ' + hosts[item] + ') connected'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
                     gurt_lan_log_file.close()
@@ -84,14 +94,13 @@ def check_if_hosts_online():
                                 test = telegram_bot_sendtext(telegram_chat_id, message)
                             except:
                                 pass
-
             else:
                 if answer == previous_states[item]:
                     labels[item].config(text='Offline', bg='gray')
                 else:
                     labels[item].config(text='Just OFF', bg='orange red')
                     t = strftime(" %Y-%m-%d %H:%M Loc")
-                    message = t + ': Device with IP: ' + hosts[item] + ' was disconnected!'
+                    message = t + ': ' + device_names[item] + ' (IP: ' + hosts[item] + ') disconnected'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
                     gurt_lan_log_file.close()
@@ -402,7 +411,8 @@ lbl_send_tg_messages = Label(frame_tg_notifications, text='Send\nTelegram\nnotif
 
 frame_on_server = LabelFrame(window, text="GURT server turning on")
 
-btn_unblock_server_on = Button(frame_on_server, text='UNBLOCK', font='none 9 bold', width=12, command=server_on_block_control)
+btn_unblock_server_on = Button(frame_on_server, text='UNBLOCK', font='none 9 bold',
+                               width=12, command=server_on_block_control)
 btn_unblock_server_on.focus_set()
 btn_server_on = Button(frame_on_server, text='Turn on GURT server', fg='gray', width=22, command=turn_on_server)
 lbl_server_on = Label(frame_on_server, text='Works only if server power supply is ON!', font='none 9', width=32)
@@ -434,7 +444,6 @@ btn_of_1 = Button(frame_relay_control_01, text='OFF', width=10, fg='gray', comma
 btn_on_1 = Button(frame_relay_control_01, text='ON', width=10, fg='gray', command=click_on_1)
 btn_pc_on_1 = Button(frame_relay_control_01, text='Click', width=4, fg='gray', command=click_on_pc_1)
 btn_pc_of_1 = Button(frame_relay_control_01, text='10 s.', width=4, fg='gray', command=click_of_pc_1)
-
 
 
 time_display_thread = Thread(target=time_show, daemon=True)
@@ -516,5 +525,3 @@ btn_pc_on_1.grid(row=11, column=4, stick='w', padx=x_space, pady=y_space)
 btn_pc_of_1.grid(row=11, column=5, stick='w', padx=x_space, pady=y_space)
 
 window.mainloop()
-
-
