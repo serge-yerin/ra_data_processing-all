@@ -6,6 +6,7 @@
 import sys
 import time
 import socket
+import select
 import platform    # For getting the operating system name
 import subprocess  # For executing a shell command
 from wakeonlan import send_magic_packet
@@ -72,13 +73,13 @@ def check_if_hosts_online():
                     labels[item].config(text='Online', bg='chartreuse2')
                 else:
                     labels[item].config(text='Just ON', bg='SpringGreen2')
-                    t = strftime(" %Y-%m-%d %H:%M:%S", gmtime())
-                    message = t + ' UTC: Device with IP: ' + hosts[item] + ' was connected!'
+                    t = strftime(" %Y-%m-%d %H:%M Loc")
+                    message = t + ': Device with IP: ' + hosts[item] + ' was connected!'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
                     gurt_lan_log_file.close()
                     if not first_check:
-                        if send_tg_messages:
+                        if send_tg_messages.get():
                             try:
                                 test = telegram_bot_sendtext(telegram_chat_id, message)
                             except:
@@ -89,13 +90,13 @@ def check_if_hosts_online():
                     labels[item].config(text='Offline', bg='gray')
                 else:
                     labels[item].config(text='Just OFF', bg='orange red')
-                    t = strftime(" %Y-%m-%d %H:%M:%S", gmtime())
-                    message = t + ' UTC: Device with IP: ' + hosts[item] + ' was disconnected!'
+                    t = strftime(" %Y-%m-%d %H:%M Loc")
+                    message = t + ': Device with IP: ' + hosts[item] + ' was disconnected!'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
                     gurt_lan_log_file.close()
                     # Sending message to Telegram
-                    if send_tg_messages:
+                    if send_tg_messages.get():
                         try:
                             test = telegram_bot_sendtext(telegram_chat_id, message)
                         except:
@@ -150,15 +151,21 @@ def turn_on_server():
     else:
         send_magic_packet('74.d0.2b.28.5f.c8')
 
-############## RELAY #####################
+
+# ################# RELAY #####################
 
 
 def read_relay_output():
     message = bytearray([])
-    byte = serversocket.recv(8)
-    message.extend(byte)
-    message = bytes(message).decode()
-    return message
+    # Wait the response for only 3 sec., if not return empty string
+    ready = select.select([serversocket], [], [], 3)  # 33 -time in seconds to wait respond
+    if ready[0]:
+        byte = serversocket.recv(8)
+        message.extend(byte)
+        message = bytes(message).decode()
+        return message
+    else:
+        return ''
 
 
 def f_send_command_to_relay(serversocket, relay_no, command):
@@ -234,11 +241,12 @@ def click_connect():
     global block_flag
     block_flag = True
     global serversocket
-    host = ent_ip_addrs.get()    # Read the IP address from the entry
+    relay_host = ent_ip_addrs.get()    # Read the IP address from the entry
     btn_block_cntrl.focus_set()  # To prevent cursor blinking after setting the correct IP
     # Connect to relay
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.connect((relay_host, relay_port))
+    serversocket.setblocking(False)  # To wait only the predefined time (see socket.recv())
     lbl_connect.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
     connection_thread = Thread(target=keep_connection_alive, daemon=True)
     connection_thread.start()
@@ -246,8 +254,10 @@ def click_connect():
 
 def keep_connection_alive():
     while True:
-        check_relay_state()
+        state = check_relay_state()
         time.sleep(1)
+        if len(state) == 0:
+            break
 
 
 def block_control():
@@ -336,8 +346,8 @@ def off_pc_1():
 global server_on_block_flag
 server_on_block_flag = True
 
-t = strftime(" %Y-%m-%d %H:%M:%S", gmtime())
-message = t + ' UTC: GURT online status board software started.'
+t = strftime(" %Y-%m-%d %H:%M Loc")
+message = t + ': GURT online status board software started.'
 gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
 gurt_lan_log_file.write('\n' + message + '\n\n')
 gurt_lan_log_file.close()
@@ -399,26 +409,26 @@ lbl_server_on = Label(frame_on_server, text='Works only if server power supply i
 lbl_blank_server_txt = Label(frame_on_server, text=' ', font='none 12', width=3)
 
 
-frame_relay_control_01 = LabelFrame(window, text="Relay control")
+frame_relay_control_01 = LabelFrame(window, text="Relay block 01 control")
 
-lbl_txt_ip = Label(frame_relay_control_01, text='IP address:', font='none 12', width=9)
+lbl_txt_ip = Label(frame_relay_control_01, text='IP address:', font='none 12', width=12)
 ent_ip_addrs = Entry(frame_relay_control_01, width=15)
 ent_ip_addrs.insert(0, relay_host)
 btn_connect = Button(frame_relay_control_01, text='Connect', width=10, command=click_connect)
 btn_connect.focus_set()
 lbl_connect = Label(frame_relay_control_01, text='Disconnected', font='none 12', width=12, bg='gray')
-lbl_blank_relay_txt = Label(frame_relay_control_01, text='    ', font='none 12', width=16)
+lbl_blank_relay_txt = Label(frame_relay_control_01, text='    ', font='none 12', width=13)
 
 btn_block_cntrl = Button(frame_relay_control_01, text='UNBLOCK', font='none 9 bold', width=10, command=block_control)
 
-lbl_txt_0 = Label(frame_relay_control_01, text='Relay 0:', font='none 12', width=9)
+lbl_txt_0 = Label(frame_relay_control_01, text='Pin 0 (ADR):', font='none 12', width=12)
 lbl_clr_0 = Label(frame_relay_control_01, text='Unknown', font='none 12', width=12, bg='yellow2')
 btn_of_0 = Button(frame_relay_control_01, text='OFF', width=10, fg='gray', command=click_off_0)
 btn_on_0 = Button(frame_relay_control_01, text='ON', width=10, fg='gray', command=click_on_0)
 btn_pc_on_0 = Button(frame_relay_control_01, text='Click', width=4, fg='gray', command=click_on_pc_0)
 btn_pc_of_0 = Button(frame_relay_control_01, text='10 s.', width=4, fg='gray', command=click_of_pc_0)
 
-lbl_txt_1 = Label(frame_relay_control_01, text='Relay 1:', font='none 12', width=9)
+lbl_txt_1 = Label(frame_relay_control_01, text='Pin 1 (Beam):', font='none 12', width=12)
 lbl_clr_1 = Label(frame_relay_control_01, text='Unknown', font='none 12', width=12, bg='yellow2')
 btn_of_1 = Button(frame_relay_control_01, text='OFF', width=10, fg='gray', command=click_off_1)
 btn_on_1 = Button(frame_relay_control_01, text='ON', width=10, fg='gray', command=click_on_1)
@@ -504,8 +514,6 @@ btn_of_1.grid(row=11, column=2, stick='w', padx=x_space, pady=y_space)
 btn_on_1.grid(row=11, column=3, stick='w', padx=x_space, pady=y_space)
 btn_pc_on_1.grid(row=11, column=4, stick='w', padx=x_space, pady=y_space)
 btn_pc_of_1.grid(row=11, column=5, stick='w', padx=x_space, pady=y_space)
-
-
 
 window.mainloop()
 
