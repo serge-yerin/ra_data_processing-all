@@ -1,7 +1,6 @@
 # Python3
 # The GUI-based program to check status of GURT devices and control them
 
-# !!! Make read bot token only once on the program start !!!
 # Add Settings section to set up the IP addresses of devices
 # Add section for the second relay block
 
@@ -26,7 +25,6 @@ from os import path
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-#from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 # *******************************************************************************
 #                              V A R I A B L E S                                *
 # *******************************************************************************
@@ -45,7 +43,7 @@ token_file_name = 'service_data/bot.txt'
 
 
 def telegram_bot_token_send_text(chat_id, bot_token, bot_message):
-    '''
+    """
     Sending message through telegram bot
     Input variables:
         chat_id - Telegram chat ID to send the message
@@ -53,10 +51,15 @@ def telegram_bot_token_send_text(chat_id, bot_token, bot_message):
         bot_message - string of text message to send
     Output variables:
         return - response of the bot with message status (json format)
-    '''
-    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + chat_id + '&parse_mode=Markdown&text=' + bot_message
-    response = requests.get(send_text)
-    return response.json()
+    """
+    try:
+        send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + chat_id + \
+                    '&parse_mode=Markdown&text=' + bot_message
+        response = requests.get(send_text)
+        response = response.json()
+    except:
+        response = ''
+    return response
 
 
 def ping(host):
@@ -107,11 +110,7 @@ def check_if_hosts_online():
                     gurt_lan_log_file.close()
                     if not first_check:
                         if send_tg_messages.get():
-                            try:
-                                # test = telegram_bot_sendtext(telegram_chat_id, message)
-                                test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
-                            except:
-                                pass
+                            test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
             else:
                 if answer == previous_states[item]:
                     labels[item].config(text='Offline', bg='gray')
@@ -124,11 +123,7 @@ def check_if_hosts_online():
                     gurt_lan_log_file.close()
                     # Sending message to Telegram
                     if send_tg_messages.get():
-                        try:
-                            # test = telegram_bot_sendtext(telegram_chat_id, message)
-                            test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
-                        except:
-                            pass
+                        test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
 
             previous_states[item] = answer
         # If the program has just started operation
@@ -186,7 +181,7 @@ def turn_on_server():
 def read_relay_output():
     message = bytearray([])
     # Wait the response for only 3 sec., if not return empty string
-    ready = select.select([serversocket], [], [], 3)  # 33 -time in seconds to wait respond
+    ready = select.select([serversocket], [], [], 3)  # 3 -time in seconds to wait respond
     if ready[0]:
         byte = serversocket.recv(8)
         message.extend(byte)
@@ -197,14 +192,14 @@ def read_relay_output():
 
 
 def f_send_command_to_relay(serversocket, relay_no, command):
-    '''
+    """
     Function sends commands to the SR-201 relay block and shows the relay status
     Input parameters:
         serversocket        - socket of the relay to communicate
         relay_no            - number of the relay on the board
         command             - command 'ON' or 'OFF'
     Output parameters:
-    '''
+    """
     relay_no_str = str(relay_no)
     if str(command).lower() == 'on':        # ON and keep state
         command = '1'
@@ -269,7 +264,7 @@ def click_connect():
     global block_flag
     block_flag = True
     global serversocket
-    relay_host = ent_ip_addrs.get()    # Read the IP address from the entry
+    relay_host = ent_ip_addrs.get()  # Read the IP address from the entry
     btn_block_cntrl.focus_set()  # To prevent cursor blinking after setting the correct IP
     # Connect to relay
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -284,7 +279,7 @@ def keep_connection_alive():
     while True:
         state = check_relay_state()
         time.sleep(1)
-        if len(state) == 0: # If the connection to relay block is lost
+        if len(state) == 0:  # If the connection to relay block is lost
             block()  # Call block function to block buttons as at the beginning of operation
             break
 
