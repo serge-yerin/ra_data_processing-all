@@ -427,7 +427,10 @@ lbl_relay_02_online_clr = Label(frame_online_status, text='Unknown', font='none 
 frame_tg_notifications = LabelFrame(frame_online_status)
 
 send_tg_messages = IntVar()
-btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=send_tg_messages)
+# btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=send_tg_messages)
+btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=send_tg_messages, bg='light gray',
+                                   fg='black', activebackground='gray77', activeforeground='SlateBlue1',
+                                   selectcolor="white")
 lbl_send_tg_messages = Label(frame_tg_notifications, text='Send\nTelegram\nnotifications', font='none 12', width=12)
 
 frame_on_server = LabelFrame(window, text="GURT server turning on")
