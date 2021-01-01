@@ -322,7 +322,7 @@ def block():
 def click_on_pc_0():
     if not block_flag:
         f_send_command_to_relay(serversocket, 1, 'ON')
-        lbl_clr_0.config(text='ON', bg='orange red')
+        lbl_clr_0.config(text='ON', bg='SlateBlue1')
         time.sleep(0.3)
         f_send_command_to_relay(serversocket, 1, 'OFF')
 
@@ -344,7 +344,7 @@ def off_pc_0():
 def click_on_pc_1():
     if not block_flag:
         f_send_command_to_relay(serversocket, 2, 'ON')
-        lbl_clr_1.config(text='ON', bg='orange red')
+        lbl_clr_1.config(text='ON', bg='SlateBlue1')
         time.sleep(0.3)
         f_send_command_to_relay(serversocket, 2, 'OFF')
 
