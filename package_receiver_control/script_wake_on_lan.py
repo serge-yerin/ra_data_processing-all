@@ -16,19 +16,19 @@ from wakeonlan import send_magic_packet
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 print('\n\n\n\n\n\n\n\n   ****************************************************')
-print('   *   ', Software_name, '  v.', Software_version,'    *      (c) YeS 2020')
+print('   *   ', Software_name, '  v.', Software_version, '    *      (c) YeS 2020')
 print('   **************************************************** \n\n\n')
 
-startTime = time.time()
-currentTime = time.strftime("%H:%M:%S")
-currentDate = time.strftime("%d.%m.%Y")
-print ('   Today is ', currentDate, ' time is ', currentTime, '\n')
+start_time = time.time()
+current_time = time.strftime("%H:%M:%S")
+current_date = time.strftime("%d.%m.%Y")
+print('   Today is ', current_date, ' time is ', current_time, '\n')
 
 
 send_magic_packet('74.d0.2b.28.5f.c8')
 
 
 endTime = time.time()
-print('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
-                                                round((endTime - startTime)/60, 2), 'min. ) \n')
+print('\n\n\n  The program execution lasted for ',
+      round((endTime - start_time), 2), 'seconds (', round((endTime - start_time)/60, 2), 'min. ) \n')
 print('\n           *** Program ', Software_name, ' has finished! *** \n\n\n')
