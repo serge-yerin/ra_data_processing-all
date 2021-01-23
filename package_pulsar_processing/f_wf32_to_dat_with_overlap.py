@@ -19,7 +19,6 @@ result_directory = ''                   # Directory where DAT files to be stored
 import sys
 import numpy as np
 from os import path
-from progress.bar import IncrementalBar
 
 # To change system path to main source_directory of the project:
 if __package__ is None:
@@ -27,6 +26,7 @@ if __package__ is None:
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_common_modules.f_progress_bar import progress
 # ###############################################################################
 
 
@@ -75,7 +75,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         # Calculation of number of blocks and number of spectra in the file
         # no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_spectr * 4))
         no_of_bunches_per_file = int((df_filesize - 1024) /
-                                     (no_of_spectra_in_bunch * (no_of_points_for_fft_spectr/2 - 1) * 4))
+                                     ((no_of_spectra_in_bunch + 0.5) * no_of_points_for_fft_spectr * 4))
 
         # Real time resolution of averaged spectra
         fine_clock_freq = (int(clock_freq / 1000000.0) * 1000000.0)
@@ -83,30 +83,57 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         real_spectra_df = float((fine_clock_freq / 2) / (no_of_points_for_fft_spectr / 2 ))
 
         print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
+        print(' Sampling clock frequency:                    ', fine_clock_freq, ' Hz')
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
-        print(' Time resolution of calculated spectra:       ', round(real_spectra_dt*1000, 3), ' ms')
-        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df/1000, 3), ' kHz')
+        print(' Time resolution of calculated spectra:       ', round(real_spectra_dt * 1000, 3), ' ms')
+        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df / 1000, 3), ' kHz')
         print('\n  *** Reading data from file *** \n')
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
+
+        half_of_sprectrum = int(no_of_points_for_fft_spectr/2)
+        # Making a small buffer vector to store the last half ot spectrum for the next loop step
+        buffer = np.zeros(half_of_sprectrum)
+
         for bunch in range(no_of_bunches_per_file-1):
 
+            print('Bunch # ', bunch, ' of ', no_of_bunches_per_file-1)
+
             # Reading and reshaping data of the bunch
-            wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
-            wf_data = np.reshape(wf_data, [no_of_points_for_fft_spectr, no_of_spectra_in_bunch], order='F')
+            wf_data = np.fromfile(file, dtype='f4', count=no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
+            print('wf_data: ', wf_data.shape)
+
+            wf_data = np.concatenate((buffer, wf_data), axis=0)
+            print('wf_data: ', wf_data.shape)
+            print('wf_data: ', wf_data[0], wf_data[8191], wf_data[8192], wf_data[8193])
+
+            buffer = wf_data[-half_of_sprectrum:]
+            print('Bufer: ', buffer.shape)
+
+            wf_data_1 = np.reshape(wf_data[: -half_of_sprectrum].copy(), [no_of_points_for_fft_spectr, no_of_spectra_in_bunch], order='F')
+            wf_data_2 = np.reshape(wf_data[half_of_sprectrum : ].copy(), [no_of_points_for_fft_spectr, no_of_spectra_in_bunch], order='F')
+
+            del wf_data
+            print('Data1: ', wf_data_1.shape, 'Data2: ', wf_data_2.shape)
+
+            wf_data = np.zeros((no_of_points_for_fft_spectr, 2 * no_of_spectra_in_bunch))
+            wf_data[:, 0::2] = wf_data_1[:, :]
+            wf_data[:, 1::2] = wf_data_2[:, :]
+            del wf_data_1, wf_data_2
+            print('wf_data: ', wf_data.shape)
 
             # preparing matrices for spectra
             spectra = np.zeros_like(wf_data)
 
             # Calculation of spectra
-            for i in range(no_of_spectra_in_bunch):
+            for i in range(2 * no_of_spectra_in_bunch):
                 spectra[:, i] = np.power(np.abs(np.fft.fft(wf_data[:, i])), 2)
 
             # Storing only first (left) mirror part of spectra
             spectra = spectra[: int(no_of_points_for_fft_spectr/2), :]
 
-            # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
+            # At 33 MHz clock frequency the specter is upside down, to correct it we use flip up/down
             if int(clock_freq/1000000) == 33:
                 spectra = np.flipud(spectra)
 
@@ -128,7 +155,6 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 if __name__ == '__main__':
 
     file_name = 'E310120_204449.jds_Data_chA.wf32'
-
     file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     print('\n Result DAT file: ', file_name, '\n')
 
