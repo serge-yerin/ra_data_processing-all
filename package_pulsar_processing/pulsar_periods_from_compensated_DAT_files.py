@@ -453,9 +453,9 @@ if __name__ == '__main__':
     incoherent_sum_of_single_pulses_spectra(common_path, filename_1, filename_2)
     '''
 
-    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat/'
-    filename = 'Norm_DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.dat - Extracted pulse.txt'
-    cut_needed_time_points_from_txt(common_path + filename, 900, 1100)
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_5.755_E280120_205546.jds_Data_chA.dat_12/'
+    filename = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat - Extracted pulse.txt'
+    cut_needed_time_points_from_txt(common_path + filename, 3550, 3600)
 
     endTime = time.time()    # Time of calculations
 
