@@ -1,15 +1,19 @@
 # Python3
+"""
+!!! In principle the function works, still needs timeline file implementation (copy from original function at least) !!!
+"""
+
 
 # Make and test function which converts WF32 to DAT with overlap of wf data
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0809+74'  # 'B0950+08'
+# pulsar_name = 'B0809+74'  # 'B0950+08'
 
 no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
 no_of_spectra_in_bunch = 2048           # Number of spectra samples to read while conversion to dat (depends on RAM)
-source_directory = 'DATA/'              # Directory with JDS files to be analyzed
-result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
+# source_directory = 'DATA/'            # Directory with JDS files to be analyzed
+# result_directory = ''                 # Directory where DAT files to be stored (empty string means project directory)
 
 # ###############################################################################
 # *******************************************************************************
@@ -28,7 +32,6 @@ if __package__ is None:
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_common_modules.f_progress_bar import progress
 # ###############################################################################
-
 
 # *******************************************************************************
 #          W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                *
@@ -90,7 +93,6 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         print('\n  *** Reading data from file *** \n')
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
-
 
         half_of_sprectrum = int(no_of_points_for_fft_spectr/2)
         # Making a small buffer vector to store the last half ot spectrum for the next loop step
@@ -154,7 +156,7 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 
 if __name__ == '__main__':
 
-    file_name = 'E310120_204449.jds_Data_chA.wf32'
+    file_name = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
     file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     print('\n Result DAT file: ', file_name, '\n')
 
