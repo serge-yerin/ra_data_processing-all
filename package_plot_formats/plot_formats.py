@@ -195,33 +195,46 @@ def OneValueWithTimePlot(timeline, Ydat1, Label1, xmin, xmax, ymin, ymax, x_auto
     return
 
 
-
-
 #   *** Plot dynamic spectra of one data set ***
 def OneDynSpectraPlot(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, TimeScale,
                         frequency, FreqPointsNum, colormap, Xlabel, fig_file_name,
                         currentDate, currentTime, Software_version, customDPI):
+
+    import matplotlib.ticker as mticker   # <---- Added to suppress warning
+
     fig, axarr = plt.subplots(1, 1, figsize=(16.0, 7.0))
-    im0 = axarr.imshow(np.flipud(Data), aspect='auto', vmin=Vmin, vmax=Vmax, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
+    im0 = axarr.imshow(np.flipud(Data), aspect='auto', vmin=Vmin, vmax=Vmax,
+                       extent=[0, no_of_spectra, frequency[0], frequency[FreqPointsNum-1]], cmap=colormap)
     rc('font', size=8, weight='bold')
     axarr.set_ylabel('Frequency, MHz', fontweight='bold', fontsize=10)
-    fig.suptitle(Suptitle, fontsize = 10, fontweight = 'bold', x = 0.46, y = 0.96)
-    axarr.set_yticklabels(axarr.get_yticks(), fontsize = 8, fontweight = 'bold')
-    cbar = fig.colorbar(im0, ax = axarr, pad = 0.005)
-    cbar.ax.tick_params(labelsize = 8)
-    cbar.set_label(CBarLabel, fontsize = 9, fontweight = 'bold')
+    fig.suptitle(Suptitle, fontsize=10, fontweight='bold', x=0.46, y=0.96)
+
+    ticks_loc = axarr.get_yticks().tolist()                               # <---- Added to suppress warning
+    axarr.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))        # <---- Added to suppress warning
+
+    axarr.set_yticklabels(axarr.get_yticks(), fontsize=8, fontweight='bold')
+    cbar = fig.colorbar(im0, ax=axarr, pad=0.005)
+    cbar.ax.tick_params(labelsize=8)
+    cbar.set_label(CBarLabel, fontsize=9, fontweight='bold')
     text = axarr.get_xticks().tolist()
     for i in range(len(text)-1):
         k = int(text[i])
         text[i] = TimeScale[k]
-    axarr.set_xticklabels(text, fontsize = 8, fontweight = 'bold')
-    axarr.set_yticklabels(axarr.get_yticks(), fontsize = 8, fontweight = 'bold')
+
+    ticks_loc = axarr.get_xticks().tolist()                              # <---- Added to suppress warning
+    axarr.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))       # <---- Added to suppress warning
+
+    axarr.set_xticklabels(text, fontsize=8, fontweight='bold')
+    axarr.set_yticklabels(axarr.get_yticks(), fontsize=8, fontweight='bold')
     axarr.set_xlabel(Xlabel, fontsize=10, fontweight='bold')
-    fig.text(0.72, 0.04, 'Processed '+currentDate+ ' at '+currentTime, fontsize=6, fontweight = 'bold', transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=6, fontweight = 'bold', transform=plt.gcf().transFigure)
-    pylab.savefig(fig_file_name, bbox_inches='tight', dpi = customDPI)
+    fig.text(0.72, 0.04, 'Processed ' + currentDate + ' at ' + currentTime,
+             fontsize=6, fontweight='bold', transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
+             fontsize=6, fontweight='bold', transform=plt.gcf().transFigure)
+    pylab.savefig(fig_file_name, bbox_inches='tight', dpi=customDPI)
     plt.close('all')
     return
+
 
 #   *** Plot dynamic spectra of one data set in format for PhD thesis ***
 def OneDynSpectraPlotPhD(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, TimeScale,
@@ -246,8 +259,6 @@ def OneDynSpectraPlotPhD(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, T
     pylab.savefig(fig_file_name, bbox_inches='tight', dpi = customDPI)
     plt.close('all')
     return
-
-
 
 
 #   *** Plot dynamic spectra of two data sets ***
