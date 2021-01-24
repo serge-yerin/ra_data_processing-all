@@ -56,8 +56,8 @@ from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import 
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import cut_needed_pulsar_period_from_dat
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.f_convert_jds_wf_to_wf32 import convert_jds_wf_to_wf32
-from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_without_overlap
-# from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_with_overlap
+# from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_without_overlap
+from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_with_overlap
 
 # ###############################################################################
 
@@ -991,8 +991,8 @@ if __name__ == '__main__':
     # new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
     # os.rename(initial_tl_fname, new_tl_fname)
 
-    file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    # file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
 
