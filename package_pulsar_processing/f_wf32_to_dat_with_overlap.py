@@ -4,17 +4,6 @@
 """
 
 
-# Make and test function which converts WF32 to DAT with overlap of wf data
-# *******************************************************************************
-#                              P A R A M E T E R S                              *
-# *******************************************************************************
-# pulsar_name = 'B0809+74'  # 'B0950+08'
-
-no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
-no_of_spectra_in_bunch = 2048           # Number of spectra samples to read while conversion to dat (depends on RAM)
-# source_directory = 'DATA/'            # Directory with JDS files to be analyzed
-# result_directory = ''                 # Directory where DAT files to be stored (empty string means project directory)
-
 # ###############################################################################
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -33,11 +22,13 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_common_modules.f_progress_bar import progress
 # ###############################################################################
 
+
 # *******************************************************************************
 #          W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                *
 # *******************************************************************************
 
-def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch):
+
+def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch):
     '''
     function converts waveform data in .wf32 format to spectra in .dat format
     Input parameters:
@@ -94,6 +85,17 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
+        # *** Creating a new timeline TXT file for results ***
+        new_tl_file_name = file_data_name.split('_Data_', 1)[0] + '_Timeline.txt'
+        new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+        new_tl_file.close()
+
+        # *** Reading timeline file ***
+        old_tl_file_name = fname.split("_Data_", 1)[0] + '_Timeline.wtxt'
+        old_tl_file = open(old_tl_file_name, 'r')
+        new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+
+
         half_of_sprectrum = int(no_of_points_for_fft_spectr/2)
         # Making a small buffer vector to store the last half ot spectrum for the next loop step
         buffer = np.zeros(half_of_sprectrum)
@@ -101,6 +103,14 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
         for bunch in range(no_of_bunches_per_file-1):
 
             print('Bunch # ', bunch, ' of ', no_of_bunches_per_file-1)
+
+            # Read time from timeline file for the bunch
+            time_scale_bunch = []
+            for line in range(no_of_spectra_in_bunch):
+                time_scale_bunch.append(str(old_tl_file.readline()))
+            # Saving time data to new file
+            for i in range(len(time_scale_bunch)):
+                new_tl_file.write((time_scale_bunch[i][:]) + '')
 
             # Reading and reshaping data of the bunch
             wf_data = np.fromfile(file, dtype='f4', count=no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
@@ -157,6 +167,10 @@ def convert_wf32_to_dat(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bun
 if __name__ == '__main__':
 
     file_name = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
-    file_name = convert_wf32_to_dat(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    no_of_points_for_fft_spectr = 16384  # Number of points for FFT on result spectra # 8192 - 131072
+    no_of_spectra_in_bunch = 2048  # Number of spectra samples to read while conversion to dat (depends on RAM)
+
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+
     print('\n Result DAT file: ', file_name, '\n')
 
