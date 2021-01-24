@@ -1,6 +1,6 @@
 # Python3
 """
-!!! In principle the function works, still needs timeline file implementation (copy from original function at least) !!!
+The file can be deleted as the function is copied to f_convert_wf32_to_dat from package_ra_data_files_formats
 """
 
 
