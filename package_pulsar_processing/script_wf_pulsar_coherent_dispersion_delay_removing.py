@@ -948,19 +948,19 @@ if __name__ == '__main__':
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
-    # '''
+    '''
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
     initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     print('\n List of WF32 files: ', initial_wf32_files, '\n')
-    # '''
+    
 
     if len(initial_wf32_files) > 1 and calibrate_phase:
         print('\n\n  * Making phase calibration of wf32 file... \n')
         wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
                                            phase_calibr_txt_file)
-
-    # initial_wf32_files = ['E310120_225419.jds_Data_chA.wf32', 'E310120_225419.jds_Data_chB.wf32']
+    '''
+    initial_wf32_files = ['E280120_205546.jds_Data_chA.wf32']
 
     if len(initial_wf32_files) > 1 and make_sum > 0:
         print('\n\n  * Making sum of two WF32 files... \n')
@@ -984,7 +984,7 @@ if __name__ == '__main__':
 
     print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
 
-    # file_name = 'DM_0.752_DM_1.0_DM_1.0_DM_1.0_DM_1.0_DM_1.0_E280120_205546.jds_Data_chA.wf32'
+    # file_name = 'DM_5.752_E280120_205546.jds_Data_chA.wf32'
     # typesOfData = ['wfA']
 
     # initial_tl_fname = file_name + '_Timeline.wtxt'
