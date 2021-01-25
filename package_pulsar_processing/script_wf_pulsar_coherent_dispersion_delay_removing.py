@@ -58,6 +58,7 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.f_convert_jds_wf_to_wf32 import convert_jds_wf_to_wf32
 # from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_without_overlap
 from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_with_overlap
+from package_ra_data_processing.wf32_two_channel_phase_calibration import wf32_two_channel_phase_calibration
 
 # ###############################################################################
 
@@ -218,210 +219,211 @@ from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_
 #             W A V E F O R M    P H A S E   C A L I B R A T I O N              *
 # *******************************************************************************
 
+# ######################################################################################################################
 
-def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of_spectra_in_bunch, phase_calibr_txt_file):
-    """
-    function reads waveform data in wf32 format, makes FFT, cuts the symmetrical half of the spectra and
-    multiplies complex data by phase calibration data read from txt file. Then a symmetrcal part of spectra
-    are made and joined to the shifted one, inverse FFT as applied and data are stored in waveform wf32 format
-    Input parameters:
-        fname -                         name of file with initial wf32 data
-        no_of_points_for_fft_dedisp -   number of waveform data points to use for FFT
-        phase_calibr_txt_file -         txt file with phase calibration data
-    Output parameters:
-        file_data_name -                name of file with calibrated data
-    """
-
-    # Rename the data file to make the new data file of the same name as initial one
-    non_calibrated_fname = fname[:-5] + '_without_phase_calibration' + '.wf32'
-    calibrated_fname = fname
-    print('\n  Phase calibration of one channel \n')
-    print('  Old filename of initial file:  ', calibrated_fname)
-    print('  New filename of initial file:  ', non_calibrated_fname)
-
-    os.rename(calibrated_fname, non_calibrated_fname)
-
-    #  *** Data file header read ***
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
-
-    # Read phase calibration txt file
-    phase_calibr_file = open(phase_calibr_txt_file, 'r')
-    phase_vs_freq = []
-    for line in phase_calibr_file:
-        phase_vs_freq.append(np.float(line))
-    phase_calibr_file.close()
-
-    fig = plt.figure(figsize=(9, 5))
-    ax1 = fig.add_subplot(111)
-    ax1.plot(phase_vs_freq, linestyle='-', linewidth='1.00', label='Phase to add')
-    ax1.legend(loc='upper right', fontsize=6)
-    ax1.grid(b=True, which='both', color='silver', linestyle='-')
-    ax1.set_ylabel('Phase, a.u.', fontsize=6, fontweight='bold')
-    pylab.savefig('00_Phase to add.png', bbox_inches='tight', dpi=160)
-    plt.close('all')
-
-    # Converting phase to complex numbers
-    cmplx_phase = np.zeros((len(phase_vs_freq)), dtype=np.complex)
-    for i in range(len(phase_vs_freq)):
-        cmplx_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
-
-    # Create long data files and copy first data file header to them
-    non_calibr_file_data = open(non_calibrated_fname, 'rb')
-    file_header = non_calibr_file_data.read(1024)
-
-    # *** Creating a binary file with data for long data storage ***
-    calibr_file_data = open(calibrated_fname, 'wb')
-    calibr_file_data.write(file_header)
-    calibr_file_data.close()
-    del file_header
-
-    # Calculation of number of blocks and number of spectra in the file
-    no_of_spectra_per_file = int((df_filesize - 1024) / (no_of_points_for_fft_dedisp * 4))
-    no_of_bunches_per_file = math.ceil(no_of_spectra_per_file / no_of_spectra_in_bunch)
-    print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
-    print('  Number of batches per file:    ', no_of_bunches_per_file, '')
-    print('  Number of spectra per file:    ', no_of_spectra_per_file, '\n')
-
-    non_calibr_file_data.seek(1024)  # Jumping to 1024 byte from file beginning
-
-    bar = IncrementalBar(' Phase calibration of the file: ', max=no_of_bunches_per_file - 1,
-                         suffix='%(percent)d%%')
-
-    for bunch in range(no_of_bunches_per_file):
-
-        if bunch < no_of_bunches_per_file-1:
-            pass
-        else:
-            no_of_spectra_in_bunch = no_of_spectra_per_file - bunch * no_of_spectra_in_bunch
-            # print(' Last bunch ', bunch, ', spectra in bunch: ', no_of_spectra_in_bunch)
-
-        bar.next()
-
-        # Reading and reshaping all data with time data
-        wf_data = np.fromfile(non_calibr_file_data, dtype='f4',
-                              count=no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
-
-        wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
-
-        # preparing matrices for spectra
-        spectra = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch), dtype='complex64')
-
-        # Calculation of spectra
-        for i in range(no_of_spectra_in_bunch):
-            spectra[:, i] = np.fft.fft(wf_data[:, i])
-        del wf_data
-
-        # Add phase to the data (multiply by complex number)
-        for i in range (no_of_spectra_in_bunch):
-            spectra[:, i] = spectra[:, i] * cmplx_phase[:]
-
-        # Preparing array for new waveform
-        wf_data = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch))
-
-        # Making IFFT
-        for i in range(no_of_spectra_in_bunch):
-            wf_data[:, i] = np.real(np.fft.ifft(spectra[:, i]))
-        del spectra
-
-        # Reshaping the waveform to single dimension (real)
-        wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp * no_of_spectra_in_bunch, 1], order='F')
-
-        # Saving waveform data to wf32 file
-        calibr_file_data = open(calibrated_fname, 'ab')
-        calibr_file_data.write(np.float32(wf_data).transpose().copy(order='C'))
-        calibr_file_data.close()
-
-    bar.finish()
-
-    return
-
+# def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of_spectra_in_bunch, phase_calibr_txt_file):
+#     """
+#     function reads waveform data in wf32 format, makes FFT, cuts the symmetrical half of the spectra and
+#     multiplies complex data by phase calibration data read from txt file. Then a symmetrcal part of spectra
+#     are made and joined to the shifted one, inverse FFT as applied and data are stored in waveform wf32 format
+#     Input parameters:
+#         fname -                         name of file with initial wf32 data
+#         no_of_points_for_fft_dedisp -   number of waveform data points to use for FFT
+#         phase_calibr_txt_file -         txt file with phase calibration data
+#     Output parameters:
+#         file_data_name -                name of file with calibrated data
+#     """
+#
+#     # Rename the data file to make the new data file of the same name as initial one
+#     non_calibrated_fname = fname[:-5] + '_without_phase_calibration' + '.wf32'
+#     calibrated_fname = fname
+#     print('\n  Phase calibration of one channel \n')
+#     print('  Old filename of initial file:  ', calibrated_fname)
+#     print('  New filename of initial file:  ', non_calibrated_fname)
+#
+#     os.rename(calibrated_fname, non_calibrated_fname)
+#
+#     #  *** Data file header read ***
+#     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+#      clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+#      df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
+#
+#     # Read phase calibration txt file
+#     phase_calibr_file = open(phase_calibr_txt_file, 'r')
+#     phase_vs_freq = []
+#     for line in phase_calibr_file:
+#         phase_vs_freq.append(np.float(line))
+#     phase_calibr_file.close()
+#
+#     fig = plt.figure(figsize=(9, 5))
+#     ax1 = fig.add_subplot(111)
+#     ax1.plot(phase_vs_freq, linestyle='-', linewidth='1.00', label='Phase to add')
+#     ax1.legend(loc='upper right', fontsize=6)
+#     ax1.grid(b=True, which='both', color='silver', linestyle='-')
+#     ax1.set_ylabel('Phase, a.u.', fontsize=6, fontweight='bold')
+#     pylab.savefig('00_Phase to add.png', bbox_inches='tight', dpi=160)
+#     plt.close('all')
+#
+#     # Converting phase to complex numbers
+#     cmplx_phase = np.zeros((len(phase_vs_freq)), dtype=np.complex)
+#     for i in range(len(phase_vs_freq)):
+#         cmplx_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
+#
+#     # Create long data files and copy first data file header to them
+#     non_calibr_file_data = open(non_calibrated_fname, 'rb')
+#     file_header = non_calibr_file_data.read(1024)
+#
+#     # *** Creating a binary file with data for long data storage ***
+#     calibr_file_data = open(calibrated_fname, 'wb')
+#     calibr_file_data.write(file_header)
+#     calibr_file_data.close()
+#     del file_header
+#
+#     # Calculation of number of blocks and number of spectra in the file
+#     no_of_spectra_per_file = int((df_filesize - 1024) / (no_of_points_for_fft_dedisp * 4))
+#     no_of_bunches_per_file = math.ceil(no_of_spectra_per_file / no_of_spectra_in_bunch)
+#     print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
+#     print('  Number of batches per file:    ', no_of_bunches_per_file, '')
+#     print('  Number of spectra per file:    ', no_of_spectra_per_file, '\n')
+#
+#     non_calibr_file_data.seek(1024)  # Jumping to 1024 byte from file beginning
+#
+#     bar = IncrementalBar(' Phase calibration of the file: ', max=no_of_bunches_per_file - 1,
+#                          suffix='%(percent)d%%')
+#
+#     for bunch in range(no_of_bunches_per_file):
+#
+#         if bunch < no_of_bunches_per_file-1:
+#             pass
+#         else:
+#             no_of_spectra_in_bunch = no_of_spectra_per_file - bunch * no_of_spectra_in_bunch
+#             # print(' Last bunch ', bunch, ', spectra in bunch: ', no_of_spectra_in_bunch)
+#
+#         bar.next()
+#
+#         # Reading and reshaping all data with time data
+#         wf_data = np.fromfile(non_calibr_file_data, dtype='f4',
+#                               count=no_of_spectra_in_bunch * no_of_points_for_fft_dedisp)
+#
+#         wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
+#
+#         # preparing matrices for spectra
+#         spectra = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch), dtype='complex64')
+#
+#         # Calculation of spectra
+#         for i in range(no_of_spectra_in_bunch):
+#             spectra[:, i] = np.fft.fft(wf_data[:, i])
+#         del wf_data
+#
+#         # Add phase to the data (multiply by complex number)
+#         for i in range (no_of_spectra_in_bunch):
+#             spectra[:, i] = spectra[:, i] * cmplx_phase[:]
+#
+#         # Preparing array for new waveform
+#         wf_data = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch))
+#
+#         # Making IFFT
+#         for i in range(no_of_spectra_in_bunch):
+#             wf_data[:, i] = np.real(np.fft.ifft(spectra[:, i]))
+#         del spectra
+#
+#         # Reshaping the waveform to single dimension (real)
+#         wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp * no_of_spectra_in_bunch, 1], order='F')
+#
+#         # Saving waveform data to wf32 file
+#         calibr_file_data = open(calibrated_fname, 'ab')
+#         calibr_file_data.write(np.float32(wf_data).transpose().copy(order='C'))
+#         calibr_file_data.close()
+#
+#     bar.finish()
+#
+#     return
+# ######################################################################################################################
 
 # *******************************************************************************
 #      C O H E R E N T   S U M   O F   W A V E F O R M    F L O A T 3 2         *
 # *******************************************************************************
 
-
-def sum_signal_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
-    """
-    Function that takes two wf32 files and makes sum of signals from these files in output wf32 file
-    """
-
-    if 'chA' in file_name_1 and 'chB' in file_name_2:
-        result_file_name = file_name_1.replace('chA', 'wfA+B')
-    elif 'chB' in file_name_1 and 'chA' in file_name_2:
-        result_file_name = file_name_1.replace('chB', 'wfA+B')
-    else:
-        result_file_name = file_name_1[:-4] + '_sum_' + file_name_2
-
-    df_filesize_1 = os.stat(file_name_1).st_size                         # Size of file
-    df_filesize_2 = os.stat(file_name_2).st_size                         # Size of file
-    if df_filesize_1 != df_filesize_2:
-        print('  Size of file 1:    ', df_filesize_1, '\n  Size of file 2:', df_filesize_2)
-        sys.exit('   ERROR!!! Files have different sizes!')
-
-    # Calculation of the dimensions of arrays to read
-    ny = int((df_filesize_1 - 1024) / 4)   # number of samples to read: file size - 1024 bytes
-    num_of_blocks = int(ny // (no_of_spectra_in_bunch * 10000))
-
-    file_1 = open(file_name_1, 'rb')
-    file_2 = open(file_name_2, 'rb')
-    out_file = open(result_file_name, 'wb')
-
-    file_header = file_1.read(1024)
-    out_file.write(file_header)
-    del file_header
-    file_1.seek(1024)
-    file_2.seek(1024)
-
-    bar = IncrementalBar(' Making sum of two signals: ', max=num_of_blocks - 1,
-                         suffix='%(percent)d%%')
-
-    for block in range(num_of_blocks):
-
-        bar.next()
-
-        if block == (num_of_blocks - 1):
-            samples_num_in_bunch = ny - (num_of_blocks - 1) * no_of_spectra_in_bunch * 10000
-        else:
-            samples_num_in_bunch = no_of_spectra_in_bunch * 10000
-
-        data_1 = np.fromfile(file_1, dtype=np.float32, count=samples_num_in_bunch)
-        data_2 = np.fromfile(file_2, dtype=np.float32, count=samples_num_in_bunch)
-        data = data_1 + data_2
-        out_file.write(np.float32(data).transpose().copy(order='C'))
-
-    bar.finish()
-    file_1.close()
-    file_2.close()
-    out_file.close()
-
-    # Time line file copying
-
-    # Making copy of timeline file with needed name and extension
-    initial_timeline_name = file_name_1.split('_Data')[0] + '_Timeline.wtxt'
-    result_timeline_name = result_file_name + '_Timeline.wtxt'
-
-    # Creating a new timeline TXT file for results
-    new_tl_file = open(result_timeline_name, 'w')  # Open and close to delete the file with the same name
-    new_tl_file.close()
-
-    # Reading timeline file
-    old_tl_file = open(initial_timeline_name, 'r')
-    new_tl_file = open(result_timeline_name, 'w')
-
-    # Read time from timeline file
-    time_scale_bunch = old_tl_file.readlines()
-
-    # Saving time data to new file
-    for i in range(len(time_scale_bunch)):
-        new_tl_file.write((time_scale_bunch[i][:]) + '')
-
-    old_tl_file.close()
-    new_tl_file.close()
-
-    return result_file_name
+#
+# def sum_signals_of_wf32_files(file_name_1, file_name_2, no_of_spectra_in_bunch):
+#     """
+#     Function that takes two wf32 files and makes sum of signals from these files in output wf32 file
+#     """
+#
+#     if 'chA' in file_name_1 and 'chB' in file_name_2:
+#         result_file_name = file_name_1.replace('chA', 'wfA+B')
+#     elif 'chB' in file_name_1 and 'chA' in file_name_2:
+#         result_file_name = file_name_1.replace('chB', 'wfA+B')
+#     else:
+#         result_file_name = file_name_1[:-4] + '_sum_' + file_name_2
+#
+#     df_filesize_1 = os.stat(file_name_1).st_size                         # Size of file
+#     df_filesize_2 = os.stat(file_name_2).st_size                         # Size of file
+#     if df_filesize_1 != df_filesize_2:
+#         print('  Size of file 1:    ', df_filesize_1, '\n  Size of file 2:', df_filesize_2)
+#         sys.exit('   ERROR!!! Files have different sizes!')
+#
+#     # Calculation of the dimensions of arrays to read
+#     ny = int((df_filesize_1 - 1024) / 4)   # number of samples to read: file size - 1024 bytes
+#     num_of_blocks = int(ny // (no_of_spectra_in_bunch * 10000))
+#
+#     file_1 = open(file_name_1, 'rb')
+#     file_2 = open(file_name_2, 'rb')
+#     out_file = open(result_file_name, 'wb')
+#
+#     file_header = file_1.read(1024)
+#     out_file.write(file_header)
+#     del file_header
+#     file_1.seek(1024)
+#     file_2.seek(1024)
+#
+#     bar = IncrementalBar(' Making sum of two signals: ', max=num_of_blocks - 1,
+#                          suffix='%(percent)d%%')
+#
+#     for block in range(num_of_blocks):
+#
+#         bar.next()
+#
+#         if block == (num_of_blocks - 1):
+#             samples_num_in_bunch = ny - (num_of_blocks - 1) * no_of_spectra_in_bunch * 10000
+#         else:
+#             samples_num_in_bunch = no_of_spectra_in_bunch * 10000
+#
+#         data_1 = np.fromfile(file_1, dtype=np.float32, count=samples_num_in_bunch)
+#         data_2 = np.fromfile(file_2, dtype=np.float32, count=samples_num_in_bunch)
+#         data = data_1 + data_2
+#         out_file.write(np.float32(data).transpose().copy(order='C'))
+#
+#     bar.finish()
+#     file_1.close()
+#     file_2.close()
+#     out_file.close()
+#
+#     # Time line file copying
+#
+#     # Making copy of timeline file with needed name and extension
+#     initial_timeline_name = file_name_1.split('_Data')[0] + '_Timeline.wtxt'
+#     result_timeline_name = result_file_name + '_Timeline.wtxt'
+#
+#     # Creating a new timeline TXT file for results
+#     new_tl_file = open(result_timeline_name, 'w')  # Open and close to delete the file with the same name
+#     new_tl_file.close()
+#
+#     # Reading timeline file
+#     old_tl_file = open(initial_timeline_name, 'r')
+#     new_tl_file = open(result_timeline_name, 'w')
+#
+#     # Read time from timeline file
+#     time_scale_bunch = old_tl_file.readlines()
+#
+#     # Saving time data to new file
+#     for i in range(len(time_scale_bunch)):
+#         new_tl_file.write((time_scale_bunch[i][:]) + '')
+#
+#     old_tl_file.close()
+#     new_tl_file.close()
+#
+#     return result_file_name
 
 
 # *******************************************************************************
@@ -964,7 +966,7 @@ if __name__ == '__main__':
 
     if len(initial_wf32_files) > 1 and make_sum > 0:
         print('\n\n  * Making sum of two WF32 files... \n')
-        file_name = sum_signal_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
+        file_name = sum_signals_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
         print('  Sum file:', file_name, '\n')
         typesOfData = ['wfA+B']
     else:
