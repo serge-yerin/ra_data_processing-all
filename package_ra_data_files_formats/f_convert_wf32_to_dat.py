@@ -88,7 +88,9 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
             # Read time from timeline file for the bunch
             time_scale_bunch = []
             for line in range(no_of_spectra_in_bunch):
-                time_scale_bunch.append(str(old_tl_file.readline()))
+                tmp = str(old_tl_file.readline())
+                time_scale_bunch.append(tmp)  # append the current value
+                time_scale_bunch.append(tmp)  # append once more the same value for timing of fft with overlap
             # Saving time data to new file
             for i in range(len(time_scale_bunch)):
                 new_tl_file.write((time_scale_bunch[i][:]) + '')
