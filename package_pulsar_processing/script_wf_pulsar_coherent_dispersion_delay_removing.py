@@ -41,7 +41,7 @@ if __package__ is None:
 # My functions
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import cut_needed_pulsar_period_from_dat
+from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.f_convert_jds_wf_to_wf32 import convert_jds_wf_to_wf32
 
@@ -51,6 +51,7 @@ from package_ra_data_processing.wf32_two_channel_phase_calibration import wf32_t
 from package_ra_data_processing.sum_signals_of_wf32_files import sum_signals_of_wf32_files
 from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
 from package_ra_data_processing.f_normalize_dat_file import normalize_dat_file
+from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
 
 
 if __name__ == '__main__':
@@ -147,8 +148,11 @@ if __name__ == '__main__':
     period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
-    cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number, -0.15,
-                                      0.55, -0.2, 3.0, periods_per_fig, 500, 'Greys')
+    path, txt_fname, png_fname = cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number,
+                                                                   -0.15, 0.55, -0.2, 3.0,
+                                                                   periods_per_fig, 500, 'Greys')
+
+    cut_needed_time_points_from_txt(path + '/' + txt_fname)
 
     endTime = time.time()
 
