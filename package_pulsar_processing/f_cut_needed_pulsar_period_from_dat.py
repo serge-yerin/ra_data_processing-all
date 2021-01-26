@@ -115,7 +115,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
 
     # Time line
     fig_time_scale = timeline[(period_number-1) *
-                              spectra_per_period : (period_number - 1 + spectra_to_read) * spectra_per_period]
+                              spectra_per_period: (period_number - 1 + spectra_to_read) * spectra_per_period]
 
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))

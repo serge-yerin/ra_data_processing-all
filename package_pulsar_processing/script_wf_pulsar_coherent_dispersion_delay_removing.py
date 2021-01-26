@@ -1,6 +1,6 @@
 # Python3
 # pip install progress
-Software_version = '2020.07.18'
+Software_version = '2021.01.25'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dispersion delay removing and saving found pulses
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         print('\n\n  * Making phase calibration of wf32 file... \n')
         wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
                                            phase_calibr_txt_file)
-    '''
+    
     initial_wf32_files = ['E280120_205546.jds_Data_chA.wf32']
 
     if len(initial_wf32_files) > 1 and make_sum > 0:
@@ -112,6 +112,11 @@ if __name__ == '__main__':
     # initial_tl_fname = file_name + '_Timeline.wtxt'
     # new_tl_fname = file_name.split('.jds_')[0] + '.jds_Timeline.wtxt'
     # os.rename(initial_tl_fname, new_tl_fname)
+    
+    '''
+
+    file_name = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
+    typesOfData = ['wfA']
 
     # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
     file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
@@ -123,8 +128,8 @@ if __name__ == '__main__':
     # !!! Check the normalization of the file !!!
     # Why do not we use the smooth average spectrum? Is it necessary?
     output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch, median_filter_window)
-    # '''
-    print('!!! ', output_file_name)
+
+    print(' Files names after normalizing: ', output_file_name)
 
     print('\n\n  * Making figures of 3 pulsar periods... \n\n')
 
@@ -139,8 +144,6 @@ if __name__ == '__main__':
 
     # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
 
-    print('!!! ', output_file_name)
-
     print('\n\n  * Cutting the data of found pulse ... ')
     print('\n\n  Examine 3 pulses pics and enter the number of period to cut:')
 
@@ -152,7 +155,7 @@ if __name__ == '__main__':
                                                                    -0.15, 0.55, -0.2, 3.0,
                                                                    periods_per_fig, 500, 'Greys')
 
-    cut_needed_time_points_from_txt(path + '/' + txt_fname)
+    cut_needed_time_points_from_txt(path, txt_fname)
 
     endTime = time.time()
 
