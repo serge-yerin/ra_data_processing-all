@@ -8,8 +8,8 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-# path_to_data = '/media/data/DATA/To_process'  # 'h:/To_process/'
-path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
+path_to_data = 'DATA'  #  '/media/data/DATA/To_process'
+# path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -27,7 +27,7 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-SpectrumFileSaveSwitch = 1    # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
+SpectrumFileSaveSwitch = 0    # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
@@ -36,7 +36,7 @@ VminMan = -120                   # Manual lower limit of immediate spectrum figu
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
 VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
-AmplitudeReIm = 1 * 10**(-12) # Color range of Re and Im dynamic spectra
+AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 # ###############################################################################
@@ -120,9 +120,9 @@ else:
     print(' *                                                                                   *  \n ************************************************************************************* \n\n\n')
 
 
-decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
-if decision != 1:
-    sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
+    decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
+    if decision != 1:
+        sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
 
 
 print('\n\n\n   **************************************************************')
