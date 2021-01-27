@@ -18,11 +18,12 @@ no_of_spectra_in_bunch = 16384          # Number of spectra samples to read whil
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
-calibrate_phase = False                 # Do we need to calibrate phases between two channels? (True/False)
+calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 median_filter_window = 80               # Window of median filter to smooth the average profile
 
 phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
+show_av_sp_to_normalize = True         # Pause and display filtered average spectrum to be used for normalization
 # ###############################################################################
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -104,8 +105,6 @@ if __name__ == '__main__':
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
 
-    print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
-
     # file_name = 'DM_5.752_E280120_205546.jds_Data_chA.wf32'
     # typesOfData = ['wfA']
 
@@ -114,28 +113,43 @@ if __name__ == '__main__':
     # os.rename(initial_tl_fname, new_tl_fname)
     
     '''
+    # print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
+    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+    print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n\n')
 
     file_name = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
-    typesOfData = ['wfA']
+    typesOfData = ['chA']
 
     # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, False)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
+    
+    # file_name = 'DM_5.755_E280120_205546.jds_Data_chA.dat'
+    # typesOfData = ['chA']
 
-    print('\n\n  * Making normalization of the dedispersed data... \n\n')
+    # print('\n\n  * Making normalization of the dedispersed spectra data... \n\n')
+    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+    print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n\n')
 
-    # !!! Check the normalization of the file !!!
-    # Why do not we use the smooth average spectrum? Is it necessary?
-    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch, median_filter_window)
+    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch,
+                                          median_filter_window, show_av_sp_to_normalize)
 
     print(' Files names after normalizing: ', output_file_name)
 
-    print('\n\n  * Making figures of 3 pulsar periods... \n\n')
+    # print('\n\n  * Making figures of 3 pulsar periods... \n\n')
+    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+    print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
 
     pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys')
 
-    print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
+
+    # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
+    # typesOfData = ['chA']
+
+    # print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
+    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+    print('\n\n', t, 'Making dynamic spectra figures of the dedispersed data... \n\n')
 
     result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
     file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
@@ -144,7 +158,9 @@ if __name__ == '__main__':
 
     # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
 
-    print('\n\n  * Cutting the data of found pulse ... ')
+    # print('\n\n  * Cutting the data of found pulse ... ')
+    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+    print('\n\n', t, 'Cutting the data of found pulse period from whole data... ')
     print('\n\n  Examine 3 pulses pics and enter the number of period to cut:')
 
     #  Manual input of the pulsar period where pulse is found
@@ -154,6 +170,9 @@ if __name__ == '__main__':
     path, txt_fname, png_fname = cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number,
                                                                    -0.15, 0.55, -0.2, 3.0,
                                                                    periods_per_fig, 500, 'Greys')
+
+    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+    print('\n\n', t, 'Cutting the data of pulse from pulsar period data... ')
 
     cut_needed_time_points_from_txt(path, txt_fname)
 

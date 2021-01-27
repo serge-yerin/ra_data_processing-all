@@ -50,7 +50,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
 
     # Data file header read
     df_filesize = os.stat(filepath).st_size                       # Size of file
-    df_filepath = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
+    df_filepath = file.read(32).decode('utf-8').rstrip('\x00')    # Initial data file name
     file.close()
 
     if df_filepath[-4:] == '.adr':
@@ -76,7 +76,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     timeline, dt_timeline = time_line_file_reader(timeline_filepath)
 
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
-    spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))    # int(df_filesize - 1024)/(2*4*freq_points_num)
+    spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))  # int(df_filesize - 1024)/(2*4*freq_points_num)
     spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution), 0))
     spectra_per_period = int(np.round((p_bar / time_resolution), 0))
     num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
@@ -92,12 +92,14 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     print('\n  *** Data reading and making figure *** \n')
 
     data_file = open(filepath, 'rb')
+
     # Jumping to 1024+number of spectra to skip bytes from file beginning
     data_file.seek(1024 + (period_number-1) * spectra_per_period * len(frequency) * 8, os.SEEK_SET)
 
     # Reading and preparing block of data (3 periods)
     data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
     data_file.close()
+
     data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
     data = 10 * np.log10(data)
 
@@ -108,7 +110,6 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
 
     single_pulse_txt = open(result_path + '/' + filename + ' - Extracted pulse.txt', "w")
     for freq in range(len(frequency) - 1):
-        # single_pulse_txt.write(' '.join(format(data[freq, i], "12.7e") for i in range(spectra_to_read)) + ' \n')
         single_pulse_txt.write(' '.join('  {:+12.7E}'.format(data[freq, i]) for i in range(spectra_to_read)) + ' \n')
 
     single_pulse_txt.close()
@@ -125,7 +126,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
                   str(np.round(df/1000, 3)) + ' kHz and '+str(np.round(time_resolution*1000, 3))+' ms.',
                   fontsize=5, fontweight='bold')
     ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
-               extent=[0, len(profile), frequency[0], frequency[-1]])
+               extent=[0, len(profile), frequency[0] + 16.5, frequency[-1] + 16.5])   # <----------- added line
     ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
     text = ax2.get_xticks().tolist()
@@ -134,13 +135,25 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
         text[i] = fig_time_scale[k][11:23]
     ax2.set_xticklabels(text, fontsize=5, fontweight='bold')
     fig.subplots_adjust(hspace=0.05, top=0.91)
-    fig.suptitle('Extracted single pulse of '+pulsar_name+' (DM: '+str(DM)+r' $\mathrm{pc \cdot cm^{-3}}$'+', Period: '+
-                 str(p_bar) + ' s.)', fontsize=7, fontweight='bold')
+    fig.suptitle('Extracted single pulse of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
+                 ', Period: ' + str(p_bar) + ' s.)', fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + current_date + ' at '+current_time, fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: '+software_version+', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
     pylab.savefig(result_path + '/' + filename + ' - Extracted pulse.png', bbox_inches='tight', dpi=customDPI)
     plt.close('all')
+
+    # Copy data file header to a small file to save info on observations in the result directory
+
+    # Read data file header
+    with open(filepath, 'rb') as file:
+        file_header = file.read(1024)
+
+    # Create a small binary file with header
+    file_data = open(result_path + '/' + filename, 'wb')
+    file_data.write(file_header)
+    file_data.close()
+    del file_header
 
     return result_path, filename + ' - Extracted pulse.txt', filename + ' - Extracted pulse.png'
 

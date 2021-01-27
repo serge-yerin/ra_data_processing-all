@@ -10,7 +10,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 # *******************************************************************************
 
 
-def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch):
+def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, hanning_window):
     """
     function converts waveform data in .wf32 format to spectra in .dat format
     Input parameters:
@@ -43,8 +43,8 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
         file_data.write(np.int32(freq_points_num).tobytes())
         file_data.seek(632)  # Wb place in header
         file_data.write(np.int32(freq_points_num).tobytes())
-        file_data.seek(636)  # Navr place in header <------------------------------------------------------------------- change this
-        file_data.write(np.int32(1).tobytes())  # !!! Check for correctness !!!
+        file_data.seek(636)
+        file_data.write(np.int32(1).tobytes())  # Seem to work OK
         file_data.close()
         del file_header
 
@@ -84,11 +84,11 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
         bar = IncrementalBar(' Conversion from waveform to spectra: ',
                              max=no_of_bunches_per_file - 1, suffix='%(percent)d%%')
+        bar.start()
 
         for bunch in range(no_of_bunches_per_file - 1):
 
             # print('Bunch # ', bunch, ' of ', no_of_bunches_per_file - 1)
-            bar.next()
 
             # Read time from timeline file for the bunch
             time_scale_bunch = []
@@ -122,6 +122,12 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
             wf_data[:, 1::2] = wf_data_2[:, :]
             del wf_data_1, wf_data_2
 
+            # Apply window to data for FFT
+            if hanning_window:
+                window = np.hanning(no_of_points_for_fft_spectr)
+                wf_data = np.multiply(np.transpose(wf_data), window)
+                wf_data = np.transpose(wf_data)
+
             # Preparing empty array for spectra
             spectra = np.zeros_like(wf_data)
 
@@ -142,6 +148,8 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
             file_data.write(np.float64(temp))
             file_data.close()
 
+            bar.next()
+
         bar.finish()
 
     file.close()  # Close the data file
@@ -155,7 +163,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
 def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch):
     """
-    function converts waveform data in .wf32 format to spectra in .dat format
+    Converts waveform data in .wf32 format to spectra in .dat format
     Input parameters:
         fname -                 name of .wf32 file with waveform data
         no_of_points_for_fft -  number of points for FFT to provide necessary time-frequency resolution
@@ -271,9 +279,9 @@ if __name__ == '__main__':
 
     no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spectra # 8192 - 131072
     no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
-    fname = 'filename.wf32'
+    fname = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
 
     # file_names = convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_names = convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    file_names = convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, True)
 
     print('New wf32 files: ', file_names)

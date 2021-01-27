@@ -64,7 +64,8 @@ def cut_needed_time_points_from_txt(path, filename):
     rc('font', size=5, weight='bold')
     ax1 = fig.add_subplot(gs[0:2, 0])
     ax1.set_title('Cut time points: ' + str(start_point) + ' - ' + str(end_point), fontsize=5, fontweight='bold')
-    ax1.imshow(np.flipud(result_array), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max)
+    ax1.imshow(np.flipud(result_array), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
+               extent=[0, result_array.shape[1], 16.5, 33.0])
     ax1.xaxis.set_ticklabels([])
     ax1.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
     ax2 = fig.add_subplot(gs[2, 0])
@@ -99,6 +100,7 @@ def cut_needed_time_points_from_txt(path, filename):
     ax5.set_title(str(aver_num) + ' times averaged profile', fontsize=5, fontweight='bold')
     ax6 = fig.add_subplot(gs[2, 2])
     ax6.axis('off')
+    ax6.text(0.5, 0.5, 'Pulsar:', ha='center', va='center')  # , color=text_color # <----------- added line
 
     # Make a maximum profile of the pulse
     freq_profile_max = np.max(result_array, axis=1)
