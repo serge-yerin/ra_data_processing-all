@@ -8,7 +8,7 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = 'DATA'  #  '/media/data/DATA/To_process'
+path_to_data = 'DATA'  # '/media/data/DATA/To_process'
 # path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
@@ -61,7 +61,7 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 # *******************************************************************************
 
 print('\n\n\n\n\n\n\n\n   **************************************************************')
-print('   *    ', Software_name,'  v.',Software_version,'     *      (c) YeS 2019')
+print('   *    ', Software_name, '  v.', Software_version, '     *      (c) YeS 2019')
 print('   ************************************************************** \n\n')
 
 startTime = time.time()
@@ -78,19 +78,19 @@ path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYT
 file_path_list, file_name_list = find_all_files_in_folder_and_subfolders(path_to_data, '.adr', 0)
 
 # Making all slashes in paths of the same type
-for i in range (len(file_path_list)):
-    file_path_list[i] = file_path_list[i].replace('\\','/')
+for i in range(len(file_path_list)):
+    file_path_list[i] = file_path_list[i].replace('\\', '/')
 
 # Taking only paths without
-for i in range (len(file_path_list)):
-    file_path_list[i] = file_path_list[i][ : -len(file_name_list[i])]
+for i in range(len(file_path_list)):
+    file_path_list[i] = file_path_list[i][: -len(file_name_list[i])]
 
 list_of_folder_names = find_unique_strings_in_list(file_path_list)
 
 
 print('\n  Number of ADR files found: ', len(file_name_list))
 print('\n  List of folders to be analyzed: \n')
-for i in range (len(list_of_folder_names)):
+for i in range(len(list_of_folder_names)):
     print('         ',  i+1, ') ', list_of_folder_names[i])
 
 
@@ -98,12 +98,12 @@ for i in range (len(list_of_folder_names)):
 num_of_folders = len(list_of_folder_names)
 same_or_not = np.zeros(num_of_folders)
 equal_or_not = np.zeros(num_of_folders)
-for folder_no in range (num_of_folders):
+for folder_no in range(num_of_folders):
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
     print('\n\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no],
           '\n **********************************************************')
     for i in range(len(file_name_list_current)):
-        print('         ',  i+1,') ', file_name_list_current[i])
+        print('         ',  i+1, ') ', file_name_list_current[i])
     print(' ')
 
     # Check if all files (except the last) have same size
@@ -118,7 +118,6 @@ else:
     print('\n\n\n ************************************************************************************* \n *                                                                                   *')
     print(' *   Seems files in folders are different check the errors and restart the script!   *')
     print(' *                                                                                   *  \n ************************************************************************************* \n\n\n')
-
 
     decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
     if decision != 1:
@@ -167,10 +166,10 @@ for folder_no in range(num_of_folders):
     # Run DAT reader for the results of current folder
     done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
                                   averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
-                                RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+                                  RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 
 endTime = time.time()    # Time of calculations
 print('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                    round((endTime - startTime)/60, 2), 'min. ) \n')
-print('    *** Program ', Software_name,' has finished! *** \n\n\n')
+print('    *** Program ', Software_name, ' has finished! *** \n\n\n')
