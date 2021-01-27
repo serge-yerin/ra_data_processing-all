@@ -81,15 +81,15 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     spectra_per_period = int(np.round((p_bar / time_resolution), 0))
     num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
 
-    print('\n Pulsar name:                             ', pulsar_name, '')
-    print(' Pulsar period:                           ', p_bar, 's.')
-    print(' Time resolution:                         ', time_resolution, 's.')
-    print(' Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
-    print(' Number of spectra in file:               ', spectra_in_file, ' ')
-    print(' Number of', periods_per_fig, 'periods blocks in file:      ', num_of_blocks, '\n')
+    print('\n   Pulsar name:                             ', pulsar_name, '')
+    print('   Pulsar period:                           ', p_bar, 's.')
+    print('   Time resolution:                         ', time_resolution, 's.')
+    print('   Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
+    print('   Number of spectra in file:               ', spectra_in_file, ' ')
+    print('   Number of', periods_per_fig, 'periods blocks in file:      ', num_of_blocks, '\n')
 
     # Data reading and making figures
-    print('\n  *** Data reading and making figure *** \n')
+    print('\n   Data reading and making figure...')
 
     data_file = open(filepath, 'rb')
 
