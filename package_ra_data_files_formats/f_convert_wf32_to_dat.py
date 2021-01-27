@@ -61,8 +61,8 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
         print(' Sampling clock frequency:                    ', fine_clock_freq, ' Hz')
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
         print(' Time resolution of calculated spectra:       ', round(real_spectra_dt * 1000, 3), ' ms')
-        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df / 1000, 3), ' kHz')
-        print('\n  *** Reading data from file *** \n')
+        print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df / 1000, 3), ' kHz \n')
+        # print('\n  *** Reading data from file *** \n')
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
@@ -125,8 +125,11 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
             # Apply window to data for FFT
             if hanning_window:
                 window = np.hanning(no_of_points_for_fft_spectr)
-                wf_data = np.multiply(np.transpose(wf_data), window)
-                wf_data = np.transpose(wf_data)
+                for i in range(2 * no_of_spectra_in_bunch):
+                    wf_data[:, i] = wf_data[:, i] * window
+                # wf_data = np.multiply(np.transpose(wf_data), window)
+                # wf_data = np.transpose(wf_data)
+                del window
 
             # Preparing empty array for spectra
             spectra = np.zeros_like(wf_data)
