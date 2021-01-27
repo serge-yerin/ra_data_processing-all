@@ -25,8 +25,6 @@ customDPI = 200
 
 #customFREQ = 0                      # Custom frequency range (1-yes, 0-no)
 
-#*************************************************************
-
 
 #*************************************************************
 #                   IMPORT LIBRARIES                         *
@@ -43,7 +41,6 @@ from datetime import datetime, timedelta
 
 from matplotlib.pyplot import plot, draw, show
 from matplotlib import rc
-
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -66,7 +63,13 @@ print ('  Today is ', currentDate, ' time is ', currentTime, ' \n')
 #                            R E A D I N G   D A T A                                *
 #************************************************************************************
 
-
+file = open(filename, 'r')
+param = []
+for line in file:
+    num = line.rstrip().split()
+    floatnum = [float(i) for i in num]
+    param.append(floatnum)
+file.close()
 
 param = np.array((param))
 
