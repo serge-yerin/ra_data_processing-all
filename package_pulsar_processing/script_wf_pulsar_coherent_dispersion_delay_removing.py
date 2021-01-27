@@ -115,13 +115,13 @@ if __name__ == '__main__':
     '''
     # print('\n\n  * Making DAT files spectra of dedispersed wf32 data... \n\n')
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n\n')
+    print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
 
     file_name = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
     typesOfData = ['chA']
 
     # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, False)
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, True)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
     
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
     # print('\n\n  * Making normalization of the dedispersed spectra data... \n\n')
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n\n')
+    print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
 
     output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch,
                                           median_filter_window, show_av_sp_to_normalize)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
     # print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Making dynamic spectra figures of the dedispersed data... \n\n')
+    print('\n\n', t, 'Making dynamic spectra figures of the dedispersed data... \n')
 
     result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
     file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
@@ -172,7 +172,7 @@ if __name__ == '__main__':
                                                                    periods_per_fig, 500, 'Greys')
 
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Cutting the data of pulse from pulsar period data... ')
+    print('\n\n', t, 'Cutting the data of pulse from pulsar period data... \n')
 
     cut_needed_time_points_from_txt(path, txt_fname)
 
