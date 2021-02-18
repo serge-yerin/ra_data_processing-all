@@ -180,7 +180,9 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
     if filter_or_not:
         cross_spectrum_abs = median_filter(cross_spectrum_abs, 30)
 
-    cross_spectrum_arg = np.angle(cross_spectrum_av[no_of_points_for_fft//2:])
+    # cross_spectrum_arg = np.angle(cross_spectrum_av[no_of_points_for_fft//2:])
+    cross_spectrum_arg = np.angle(cross_spectrum_av[:])
+
     cross_spectrum_arg = phase_linearization_rad(cross_spectrum_arg)
     if filter_or_not:
         cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
@@ -196,7 +198,7 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
         ax1.set(xlim=(0, no_of_points_for_fft // 2))
         ax1.legend(loc='upper right', fontsize=10)
         ax2 = fig.add_subplot(212)
-        ax2.plot(cross_spectrum_arg, linestyle='-', linewidth='1.00', label='Cross spectrum angle')
+        ax2.plot(cross_spectrum_arg[no_of_points_for_fft//2:], linestyle='-', linewidth='1.00', label='Cross spectrum angle')
         # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
         ax2.set(xlim=(0, no_of_points_for_fft // 2))
         ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
@@ -562,7 +564,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     # Save phase matrix to txt files
     for i in range(len(file_list)):
         phase_txt_file = open(result_path + 'Calibration_' + file_names[i] + '_cross_spectra_phase.txt', "w")
-        for freq in range(no_of_points_for_fft//2):
+        for freq in range(no_of_points_for_fft // 1):  # //2
             phase_txt_file.write(''.join(' {:+12.7E}'.format(cross_sp_angl[i][freq])) + ' \n')
         phase_txt_file.close()
 
