@@ -18,9 +18,9 @@ skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 10                   # Upper limit of figure dynamic range for normalized spectra
 colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-custom_dpi = 300                 # Resolution of images of dynamic spectra
+custom_dpi = 300                # Resolution of images of dynamic spectra
 save_long_file_aver = 0         # Save long data file of averaged spectra? (1 - yes, 0 - no)
-dyn_spectr_save_init = 1        # Save dynamic spectra pictures before normalizing (1 = yes, 0 = no) ?
+dyn_spectr_save_init = 0        # Save dynamic spectra pictures before normalizing (1 = yes, 0 = no) ?
 dyn_spectr_save_norm = 1        # Save dynamic spectra pictures after normalizing (1 = yes, 0 = no) ?
 
 # ###############################################################################
@@ -55,7 +55,10 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                         colormap, custom_dpi, save_long_file_aver, dyn_spectr_save_init, dyn_spectr_save_norm):
 
     """
-    does not seem to work better or faster, but works
+    Does not seem to work better or faster, takes a lot of RAM (32 GB) but works
+    Is not used in any other scripts and is more a demonstration
+    The same functions in non-fast file works approximately the same time but consumes less memory
+    The only advantage of this function is reading the whole file at once
     """
 
     current_time = time.strftime("%H:%M:%S")
@@ -282,37 +285,24 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
             print('After transpose, shape: ', wf_data_chA.shape)
 
-            #
-            # We can do better!!!
-            #
-
             # Calculation of spectra
-            # for i in range(no_of_spectra_in_file):
-                # spectra_ch_a[:, i] = np.power(np.abs(np.fft.fft(wf_data_chA[:, i])), 2)
-                # spectra_ch_a[:, i] = np.power(np.abs(np.fft.fft(wf_data_chA[:, i])), 2)
             spectra_ch_a[:] = np.power(np.abs(np.fft.fft(wf_data_chA[:])), 2)
             if Channel == 2:  # Two channels mode
                 spectra_ch_b[:] = np.power(np.abs(np.fft.fft(wf_data_chB[:])), 2)
-                    # spectra_ch_b[:, i] = np.power(np.abs(np.fft.fft(wf_data_chB[:, i])), 2)
-                    # spectra_ch_b[:, i] = np.power(np.abs(np.fft.fft(wf_data_chB[:, i])), 2)
 
             print('After fft, spectrum shape: ', spectra_ch_a.shape)
 
             # Storing only first (left) mirror part of spectra
-            # spectra_ch_a = spectra_ch_a[: int(data_block_size/2), :]
             spectra_ch_a = spectra_ch_a[:, : int(data_block_size/2)]
             if Channel == 2:
-                # spectra_ch_b = spectra_ch_b[: int(data_block_size/2), :]
                 spectra_ch_b = spectra_ch_b[:, : int(data_block_size/2)]
 
             print('After fft cut, spectrum shape: ', spectra_ch_a.shape)
 
             # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
             if int(CLCfrq/1000000) == 33:
-                # spectra_ch_a = np.flipud(spectra_ch_a)
                 spectra_ch_a = np.fliplr(spectra_ch_a)
                 if Channel == 2:
-                    # spectra_ch_b = np.flipud(spectra_ch_b)
                     spectra_ch_b = np.fliplr(spectra_ch_b)
 
             # Deleting the unnecessary matrices
@@ -324,38 +314,28 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
             # Calculation the averaged spectrum
             print('Shape before averaging: ', spectra_ch_a.shape)
-            # spectra_ch_a = np.reshape(spectra_ch_a,  [int(data_block_size / 2),
-            #                                           int(no_of_spectra_in_file/no_of_spectra_to_average),
-            #                                           no_of_spectra_to_average], order='F')
             spectra_ch_a = np.reshape(spectra_ch_a,  [int(no_of_spectra_in_file/no_of_spectra_to_average),
                                                       no_of_spectra_to_average, int(data_block_size / 2)], order='F')
 
-            # spectra_ch_a = spectra_ch_a.mean(axis=2)[:]
             spectra_ch_a = spectra_ch_a.mean(axis=1)[:]
 
             print('Shape after averaging: ', spectra_ch_a.shape)
 
             if Channel == 2:
-                # spectra_ch_b = np.reshape(spectra_ch_b, [int(data_block_size / 2),
-                #                                          int(no_of_spectra_in_file / no_of_spectra_to_average),
-                #                                          no_of_spectra_to_average], order='F')
                 spectra_ch_b = np.reshape(spectra_ch_b, [int(no_of_spectra_in_file / no_of_spectra_to_average),
                                                          no_of_spectra_to_average, int(data_block_size / 2)], order='F')
 
-                # spectra_ch_b = spectra_ch_b.mean(axis=2)[:]
                 spectra_ch_b = spectra_ch_b.mean(axis=1)[:]
 
         file.close()  # Close the data file
 
-        # Saving averaged spectra to long data files
+        # Saving averaged spectra to a long data files
         if save_long_file_aver == 1:
-            # temp = spectra_ch_a.transpose().copy(order='C')
             temp = spectra_ch_a.copy(order='C')
             file_data_A = open(file_data_A_name, 'ab')
             file_data_A.write(temp)
             file_data_A.close()
             if Channel == 2:
-                # temp = spectra_ch_b.transpose().copy(order='C')
                 temp = spectra_ch_b.copy(order='C')
                 file_data_B = open(file_data_B_name, 'ab')
                 file_data_B.write(temp)
