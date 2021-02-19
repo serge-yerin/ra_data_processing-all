@@ -5,12 +5,12 @@ Software_version = '2020.06.24'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/gurt/Pulsar_2021.01/2021.02.16_B1133+16_WF_b/'
+directory = '/media/gurt/Pulsar_2021.01/2021.02.15_B0950p08_WF/'
 
-pulsar_name = 'B1133+16'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08' 'B0809+74'
+pulsar_name = 'B0950+08'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08' 'B0809+74'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
-
+process_channel_b = False
 
 # ###############################################################################
 # *******************************************************************************
@@ -37,7 +37,7 @@ print('\n\n  * Making dynamic spectra of the initial data... \n\n')
 
 typesOfData = ['chA']
 
-if len(results_files_list) > 1:
+if len(results_files_list) > 1 and process_channel_b:
     typesOfData.append('chB')
 
 result_folder_name = directory.split('/')[-2] + '_initial'
