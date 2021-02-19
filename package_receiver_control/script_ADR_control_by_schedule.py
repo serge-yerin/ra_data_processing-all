@@ -79,6 +79,7 @@ from package_receiver_control.f_read_and_set_adr_parameters import f_check_adr_p
 from package_receiver_control.f_read_and_set_adr_parameters import f_set_adr_parameters
 
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
+from package_common_modules.find_and_check_files_in_current_folder import find_files_only_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
@@ -102,7 +103,9 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
         # Processing data with ADR reader and DAT reader
 
         # Find all files in folder once more:
-        file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server+data_directory_name+'/','.adr')
+        # file_name_list_current = find_and_check_files_in_current_folder(dir_data_on_server+data_directory_name+'/','.adr')
+        file_name_list_current = find_files_only_in_current_folder(dir_data_on_server+data_directory_name+'/',
+                                                                   '.adr', 0)
 
         file_name_list_current.sort()
 
