@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B1133+16'  # 'B0950+08' 'B0809+74'
+pulsar_name = 'B0809+74'  # 'B0809+74' 'B0950+08'  'B1133+16'
 
 make_sum = True
 dm_step = 1.0
@@ -18,10 +18,10 @@ no_of_spectra_in_bunch = 16384          # Number of spectra samples to read whil
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
-calibrate_phase = False                 # Do we need to calibrate phases between two channels? (True/False)
+calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 median_filter_window = 80               # Window of median filter to smooth the average profile
 
-phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = 'DATA/Calibration_E150221_221946.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = True         # Pause and display filtered average spectrum to be used for normalization
 # ###############################################################################
@@ -30,6 +30,7 @@ show_av_sp_to_normalize = True         # Pause and display filtered average spec
 # *******************************************************************************
 # Common functions
 import os
+import shutil
 import sys
 import time
 import numpy as np
@@ -72,20 +73,26 @@ if __name__ == '__main__':
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
-    '''
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
     initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
     print('\n List of WF32 files: ', initial_wf32_files, '\n')
-    
+
+    #
+    #
+    # initial_wf32_files = ['E150221_203844.jds_Data_chA.wf32', 'E150221_203844.jds_Data_chB.wf32']
+    #
+    #
+
     if len(initial_wf32_files) > 1 and calibrate_phase:
         print('\n\n  * Making phase calibration of wf32 file... \n')
         wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
                                            phase_calibr_txt_file)
-    
 
     #
+    #
     # initial_wf32_files = ['E150221_231756.jds_Data_chA.wf32', 'E150221_231756.jds_Data_chB.wf32']
+    #
     #
 
     if len(initial_wf32_files) > 1 and make_sum:
@@ -99,7 +106,11 @@ if __name__ == '__main__':
 
     print('\n\n  * Making coherent dispersion delay removing... \n')
 
+    #
+    #
     # file_name = 'E280120_205409.jds_Data_chA.wf32'
+    #
+    #
 
     for i in range(int(pulsar_dm // dm_step)):  #
         t = strftime("%Y-%m-%d %H:%M:%S", gmtime())
@@ -108,28 +119,47 @@ if __name__ == '__main__':
     print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
-    '''
 
-    file_name = 'DM_4.8471_E150221_231829.jds_Data_wfA+B.wf32'
-    typesOfData = ['wfA+B']
+    #
+    #
+    # file_name = 'DM_5.752_E150221_203739.jds_Data_wfA+B.wf32'
+    # typesOfData = ['wfA+B']
+    #
+    #
 
     # Correction of file names for further processing with timeline files
-    initial_tl_fname = file_name + '_Timeline.wtxt'
+    current_tl_fname = file_name + '_Timeline.wtxt'
+    correct_tl_fname = file_name.split('.jds')[0] + '.jds_Timeline.wtxt'
+    shutil.copyfile(current_tl_fname, correct_tl_fname)
+    print('  Current time line file name:', current_tl_fname)
+    print('  Correct time line file name:', correct_tl_fname)
+    # Add here the renaming (copy) the timeline txt file for wfA+B case:
+    # Needs file name:     DM_5.752_E150221_203844.jds_Timeline.wtxt'
+    # Existing file name:  DM_5.752_E150221_203844.jds_Data_wfA+B.wf32_Timeline.wtxt
+    # Data file name:      DM_5.752_E150221_203844.jds_Data_wfA+B.wf32
+
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
 
+    #
+    #
     # file_name = 'DM_5.755_E280120_205546.jds_Data_chA.wf32'
     # typesOfData = ['chA']
+    #
+    #
 
     # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, True)
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, False)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
     
+    #
+    #
     # file_name = 'DM_5.755_E280120_205546.jds_Data_chA.dat'
     # typesOfData = ['chA']
+    #
+    #
 
-    # print('\n\n  * Making normalization of the dedispersed spectra data... \n\n')
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
 
@@ -138,17 +168,18 @@ if __name__ == '__main__':
 
     print(' Files names after normalizing: ', output_file_name)
 
-    # print('\n\n  * Making figures of 3 pulsar periods... \n\n')
-
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
 
     pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys')
 
+    #
+    #
     # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
     # typesOfData = ['chA']
+    #
+    #
 
-    # print('\n\n  * Making dynamic spectra figures of the dedispersed data... \n\n')
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making dynamic spectra figures of the dedispersed data... \n')
 
@@ -157,7 +188,11 @@ if __name__ == '__main__':
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
+    #
+    #
     # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
+    #
+    #
 
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Cutting the data of found pulse period from whole data... ')
