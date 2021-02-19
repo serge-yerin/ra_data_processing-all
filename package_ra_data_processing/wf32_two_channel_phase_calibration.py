@@ -108,7 +108,7 @@ def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
         del wf_data
 
         # Add phase to the data (multiply by complex number)
-        for i in range (no_of_spectra_in_bunch):
+        for i in range(no_of_spectra_in_bunch):
             spectra[:, i] = spectra[:, i] * cmplx_phase[:]
 
         # Preparing array for new waveform
