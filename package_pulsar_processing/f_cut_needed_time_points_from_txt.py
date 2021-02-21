@@ -39,8 +39,9 @@ def cut_needed_time_points_from_txt(path, filename):
     ax1 = fig.add_subplot(111)
     ax1.plot(np.mean(array, axis=0), linewidth='0.50')
     ax1.set_xlim(xmin=0, xmax=array.shape[1])
-    ax1.set_xlabel('Time points to select', fontsize=6, fontweight='bold')
-    ax1.set_ylabel('Amplitude, a.u.', fontsize=6, fontweight='bold')
+    ax1.tick_params(axis='both', which='major', labelsize=10)
+    ax1.set_xlabel('Time points to select', fontsize=8, fontweight='bold')
+    ax1.set_ylabel('Amplitude, a.u.', fontsize=8, fontweight='bold')
     plt.show()
 
     # Enter the points from the keyboard
