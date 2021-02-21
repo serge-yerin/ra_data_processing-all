@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0809+74'  # 'B0809+74' 'B0950+08'  'B1133+16'
+pulsar_name = 'B0950+08'  # 'B0809+74' 'B0950+08'  'B1133+16'
 
 make_sum = True
 dm_step = 1.0
@@ -23,7 +23,7 @@ median_filter_window = 80               # Window of median filter to smooth the 
 
 phase_calibr_txt_file = 'DATA/Calibration_E150221_221946.jds_cross_spectra_phase.txt'
 
-show_av_sp_to_normalize = True         # Pause and display filtered average spectrum to be used for normalization
+show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
 # ###############################################################################
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -108,7 +108,9 @@ if __name__ == '__main__':
 
     #
     #
-    # file_name = 'E280120_205409.jds_Data_chA.wf32'
+    # pulsar_dm = 0.755  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # file_name = 'DM_5.0_E150221_203828.jds_Data_wfA+B.wf32'
+    # typesOfData = ['wfA+B']
     #
     #
 
@@ -118,10 +120,11 @@ if __name__ == '__main__':
         file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
-    print('\n List of dedispersed WF32 files: ', initial_wf32_files, '\n')
+    print('\n List of dedispersed WF32 files: ', file_name, '\n')
 
     #
     #
+    # pulsar_dm = 5.755  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # file_name = 'DM_5.752_E150221_203739.jds_Data_wfA+B.wf32'
     # typesOfData = ['wfA+B']
     #
@@ -188,9 +191,10 @@ if __name__ == '__main__':
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
+
     #
     #
-    # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
+    # output_file_name = 'Norm_DM_2.972_E150221_213204.jds_Data_wfA+B.dat'
     #
     #
 
