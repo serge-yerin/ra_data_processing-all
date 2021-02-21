@@ -130,16 +130,12 @@ if __name__ == '__main__':
     #
     #
 
-    # Correction of file names for further processing with timeline files
+    # Correction of file names for further processing with timeline files (made for wfA+B case)
     current_tl_fname = file_name + '_Timeline.wtxt'
     correct_tl_fname = file_name.split('.jds')[0] + '.jds_Timeline.wtxt'
     shutil.copyfile(current_tl_fname, correct_tl_fname)
     print('  Current time line file name:', current_tl_fname)
     print('  Correct time line file name:', correct_tl_fname)
-    # Add here the renaming (copy) the timeline txt file for wfA+B case:
-    # Needs file name:     DM_5.752_E150221_203844.jds_Timeline.wtxt'
-    # Existing file name:  DM_5.752_E150221_203844.jds_Data_wfA+B.wf32_Timeline.wtxt
-    # Data file name:      DM_5.752_E150221_203844.jds_Data_wfA+B.wf32
 
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
@@ -158,8 +154,8 @@ if __name__ == '__main__':
     
     #
     #
-    # file_name = 'DM_5.755_E280120_205546.jds_Data_chA.dat'
-    # typesOfData = ['chA']
+    # file_name = 'DM_2.972_E150221_213204.jds_Data_wfA+B.dat'
+    # typesOfData = ['wfA+B']
     #
     #
 
@@ -190,7 +186,6 @@ if __name__ == '__main__':
     file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
     ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
                          0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
-
 
     #
     #
