@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from progress.bar import IncrementalBar
 
-from package_ra_data_processing.filtering import median_filter
+from package_ra_data_processing.filtering import median_filter, average_filter
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 
@@ -78,24 +78,33 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     # Average average spectra of all data blocks
     average_profile = average_array.mean(axis=1)
 
-    # Make a figure of average spectrum (profile)
-    fig = plt.figure(figsize=(9, 5))
-    ax1 = fig.add_subplot(111)
-    ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00', label='Average spectra')
-    ax1.legend(loc='upper right', fontsize=6)
-    ax1.grid(b=True, which='both', color='silver', linestyle='-')
-    ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
-    ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-    pylab.savefig('Averaged_spectra_'+filename[:-4]+'_before_filtering.png', bbox_inches='tight', dpi=160)
-    plt.close('all')
+    init_average_profile = average_profile.copy()
+
+    # # Make a figure of average spectrum (profile)
+    # fig = plt.figure(figsize=(9, 5))
+    # ax1 = fig.add_subplot(111)
+    # ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00', label='Average spectra')
+    # ax1.legend(loc='upper right', fontsize=6)
+    # ax1.grid(b=True, which='both', color='silver', linestyle='-')
+    # ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
+    # ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
+    # pylab.savefig('Averaged_spectra_'+filename[:-4]+'_before_filtering.png', bbox_inches='tight', dpi=160)
+    # plt.close('all')
 
     # Apply median filter to average profile
     average_profile = median_filter(average_profile, median_filter_window)
+    med_average_profile = average_profile.copy()
+    average_profile = average_filter(average_profile, median_filter_window + 20)
 
     # Make a figure of filtered average spectrum (profile)
-    fig = plt.figure(figsize=(9, 5))
+    fig = plt.figure(figsize=(12, 8))
     ax1 = fig.add_subplot(111)
-    ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00', label='Average spectra')
+    ax1.plot(10 * np.log10(init_average_profile), linestyle='-', linewidth='1.50',
+             label='Initial spectra', color='C0', alpha=0.6)
+    ax1.plot(10 * np.log10(med_average_profile), linestyle='-', linewidth='1.25',
+             label='Median spectra', color='C1', alpha=0.8)
+    ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00',
+             label='Median averaged spectra', color='C3')
     ax1.legend(loc='upper right', fontsize=6)
     ax1.grid(b=True, which='both', color='silver', linestyle='-')
     ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
@@ -105,6 +114,8 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
         print('\n   Close the figure window to continue processing!!!\n')
         plt.show()
     plt.close('all')
+
+    del init_average_profile, med_average_profile
 
     # Normalization
     print('   Spectra normalization...')
@@ -171,6 +182,6 @@ if __name__ == '__main__':
     directory = ''
     filename = 'E280120_205546.jds_Data_chA.dat'
 
-    file_name = normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filter_window)
+    file_name = normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filter_window, True)
 
     print('Names of files: ', file_name)
