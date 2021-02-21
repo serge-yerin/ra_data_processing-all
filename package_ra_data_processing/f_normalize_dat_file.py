@@ -71,7 +71,8 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
         data = np.fromfile(file, dtype=np.float64, count=nx * spectra_num_in_bunch)
         data = np.reshape(data, [nx, spectra_num_in_bunch], order='F')
         tmp = np.empty((nx, 1), float)
-        tmp[:, 0] = data.mean(axis=1)[:]
+        # tmp[:, 0] = data.mean(axis=1)[:]
+        tmp[:, 0] = data.min(axis=1)[:]
         average_array = np.append(average_array, tmp, axis=1)  #
 
     # Average average spectra of all data blocks
