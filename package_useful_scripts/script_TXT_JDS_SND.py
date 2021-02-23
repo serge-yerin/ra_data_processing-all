@@ -69,6 +69,14 @@ if not os.path.exists(newpath):
 #*******************************************************************************
 #                          R E A D I N G   D A T A                             *
 #*******************************************************************************
+# SND (in dB) of Moon dipole of plastic for h=183.7
+theoretical_f = np.linspace(1, 50, 50)
+theoretical_snd =  [-20.83, -16.18, -6.811,  -1.488, 1.941, 4.356, 6.149, 7.526, 8.621, 9.519, 10.28, 10.93, 11.51,
+                    12.02, 12.49, 12.92, 13.3, 13.65, 13.95, 14.21, 14.42, 14.56, 14.64, 14.64, 14.56, 14.4, 14.16,
+                    13.84, 13.46, 13.03, 12.59, 12.21, 12.01, 12.22, 13.01, 13.83, 13.56, 12.44, 11.21, 10.12, 9.164,
+                    8.318, 7.553, 6.85, 6.201, 5.603, 5.055, 4.565, 4.142, 3.799]
+
+
 
 # *** Reading files ***
 #[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([sky_file])
@@ -152,12 +160,14 @@ rc('font', size=6, weight='bold')
 fig = plt.figure(figsize=(9, 5))
 ax1 = fig.add_subplot(111)
 #ax1.plot(frequencies, sky_responce - off_responce, color = 'C1', label = 'Sky - Power OFF')
-ax1.plot(frequencies, snd_open, color='C2', label='Sky - Open circuit (XX)')
-ax1.plot(frequencies, snd_short, color='C3', label='Sky - Short circuit (KZ)')
+ax1.plot(frequencies, snd_open, color='C0', alpha = 0.8, label='SND for sky - open circuit')
+ax1.plot(frequencies, snd_short, color='C1', alpha = 0.8, label='SND for sky - short circuit')
+ax1.plot(theoretical_f, theoretical_snd, 'o', markersize = 3.0, color='C3', label='Calculated SND')
 ax1.legend(loc='upper right', fontsize=6)
 ax1.grid(b=True, which='both', color='silver', linestyle='-')
-ax1.set_ylim([-10, 70])
-ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
+ax1.set_ylim([-21, 60])
+ax1.set_xlim([0, 60])
+ax1.set_ylabel('DND, dB', fontsize=6, fontweight='bold')
 ax1.set_title('   ', fontsize = 6)
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 fig.subplots_adjust(top=0.92)
@@ -175,12 +185,14 @@ rc('font', size=6, weight='bold')
 fig = plt.figure(figsize=(9, 5))
 ax1 = fig.add_subplot(111)
 #ax1.plot(frequencies, sky_responce - off_responce, color = 'C1', label = 'Sky - Power OFF')
-ax1.plot(frequencies, snd_open, color='C2', label='Sky - Open circuit (XX)')
-ax1.plot(frequencies, snd_short, color='C3', label='Sky - Short circuit (KZ)')
+ax1.plot(frequencies, snd_open, color='C0', alpha = 0.8, label='SND for sky - open circuit')
+ax1.plot(frequencies, snd_short, color='C1', alpha = 0.8, label='SND for sky - short circuit')
+ax1.plot(theoretical_f, theoretical_snd, 'o', markersize = 3.0, color='C3', label='Calculated SND')
 ax1.legend(loc='upper right', fontsize=6)
 ax1.grid(b=True, which='both', color='silver', linestyle='-')
-ax1.set_ylim([-5, 50])
-ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
+ax1.set_ylim([-21, 50])
+ax1.set_xlim([0, 60])
+ax1.set_ylabel('SND, dB', fontsize=6, fontweight='bold')
 ax1.set_title('   ', fontsize = 6)
 ax1.set_xlabel('Frequency, MHz', fontsize=6, fontweight='bold')
 fig.subplots_adjust(top=0.92)
