@@ -1,6 +1,6 @@
 # Python3
 # pip install progress
-Software_version = '2020.07.23'
+Software_version = '2021.02.18'
 Software_name = 'JDS Waveform calibration data analysis'
 
 # *******************************************************************************
@@ -9,11 +9,7 @@ Software_name = 'JDS Waveform calibration data analysis'
 
 source_directory = 'DATA/'              # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
-
 no_of_points_for_fft = 16384            # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
-#no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
-#no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
-
 
 # ###############################################################################
 # *******************************************************************************
@@ -31,7 +27,6 @@ from progress.bar import IncrementalBar
 from matplotlib import rc
 import matplotlib.pyplot as plt
 
-
 # To change system path to main source_directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
@@ -39,22 +34,15 @@ if __package__ is None:
 # My functions
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
-from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
-from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
-from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-from package_astronomy.catalogue_pulsar import catalogue_pulsar
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import cut_needed_pulsar_period_from_dat
-from package_pulsar_processing.script_wf_pulsar_coherent_dispersion_delay_removing import convert_jds_wf_to_wf32
+
 # ###############################################################################
 
 
 def phase_linearization_rad(matrix):
-    '''
+    """
     Makes a vector of phase values linear without 360 deg subtraction
-    '''
+    """
     matrix_lin = np.zeros((len(matrix)))
     matrix_lin[:] = matrix[:]
     const = 0
@@ -71,20 +59,23 @@ def phase_linearization_rad(matrix):
 
 
 def median_filter(data, window_len):
+    """
+    A simple median filter to smooth the data
+    """
     fitered_data = ndimage.median_filter(data, size=window_len)
     return fitered_data
 
 
 def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, filter_or_not, plot_or_not):
-    '''
-        function reads two wf32 waveform data files and make correlation of the data to calibrate observations
-        Input parameters:
-            file_name_1 - first input wf32 file
-            file_name_2 - second input wf32 file
-            no_of_points_for_fft - number of data points to calculate correlation
-        Output parameters:
-            xxx - xxx
-        '''
+    """
+    Function reads two wf32 waveform data files and make correlation of the data to calibrate observations
+    Input parameters:
+        file_name_1 - first input wf32 file
+        file_name_2 - second input wf32 file
+        no_of_points_for_fft - number of data points to calculate correlation
+    Output parameters:
+        xxx - xxx
+    """
 
     df_filesize_1 = os.stat(file_name_1).st_size                         # Size of file
     df_filesize_2 = os.stat(file_name_2).st_size                         # Size of file
@@ -108,157 +99,152 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
     file_1.seek(1024)
     file_2.seek(1024)
 
-    # for block in range(num_of_blocks):
-    for block in range(1):
+    # Data reading
 
-        # if block == (num_of_blocks - 1):
-        #    samples_num_in_bunch = ny - (num_of_blocks - 1) * no_of_points_for_fft * scale
-        # else:
-        #    samples_num_in_bunch = no_of_points_for_fft * scale
-        # samples_num_in_bunch = no_of_points_for_fft * scale
+    data_1 = np.fromfile(file_1, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
+    data_2 = np.fromfile(file_2, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
 
-        data_1 = np.fromfile(file_1, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
-        data_2 = np.fromfile(file_2, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
+    data_1 = np.reshape(data_1, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
+    data_2 = np.reshape(data_2, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
 
-        data_1 = np.reshape(data_1, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
-        data_2 = np.reshape(data_2, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
+    # preparing matrices for spectra
+    spectrum_1 = np.zeros((no_of_points_for_fft, num_of_spectra_in_files), dtype='complex')
+    spectrum_2 = np.zeros((no_of_points_for_fft, num_of_spectra_in_files), dtype='complex')
 
-        # preparing matrices for spectra
-        spectrum_1 = np.zeros((no_of_points_for_fft, num_of_spectra_in_files), dtype='complex')
-        spectrum_2 = np.zeros((no_of_points_for_fft, num_of_spectra_in_files), dtype='complex')
+    # Calculation of spectra
+    for i in range(num_of_spectra_in_files):
+        spectrum_1[:, i] = np.fft.fft(data_1[:, i])
+        spectrum_2[:, i] = np.fft.fft(data_2[:, i])
 
-        # Calculation of spectra
-        for i in range(num_of_spectra_in_files):
-            spectrum_1[:, i] = np.fft.fft(data_1[:, i])
-            spectrum_2[:, i] = np.fft.fft(data_2[:, i])
+    del data_1, data_2
 
-        del data_1, data_2
+    # Calculation of cross signal spectra
+    cross_spectrum = spectrum_1[:, :] * np.conj(spectrum_2[:, :])
 
-        # Calculation of cross signal spectra
-        cross_spectrum = spectrum_1[:, :] * np.conj(spectrum_2[:, :])
+    # Cutting the half of the full signal spectra
+    spectrum_1 = np.log10(np.power(np.abs(spectrum_1[no_of_points_for_fft // 2:, :]), 2))
+    spectrum_2 = np.log10(np.power(np.abs(spectrum_2[no_of_points_for_fft // 2:, :]), 2))
 
-        # Cutting the half of the full signal spectra
-        spectrum_1 = np.log10(np.power(np.abs(spectrum_1[no_of_points_for_fft // 2:, :]), 2))
-        spectrum_2 = np.log10(np.power(np.abs(spectrum_2[no_of_points_for_fft // 2:, :]), 2))
+    # Calculation of averaged signal spectra
+    spectrum_av_1 = np.mean(spectrum_1, axis=1)
+    spectrum_av_2 = np.mean(spectrum_2, axis=1)
+    first_spectrum_1 = spectrum_1[:, 0]
+    first_spectrum_2 = spectrum_2[:, 0]
+    del spectrum_1, spectrum_2
 
-        # Calculation of averaged signal spectra
-        spectrum_av_1 = np.mean(spectrum_1, axis=1)
-        spectrum_av_2 = np.mean(spectrum_2, axis=1)
-        first_spectrum_1 = spectrum_1[:, 0]
-        first_spectrum_2 = spectrum_2[:, 0]
-        del spectrum_1, spectrum_2
+    if plot_or_not:
+        # Figure of averaged and non-averaged spectra
+        rc('font', size=10, weight='bold')
+        fig = plt.figure(figsize=(18, 10))
+        fig.suptitle('Comparison of current and averaged cross spectra of waveform signals', fontsize=12, fontweight='bold')
+        ax1 = fig.add_subplot(211)
+        ax1.plot(first_spectrum_1, linestyle='-', linewidth='1.00', label='Current spectrum')
+        ax1.plot(spectrum_av_1, linestyle='-', linewidth='1.00', label='Averaged spectrum')
+        ax1.set(xlim=(0, no_of_points_for_fft // 2))
+        ax1.legend(loc='upper right', fontsize=10)
+        ax2 = fig.add_subplot(212)
+        ax2.plot(first_spectrum_2, linestyle='-', linewidth='1.00', label='Current spectrum')
+        ax2.plot(spectrum_av_2, linestyle='-', linewidth='1.00', label='Averaged spectrum')
+        ax2.set(xlim=(0, no_of_points_for_fft // 2))
+        ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=10)
+        fig.subplots_adjust(hspace=0.07, top=0.94)
+        pylab.savefig('00_Signal_spectra.png', bbox_inches='tight', dpi=160)
+        plt.close('all')
 
-        if plot_or_not:
-            # Figure of averaged and non-averaged spectra
-            rc('font', size=10, weight='bold')
-            fig = plt.figure(figsize=(18, 10))
-            fig.suptitle('Comparison of current and averaged cross spectra of waveform signals', fontsize=12, fontweight='bold')
-            ax1 = fig.add_subplot(211)
-            ax1.plot(first_spectrum_1, linestyle='-', linewidth='1.00', label='Current spectrum')
-            ax1.plot(spectrum_av_1, linestyle='-', linewidth='1.00', label='Averaged spectrum')
-            ax1.set(xlim=(0, no_of_points_for_fft // 2))
-            ax1.legend(loc='upper right', fontsize=10)
-            ax2 = fig.add_subplot(212)
-            ax2.plot(first_spectrum_2, linestyle='-', linewidth='1.00', label='Current spectrum')
-            ax2.plot(spectrum_av_2, linestyle='-', linewidth='1.00', label='Averaged spectrum')
-            ax2.set(xlim=(0, no_of_points_for_fft // 2))
-            ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
-            ax2.legend(loc='upper right', fontsize=10)
-            fig.subplots_adjust(hspace=0.07, top=0.94)
-            pylab.savefig('00_Signal_spectra.png', bbox_inches='tight', dpi=160)
-            plt.close('all')
+    # Calculation of average cross spectrum
+    cross_spectrum_av = np.mean(cross_spectrum, axis=1)
+    cross_spectrum_av[0] = 0
 
-        # Calculation of average cross spectrum
-        cross_spectrum_av = np.mean(cross_spectrum, axis=1)
-        cross_spectrum_av[0] = 0
+    if plot_or_not:
+        rc('font', size=10, weight='bold')
+        fig = plt.figure(figsize=(18, 10))
+        fig.suptitle('Waveform signals averaged cross spectra without filter', fontsize=12, fontweight='bold')
+        ax1 = fig.add_subplot(211)
+        # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
+        ax1.plot(np.log10(np.abs(cross_spectrum_av[8192:])), linestyle='-', linewidth='1.00', label='Cross spectrum module')
+        # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
+        ax1.set(xlim=(0, no_of_points_for_fft // 2))
+        ax1.legend(loc='upper right', fontsize=10)
+        ax2 = fig.add_subplot(212)
+        ax2.plot(np.angle(cross_spectrum_av[8192:]), linestyle='-', linewidth='1.00', label='Cross spectrum angle')
+        # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
+        ax2.set(xlim=(0, no_of_points_for_fft // 2))
+        ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=10)
+        fig.subplots_adjust(hspace=0.07, top=0.94)
+        pylab.savefig('01_Cross_spectra.png', bbox_inches='tight', dpi=160)
+        plt.close('all')
 
-        if plot_or_not:
-            rc('font', size=10, weight='bold')
-            fig = plt.figure(figsize=(18, 10))
-            fig.suptitle('Waveform signals averaged cross spectra without filter', fontsize=12, fontweight='bold')
-            ax1 = fig.add_subplot(211)
-            # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-            ax1.plot(np.log10(np.abs(cross_spectrum_av[8192:])), linestyle='-', linewidth='1.00', label='Cross spectrum module')
-            # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
-            ax1.set(xlim=(0, no_of_points_for_fft // 2))
-            ax1.legend(loc='upper right', fontsize=10)
-            ax2 = fig.add_subplot(212)
-            ax2.plot(np.angle(cross_spectrum_av[8192:]), linestyle='-', linewidth='1.00', label='Cross spectrum angle')
-            # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
-            ax2.set(xlim=(0, no_of_points_for_fft // 2))
-            ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
-            ax2.legend(loc='upper right', fontsize=10)
-            fig.subplots_adjust(hspace=0.07, top=0.94)
-            pylab.savefig('01_Cross_spectra.png', bbox_inches='tight', dpi=160)
-            plt.close('all')
+    cross_spectrum_abs = np.abs(cross_spectrum_av[no_of_points_for_fft//2:])
+    if filter_or_not:
+        cross_spectrum_abs = median_filter(cross_spectrum_abs, 30)
 
-        cross_spectrum_abs = np.abs(cross_spectrum_av[no_of_points_for_fft//2:])
-        if filter_or_not:
-            cross_spectrum_abs = median_filter(cross_spectrum_abs, 30)
+    # cross_spectrum_arg = np.angle(cross_spectrum_av[no_of_points_for_fft//2:])
+    cross_spectrum_arg = np.angle(cross_spectrum_av[:])
 
-        cross_spectrum_arg = np.angle(cross_spectrum_av[no_of_points_for_fft//2:])
-        cross_spectrum_arg = phase_linearization_rad(cross_spectrum_arg)
-        if filter_or_not:
-            cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
+    cross_spectrum_arg = phase_linearization_rad(cross_spectrum_arg)
+    if filter_or_not:
+        cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
 
-        if plot_or_not:
-            rc('font', size=10, weight='bold')
-            fig = plt.figure(figsize=(18, 10))
-            fig.suptitle('Waveform signals averaged cross spectra with median filter', fontsize=12, fontweight='bold')
-            ax1 = fig.add_subplot(211)
-            # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-            ax1.plot(np.log10(cross_spectrum_abs), linestyle='-', linewidth='1.00', label='Cross spectrum module')
-            # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
-            ax1.set(xlim=(0, no_of_points_for_fft // 2))
-            ax1.legend(loc='upper right', fontsize=10)
-            ax2 = fig.add_subplot(212)
-            ax2.plot(cross_spectrum_arg, linestyle='-', linewidth='1.00', label='Cross spectrum angle')
-            # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
-            ax2.set(xlim=(0, no_of_points_for_fft // 2))
-            ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
-            ax2.legend(loc='upper right', fontsize=10)
-            fig.subplots_adjust(hspace=0.07, top=0.94)
-            pylab.savefig('02_Cross_spectrum_linear.png', bbox_inches='tight', dpi=160)
-            plt.close('all')
+    if plot_or_not:
+        rc('font', size=10, weight='bold')
+        fig = plt.figure(figsize=(18, 10))
+        fig.suptitle('Waveform signals averaged cross spectra with median filter', fontsize=12, fontweight='bold')
+        ax1 = fig.add_subplot(211)
+        # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
+        ax1.plot(np.log10(cross_spectrum_abs), linestyle='-', linewidth='1.00', label='Cross spectrum module')
+        # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
+        ax1.set(xlim=(0, no_of_points_for_fft // 2))
+        ax1.legend(loc='upper right', fontsize=10)
+        ax2 = fig.add_subplot(212)
+        ax2.plot(cross_spectrum_arg[no_of_points_for_fft//2:], linestyle='-', linewidth='1.00', label='Cross spectrum angle')
+        # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
+        ax2.set(xlim=(0, no_of_points_for_fft // 2))
+        ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=10)
+        fig.subplots_adjust(hspace=0.07, top=0.94)
+        pylab.savefig('02_Cross_spectrum_linear.png', bbox_inches='tight', dpi=160)
+        plt.close('all')
 
-        corr_function = np.fft.ifft(cross_spectrum)
-        print(' Corr function size ', corr_function.shape)
-        corr_function_av = np.mean(corr_function, axis=1)
-        print(' Av corr function size ', corr_function_av.shape)
-        corr_function_av[0] = 0
-        corr_function_av_abs = np.abs(corr_function_av)
-        corr_function_av_re = np.real(corr_function_av)
-        corr_function_av_arg = np.angle(corr_function_av)
-        # corr_function_av_arg = phase_linearization_rad(corr_function_av_arg)
-        #if filter_or_not:
-        #    cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
+    corr_function = np.fft.ifft(cross_spectrum)
+    print(' Corr function size ', corr_function.shape)
+    corr_function_av = np.mean(corr_function, axis=1)
+    print(' Av corr function size ', corr_function_av.shape)
+    corr_function_av[0] = 0
+    corr_function_av_abs = np.abs(corr_function_av)
+    corr_function_av_re = np.real(corr_function_av)
+    corr_function_av_arg = np.angle(corr_function_av)
+    # corr_function_av_arg = phase_linearization_rad(corr_function_av_arg)
+    #if filter_or_not:
+    #    cross_spectrum_arg = median_filter(cross_spectrum_arg, 30)
 
-        if plot_or_not:
-            rc('font', size=10, weight='bold')
-            fig = plt.figure(figsize=(18, 10))
-            fig.suptitle('Waveform signals averaged correlation function', fontsize=12, fontweight='bold')
-            ax1 = fig.add_subplot(211)
-            # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
-            ax1.plot(np.log10(corr_function_av_abs[8192:]), linestyle='-', linewidth='1.00', label='Correlation Abs')
-            # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
-            ax1.set(xlim=(0, no_of_points_for_fft // 2))
-            ax1.legend(loc='upper right', fontsize=10)
-            ax2 = fig.add_subplot(212)
-            ax2.plot(corr_function_av_arg[8192:], linestyle='-', linewidth='1.00', label='Correlation Phase')
-            # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
-            ax2.set(xlim=(0, no_of_points_for_fft // 2))
-            ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
-            ax2.legend(loc='upper right', fontsize=10)
-            fig.subplots_adjust(hspace=0.07, top=0.94)
-            pylab.savefig('03_Correlation_function_Abs-Ang.png', bbox_inches='tight', dpi=160)
-            plt.close('all')
+    if plot_or_not:
+        rc('font', size=10, weight='bold')
+        fig = plt.figure(figsize=(18, 10))
+        fig.suptitle('Waveform signals averaged correlation function', fontsize=12, fontweight='bold')
+        ax1 = fig.add_subplot(211)
+        # ax1.set_title('Files: ' + file_names[0] + ' - ' + file_names[-1], fontsize=12)
+        ax1.plot(np.log10(corr_function_av_abs[8192:]), linestyle='-', linewidth='1.00', label='Correlation Abs')
+        # ax1.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
+        ax1.set(xlim=(0, no_of_points_for_fft // 2))
+        ax1.legend(loc='upper right', fontsize=10)
+        ax2 = fig.add_subplot(212)
+        ax2.plot(corr_function_av_arg[8192:], linestyle='-', linewidth='1.00', label='Correlation Phase')
+        # ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
+        ax2.set(xlim=(0, no_of_points_for_fft // 2))
+        ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=10)
+        fig.subplots_adjust(hspace=0.07, top=0.94)
+        pylab.savefig('03_Correlation_function_Abs-Ang.png', bbox_inches='tight', dpi=160)
+        plt.close('all')
 
     return cross_spectrum_abs, cross_spectrum_arg, spectrum_av_1, spectrum_av_2, first_spectrum_1, first_spectrum_2, \
             corr_function_av_abs, corr_function_av_arg, corr_function_av_re
 
 
 def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_file):
-    '''
+    """
     function converts jds waveform data to wf32 waveform data for further processing (coherent dedispersion) and
     saves txt files with time data
     Input parameters:
@@ -267,7 +253,7 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
         no_of_bunches_per_file - number of data bunches per file to peocess (depends on RAM volume on the PC)
     Output parameters:
         result_wf32_files - list of results files
-    '''
+    """
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -395,6 +381,12 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
 
 
 def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of_points_for_fft):
+    """
+    The function reads 2-channel waveform calibration files (UTR-2 noise generator calibration with a set of
+    attenuators) calculates the cross-spectra of two channels in each file and provides a phase difference txt file
+    for pulsar waveform observations calibration
+
+    """
 
     file_list = find_and_check_files_in_current_folder(path_to_calibr_data, '.jds')
 
@@ -410,16 +402,13 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     corr_f_ang = []
     corr_f_re = []
 
-
     result_path = 'RESULTS_WF_calibration_analyzer/'
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
     # Main loop by files start
     for file_no in range(len(file_list)):  # loop by files
-    #for file_no in range(1):  # loop by files
 
-        #'''
         fname = path_to_calibr_data + file_list[file_no]
 
         # *** Data file header read ***
@@ -433,12 +422,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         print('\n  Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
         wf32_files = convert_one_jds_wf_to_wf32(fname, result_directory, 16)
-        #'''
 
-        #labels.append('test data')
-        #file_names.append('test data')
-        #file_list = ['E300120_232956.jds_Data_chA.wf32']
-        #wf32_files = ['E300120_232956.jds_Data_chA.wf32', 'E300120_232956.jds_Data_chB.wf32']
 
         ampl_corr, angle_corr, av_sp_1, av_sp_2, sp_1, sp_2, cf_abs, cf_arg, cf_re = correlate_two_wf32_signals(wf32_files[0],
                                     wf32_files[1], no_of_points_for_fft, True, False)
@@ -580,14 +564,14 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     # Save phase matrix to txt files
     for i in range(len(file_list)):
         phase_txt_file = open(result_path + 'Calibration_' + file_names[i] + '_cross_spectra_phase.txt', "w")
-        for freq in range(no_of_points_for_fft//2):
+        for freq in range(no_of_points_for_fft // 1):  # //2
             phase_txt_file.write(''.join(' {:+12.7E}'.format(cross_sp_angl[i][freq])) + ' \n')
         phase_txt_file.close()
 
-    return
+    return 0
 
 
-################################################################################
+# ###############################################################################
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
@@ -598,7 +582,7 @@ if __name__ == '__main__':
     print('\n\n\n\n\n\n\n\n   ********************************************************************')
     print('   * ', Software_name, ' v.', Software_version, ' *      (c) YeS 2020')
     print('   ******************************************************************** \n\n\n')
-    
+
     startTime = time.time()
     previousTime = startTime
     currentTime = time.strftime("%H:%M:%S")

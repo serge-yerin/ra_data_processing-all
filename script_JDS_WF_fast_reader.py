@@ -4,22 +4,22 @@
 #
 # Read frequency list from header, not create it
 #
-software_version = '2020.01.19'
+software_version = '2021.02.18'
 # Program intended to read, show and analyze data from DSPZ receivers in waveform mode
 
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/server2a/PSR_2020.01/B0950p08_29_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/' 
+directory = 'DATA/'  # '/media/server2a/PSR_2020.01/B0950p08_29_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
 skip_data_blocks = 0            # Number of data blocks to skip before reading
 VminNorm = 0                    # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 10                   # Upper limit of figure dynamic range for normalized spectra
 colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-custom_dpi = 300                 # Resolution of images of dynamic spectra
-save_long_file_aver = 1         # Save long data file of averaged spectra? (1 - yes, 0 - no)
+custom_dpi = 300                # Resolution of images of dynamic spectra
+save_long_file_aver = 0         # Save long data file of averaged spectra? (1 - yes, 0 - no)
 dyn_spectr_save_init = 0        # Save dynamic spectra pictures before normalizing (1 = yes, 0 = no) ?
 dyn_spectr_save_norm = 1        # Save dynamic spectra pictures after normalizing (1 = yes, 0 = no) ?
 
@@ -54,16 +54,21 @@ from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPl
 def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, VminNorm, VmaxNorm,
                         colormap, custom_dpi, save_long_file_aver, dyn_spectr_save_init, dyn_spectr_save_norm):
 
+    """
+    Does not seem to work better or faster, takes a lot of RAM (32 GB) but works
+    Is not used in any other scripts and is more a demonstration
+    The same functions in non-fast file works approximately the same time but consumes less memory
+    The only advantage of this function is reading the whole file at once
+    """
+
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
 
-    # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-    result_folder = 'RESULTS_JDS_waveform_' + directory.split('/')[-2]
+    # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
+    # result_folder = 'RESULTS_JDS_waveform_' + directory.split('/')[-2]
+    result_folder = 'RESULTS_JDS_waveform'
     if not os.path.exists(result_folder):
         os.makedirs(result_folder)
-    service_folder = result_folder + '/Service'
-    if not os.path.exists(service_folder):
-        os.makedirs(service_folder)
     if dyn_spectr_save_init == 1:
         initial_spectra_folder = result_folder + '/Initial spectra'
         if not os.path.exists(initial_spectra_folder):
@@ -208,11 +213,6 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
             # *** DATA READING process ***
 
-            # Preparing arrays for dynamic spectra
-            dyn_spectra_ch_a = np.zeros((int(data_block_size/2), no_of_av_spectra_per_file), float)
-            if Channel == 2:  # Two channels mode
-                dyn_spectra_ch_b = np.zeros((int(data_block_size/2), no_of_av_spectra_per_file), float)
-
             # !!! Fake timing. Real timing to be done!!!
             TimeFigureScaleFig = np.linspace(0, no_of_av_spectra_per_file, no_of_av_spectra_per_file+1)
             for i in range(no_of_av_spectra_per_file):
@@ -221,211 +221,165 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
             TimeScaleFig = []
             TimeScaleFull = []
 
-            bar = IncrementalBar(' File ' + str(fileNo+1) + ' of ' + str(len(file_list)) + ' reading: ',
-                                 max=no_of_av_spectra_per_file, suffix='%(percent)d%%')
+            # Calculation of number of blocks and number of spectra in the file
+            if Channel == 0 or Channel == 1:  # Single channel mode
+                no_of_spectra_in_file = int((df_filesize - 1024) / (1 * 2 * data_block_size))
+            else:  # Two channels mode
+                no_of_spectra_in_file = int((df_filesize - 1024) / (1 * 4 * data_block_size))
 
-            for av_sp in range(no_of_av_spectra_per_file):
+            no_of_av_spectra_per_file = 1
 
-                bar.next()
+            # Reading and reshaping all data with time data
+            if Channel == 0 or Channel == 1:    # Single channel mode
+                wf_data = np.fromfile(file, dtype='i2', count=no_of_spectra_in_file * data_block_size)
+                wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_in_file], order='F')
+            if Channel == 2:                    # Two channels mode
+                wf_data = np.fromfile(file, dtype='i2', count=2 * no_of_spectra_in_file * data_block_size)
+                wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_file], order='F')
 
-                # Reading and reshaping all data with readers
-                if Channel == 0 or Channel == 1:  # Single channel mode
-                    wf_data = np.fromfile(file, dtype='i2', count=no_of_spectra_to_average * data_block_size)
-                    wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_to_average], order='F')
-                if Channel == 2:  # Two channels mode
-                    wf_data = np.fromfile(file, dtype='i2', count=2 * no_of_spectra_to_average * data_block_size)
-                    wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_to_average], order='F')
+            print('Waveform read, shape: ', wf_data.shape)
 
-                # Timing
-                timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
-                TimeScaleFig.append(timeline_block_str[-1][0:12])
-                TimeScaleFull.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[-1][0:12])
+            # Timing
+            timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+            timeline_block_str = timeline_block_str[0::16]
+            for j in range(len(timeline_block_str)):
+                TimeScaleFig.append(timeline_block_str[j][0:12])
+                TimeScaleFull.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[j][0:12])
 
-                # Nulling the time blocks in waveform data
-                wf_data[data_block_size-4:
-                        data_block_size, :] = 0
+            # Nulling the time blocks in waveform data
+            wf_data[data_block_size-4: data_block_size, :] = 0
 
-                # Scaling of the data - seems to be wrong in absolute value
-                wf_data = wf_data / 32768.0
+            # Scaling of the data - seems to be wrong in absolute value
+            wf_data = wf_data / 32768.0
 
-                if Channel == 0 or Channel == 1:    # Single channel mode
-                    wf_data_chA = wf_data           # All the data is channel A data
-                    del wf_data                     # Deleting unnecessary array to free the memory
+            if Channel == 0 or Channel == 1:    # Single channel mode
+                wf_data_chA = wf_data           # All the data is channel A data
+                del wf_data                     # Deleting unnecessary array to free the memory
 
-                if Channel == 2:  # Two channels mode
+            if Channel == 2:  # Two channels mode
 
-                    # Resizing to obtain the matrix for separation of channels
-                    wf_data_new = np.zeros((2 * data_block_size, no_of_spectra_to_average))
-                    for i in range(2 * no_of_spectra_to_average):
-                        if i % 2 == 0:
-                            wf_data_new[0:data_block_size, int(i/2)] = wf_data[:, i]   # Even
-                        else:
-                            wf_data_new[data_block_size: 2 * data_block_size, int(i/2)] = wf_data[:, i]   # Odd
-                    del wf_data     # Deleting unnecessary array to free the memory
+                # Resizing to obtain the matrix for separation of channels
+                wf_data_new = np.zeros((2 * data_block_size, no_of_spectra_in_file))
+                for i in range(2 * no_of_spectra_in_file):
+                    if i % 2 == 0:
+                        wf_data_new[0:data_block_size, int(i/2)] = wf_data[:, i]   # Even
+                    else:
+                        wf_data_new[data_block_size: 2 * data_block_size, int(i/2)] = wf_data[:, i]   # Odd
+                del wf_data     # Deleting unnecessary array to free the memory
 
-                    # Separating the data into two channels
-                    wf_data_chA = np.zeros((data_block_size, no_of_spectra_to_average)) # Preparing empty array
-                    wf_data_chB = np.zeros((data_block_size, no_of_spectra_to_average)) # Preparing empty array
-                    wf_data_chA[:, :] = wf_data_new[0:(2 * data_block_size):2, :]        # Separation to channel A
-                    wf_data_chB[:, :] = wf_data_new[1:(2 * data_block_size):2, :]        # Separation to channel B
-                    del wf_data_new
+                # Separating the data into two channels
+                wf_data_chA = np.zeros((data_block_size, no_of_spectra_in_file))  # Preparing empty array
+                wf_data_chB = np.zeros((data_block_size, no_of_spectra_in_file))  # Preparing empty array
+                wf_data_chA[:, :] = wf_data_new[0:(2 * data_block_size):2, :]     # Separation to channel A
+                wf_data_chB[:, :] = wf_data_new[1:(2 * data_block_size):2, :]     # Separation to channel B
+                del wf_data_new
 
-                # preparing matrices for spectra
-                spectra_ch_a = np.zeros_like(wf_data_chA)
+            print('Before transpose, shape: ', wf_data_chA.shape)
+
+            # preparing matrices for spectra
+            wf_data_chA = np.transpose(wf_data_chA)
+            spectra_ch_a = np.zeros_like(wf_data_chA)
+            if Channel == 2:
+                wf_data_chB = np.transpose(wf_data_chB)
+                spectra_ch_b = np.zeros_like(wf_data_chB)
+
+            print('After transpose, shape: ', wf_data_chA.shape)
+
+            # Calculation of spectra
+            spectra_ch_a[:] = np.power(np.abs(np.fft.fft(wf_data_chA[:])), 2)
+            if Channel == 2:  # Two channels mode
+                spectra_ch_b[:] = np.power(np.abs(np.fft.fft(wf_data_chB[:])), 2)
+
+            print('After fft, spectrum shape: ', spectra_ch_a.shape)
+
+            # Storing only first (left) mirror part of spectra
+            spectra_ch_a = spectra_ch_a[:, : int(data_block_size/2)]
+            if Channel == 2:
+                spectra_ch_b = spectra_ch_b[:, : int(data_block_size/2)]
+
+            print('After fft cut, spectrum shape: ', spectra_ch_a.shape)
+
+            # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
+            if int(CLCfrq/1000000) == 33:
+                spectra_ch_a = np.fliplr(spectra_ch_a)
                 if Channel == 2:
-                    spectra_ch_b = np.zeros_like(wf_data_chB)
+                    spectra_ch_b = np.fliplr(spectra_ch_b)
 
-                # Calculation of spectra
-                for i in range(no_of_spectra_to_average):
-                    spectra_ch_a[:, i] = np.power(np.abs(np.fft.fft(wf_data_chA[:, i])), 2)
-                    if Channel == 2:  # Two channels mode
-                        spectra_ch_b[:, i] = np.power(np.abs(np.fft.fft(wf_data_chB[:, i])), 2)
+            # Deleting the unnecessary matrices
+            del wf_data_chA
+            if Channel == 2:
+                del wf_data_chB
 
-                # Storing only first (left) mirror part of spectra
-                spectra_ch_a = spectra_ch_a[: int(data_block_size/2), :]
-                if Channel == 2:
-                    spectra_ch_b = spectra_ch_b[: int(data_block_size/2), :]
+            # Dimensions of [data_block_size / 2, no_of_spectra_in_file]
 
-                # At 33 MHz the specter is usually upside down, to correct it we use flip up/down
-                if int(CLCfrq/1000000) == 33:
-                    spectra_ch_a = np.flipud(spectra_ch_a)
-                    if Channel == 2:
-                        spectra_ch_b = np.flipud(spectra_ch_b)
+            # Calculation the averaged spectrum
+            print('Shape before averaging: ', spectra_ch_a.shape)
+            spectra_ch_a = np.reshape(spectra_ch_a,  [int(no_of_spectra_in_file/no_of_spectra_to_average),
+                                                      no_of_spectra_to_average, int(data_block_size / 2)], order='F')
 
-                # Plotting first waveform block and first immediate spectrum in a file
-                if av_sp == 0:      # First data block in a file
-                    i = 0           # First immediate spectrum in a block
+            spectra_ch_a = spectra_ch_a.mean(axis=1)[:]
 
-                    # Prepare parameters for plot
-                    data_1 = wf_data_chA[:, i]
-                    if Channel == 0 or Channel == 1:  # Single channel mode
-                        no_of_sets = 1
-                        data_2 = []
-                    if Channel == 2:
-                        no_of_sets = 2
-                        data_2 = wf_data_chB[:, i]
+            print('Shape after averaging: ', spectra_ch_a.shape)
 
-                    suptitle = ('Waveform data, first block in file ' + str(df_filename))
-                    Title = (ReceiverMode+', Fclock = ' + str(round(CLCfrq/1000000, 1)) +
-                             ' MHz, Description: ' + str(df_description))
-                    # A = np.linspace(1, data_block_size, data_block_size)
+            if Channel == 2:
+                spectra_ch_b = np.reshape(spectra_ch_b, [int(no_of_spectra_in_file / no_of_spectra_to_average),
+                                                         no_of_spectra_to_average, int(data_block_size / 2)], order='F')
 
-                    TwoOrOneValuePlot(no_of_sets, np.linspace(no_of_sets, data_block_size, data_block_size),
-                                      data_1, data_2, 'Channel A', 'Channel B', 1, data_block_size,
-                                      -0.6, 0.6, -0.6, 0.6, 'ADC clock counts', 'Amplitude, V', 'Amplitude, V',
-                                      suptitle, Title,
-                                      service_folder + '/' + df_filename[0:14] + ' Waveform first data block.png',
-                                      current_date, current_time, software_version)
-
-                    # Prepare parameters for plot
-                    data_1 = 10 * np.log10(spectra_ch_a[:, i])
-                    if Channel == 0 or Channel == 1:  # Single channel mode
-                        no_of_sets = 1
-                        data_2 = []
-                    if Channel == 2:
-                        no_of_sets = 2
-                        data_2 = 10 * np.log10(spectra_ch_b[:, i])
-
-                    suptitle = ('Immediate spectrum, first in file ' + str(df_filename))
-                    Title = (ReceiverMode + ', Fclock = ' + str(round(CLCfrq/1000000, 1)) +
-                             ' MHz, Description: ' + str(df_description))
-
-                    TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2, 'Channel A', 'Channel B',
-                                      frequency[0], frequency[-1], -80, 60, -80, 60, 'Frequency, MHz',
-                                      'Intensity, dB', 'Intensity, dB', suptitle, Title,
-                                      service_folder+'/' + df_filename[0:14] + ' Immediate spectrum first in file.png',
-                                      current_date, current_time, software_version)
-
-                # Deleting the unnecessary matrices
-                del wf_data_chA
-                if Channel == 2:
-                    del wf_data_chB
-
-                # Calculation the averaged spectrum
-                aver_spectra_ch_a = spectra_ch_a.mean(axis=1)[:]
-                if Channel == 2:
-                    aver_spectra_ch_b = spectra_ch_b.mean(axis=1)[:]
-
-                # Plotting only first averaged spectrum
-                if av_sp == 0:
-
-                    # Prepare parameters for plot
-                    data_1 = 10 * np.log10(aver_spectra_ch_a)
-                    if Channel == 0 or Channel == 1: # Single channel mode
-                        no_of_sets = 1
-                        data_2 = []
-                    if Channel == 2:
-                        no_of_sets = 2
-                        data_2 = 10 * np.log10(aver_spectra_ch_b)
-
-                    suptitle = ('Average spectrum, first data block in file ' + str(df_filename))
-                    Title = (ReceiverMode+', Fclock = '+str(round(CLCfrq/1000000,1))+
-                            ' MHz, Avergaed spectra: ' + str(no_of_spectra_to_average)+
-                            ', Description: '+str(df_description))
-
-                    TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2, 'Channel A', 'Channel B',
-                                      frequency[0], frequency[-1], -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB',
-                                      'Intensity, dB', suptitle, Title,  service_folder + '/' + df_filename[0:14] +
-                                      ' Average spectrum first data block in file.png', current_date, current_time,
-                                      software_version)
-
-                # Adding calculated averaged spectrum to dynamic spectra array
-                dyn_spectra_ch_a[:, av_sp] = aver_spectra_ch_a[:]
-                if Channel == 2:
-                    dyn_spectra_ch_b[:, av_sp] = aver_spectra_ch_b[:]
-
-            bar.finish()
+                spectra_ch_b = spectra_ch_b.mean(axis=1)[:]
 
         file.close()  # Close the data file
 
-        # Saving averaged spectra to long data files
+        # Saving averaged spectra to a long data files
         if save_long_file_aver == 1:
-            temp = dyn_spectra_ch_a.transpose().copy(order='C')
+            temp = spectra_ch_a.copy(order='C')
             file_data_A = open(file_data_A_name, 'ab')
             file_data_A.write(temp)
             file_data_A.close()
             if Channel == 2:
-                temp = dyn_spectra_ch_b.transpose().copy(order='C')
+                temp = spectra_ch_b.copy(order='C')
                 file_data_B = open(file_data_B_name, 'ab')
                 file_data_B.write(temp)
                 file_data_B.close()
 
-            # Saving time data to ling timeline file
+            # Saving time data to long timeline file
             with open(TLfile_name, 'a') as TLfile:
                 for i in range(no_of_av_spectra_per_file):
                     TLfile.write((TimeScaleFull[i][:]) + ' \n')  # str
 
         # Log data (make dB scale)
         with np.errstate(invalid='ignore', divide='ignore'):
-            dyn_spectra_ch_a = 10 * np.log10(dyn_spectra_ch_a)
+            spectra_ch_a = 10 * np.log10(spectra_ch_a)
             if Channel == 2:
-                dyn_spectra_ch_b = 10 * np.log10(dyn_spectra_ch_b)
+                spectra_ch_b = 10 * np.log10(spectra_ch_b)
 
         # If the data contains minus infinity values change them to particular values
-        dyn_spectra_ch_a[np.isinf(dyn_spectra_ch_a)] = 40
+        spectra_ch_a[np.isinf(spectra_ch_a)] = 40
         if Channel == 2:
-            dyn_spectra_ch_b[np.isinf(dyn_spectra_ch_b)] = 40
+            spectra_ch_b[np.isinf(spectra_ch_b)] = 40
 
         # *******************************************************************************
         #             P L O T T I N G    D Y N A M I C    S P E C T R A                 *
         # *******************************************************************************
 
-        # if dyn_spectr_save_init == 1 or dyn_spectr_save_norm == 1:
-        #    print('\n  *** Making figures of dynamic spectra *** \n')
+        spectra_ch_a = np.transpose(spectra_ch_a)
+        if Channel == 2:
+            spectra_ch_b = np.transpose(spectra_ch_b)
+
+        no_of_av_spectra_per_file = spectra_ch_a.shape[1]
 
         if dyn_spectr_save_init == 1:
-            # Plot of initial dynamic spectra
 
-            VminA = np.min(dyn_spectra_ch_a)
-            VmaxA = np.max(dyn_spectra_ch_a)
+            # Plot of initial dynamic spectra
+            VminA = np.min(spectra_ch_a)
+            VmaxA = np.max(spectra_ch_a)
             VminB = VminA
             VmaxB = VmaxA
             if Channel == 2:
-                VminB = np.min(dyn_spectra_ch_b)
-                VmaxB = np.max(dyn_spectra_ch_b)
+                VminB = np.min(spectra_ch_b)
+                VmaxB = np.max(spectra_ch_b)
 
-            if Channel == 0 or Channel == 1: # Single channel mode
-                dyn_spectra_ch_b = dyn_spectra_ch_a
+            if Channel == 0 or Channel == 1:  # Single channel mode
+                spectra_ch_b = spectra_ch_a
 
             suptitle = ('Dynamic spectrum (initial) ' + str(df_filename) + ' - Fig. ' + str(1) + ' of ' +
                         str(1) + '\n Initial parameters: dt = ' + str(round(TimeRes*1000., 3)) + ' ms, df = ' +
@@ -439,12 +393,12 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                              str(0+1) + '.png')
 
             if Channel == 0 or Channel == 1:  # Single channel mode
-                OneDynSpectraPlot(dyn_spectra_ch_a, VminA, VmaxA, suptitle, 'Intensity, dB', no_of_av_spectra_per_file,
+                OneDynSpectraPlot(spectra_ch_a, VminA, VmaxA, suptitle, 'Intensity, dB', no_of_av_spectra_per_file,
                                   TimeScaleFig, frequency, freq_points_num, colormap, 'UTC Time, HH:MM:SS.msec',
                                   fig_file_name, current_date, current_time, software_version, custom_dpi)
 
             if Channel == 2:
-                TwoDynSpectraPlot(dyn_spectra_ch_a, dyn_spectra_ch_b, VminA, VmaxA, VminB, VmaxB, suptitle, 
+                TwoDynSpectraPlot(spectra_ch_a, spectra_ch_b, VminA, VmaxA, VminB, VmaxB, suptitle,
                                   'Intensity, dB', 'Intensity, dB', no_of_av_spectra_per_file, TimeScaleFig, 
                                   TimeScaleFig, frequency, freq_points_num, colormap, 'Channel A', 'Channel B', 
                                   fig_file_name, current_date, current_time, software_version, custom_dpi)
@@ -453,13 +407,13 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
             # Normalization and cleaning of data
 
-            Normalization_dB(dyn_spectra_ch_a.transpose(), freq_points_num, no_of_av_spectra_per_file)
+            Normalization_dB(spectra_ch_a.transpose(), freq_points_num, no_of_av_spectra_per_file)
             if Channel == 2: 
-                Normalization_dB(dyn_spectra_ch_b.transpose(), freq_points_num, no_of_av_spectra_per_file)
+                Normalization_dB(spectra_ch_b.transpose(), freq_points_num, no_of_av_spectra_per_file)
 
-            simple_channel_clean(dyn_spectra_ch_a, 8)
+            simple_channel_clean(spectra_ch_a, 8)
             if Channel == 2: 
-                simple_channel_clean(dyn_spectra_ch_b, 8)
+                simple_channel_clean(spectra_ch_b, 8)
 
             # Plot of normalized and cleaned dynamic spectra
 
@@ -473,13 +427,13 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
             fig_file_name = (result_folder + '/' + df_filename[0:14] + ' Normalized and cleaned dynamic spectrum fig.' +
                              str(0+1) + '.png')
 
-            if Channel == 0 or Channel == 1: # Single channel mode
-                OneDynSpectraPlot(dyn_spectra_ch_a, VminNorm, VmaxNorm, suptitle, 'Intensity, dB',
+            if Channel == 0 or Channel == 1:  # Single channel mode
+                OneDynSpectraPlot(spectra_ch_a, VminNorm, VmaxNorm, suptitle, 'Intensity, dB',
                                   no_of_av_spectra_per_file, TimeScaleFig, frequency, freq_points_num, colormap,
                                   'UTC Time, HH:MM:SS.msec', fig_file_name, current_date, current_time,
                                   software_version, custom_dpi)
             if Channel == 2:
-                TwoDynSpectraPlot(dyn_spectra_ch_a, dyn_spectra_ch_b,  VminNorm, VmaxNorm, VminNorm, VmaxNorm, suptitle,
+                TwoDynSpectraPlot(spectra_ch_a, spectra_ch_b,  VminNorm, VmaxNorm, VminNorm, VmaxNorm, suptitle,
                                   'Intensity, dB', 'Intensity, dB', no_of_av_spectra_per_file, TimeScaleFig,
                                   TimeScaleFig, frequency, freq_points_num, colormap, 'Channel A', 'Channel B',
                                   fig_file_name, current_date, current_time, software_version, custom_dpi)
