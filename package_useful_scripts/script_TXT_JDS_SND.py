@@ -71,12 +71,14 @@ if not os.path.exists(newpath):
 #*******************************************************************************
 # SND (in dB) of Moon dipole of plastic for h=183.7
 theoretical_f = np.linspace(1, 50, 50)
-theoretical_snd =  [-20.83, -16.18, -6.811,  -1.488, 1.941, 4.356, 6.149, 7.526, 8.621, 9.519, 10.28, 10.93, 11.51,
-                    12.02, 12.49, 12.92, 13.3, 13.65, 13.95, 14.21, 14.42, 14.56, 14.64, 14.64, 14.56, 14.4, 14.16,
-                    13.84, 13.46, 13.03, 12.59, 12.21, 12.01, 12.22, 13.01, 13.83, 13.56, 12.44, 11.21, 10.12, 9.164,
-                    8.318, 7.553, 6.85, 6.201, 5.603, 5.055, 4.565, 4.142, 3.799]
-
-
+# theoretical_snd =  [-20.83, -16.18, -6.811,  -1.488, 1.941, 4.356, 6.149, 7.526, 8.621, 9.519, 10.28, 10.93, 11.51,
+#                     12.02, 12.49, 12.92, 13.3, 13.65, 13.95, 14.21, 14.42, 14.56, 14.64, 14.64, 14.56, 14.4, 14.16,
+#                     13.84, 13.46, 13.03, 12.59, 12.21, 12.01, 12.22, 13.01, 13.83, 13.56, 12.44, 11.21, 10.12, 9.164,
+#                     8.318, 7.553, 6.85, 6.201, 5.603, 5.055, 4.565, 4.142, 3.799]
+theoretical_snd = [-26.7, -11.64, -4.72, -0.4022, 2.678, 5.008, 6.828, 8.282, 9.471, 10.47, 11.32, 12.06, 12.72,
+                   13.32, 13.87, 14.38, 14.87, 15.33, 15.77, 16.19, 16.59, 16.97, 17.32, 17.64, 17.92, 18.16,
+                   18.34, 18.45, 18.49, 18.46, 18.35, 18.17, 17.94, 17.67, 17.4, 17.2, 17.11, 16.19, 13.77, 12.86,
+                   12.35, 11.84, 11.28, 10.7, 10.1, 9.491, 8.881, 8.276, 7.682, 7.111]
 
 # *** Reading files ***
 #[x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([sky_file])
@@ -149,7 +151,7 @@ fig.subplots_adjust(top=0.92)
 fig.suptitle('File: ', fontsize = 8, fontweight='bold')
 fig.text(0.79, 0.03, 'Processed '+currentDate+ ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4, transform=plt.gcf().transFigure)
-pylab.savefig(newpath + '/' + ' 01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
+pylab.savefig(newpath + '/' + '01 - All txt data used.png', bbox_inches = 'tight', dpi = 160)
 plt.close('all')
 
 
@@ -175,7 +177,7 @@ fig.suptitle('File: ', fontsize = 8, fontweight='bold')
 fig.text(0.79, 0.03, 'Processed '+currentDate + ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4,
          transform=plt.gcf().transFigure)
-pylab.savefig(newpath + '/' + ' 02 - Differences.png', bbox_inches='tight', dpi = 160)
+pylab.savefig(newpath + '/' + '02 - Differences.png', bbox_inches='tight', dpi = 160)
 plt.close('all')
 
 snd_open = median_filter(snd_open, median_window)
@@ -200,7 +202,7 @@ fig.suptitle('File: ', fontsize = 8, fontweight='bold')
 fig.text(0.79, 0.03, 'Processed '+currentDate + ' at '+currentTime, fontsize=4, transform=plt.gcf().transFigure)
 fig.text(0.11, 0.03, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=4,
          transform=plt.gcf().transFigure)
-pylab.savefig(newpath + '/' + ' 03 - Differences filtered.png', bbox_inches='tight', dpi = 160)
+pylab.savefig(newpath + '/' + '03 - Differences filtered.png', bbox_inches='tight', dpi = 160)
 plt.close('all')
 
 
