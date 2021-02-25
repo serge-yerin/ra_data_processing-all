@@ -123,7 +123,8 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
             # Apply window to data for FFT
             if hanning_window:
-                window = np.hanning(no_of_points_for_fft_spectr)
+                # window = np.hanning(no_of_points_for_fft_spectr)
+                window = np.hamming(no_of_points_for_fft_spectr)
                 wf_data[:] = wf_data[:] * window[:]
                 del window
 
@@ -132,10 +133,12 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
             # Calculation of spectra
             spectra[:] = np.power(np.abs(np.fft.fft(wf_data[:])), 2)
+            # spectra[:, i] = np.power(np.abs(np.fft.fft(wf_data[:, i])), 2)
             del wf_data
 
             # Storing only first (left) mirror part of spectra
             spectra = spectra[:, : int(no_of_points_for_fft_spectr / 2)]
+            # spectra = spectra[: int(no_of_points_for_fft_spectr / 2), :]
 
             # At 33 MHz clock frequency the specter is upside down, to correct it we use flip up/down
             if int(clock_freq / 1000000) == 33:
