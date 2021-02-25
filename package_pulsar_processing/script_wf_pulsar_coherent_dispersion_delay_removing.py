@@ -23,8 +23,7 @@ median_filter_window = 80               # Window of median filter to smooth the 
 
 phase_calibr_txt_file = 'DATA/Calibration_E150221_221946.jds_cross_spectra_phase.txt'
 
-show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
-show_av_sp_to_normalize = True         # Pause and display filtered average spectrum to be used for normalization
+show_av_sp_to_normalize = True          # Pause and display filtered average spectrum to be used for normalization
 use_window_for_fft = True
 # ###############################################################################
 # *******************************************************************************
