@@ -24,6 +24,7 @@ median_filter_window = 80               # Window of median filter to smooth the 
 phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = True         # Pause and display filtered average spectrum to be used for normalization
+use_window_for_fft = True
 # ###############################################################################
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -67,8 +68,10 @@ if __name__ == '__main__':
     currentDate = time.strftime("%d.%m.%Y")
     print('  Today is ', currentDate, ' time is ', currentTime, '\n')
 
-    dedispersed_wf32_files = []
-    dedispersed_dat_files = []
+    # dedispersed_wf32_files = []
+    # dedispersed_dat_files = []
+
+    # Take pulsar parameters from catalogue
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     '''
@@ -121,7 +124,8 @@ if __name__ == '__main__':
     typesOfData = ['chA']
 
     # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, True)
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
+                                                 no_of_spectra_in_bunch, use_window_for_fft)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
     
