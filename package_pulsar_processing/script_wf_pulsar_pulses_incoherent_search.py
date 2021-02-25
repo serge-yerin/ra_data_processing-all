@@ -5,12 +5,12 @@ Software_version = '2020.06.24'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/server2a/PSRs_Feb-C_2019/PSR_B0809p74_WF_08-09_Feb_2019/'
+directory = '/media/gurt/Pulsar_2021.01/2021.02.16_B0950p08_WF/'
 
-pulsar_name = 'B0809+74'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08'
+pulsar_name = 'B0950+08'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08' 'B0809+74'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
-
+process_channel_b = False
 
 # ###############################################################################
 # *******************************************************************************
@@ -37,16 +37,17 @@ print('\n\n  * Making dynamic spectra of the initial data... \n\n')
 
 typesOfData = ['chA']
 
-if len(results_files_list) > 1:
+if len(results_files_list) > 1 and process_channel_b:
     typesOfData.append('chB')
+else:
+    results_files_list = [results_files_list[0]]
 
 result_folder_name = directory.split('/')[-2] + '_initial'
 
-ok = DAT_file_reader('', results_files_list[0][:-13], typesOfData, '', result_folder_name,
-                     0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
-                     16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+ok = DAT_file_reader('', results_files_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
+                     300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
-#results_files_list = ['E080219_200543.jds_Data_chA.dat']
+# results_files_list = ['E080219_200543.jds_Data_chA.dat']
 
 print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
@@ -61,14 +62,12 @@ for dedispersed_data_file_name in dedispersed_data_file_list:
     pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name,
                                       0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys')
 
-
 # dedispersed_data_file_list = ['B0809+74_DM_5.75066_E280120_205409.jds_Data_chA.dat']
 
 result_folder_name = directory.split('/')[-2] + '_dedispersed'
 
 print('\n\n  * Making dynamic spectra of the dedispersed data... \n\n')
-ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], typesOfData, '', result_folder_name,
-                     0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
-                     16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10,
+                     0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
 print('\n\n  *  Pipeline finished successfully! \n\n')

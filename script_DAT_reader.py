@@ -6,10 +6,10 @@ Software_version = '2019.05.08'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-common_path = '' # '/media/data/PYTHON/ra_data_processing-all/' #
+common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'DM_5.755_E280120_205546.jds_Data_chA.dat'
+filename = common_path + 'A200604_105919.adr_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
@@ -21,7 +21,7 @@ freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
 # freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
+StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
@@ -41,12 +41,14 @@ freqStart = 20.0
 freqStop = 30.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2017-05-18 18:36:30'
-dateTimeStop =  '2017-05-18 18:36:50'
+dateTimeStart = '2020-06-04 12:26:30'
+dateTimeStop =  '2020-06-04 12:27:10'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
 freqStopTXT = 33.0
+
+save_to_txt_file = True         # Save short part of dynamic spectrum to txt file
 
 # ###############################################################################
 # *******************************************************************************
@@ -175,7 +177,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
     # *********************************************************************************
 
-    # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
+    # *** Creating a folder where all pictures and results will be stored (if it does not exist) ***
     newpath = "DAT_Results"
     if not os.path.exists(newpath):
         os.makedirs(newpath)
@@ -186,7 +188,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
     # *** Data file header read ***
     df_filesize = os.stat(filename).st_size                       # Size of file
-    df_filename = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
+    df_filename = file.read(32).decode('utf-8').rstrip('\x00')    # Initial data file name
     file.close()
 
     if df_filename[-4:] == '.adr':
@@ -198,7 +200,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         freq_points_num = len(frequency)
 
-    if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
+    if df_filename[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, spectra_in_file, ReceiverMode, Mode, Navr, time_res, fmin, fmax,
@@ -338,14 +340,14 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
             array[np.isnan(array)] = -120
 
         if data_types[j] == 'A-B':
-        # If analyzing intensity - average and log absolute values of data
+            # If analyzing intensity - average and log absolute values of data
             with np.errstate(invalid='ignore'):
                 dataApp[:, 0] = 10 * np.log10(np.abs(data.mean(axis=1)[:]))
             array = np.append(array, dataApp, axis=1)
             array[np.isnan(array)] = -120
 
         if data_types[j] == 'C_p' or data_types[j] == 'CRe' or data_types[j] == 'CIm':
-        # If analyzing phase of Re/Im we do not log data, only averaging
+            # If analyzing phase of Re/Im we do not log data, only averaging
             dataApp[:, 0] = (data.mean(axis=1)[:])
             array = np.append(array, dataApp, axis=1)
             array[np.isnan(array)] = 0
@@ -466,7 +468,6 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
     else:
         freqLine = frequency
 
-
     # Limits of figures for common case or for Re/Im parts to show the interferometric picture
     Vmin = np.min(array)
     Vmax = np.max(array)
@@ -491,23 +492,33 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
     if data_types[j] != 'C_p' and data_types[j] != 'CRe' and data_types[j] != 'CIm':
 
         # *** Normalization and cleaning of dynamic spectra ***
-        Normalization_dB(array.transpose(), len(freqLine), time_points_num)  # len(dateTimeNew)
-        simple_channel_clean(array.transpose(), RFImeanConst)
+        array = Normalization_dB(array.transpose(), len(freqLine), time_points_num)  # len(dateTimeNew)
+        array = simple_channel_clean(array.transpose(), RFImeanConst)
 
         # *** Dynamic spectra of cleaned and normalized signal ***
 
-        Suptitle = ('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+
-                    ' '+nameAdd+'\n Initial parameters: dt = '+str(round(time_res,3))+
-                    ' Sec, df = '+str(round(df/1000, 3)) + ' kHz, '+sumDifMode +
+        Suptitle = ('Dynamic spectrum cleaned and normalized starting from file ' + str(df_filename[0:18]) +
+                    ' ' + nameAdd + '\n Initial parameters: dt = ' + str(round(time_res, 3)) +
+                    ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sumDifMode +
                     ' Processing: ' + reducing_type + str(averageConst)+' spectra (' + 
                     str(round(averageConst * time_res, 3)) + ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
                     ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
         fig_file_name = ('DAT_Results/' + fileNameAddNorm + df_filename[0:14] + '_' + data_types[j] +
-                        ' Dynamic spectrum cleanned and normalized' + '.png')
+                        ' Dynamic spectrum cleaned and normalized' + '.png')
 
         OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, 
                           freqLine, len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', 
                           fig_file_name, current_date, current_time, Software_version, customDPI)
+
+        # Save selected part of the dynamic spectrum to txt file
+        if save_to_txt_file and StartStopSwitch > 0:
+            txt_file_name = str(df_filename[0:18]) + '_' + \
+                            dateTimeStart[11:].replace(':','-') + ' - ' + dateTimeStop[11:].replace(':','-') + '.txt'
+            txt_file = open(txt_file_name, "w")
+            for step in range(len(freqLine)):
+                txt_file.write(''.join(format(array[step, i], "12.5f") for i in range(time_points_num)) + ' \n')
+            txt_file.close()
+
 
         # Figure in PhD thesis format
         '''

@@ -8,9 +8,9 @@ from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import
 '''
 
 def find_and_check_files_in_current_folder(source_directory, extension):
-    '''
+    """
     Searching of files in the specified directory with specified file extension
-    '''
+    """
     fileList = find_files_only_in_current_folder(source_directory, extension, 1)
     print('')
 
