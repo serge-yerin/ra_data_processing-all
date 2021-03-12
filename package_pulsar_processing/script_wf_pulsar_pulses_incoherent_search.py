@@ -1,18 +1,25 @@
 # Python3
 Software_version = '2020.06.24'
-
+"""
+The main goal to the script is to analyze of waveform pulsar data to find anomalously intense pulses during observation
+session. It reads the waveform files, converts data into spectra (making zero points used for time stamps),
+saves dynamic spectra pics of each wf file and the whole observation, than runs the incoherent dispersion delay 
+removing, saves dynamic spectra pics for each max DM delay time, and then makes pics of each 3 pulsar periods. 
+User can analyze the pics and decide if there are pulses worth processing and the time of the pulse receiving to
+run the "script_wf_pulsar_coherent_dispersion_delay_removing.py" for selected files only. 
+"""
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/gurt/Pulsar_2021.01/2021.02.16_B0950p08_WF/'
+# directory = '/media/gurt/Pulsar_2021.01/2021.02.16_B0950p08_WF/'
+directory = '/media/server2a/LC4-21-UTR2_002/PSRB0809p74_LC4-21_26-10-15_WF_Cl33_Ch1-NS_CH2-W/'
 
-pulsar_name = 'B0950+08'  # 'B1919+21' # 'B0950+08' #'B1133+16' #  'B1604-00' 'B0950+08' 'B0809+74'
+pulsar_name = 'B0809+74'  # 'B0809+74' 'B0950+08' 'B1133+16' 'B1604-00' 'B1919+21'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
 process_channel_b = False
 
-# ###############################################################################
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -31,6 +38,7 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 
 print('\n\n  * Conversion from waveform to spectra... \n\n')
+
 results_files_list = jds_wf_simple_reader(directory, no_of_spectra_to_average, 0, 0, 8, 'Greys', 300, 1, 0, 1)
 
 print('\n\n  * Making dynamic spectra of the initial data... \n\n')
@@ -47,7 +55,11 @@ result_folder_name = directory.split('/')[-2] + '_initial'
 ok = DAT_file_reader('', results_files_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
                      300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
+#
+#
 # results_files_list = ['E080219_200543.jds_Data_chA.dat']
+#
+#
 
 print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
@@ -62,11 +74,16 @@ for dedispersed_data_file_name in dedispersed_data_file_list:
     pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name,
                                       0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys')
 
+#
+#
 # dedispersed_data_file_list = ['B0809+74_DM_5.75066_E280120_205409.jds_Data_chA.dat']
+#
+#
 
 result_folder_name = directory.split('/')[-2] + '_dedispersed'
 
 print('\n\n  * Making dynamic spectra of the dedispersed data... \n\n')
+
 ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10,
                      0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
