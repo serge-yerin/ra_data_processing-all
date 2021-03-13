@@ -48,7 +48,7 @@ def phase_linearization_rad(matrix):
     const = 0
     for elem in range(1, len(matrix)):
         if (matrix[elem] - matrix[elem-1]) > 4:
-            const = const + 2*np.pi
+            const = const + 2 * np.pi
         matrix_lin[elem] = matrix_lin[elem] - const
     const = 0
     for elem in range(1, len(matrix)):
