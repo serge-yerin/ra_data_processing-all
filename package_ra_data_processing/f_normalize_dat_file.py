@@ -21,11 +21,15 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     Input parameters:
         directory - name of directory with initial dat file
         filename - name of initial dat file
+        no_of_spectra_in_bunch - number of spectra in bunch to read
+        median_filter_window - window of median filter to process the average spectrum
+        show_aver_spectra - boolean variable which indicates if the picture of average spectrum to be shown and
+                            the script paused till the picture window is closed
     Output parameters:
         output_file_name -  name of result normalized .dat file
     """
 
-    print('\n   Preparations and calculation of the average spectrum to normalize...')
+    print('\n   Preparations and calculation of the average spectrum to normalize... \n')
 
     output_file_name = directory + 'Norm_' + filename
     filename = directory + filename
@@ -45,7 +49,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
                 NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine,
                 Width, BlockSize] = FileHeaderReaderADR(filename, 0, 0)
 
-    if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
+    if df_filename[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
@@ -109,7 +113,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     ax1.grid(b=True, which='both', color='silver', linestyle='-')
     ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-    pylab.savefig('Averaged_spectra_'+filename[:-4]+'_after_filtering.png', bbox_inches='tight', dpi=160)
+    pylab.savefig('Averaged_spectra_' + filename[:-4] + '_after_filtering.png', bbox_inches='tight', dpi=160)
     if show_aver_spectra:
         print('\n   Close the figure window to continue processing!!!\n')
         plt.show()
@@ -118,7 +122,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     del init_average_profile, med_average_profile
 
     # Normalization
-    print('   Spectra normalization...')
+    print('   Spectra normalization... \n')
     file.seek(0)
     file_header = file.read(1024)
     normalized_file = open(output_file_name, 'wb')
