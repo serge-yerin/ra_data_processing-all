@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0950+08'  # 'B0809+74' 'B0950+08'  'B1133+16'
+pulsar_name = 'B0809+74'  # 'B0809+74' 'B0950+08' 'B1133+16'
 
 make_sum = True
 dm_step = 1.0
@@ -21,16 +21,15 @@ result_directory = ''                   # Directory where DAT files to be stored
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 median_filter_window = 80               # Window of median filter to smooth the average profile
 
-phase_calibr_txt_file = 'DATA/Calibration_E150221_221946.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = 'DATA/Calibration_E261015_044242.jds_cross_spectra_phase.txt'
 
-show_av_sp_to_normalize = True          # Pause and display filtered average spectrum to be used for normalization
+show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
 use_window_for_fft = True
 # ###############################################################################
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 # Common functions
-import os
 import shutil
 import sys
 import time
@@ -43,36 +42,47 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
-from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
+from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
 from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
+from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
+from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.f_convert_jds_wf_to_wf32 import convert_jds_wf_to_wf32
-
-from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_without_overlap
+from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_with_overlap
+from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_without_overlap
+
 from package_ra_data_processing.wf32_two_channel_phase_calibration import wf32_two_channel_phase_calibration
 from package_ra_data_processing.sum_signals_of_wf32_files import sum_signals_of_wf32_files
-from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
 from package_ra_data_processing.f_normalize_dat_file import normalize_dat_file
-from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
 
 
 if __name__ == '__main__':
 
     print('\n\n\n\n\n\n\n\n   ********************************************************************')
     print('   * ', Software_name, ' v.', Software_version, ' *      (c) YeS 2020')
-    print('   ******************************************************************** \n\n\n')
+    print('   ******************************************************************** \n\n')
     
-    startTime = time.time()
-    previousTime = startTime
-    currentTime = time.strftime("%H:%M:%S")
-    currentDate = time.strftime("%d.%m.%Y")
-    print('  Today is ', currentDate, ' time is ', currentTime, '\n')
+    start_time = time.time()
+    # previousTime = start_time
+    # current_time = time.strftime("%H:%M:%S")
+    # currentDate = time.strftime("%d.%m.%Y")
+    print('  Today is ', time.strftime("%d.%m.%Y"), ' time is ', time.strftime("%H:%M:%S"), '\n')
 
     dedispersed_wf32_files = []
     dedispersed_dat_files = []
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
+
+    # Calculation of the maximal time shift for dispersion delay removing
+    shift_vector = DM_full_shift_calc(8192, 16.5, 33.0, 2014 / pow(10, 6), 0.000496, pulsar_dm, 'jds')
+    max_shift = np.abs(shift_vector[0])
+    print(' * Maximal shift of dynamic spectrum: ', max_shift, ' points')
+    print('                                 or : ', max_shift * 0.000496, ' seconds')
+
+    # Reading initial jds file list to save the list of files in the result folder
+    file_list = find_files_only_in_current_folder(source_directory, '.jds', 0)
 
     print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
@@ -191,7 +201,7 @@ if __name__ == '__main__':
 
     #
     #
-    # output_file_name = 'Norm_DM_2.972_E150221_213204.jds_Data_wfA+B.dat'
+    # output_file_name = 'Norm_DM_5.755_E261015_034239.jds_Data_wfA+B.dat'
     #
     #
 
@@ -206,14 +216,26 @@ if __name__ == '__main__':
     path, txt_fname, png_fname = cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number,
                                                                    -0.15, 0.55, -0.2, 3.0,
                                                                    periods_per_fig, 500, 'Greys')
-
+    #
+    #
+    #
+    #
+    #
+    
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Cutting the data of pulse from pulsar period data... \n')
 
-    cut_needed_time_points_from_txt(path, txt_fname)
+    start_point, end_point = cut_needed_time_points_from_txt(path, txt_fname)
+    
+    # Save initial jds files list to a txt file
+    jds_files_txt = open(path + '/Initial data files used.txt', "w")
+    jds_files_txt.write('Period # ' + str(period_number) + ', points: ' + str(start_point) + ' - ' +
+                        str(end_point) + ' of ' + str(len(file_list)) + ' data files: \n')
+    for item in range(len(file_list)):
+        jds_files_txt.write(file_list[item] + ' \n')
+    jds_files_txt.close()
 
-    endTime = time.time()
-
+    end_time = time.time()
     print('\n\n  The program execution lasted for ',
-          round((endTime - startTime), 2), 'seconds (', round((endTime - startTime)/60, 2), 'min. ) \n')
+          round((end_time - start_time), 2), 'seconds (', round((end_time - start_time)/60, 2), 'min. ) \n')
     print('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
