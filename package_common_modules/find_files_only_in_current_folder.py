@@ -5,7 +5,6 @@ def find_files_only_in_current_folder(path, extension, print_or_not):
     """
     Searching of files in the specified directory with specified file extension
     """
-    file_path_list = []
     file_name_list = []
     i = 0
     if print_or_not == 1:
