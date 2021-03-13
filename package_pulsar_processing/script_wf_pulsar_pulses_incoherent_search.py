@@ -12,14 +12,14 @@ run the "script_wf_pulsar_coherent_dispersion_delay_removing.py" for selected fi
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-# directory = '/media/gurt/Pulsar_2021.01/2021.02.16_B0950p08_WF/'
 directory = '/media/server2a/LC4-21-UTR2_002/PSRB0809p74_LC4-21_26-10-15_WF_Cl33_Ch1-NS_CH2-W/'
 
 pulsar_name = 'B0809+74'  # 'B0809+74' 'B0950+08' 'B1133+16' 'B1604-00' 'B1919+21'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
-process_channel_b = False
-
+process_channel_b = False       # Process channel B or save time
+save_strongest = True           # Save strongest images to additional separate folder?
+threshold = 0.25                # Threshold of the strongest pulses (or RFIs)
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -72,7 +72,7 @@ for i in range(len(results_files_list)):
 print('\n\n  *  Making figures of 3 pulsar periods... \n\n')
 for dedispersed_data_file_name in dedispersed_data_file_list:
     pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name,
-                                      0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys')
+                                      0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys', save_strongest, threshold)
 
 #
 #
