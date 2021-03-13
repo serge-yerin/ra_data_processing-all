@@ -66,20 +66,16 @@ if __name__ == '__main__':
     print('   ******************************************************************** \n\n')
     
     start_time = time.time()
-    # previousTime = start_time
-    # current_time = time.strftime("%H:%M:%S")
-    # currentDate = time.strftime("%d.%m.%Y")
-    print('  Today is ', time.strftime("%d.%m.%Y"), ' time is ', time.strftime("%H:%M:%S"), '\n')
+    print('  Today is ', time.strftime("%d.%m.%Y"), ' time is ', time.strftime("%H:%M:%S"), '\n\n')
 
-    dedispersed_wf32_files = []
-    dedispersed_dat_files = []
+    # Take pulsar parameters from catalogue
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     # Calculation of the maximal time shift for dispersion delay removing
     shift_vector = DM_full_shift_calc(8192, 16.5, 33.0, 2014 / pow(10, 6), 0.000496, pulsar_dm, 'jds')
     max_shift = np.abs(shift_vector[0])
-    print(' * Maximal shift of dynamic spectrum: ', max_shift, ' points')
-    print('                                 or : ', max_shift * 0.000496, ' seconds')
+    print('  * Maximal shift of dynamic spectrum: ', max_shift, ' points')
+    print('                                  or : ', max_shift * 0.000496, ' seconds')
 
     # Reading initial jds file list to save the list of files in the result folder
     file_list = find_files_only_in_current_folder(source_directory, '.jds', 0)
@@ -131,7 +127,7 @@ if __name__ == '__main__':
         file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
     print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 \n')
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
-    print('\n List of dedispersed WF32 files: ', file_name, '\n')
+    print('\n List of WF32 files with removed dispersion delay: ', file_name, '\n')
 
     #
     #
@@ -182,7 +178,8 @@ if __name__ == '__main__':
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
 
-    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys')
+    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500,
+                                      'Greys', False, 0.25)
 
     #
     #
@@ -201,7 +198,7 @@ if __name__ == '__main__':
 
     #
     #
-    # output_file_name = 'Norm_DM_5.755_E261015_034239.jds_Data_wfA+B.dat'
+    # output_file_name = 'Norm_DM_5.755_E261015_034256.jds_Data_wfA+B.dat'
     #
     #
 
