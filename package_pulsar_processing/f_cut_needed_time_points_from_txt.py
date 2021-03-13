@@ -22,7 +22,9 @@ colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet'
 
 def cut_needed_time_points_from_txt(path, filename):
     """
-    Function to cut the part of pulsar period data with the pulse from one txt file to the new one
+    Function to cut the part of pulsar period data with the pulse from one txt file to the new smalled one
+    User is asked to specify the start and stop point of the selected pulse period.
+    Returns the start and stop point numbers, the data and image are saved to HDD
     """
     software_version = '2021.01.25'
     current_time = time.strftime("%H:%M:%S")
@@ -54,9 +56,10 @@ def cut_needed_time_points_from_txt(path, filename):
     print('  Shape of result array:', result_array.shape)
 
     # Save cut data to the new txt file
-    single_pulse_txt = open(path + '/Incoherent sum of extracted pulses_selected_points.txt', "w")
+    single_pulse_txt = open(path + '/Extracted pulse (selected_points).txt', "w")
     for freq in range(result_array.shape[0] - 1):
-        single_pulse_txt.write(' '.join('  {:+12.7E}'.format(result_array[freq, i]) for i in range(result_array.shape[1])) + ' \n')
+        single_pulse_txt.write(' '.join('  {:+12.7E}'.format(result_array[freq, i]) \
+                                        for i in range(result_array.shape[1])) + ' \n')
     single_pulse_txt.close()
 
     # Making result figure
@@ -124,7 +127,7 @@ def cut_needed_time_points_from_txt(path, filename):
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.05, 'Software version: '+software_version+', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(path + '/Incoherent sum of extracted pulses_selected_points.png', bbox_inches='tight', dpi=customDPI)
+    pylab.savefig(path + '/Extracted pulse (selected_points).png', bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
     # Making Fourier transform of the profiles
@@ -145,7 +148,7 @@ def cut_needed_time_points_from_txt(path, filename):
     pylab.savefig(path + '/Fourier analysis of pulse frequency profiles.png', bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
-    return 0
+    return start_point, end_point
 
 
 # *******************************************************************************
