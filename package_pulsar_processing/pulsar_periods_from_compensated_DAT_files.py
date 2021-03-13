@@ -58,7 +58,7 @@ from package_ra_data_processing.spectra_normalization import Normalization_dB
 
 def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
-                                      colormap):
+                                      colormap, save_strongest, threshold):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -67,6 +67,10 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     result_path = "RESULTS_pulsar_n_periods_pics_" + filename
     if not os.path.exists(result_path):
         os.makedirs(result_path)
+    if save_strongest:
+        best_result_path = result_path + '/Strongest_pulses'
+        if not os.path.exists(best_result_path):
+            os.makedirs(best_result_path)
 
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
@@ -75,7 +79,6 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     filepath = common_path + filename
 
     # Timeline file to be analyzed:
-    # timeline_filepath = common_path + filename[:-13] + '_Timeline.txt'
     timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
@@ -186,6 +189,11 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
                  fontsize=3, transform=plt.gcf().transFigure)
         pylab.savefig(result_path + '/' + filename + ' fig. ' + str(block+1) + ' - Combined picture.png',
                       bbox_inches='tight', dpi=customDPI)
+
+        # If the profile has points above threshold save picture also into separate folder
+        if save_strongest and np.max(profile) > threshold:
+            pylab.savefig(best_result_path + '/' + filename + ' fig. ' + str(block + 1) + ' - Combined picture.png',
+                          bbox_inches='tight', dpi=customDPI)
         plt.close('all')
 
     bar.finish()
@@ -207,4 +215,4 @@ if __name__ == '__main__':
 
     pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
-                                      colormap)
+                                      colormap, True, 0.25)
