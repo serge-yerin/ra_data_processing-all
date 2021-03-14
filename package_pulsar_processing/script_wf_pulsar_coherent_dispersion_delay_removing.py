@@ -24,8 +24,8 @@ median_filter_window = 80               # Window of median filter to smooth the 
 phase_calibr_txt_file = 'DATA/Calibration_E261015_044242.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
-use_window_for_fft = True
-# ###############################################################################
+use_window_for_fft = False              # Use FFT window (not finished)
+
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -57,6 +57,11 @@ from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_
 from package_ra_data_processing.wf32_two_channel_phase_calibration import wf32_two_channel_phase_calibration
 from package_ra_data_processing.sum_signals_of_wf32_files import sum_signals_of_wf32_files
 from package_ra_data_processing.f_normalize_dat_file import normalize_dat_file
+
+
+# *******************************************************************************
+#                            M A I N    P R O G R A M                           *
+# *******************************************************************************
 
 
 if __name__ == '__main__':
@@ -198,7 +203,7 @@ if __name__ == '__main__':
 
     #
     #
-    # output_file_name = 'Norm_DM_5.755_E261015_034256.jds_Data_wfA+B.dat'
+    # output_file_name = 'Norm_DM_5.755_E261015_035701.jds_Data_wfA+B.dat'
     #
     #
 
