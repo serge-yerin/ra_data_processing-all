@@ -99,9 +99,11 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
             bar = IncrementalBar(' File ' + str(file_no + 1) + ' of ' + str(len(file_list)) + ' reading: ',
                                  max=no_of_bunches_per_file, suffix='%(percent)d%%')
 
+            bar.start()
+
             for bunch in range(no_of_bunches_per_file):
 
-                bar.next()
+                # bar.next()
 
                 # Reading and reshaping all data with time data
                 if channel == 0 or channel == 1:    # Single channel mode
@@ -149,6 +151,8 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 with open(tl_file_name, 'a') as tl_file:
                     for i in range(no_of_spectra_in_bunch):
                         tl_file.write((str(time_scale_bunch[i][:])) + ' \n')  # str
+
+                bar.next()
 
             bar.finish()
 
