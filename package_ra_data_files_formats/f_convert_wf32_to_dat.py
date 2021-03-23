@@ -104,7 +104,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
             wf_data = np.concatenate((buffer, wf_data), axis=0)
 
             # Save new data from the end to the buffer
-            buffer = wf_data[-half_of_spectrum:]
+            buffer = wf_data[-half_of_spectrum:].copy()
 
             # Selecting the needed sequence of the data and reshaping to rectangular array
             wf_data_1 = np.reshape(wf_data[: -half_of_spectrum].copy(),
@@ -129,7 +129,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
                 del window
 
             # Preparing empty array for spectra
-            spectra = np.zeros_like(wf_data)
+            spectra = np.zeros_like(wf_data, dtype=np.float64)
 
             # Calculation of spectra
             spectra[:] = np.power(np.abs(np.fft.fft(wf_data[:])), 2)
