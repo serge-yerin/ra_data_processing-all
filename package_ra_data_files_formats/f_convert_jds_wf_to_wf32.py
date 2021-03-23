@@ -105,10 +105,10 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
 
                 # Reading and reshaping all data with time data
                 if channel == 0 or channel == 1:    # Single channel mode
-                    wf_data = np.fromfile(file, dtype='i2', count = no_of_spectra_in_bunch * data_block_size)
+                    wf_data = np.fromfile(file, dtype='i2', count=no_of_spectra_in_bunch * data_block_size)
                     wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_in_bunch], order='F')
                 if channel == 2:                    # Two channels mode
-                    wf_data = np.fromfile(file, dtype='i2', count = 2 * no_of_spectra_in_bunch * data_block_size)
+                    wf_data = np.fromfile(file, dtype='i2', count=2 * no_of_spectra_in_bunch * data_block_size)
                     wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
 
                 # Timing
