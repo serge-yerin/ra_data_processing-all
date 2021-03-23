@@ -157,8 +157,8 @@ if __name__ == '__main__':
 
     #
     #
-    # file_name = 'DM_5.755_E261015_035419.jds_Data_wfA+B.wf32'
-    # typesOfData = ['wfA+B']
+    file_name = 'DM_5.755_E261015_035419.jds_Data_wfA+B.wf32'
+    typesOfData = ['wfA+B']
     #
     #
 
