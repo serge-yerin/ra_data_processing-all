@@ -20,7 +20,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+     clock_freq, df_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
      df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
     freq_points_num = int(no_of_points_for_fft_spectr / 2)
@@ -133,6 +133,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
             # Calculation of spectra
             spectra[:] = np.power(np.abs(np.fft.fft(wf_data[:])), 2)
+            # spectra[:] = np.abs(np.fft.fft(np.power(wf_data[:], 2))) # Does not work
             # spectra[:, i] = np.power(np.abs(np.fft.fft(wf_data[:, i])), 2)
             del wf_data
 
@@ -169,7 +170,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 #
 #     # *** Data file header read ***
 #     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-#      clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+#      clock_freq, df_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
 #      df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 #
 #     freq_points_num = int(no_of_points_for_fft_spectr / 2)
@@ -324,7 +325,7 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-        clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+        clock_freq, df_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
 
     freq_points_num = int(no_of_points_for_fft_spectr/2)
@@ -356,7 +357,7 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
         # Real time resolution of averaged spectra
         fine_clock_freq = (int(clock_freq / 1000000.0) * 1000000.0)
         real_spectra_dt = float(no_of_points_for_fft_spectr / fine_clock_freq)
-        real_spectra_df = float((fine_clock_freq / 2) / (no_of_points_for_fft_spectr / 2 ))
+        real_spectra_df = float((fine_clock_freq / 2) / (no_of_points_for_fft_spectr / 2))
 
         print(' Number of spectra in bunch:                  ', no_of_spectra_in_bunch)
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
@@ -392,7 +393,7 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
                 new_tl_file.write((time_scale_bunch[i][:]) + '')
 
             # Reading and reshaping data of the bunch
-            wf_data = np.fromfile(file, dtype='f4', count = no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
+            wf_data = np.fromfile(file, dtype='f4', count=no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
             wf_data = np.reshape(wf_data, [no_of_points_for_fft_spectr, no_of_spectra_in_bunch], order='F')
 
             # preparing matrices for spectra
