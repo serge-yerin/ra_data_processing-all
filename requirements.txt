@@ -1,0 +1,10 @@
+astropy
+matplotlib
+numpy
+pandas
+pexpect
+Pillow
+progress
+requests
+scipy
+wakeonlan
