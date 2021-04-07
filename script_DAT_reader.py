@@ -527,8 +527,8 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                             dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + \
                             '_timeline.txt'
             txt_file = open(timeline_txt_file_name, "w")
-            for i in range(len(TimeScaleFig)):
-                txt_file.write(TimeScaleFig[i] + ' \n')
+            for i in range(len(dateTimeNew)):
+                txt_file.write(dateTimeNew[i] + ' \n')
             txt_file.close()
 
 
