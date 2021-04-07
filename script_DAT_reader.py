@@ -9,11 +9,11 @@ Software_version = '2019.05.08'
 common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A200604_105919.adr_Data_chA.dat'
+filename = common_path + 'C050620_084900.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
-data_types = ['chA']
+data_types = ['chA', 'chB']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 # freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
@@ -41,8 +41,8 @@ freqStart = 20.0
 freqStop = 30.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2020-06-04 12:26:30'
-dateTimeStop =  '2020-06-04 12:27:10'
+dateTimeStart = '2020-06-05 09:35:30'
+dateTimeStop =  '2020-06-05 09:38:30'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
@@ -512,22 +512,21 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # Save selected part of the dynamic spectrum to txt file
         if save_to_txt_file and StartStopSwitch > 0:
-            txt_file_name = str(df_filename[0:18]) + '_' + \
+            txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
                             dateTimeStart[11:].replace(':','-') + ' - ' + dateTimeStop[11:].replace(':','-') + '.txt'
             txt_file = open(txt_file_name, "w")
             for step in range(len(freqLine)):
                 txt_file.write(''.join(format(array[step, i], "12.5f") for i in range(time_points_num)) + ' \n')
             txt_file.close()
 
-
         # Figure in PhD thesis format
         '''
         fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+data_types[j]+
                         ' Dynamic spectrum cleanned and normalized_PhD'+'.png')
-        OneDynSpectraPlotPhD(array, VminNorm, VmaxNorm, Suptitle,
+        OneDynSpectraPlotPhD(array, 0, 30, Suptitle,
                         'Інтенсивність, дБ', len(dateTimeNew),
                         TimeScaleFig, freqLine,
-                        len(freqLine), colormap, 'Дата та час UTC', fig_file_name,
+                        len(freqLine), 'Greys', 'Час UTC', fig_file_name,
                         current_date, current_time, Software_version, customDPI)
         '''
         '''

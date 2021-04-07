@@ -274,7 +274,8 @@ def OneDynSpectraPlotPhD(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, T
     text = axarr.get_xticks().tolist()
     for i in range(len(text)-1):
         k = int(text[i])
-        text[i] = TimeScale[k][0:20]
+        # text[i] = TimeScale[k][0:20]
+        text[i] = TimeScale[k][12:20]
 
     ticks_loc = axarr.get_xticks().tolist()                              # <---- Added to suppress warning
     axarr.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))       # <---- Added to suppress warning
