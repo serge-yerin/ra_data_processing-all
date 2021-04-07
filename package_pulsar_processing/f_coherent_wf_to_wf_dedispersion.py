@@ -53,7 +53,6 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             prev_dm_str = fname.split('_')[1]
             prev_dm = np.float32(prev_dm_str)
             new_dm = prev_dm + DM
-            # file_data_name = 'DM_' + str(np.round(new_dm, 6)) + '_' + fname.removeprefix('DM_' + prev_dm_str + '_')
             n = len('DM_' + prev_dm_str + '_')
             file_data_name = 'DM_' + str(np.round(new_dm, 6)) + '_' + fname[n:]
         else:
@@ -104,10 +103,11 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
         bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file - 1,
                              suffix='%(percent)d%%')
+        bar.start()
 
         for bunch in range(no_of_bunches_per_file - 1):
 
-            bar.next()
+            # bar.next()
 
             # Read time from timeline file for the bunch
             time_scale_bunch = []
@@ -261,6 +261,8 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             # Rolling temp_array to put current data first
             buffer_array = np.roll(buffer_array, - max_shift)
             buffer_array[:, max_shift:] = 0
+
+            bar.next()
 
         bar.finish()
         old_tl_file.close()
