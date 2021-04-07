@@ -511,13 +511,27 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                           fig_file_name, current_date, current_time, Software_version, customDPI)
 
         # Save selected part of the dynamic spectrum to txt file
+
         if save_to_txt_file and StartStopSwitch > 0:
+
+            # Saving dynamic spectra
             txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
-                            dateTimeStart[11:].replace(':','-') + ' - ' + dateTimeStop[11:].replace(':','-') + '.txt'
+                            dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + '.txt'
             txt_file = open(txt_file_name, "w")
             for step in range(len(freqLine)):
                 txt_file.write(''.join(format(array[step, i], "12.5f") for i in range(time_points_num)) + ' \n')
             txt_file.close()
+
+            # Saving time axis
+            timeline_txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
+                            dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + \
+                            '_timeline.txt'
+            txt_file = open(timeline_txt_file_name, "w")
+            for i in range(len(TimeScaleFig)):
+                txt_file.write(TimeScaleFig[i] + ' \n')
+            txt_file.close()
+
+
 
         # Figure in PhD thesis format
         '''
