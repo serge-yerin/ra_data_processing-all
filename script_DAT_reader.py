@@ -528,7 +528,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                             '_timeline.txt'
             txt_file = open(timeline_txt_file_name, "w")
             for i in range(len(dateTimeNew)):
-                txt_file.write(dateTimeNew[i] + ' \n')
+                txt_file.write(dateTimeNew[i])
             txt_file.close()
 
 
@@ -544,7 +544,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                         current_date, current_time, Software_version, customDPI)
         '''
         '''
-        # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
+        # *** TEMPLATE FOR JOURNALS Dynamic spectra of cleaned and normalized signal ***
         plt.figure(2, figsize=(16.0, 7.0))
         ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
         plt.ylabel('Frequency, MHz', fontsize=12, fontweight='bold')
