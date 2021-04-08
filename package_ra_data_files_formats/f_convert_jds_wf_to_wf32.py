@@ -118,7 +118,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 if channel == 2:                    # Two channels mode
                     # Cut the timeline of second channel
                     timeline_block_str = timeline_block_str[0:int(len(timeline_block_str) / 2)]  
-                for i in range (len(timeline_block_str)):
+                for i in range(len(timeline_block_str)):
                     time_scale_bunch.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[i])  # [0:12]
 
                 # Deleting the time blocks from waveform data
