@@ -8,7 +8,7 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = '/media/gurt/PC2+T_Nov2020/2020.12.22-27_UTR-2_pulsar_survey/2020.12.21_UTR2_J0750p57_processed'  # 'h:/To process/'
+path_to_data = 'DATA/'  # 'h:/To process/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
