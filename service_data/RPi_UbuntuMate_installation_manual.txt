@@ -1,0 +1,209 @@
+#########################################################
+#        Adding armhf architecture (to arm64)
+#########################################################
+
+dpkg --print-architecture
+dpkg --print-foreign-architectures
+sudo dpkg --add-architecture armhf
+sudo apt update
+
+
+#########################################################
+#           Set time format in Ubuntu MATE
+#########################################################
+
+gsettings set com.canonical.indicator.datetime time-format custom
+gsettings set com.canonical.indicator.datetime custom-time-format '   %Y-%m-%d  %a  %H : %M : %S   '
+
+
+#########################################################
+#         Installing common useful programs
+#########################################################
+sudo apt install doublecmd-gtk
+sudo apt install notepadqq
+sudo apt install mumble
+sudo apt install terminator
+sudo apt install wine32
+sudo apt install inxi
+sudo apt install git
+sudo apt install curl
+
+
+#########################################################
+#   Installing Pyenv and various python versions
+#########################################################
+
+# Go to its GitHub:
+
+https://github.com/pyenv/pyenv
+
+# use wiki to install all needed libraries, usually:
+
+sudo apt update
+sudo apt install --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+# Then go to pyenv installer GitHub:
+
+https://github.com/pyenv/pyenv-installer
+
+# Run the command-script to install:
+
+$ curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+# !!! ATTENTION !!! At the end of installation the terminal gives the lines to add 
+# to the end of bashrc file, copy them! Open bashrc file and add them at the end.
+# You can use nano editor to add the lines:
+
+sudo nano bashrc
+
+# scroll to the end of file
+# use Ctrl+Shift+V to insert the lines
+# use Ctrl+O and Enter to save changes (Write out)
+# use Ctrl+X to exit
+
+# Restart the terminal to apply the changes, now you can install python versions.
+# This command gives a list of available python versions to install:
+
+pyenv install --list
+
+# Install the needed version:
+
+pyenv install 3.9.2
+
+# Check which python is the global interpreter
+
+pyenv global
+
+# cahnge the global python interpreter to your version:
+
+pyenv global 3.9.2
+
+
+#########################################################
+#     Making various python virtual environments
+#########################################################
+python3 -m venv ~/python/venv/environment
+
+# Activate and deactivate it:
+
+source ~/python/venv/environment
+deactivate
+
+
+#########################################################
+#             Clone work repositories
+#########################################################
+
+cd python
+git clone https://github.com/serge-yerin/ra_data_processing-all.git
+
+
+
+#########################################################
+#           Download and install packages
+#########################################################
+Teamviwer
+RealVNC server and RealVNC viewer
+
+# Install RealVNC viewer for Raspberry Pi ARM architecture
+
+https://www.realvnc.com/en/connect/download/viewer/raspberrypi/
+
+
+# Install RealVNC server instructions are here:
+https://ubuntu-mate.community/t/realvnc-install-on-rpi4-with-ubuntumate-20-04-1-lts/22559/2
+
+# In brief the instructions are as follows:
+
+# 1. Make sure you've allowed the architecture:
+
+sudo dpkg --add-architecture armhf && sudo apt update
+
+# 2. Download RealVNC Server for Raspberry or newer version and install it
+https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.2-Linux-ARM.deb
+
+# 3. Open the repository:
+https://github.com/raspberrypi/firmware
+
+# go to folder: master/opt/vc/lib, download the next libs:
+
+libbcm_host.so
+libvcos.so
+libmmal.so
+libmmal_core.so
+libmmal_components.so
+libmmal_util.so
+libmmal_vc_client.so
+libvchiq_arm.so
+libvcsm.so
+libcontainers.so
+
+# Store the libs to /usr/lib
+
+# 4. Start VNC service
+
+sudo systemctl start vncserver-x11-serviced.service
+
+# 5. Enable Server Start on reboot
+
+sudo systemctl enable vncserver-x11-serviced.service
+
+# 6. Enter credentials (make sure you have free computers to add in your account)
+
+sudo vnclicensewiz
+
+
+
+
+#########################################################
+#                   NanoVNA-saver
+#########################################################
+
+# Installation of NanoVNA-saver took a long time.
+# In requirements.txt file there were libraries:
+
+scipy, cython, pyqt5, pyserial, numpy
+
+# scipy and pyqt5 took a lot of efforts to install.
+# I've installed with separate venv "nanovna" (python 3.9.1 + above libs + wheel)
+# But before I've installed the python - qt5 libs with apt:
+
+sudo apt install python3-pyqt5
+sudo apt install qt5-default
+sudo apt install qt5-qmake
+sudo apt install pyqt5-dev-tools
+
+# Then clone the repository, install the soft allow the port to be used 
+# each time and run the soft
+
+cd python
+git clone https://github.com/NanoVNA-Saver/nanovna-saver.git
+cd nanovna-saver
+pip3 install .
+sudo chmod a+rw /dev/ttyACM0
+python nanovna-saver.py
+
+# More about how to allow the port read here:
+https://askubuntu.com/questions/1219498/could-not-open-port-dev-ttyacm0-error-after-every-restart
+
+
+
+
+#########################################################
+#                  Updating software
+#########################################################
+
+sudo apt update
+apt list --upgradable
+sudo apt upgrade
+sudo apt autoremove
+pyenv update
+
+cd python/ra_data_processing-all
+git pull
+
+
+
+
+
+
