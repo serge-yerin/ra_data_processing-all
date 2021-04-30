@@ -267,6 +267,8 @@ def OneDynSpectraPlotPhD(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, T
     rc('font', size=14, weight='bold')
     axarr.set_ylabel('Частота, МГц', fontweight='bold', fontsize=14)
     #fig.suptitle(Suptitle, fontsize = 10, fontweight = 'bold', x = 0.46, y = 0.96)
+    ticks_loc = axarr.get_yticks().tolist()                               # <---- Added to suppress warning
+    axarr.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))        # <---- Added to suppress warning
     axarr.set_yticklabels(axarr.get_yticks(), fontsize=14, fontweight='bold')
     cbar = fig.colorbar(im0, ax=axarr, pad=0.005)
     cbar.ax.tick_params(labelsize=14)
@@ -274,12 +276,14 @@ def OneDynSpectraPlotPhD(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, T
     text = axarr.get_xticks().tolist()
     for i in range(len(text)-1):
         k = int(text[i])
-        text[i] = TimeScale[k][0:20]
+        text[i] = TimeScale[k]
+        # text[i] = TimeScale[k][0:20]
 
-    ticks_loc = axarr.get_xticks().tolist()                              # <---- Added to suppress warning
-    axarr.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))       # <---- Added to suppress warning
-
-    axarr.set_xticklabels(text, fontsize = 12, fontweight = 'bold')
+    ticks_loc = axarr.get_xticks().tolist()                               # <---- Added to suppress warning
+    axarr.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))        # <---- Added to suppress warning
+    ticks_loc = axarr.get_yticks().tolist()                               # <---- Added to suppress warning
+    axarr.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))        # <---- Added to suppress warning
+    axarr.set_xticklabels(text, fontsize=12, fontweight='bold')
     axarr.set_yticklabels(axarr.get_yticks(), fontsize=12, fontweight='bold')
     axarr.set_xlabel(Xlabel, fontsize=14, fontweight='bold')
     pylab.savefig(fig_file_name, bbox_inches='tight', dpi=customDPI)
@@ -298,7 +302,8 @@ def TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminA, VmaxA, VminB, VmaxB, Suptitle
     """
     fig, axarr = plt.subplots(2, 1, figsize=(16.0, 9.0))
     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.08)
-    im0 = axarr[0].imshow(np.flipud(Data_Ch_A), aspect='auto', vmin=VminA, vmax=VmaxA, extent=[0,no_of_spectra,frequency[0],frequency[FreqPointsNum-1]], cmap=colormap)
+    im0 = axarr[0].imshow(np.flipud(Data_Ch_A), aspect='auto', vmin=VminA, vmax=VmaxA,
+                          extent=[0,no_of_spectra, frequency[0], frequency[FreqPointsNum-1]], cmap=colormap)
     rc('font', size=8, weight='bold')
 
     ticks_loc = axarr[0].get_yticks().tolist()                              # <---- Added to suppress warning
@@ -339,7 +344,6 @@ def TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminA, VmaxA, VminB, VmaxB, Suptitle
 
     ticks_loc = axarr[1].get_yticks().tolist()                              # <---- Added to suppress warning
     axarr[1].yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))       # <---- Added to suppress warning
-
 
     axarr[1].set_xlabel('UTC Time, HH:MM:SS.msec', fontsize=10, fontweight='bold')
     axarr[1].set_ylabel('Frequency, MHz', fontsize=10, fontweight='bold')

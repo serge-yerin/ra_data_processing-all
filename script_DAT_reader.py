@@ -9,7 +9,7 @@ Software_version = '2019.05.08'
 common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A200604_105919.adr_Data_chA.dat'
+filename = common_path + 'A170719_230748.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
@@ -21,12 +21,12 @@ freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
 # freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
+StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
 SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 10                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 15                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
 customDPI = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
@@ -41,14 +41,14 @@ freqStart = 20.0
 freqStop = 30.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2020-06-04 12:26:30'
-dateTimeStop =  '2020-06-04 12:27:10'
+dateTimeStart = '2019-07-19 12:00:00'
+dateTimeStop =  '2019-07-21 12:00:00'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
 freqStopTXT = 33.0
 
-save_to_txt_file = True         # Save short part of dynamic spectrum to txt file
+save_to_txt_file = False         # Save short part of dynamic spectrum to txt file
 
 # ###############################################################################
 # *******************************************************************************
@@ -511,27 +511,38 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                           fig_file_name, current_date, current_time, Software_version, customDPI)
 
         # Save selected part of the dynamic spectrum to txt file
+
         if save_to_txt_file and StartStopSwitch > 0:
-            txt_file_name = str(df_filename[0:18]) + '_' + \
-                            dateTimeStart[11:].replace(':','-') + ' - ' + dateTimeStop[11:].replace(':','-') + '.txt'
+
+            # Saving dynamic spectra
+            txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
+                            dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + '.txt'
             txt_file = open(txt_file_name, "w")
             for step in range(len(freqLine)):
                 txt_file.write(''.join(format(array[step, i], "12.5f") for i in range(time_points_num)) + ' \n')
             txt_file.close()
 
+            # Saving time axis
+            timeline_txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
+                            dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + \
+                            '_timeline.txt'
+            txt_file = open(timeline_txt_file_name, "w")
+            for i in range(len(dateTimeNew)):
+                txt_file.write(dateTimeNew[i])
+            txt_file.close()
 
         # Figure in PhD thesis format
         '''
         fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+data_types[j]+
                         ' Dynamic spectrum cleanned and normalized_PhD'+'.png')
-        OneDynSpectraPlotPhD(array, VminNorm, VmaxNorm, Suptitle,
+        OneDynSpectraPlotPhD(array, 0, 4, Suptitle,
                         'Інтенсивність, дБ', len(dateTimeNew),
                         TimeScaleFig, freqLine,
-                        len(freqLine), colormap, 'Дата та час UTC', fig_file_name,
+                        len(freqLine), 'Greys', 'Дата та час UTC', fig_file_name,
                         current_date, current_time, Software_version, customDPI)
         '''
         '''
-        # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
+        # *** TEMPLATE FOR JOURNALS Dynamic spectra of cleaned and normalized signal ***
         plt.figure(2, figsize=(16.0, 7.0))
         ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
         plt.ylabel('Frequency, MHz', fontsize=12, fontweight='bold')

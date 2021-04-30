@@ -130,23 +130,23 @@ def cut_needed_time_points_from_txt(path, filename):
     pylab.savefig(path + '/Extracted pulse (selected_points).png', bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
-    # Making Fourier transform of the profiles
-
-    aver_profile_sp = np.abs(np.fft.fft(freq_profile_aver)[int(len(freq_profile_aver)/2):])
-    max_profile_sp = np.abs(np.fft.fft(freq_profile_max)[int(len(freq_profile_max)/2):])
-
-    # Making figure of profiles Fourier analysis
-    fig = plt.figure(figsize=(8.0, 6.0))
-    ax1 = fig.add_subplot(211)
-    ax1.plot(aver_profile_sp, linewidth='0.50')
-    ax1.set_title('Spectrum of average profile', fontsize=5, fontweight='bold')
-    ax1.set_ylabel('Amplitude, a.u.', fontsize=6, fontweight='bold')
-    ax2 = fig.add_subplot(212)
-    ax2.plot(max_profile_sp, linewidth='0.50')
-    ax2.set_title('Spectrum of maximal profile', fontsize=5, fontweight='bold')
-    ax2.set_ylabel('Amplitude, a.u.', fontsize=6, fontweight='bold')
-    pylab.savefig(path + '/Fourier analysis of pulse frequency profiles.png', bbox_inches='tight', dpi=customDPI)
-    plt.close('all')
+    # # Making Fourier transform of the profiles
+    #
+    # aver_profile_sp = np.abs(np.fft.fft(freq_profile_aver)[int(len(freq_profile_aver)/2):])
+    # max_profile_sp = np.abs(np.fft.fft(freq_profile_max)[int(len(freq_profile_max)/2):])
+    #
+    # # Making figure of profiles Fourier analysis
+    # fig = plt.figure(figsize=(8.0, 6.0))
+    # ax1 = fig.add_subplot(211)
+    # ax1.plot(aver_profile_sp, linewidth='0.50')
+    # ax1.set_title('Spectrum of average profile', fontsize=5, fontweight='bold')
+    # ax1.set_ylabel('Amplitude, a.u.', fontsize=6, fontweight='bold')
+    # ax2 = fig.add_subplot(212)
+    # ax2.plot(max_profile_sp, linewidth='0.50')
+    # ax2.set_title('Spectrum of maximal profile', fontsize=5, fontweight='bold')
+    # ax2.set_ylabel('Amplitude, a.u.', fontsize=6, fontweight='bold')
+    # pylab.savefig(path + '/Fourier analysis of pulse frequency profiles.png', bbox_inches='tight', dpi=customDPI)
+    # plt.close('all')
 
     return start_point, end_point
 
@@ -158,6 +158,6 @@ def cut_needed_time_points_from_txt(path, filename):
 
 if __name__ == '__main__':
 
-    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
-    filename = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat - Extracted pulse.txt'
+    common_path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_5.755_E261015_035419.jds_Data_wfA+B.dat'
+    filename = 'Norm_DM_5.755_E261015_035419.jds_Data_wfA+B.dat - Extracted pulse.txt'
     cut_needed_time_points_from_txt(common_path, filename)

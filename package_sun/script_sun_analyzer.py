@@ -52,13 +52,10 @@ for line in file:
     floatnum = [float(i) for i in num]
     param.append(floatnum)
 file.close()
-
 param = np.array((param))
-
 print ('  Shape of the array: ', param.shape)
 
 data = np.max(param, axis=1)
-
 median_data = median_filter(data, median_filter_window)
 
 fig = plt.figure(figsize=(10.0, 6.0))
