@@ -18,7 +18,9 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0,
     #'''
     # Keeping connection active
     serversocket.send(('get prc/srv/ctl/pth\0').encode())
-    f_read_adr_meassage(serversocket, 0)
+    # serversocket.send(('get prc/srv/ctl/adr\0').encode())
+    a = f_read_adr_meassage(serversocket, 0)
+    # print(a)
     #'''
     now = datetime.datetime.now()
     diff = int((time_to_start - now).total_seconds())
@@ -35,7 +37,9 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0,
                 #'''
                 # Keeping connection active
                 serversocket.send(('get prc/srv/ctl/pth\0').encode())
+                # serversocket.send(('get prc/srv/ctl/adr\0').encode())
                 data = f_read_adr_meassage(serversocket, 0)
+                # print(data)
                 #if (data.startswith('SUCCESS')):
                 #    pass
                 #else:
@@ -48,7 +52,7 @@ def f_wait_predefined_time_connected(time_to_start, serversocket, synchro = 0,
         if synchro > 0:
             # Update synchronization of PC and ADR
             f_synchronize_adr(serversocket, host, time_server)
-            print('') # To make empty line after synchro info
+            print('')  # To make empty line after synchro info
 
         now = datetime.datetime.now()
         diff = int((time_to_start - now).total_seconds())

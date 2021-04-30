@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # Connect to the ADR receiver via socket
     serversocket, input_parameters_str = f_connect_to_adr_receiver(receiver_ip, port, 1, 1)  # 1 - control, 1 - delay in sec
 
-    f_initialize_adr(serversocket, 1, pause = 0.5)
+    f_initialize_adr(serversocket, receiver_ip, 1, pause=0.5)
 
 '''
     "set prc/srv/ctl/adr 7 0"; //stop  DSP
