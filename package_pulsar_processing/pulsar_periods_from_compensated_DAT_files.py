@@ -129,10 +129,11 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
     bar = IncrementalBar('   Making pictures of n periods: ', max=num_of_blocks, suffix='%(percent)d%%')
+    bar.start()
 
     for block in range(num_of_blocks+1):   # Main loop by blocks of data
 
-        bar.next()
+        # bar.next()
 
         # current_time = time.strftime("%H:%M:%S")
         # print(' * Data block # ', block + 1, ' of ', num_of_blocks + 1, '  started at: ', current_time)
@@ -195,6 +196,8 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
             pylab.savefig(best_result_path + '/' + filename + ' fig. ' + str(block + 1) + ' - Combined picture.png',
                           bbox_inches='tight', dpi=customDPI)
         plt.close('all')
+
+        bar.next()
 
     bar.finish()
     data_file.close()
