@@ -116,7 +116,7 @@ for i in range(freq_num):
 
     # open_responce[i] = y2_value[0][i]
 
-# [x_value, y1_value, y2_value] = read_frequency_and_two_values_txt ([short_file])
+# [x_value, y1_value, y2_value] = read_frequency_and_two_values_txt([short_file])
 [x_value, y1_value] = read_date_time_and_one_value_txt ([short_file])
 
 short_responce = np.zeros(subband_number * freq_num)
