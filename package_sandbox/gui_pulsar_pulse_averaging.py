@@ -28,27 +28,27 @@ def process_file():
         # array = np.array([[float(digit) for digit in line.split()] for line in file])
         # file.close()
 
-        # time_aver_const = 3
-        # freq_aver_const = 2
         # array = np.array([[1,2,3,4,5,6,7,8,9,10], [1,2,3,4,5,6,7,8,9,10], [1,2,3,4,5,6,7,8,9,10], [1,2,3,4,5,6,7,8,9,10]])
         # print(array.shape)
         # print(array)
 
         # Cutting the array ends which are not divisible to average constants
         array = array[:(array.shape[0] // freq_aver_const) * freq_aver_const,
-                      :(array.shape[1] // time_aver_const) * time_aver_const]
+                :(array.shape[1] // time_aver_const) * time_aver_const]
 
         # Time averaging
         if time_aver_const > 1:
-            array = np.mean(array.reshape(array.shape[0], time_aver_const, -1), axis=2)
+            array = array.reshape(array.shape[0], -1, time_aver_const)
+            array = np.mean(array, axis=2)
 
         # Frequency averaging
         if freq_aver_const > 1:
             array = np.transpose(array)
-            array = np.mean(array.reshape(array.shape[0], freq_aver_const, -1), axis=2)
+            array = np.mean(array.reshape(array.shape[0], -1, freq_aver_const), axis=2)
             array = np.transpose(array)
         print(array.shape)
-
+        print(array)
+        a, b = array.shape
         # # Save averaged data to a new txt file
         # result_txt_file = open(file_path[:-4] + '_dtx' + str(time_aver_const) + \
         #                        '_dfx' + str(freq_aver_const) + '.txt', "w")
@@ -56,8 +56,8 @@ def process_file():
         #     result_txt_file.write(' '.join('  {:+12.7E}'.format(array[freq, i]) \
         #                                     for i in range(array.shape[1])) + ' \n')
         # result_txt_file.close()
-
-        lbl_status.config(text='Conversion finished', fg="Dark blue")
+        text = 'Conversion finished, new array shape is '+str(a)+' x '+str(b)
+        lbl_status.config(text=text, fg="Dark blue")
     except EOFError:
         lbl_status.config(text='Conversion error! Try another file.', fg="Dark red")
     else:
