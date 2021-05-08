@@ -1,13 +1,13 @@
-from threading import Thread
-from tkinter import *
-from tkinter import ttk
-from tkinter.scrolledtext import ScrolledText
-import tkinter.filedialog
 import time
+import tkinter.filedialog
+from os import path
 from time import strftime
 from datetime import datetime
-from os import path
+from tkinter import *
 from PIL import ImageTk, Image
+from threading import Thread
+from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -15,23 +15,23 @@ if __package__ is None:
 
 from package_receiver_control.f_read_schedule_txt_for_adr import find_parameter_value
 from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
-from package_receiver_control.f_read_and_set_adr_parameters import f_check_adr_parameters_correctness
 
 """
 The GUI program to control ADR receiver according to schedule
 """
 software_version = '2021.05.08'
+
 # *******************************************************************************
-#                              V A R I A B L E S                                *
+#                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
 adr_ip = '192.168.1.171'
 logo_path = 'media_data/gurt_logo.png'
-
-# *******************************************************************************
-#                              R U N   S T A T E                                *
-# *******************************************************************************
 block_flag = True
 block_selecting_new_schedule_flag = False
+x_space = (5, 5)
+y_space = (5, 5)
+y_space_adr = 1
+colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1']
 
 # *******************************************************************************
 #                                F U N C T I O N S                              *
@@ -50,6 +50,9 @@ def time_show():
 
 
 def read_schedule_txt_file(schedule_txt_file):
+    """
+    Read ADR (GURT) observations schedule from txt file of predefined format
+    """
     schedule = []
     file = open(schedule_txt_file, "r")
     for line in file:
@@ -84,7 +87,9 @@ def read_schedule_txt_file(schedule_txt_file):
 
 
 def check_correctness_of_schedule(schedule):
-    # Check time correctness (later then now, start is before stop): storing them in datetime format in one list
+    """
+    Check time correctness (later then now, start is before stop): storing them in datetime format in one list
+    """
     time_line = []
     schedule_comment_text = ''
     for item in range(len(schedule)):
@@ -103,18 +108,13 @@ def check_correctness_of_schedule(schedule):
             pass
         else:
             schedule_comment_text += ' Time is not in right order!'
-            # print('\n  ERROR! Time is not in right order!!! \n\n')
-            # sys.exit('         Program stopped')
 
     # Check if the first time in the list is in future
     now = datetime.now()
     diff = int((time_line[0] - now).total_seconds())
     if diff <= 0:
         schedule_comment_text += ' Time is in the past!'
-        # print('\n  ERROR! Time is in the past!!! \n\n')
-        # sys.exit('         Program stopped')
 
-    # check FFT value correctness
     if schedule_comment_text == '':
         schedule_comment_text = 'Schedule seems to be OK, number of observations: ' + str(len(schedule))
         lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="Dark blue")
@@ -238,9 +238,6 @@ def start_control_by_schedule():
 #                             M A I N    W I N D O W                            *
 # *******************************************************************************
 
-x_space = (5, 5)
-y_space = (5, 5)
-
 window = Tk()
 window.title('ADR control GUI v.'+software_version+' (c) YeS')
 window.rowconfigure(0, minsize=30, weight=1)
@@ -286,8 +283,6 @@ lbl_adr_status.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx
 lbl_adr_ip.grid(row=0, column=2, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 ent_adr_ip.grid(row=0, column=3, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
-y_space_adr = 1
-
 lbl_adr_fadc_nam = Label(frame_adr_status, text="ADC frequency:")
 lbl_adr_fadc_val = Label(frame_adr_status, text="")
 lbl_adr_sadc_nam = Label(frame_adr_status, text="ADC source:")
@@ -318,16 +313,15 @@ lbl_adr_fres_val.grid(row=3, column=1, rowspan=1, columnspan=1, stick='w', padx=
 lbl_adr_tres_nam.grid(row=3, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_tres_val.grid(row=3, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
-lbl_adr_flow_nam = Label(frame_adr_status, text="From frequency:")
+lbl_adr_flow_nam = Label(frame_adr_status, text="Lowest frequency:")
 lbl_adr_flow_val = Label(frame_adr_status, text="")
-lbl_adr_fhig_nam = Label(frame_adr_status, text="To frequency:")
+lbl_adr_fhig_nam = Label(frame_adr_status, text="Highest frequency:")
 lbl_adr_fhig_val = Label(frame_adr_status, text="")
 
 lbl_adr_flow_nam.grid(row=4, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_flow_val.grid(row=4, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
-lbl_adr_fhig_nam.grid(row=4, column=2, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
-lbl_adr_fhig_val.grid(row=4, column=3, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-
+lbl_adr_fhig_nam.grid(row=4, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_fhig_val.grid(row=4, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_rnam_nam = Label(frame_adr_status, text="Receiver name:")
 lbl_adr_rnam_val = Label(frame_adr_status, text="")
@@ -355,8 +349,9 @@ lbl_adr_nfcs_nam.grid(row=8, column=2, rowspan=1, columnspan=1, stick='e', padx=
 lbl_adr_nfcs_val.grid(row=8, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_recd_status = Label(frame_adr_status, text='Waiting', font='none 12', width=15, bg='light gray')
+lbl_mast_status = Label(frame_adr_status, text='Control', font='none 9', width=12, bg='light green')
 lbl_recd_status.grid(row=9, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
-
+lbl_mast_status.grid(row=9, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space)
 
 # Setting elements of the frame "Load schedule"
 lbl_path_in = Label(frame_load_schedule, text="  Path:")
@@ -377,7 +372,7 @@ lbl_scedule_comments.grid(row=1, column=0, rowspan=1, columnspan=4, stick='nswe'
 btn_start_unblock = Button(frame_control, text="UNBLOCK", font='none 9 bold', relief='raised', width=12,
                            command=block_control_button)
 btn_start_schedule = Button(frame_control, text="Start control", font='none 9 bold', relief='raised', fg='gray',
-                            width=15, command=start_control_by_schedule_button)
+                            width=27, command=start_control_by_schedule_button)
 btn_start_unblock.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 btn_start_schedule.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
@@ -393,7 +388,7 @@ lbl_send_tg_messages.grid(row=1, column=0, rowspan=1, columnspan=1, stick='nswe'
 btn_send_tg_messages.grid(row=1, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
 img = ImageTk.PhotoImage(Image.open(logo_path))
-ira_logo = Label(frame_control, image=img, width=200)
+ira_logo = Label(frame_control, image=img, width=145)
 ira_logo.grid(row=0, column=2, rowspan=3, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
 lbl_control_status = Label(frame_control, text='ADR is not connected!', font='none 12', width=15, bg='light gray')
