@@ -1,4 +1,5 @@
 import time
+import socket
 import tkinter.filedialog
 from os import path
 from time import strftime
@@ -13,6 +14,7 @@ from tkinter.scrolledtext import ScrolledText
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_read_schedule_txt_for_adr import find_parameter_value
 from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
 
@@ -25,14 +27,15 @@ software_version = '2021.05.08'
 #                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
 adr_ip = '192.168.1.171'
+port = 38386                    # Port of the receiver to connect (always 38386)
 logo_path = 'media_data/gurt_logo.png'
-block_flag = True
-block_selecting_new_schedule_flag = False
 x_space = (5, 5)
 y_space = (5, 5)
 y_space_adr = 1
 colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1']
-
+block_flag = True
+block_selecting_new_schedule_flag = False
+adr_connection_flag = False
 # *******************************************************************************
 #                                F U N C T I O N S                              *
 # *******************************************************************************
@@ -47,6 +50,69 @@ def time_show():
     time_lbl.config(text='\n     Local:     ' + loc_time_str +
                          '     \n      UTC:      ' + utc_time_str + '     \n')
     time_lbl.after(1000, time_show)
+
+
+def f_connect_to_adr_receiver(host, port):   # UNUSED NOW !!!
+    """
+    Function connects to the ADR receiver via specified socket
+    Input parameters:
+        host                - IP address to connect
+        port                - port to connect
+        control             - to control (1) or to view (0) possibility
+        delay               - delay in seconds to wait after connection
+    Output parameters:
+        serversocket        - handle of socket to send and receive messages from server
+        input_parameters_s  - long string with all receiver parameters at the moment of connection
+    """
+    control = 1
+    delay = 1
+    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        lbl_adr_status.config(text='Connecting...', bg='yellow2')
+        serversocket.connect((host, port))
+    except TimeoutError:
+        lbl_adr_status.config(text='Failed!', bg='orange')
+    else:
+        pass
+    finally:
+        pass
+
+    serversocket.send('ADRSCTRL'.encode())
+    register_cc_msg = bytearray([108, 0, 0, 0])
+    register_cc_msg.extend(b'YeS\0                                                            ')  # Name 64 bytes
+    register_cc_msg.extend(b'adrs\0                           ')   # Password 32 bytes
+    register_cc_msg.extend([0, 0, 0, control])                     # Priv 4 bytes
+    register_cc_msg.extend([0, 0, 0, control])                     # CTRL 4 bytes
+    register_cc_msg = bytes(register_cc_msg)
+    serversocket.send(register_cc_msg)
+
+    data = f_read_adr_meassage(serversocket, 0)
+    data = serversocket.recv(108)
+    if data[-1] == 1:
+        lbl_mast_status.config(text='Control', font='none 9', bg='chartreuse2')
+    else:
+        lbl_mast_status.config(text='View only', font='none 9', bg='orange')
+    lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
+    adr_connection_flag = True
+
+    # Reading all parameters valid now
+    input_parameters_str = ''
+    for i in range(23):
+        input_parameters_str += f_read_adr_meassage(serversocket, 0)
+    time.sleep(delay)   # Making pause to read the data
+    return serversocket, input_parameters_str
+
+
+def start_and_keep_adr_connection():
+    host = ent_adr_ip.get()
+    serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port)
+    while True:
+        time.sleep(1)
+
+
+def start_adr_connection_thread():
+    adr_connection_thread = Thread(target=start_and_keep_adr_connection, daemon=True)
+    adr_connection_thread.start()
 
 
 def read_schedule_txt_file(schedule_txt_file):
@@ -117,9 +183,9 @@ def check_correctness_of_schedule(schedule):
 
     if schedule_comment_text == '':
         schedule_comment_text = 'Schedule seems to be OK, number of observations: ' + str(len(schedule))
-        lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="Dark blue")
+        lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="Dark blue", bg='gray95')
     else:
-        lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="Dark red")
+        lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="black", bg="orange")
     return schedule
 
 
@@ -159,11 +225,19 @@ def check_parameters_of_observations(schedule):
     # Check correctness of parameters in txt files
     for obs_no in range(len(schedule)):
         parameters_file = 'service_data/' + schedule[obs_no][10]
-        parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+        try:
+            parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+        except FileNotFoundError:
+            lbl_scedule_comments.config(text='File not found: ' + schedule[obs_no][10],
+                                        font='none 9 bold', fg="black", bg="orange")
+        else:
+            pass
+        finally:
+            pass
         parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
         if error_msg != '':
             text = 'Error in parameters observation # ' + str(obs_no+1) + ': ' + error_msg
-            lbl_scedule_comments.config(text=text, font='none 9 bold', fg="Dark red")
+            lbl_scedule_comments.config(text=text, font='none 9 bold', fg="black", bg="orange")
     del parameters_dict, parameters_file
 
 
@@ -187,6 +261,11 @@ def choose_schedule_file():
         entry_schedule_file.delete(0, END)
         entry_schedule_file.insert(0, file_path)
         schedule = read_schedule_txt_file(file_path)
+        if schedule == []:
+            lbl_scedule_comments.config(text='Schedule is empty!', font='none 9 bold', fg="black", bg="orange")
+            ent_schedule.config(state=NORMAL)
+            ent_schedule.delete('1.0', END)  # Erase everything from the schedule window
+            ent_schedule.config(state=DISABLED)
         check_correctness_of_schedule(schedule)
         check_parameters_of_observations(schedule)
         load_schedule_to_gui(schedule)
@@ -215,10 +294,6 @@ def unblock_control_by_schedule():
     btn_send_tg_messages.config(state=NORMAL)
 
 
-def start_adr_connection_thread():
-    pass
-
-
 def start_control_by_schedule_button():
     control_thread = Thread(target=start_control_by_schedule, daemon=True)
     control_thread.start()
@@ -227,11 +302,15 @@ def start_control_by_schedule_button():
 def start_control_by_schedule():
     global block_selecting_new_schedule_flag
     if not block_flag:
+        # if adr_connection_flag:
         block_selecting_new_schedule_flag = True
         btn_select_file.config(fg='gray')
+        ent_schedule.tag_config('1', background='yellow')
+        lbl_control_status.config(text='Observation in progress!', bg='SlateBlue1')
         time.sleep(15)
         block_selecting_new_schedule_flag = False
         btn_select_file.config(fg='black')
+        lbl_control_status.config(text='Waiting to start', bg='light gray')
 
 
 # *******************************************************************************
@@ -339,17 +418,19 @@ lbl_adr_desc_nam.grid(row=7, column=0, rowspan=1, columnspan=1, stick='e', padx=
 lbl_adr_desc_val.grid(row=7, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_sdms_nam = Label(frame_adr_status, text="Sum/diff mode:")
-lbl_adr_sdms_val = Label(frame_adr_status, text="OFF", font='none 9', width=12, bg='light green')
+lbl_adr_sdms_val = Label(frame_adr_status, text="OFF", font='none 9', width=12, bg='chartreuse2')
 lbl_adr_nfcs_nam = Label(frame_adr_status, text="New file create:")
-lbl_adr_nfcs_val = Label(frame_adr_status, text="ON", font='none 9', width=12, bg='light green')
+lbl_adr_nfcs_val = Label(frame_adr_status, text="ON", font='none 9', width=12, bg='chartreuse2')
 
 lbl_adr_sdms_nam.grid(row=8, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_sdms_val.grid(row=8, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_nfcs_nam.grid(row=8, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_nfcs_val.grid(row=8, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
+lbl_sync_status = Label(frame_adr_status, text='Synchro', font='none 9', width=12, bg='light gray')
 lbl_recd_status = Label(frame_adr_status, text='Waiting', font='none 12', width=15, bg='light gray')
-lbl_mast_status = Label(frame_adr_status, text='Control', font='none 9', width=12, bg='light green')
+lbl_mast_status = Label(frame_adr_status, text='Unknown', font='none 9', width=12, bg='light gray')
+lbl_sync_status.grid(row=9, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space)
 lbl_recd_status.grid(row=9, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 lbl_mast_status.grid(row=9, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space)
 
@@ -358,7 +439,7 @@ lbl_path_in = Label(frame_load_schedule, text="  Path:")
 btn_select_file = Button(frame_load_schedule, text="Select file", relief='raised', width=12,
                          command=choose_schedule_file)
 # btn_select_file.focus_set()
-entry_schedule_file = Entry(frame_load_schedule, width=45)
+entry_schedule_file = Entry(frame_load_schedule, width=50)
 lbl_scedule_comments = Label(frame_load_schedule, text="")
 
 lbl_path_in.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
