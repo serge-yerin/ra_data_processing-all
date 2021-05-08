@@ -26,14 +26,22 @@ software_version = '2021.05.08'
 # *******************************************************************************
 adr_ip = '192.168.1.171'
 logo_path = 'media_data/gurt_logo.png'
+
+# *******************************************************************************
+#                              R U N   S T A T E                                *
+# *******************************************************************************
 block_flag = True
+block_selecting_new_schedule_flag = False
 
 # *******************************************************************************
 #                                F U N C T I O N S                              *
 # *******************************************************************************
 
-# Renew time readings each second
+
 def time_show():
+    """
+    Renew time readings each second
+    """
     loc_time_str = strftime('%Y . %m . %d     %H : %M : %S ')
     utc_time_str = strftime('%Y . %m . %d     %H : %M : %S ', time.gmtime())
     time_lbl.config(text='\n     Local:     ' + loc_time_str +
@@ -129,13 +137,15 @@ def load_schedule_to_gui(schedule):
 
 
 def choose_schedule_file():
-    filetypes = (('text files', '*.txt'), ('All files', '*.*'))
-    file_path = tkinter.filedialog.askopenfilename(title='Open a file', filetypes=filetypes)
-    entry_schedule_file.delete(0, END)
-    entry_schedule_file.insert(0, file_path)
-    schedule = read_schedule_txt_file(file_path)
-    # check_correctness_of_schedule(schedule)
-    load_schedule_to_gui(schedule)
+    block_selecting_new_schedule_flag
+    if not block_selecting_new_schedule_flag:
+        filetypes = (('text files', '*.txt'), ('All files', '*.*'))
+        file_path = tkinter.filedialog.askopenfilename(title='Open a file', filetypes=filetypes)
+        entry_schedule_file.delete(0, END)
+        entry_schedule_file.insert(0, file_path)
+        schedule = read_schedule_txt_file(file_path)
+        # check_correctness_of_schedule(schedule)
+        load_schedule_to_gui(schedule)
 
 
 # global block_flag
@@ -152,7 +162,7 @@ def block_control_by_schedule():
     block_flag = True
     btn_start_unblock.config(text='UNBLOCK')
     btn_start_schedule.config(fg='gray')
-    # btn_send_tg_messages(state=DISABLED)
+    btn_send_tg_messages.config(state=DISABLED)
 
 
 def unblock_control_by_schedule():
@@ -160,17 +170,26 @@ def unblock_control_by_schedule():
     block_flag = False
     btn_start_unblock.config(text='BLOCK')
     btn_start_schedule.config(fg='black')
-    # btn_send_tg_messages(state=NORMAL)
+    btn_send_tg_messages.config(state=NORMAL)
 
 
 def start_adr_connection_thread():
     pass
 
 
+def start_control_by_schedule_button():
+    control_thread = Thread(target=start_control_by_schedule, daemon=True)
+    control_thread.start()
+
+
 def start_control_by_schedule():
+    global block_selecting_new_schedule_flag
     if not block_flag:
-        pass
-    pass
+        block_selecting_new_schedule_flag = True
+        btn_select_file.config(fg='gray')
+        time.sleep(15)
+        block_selecting_new_schedule_flag = False
+        btn_select_file.config(fg='black')
 
 
 # *******************************************************************************
@@ -213,7 +232,8 @@ lbl_copyright.grid(row=4, column=0, rowspan=1, columnspan=2, stick='e', padx=1, 
 
 
 # Setting elements of the frame "ADR status"
-btn_adr_connect = Button(frame_adr_status, text="Connect to ADR", relief='raised', command=start_adr_connection_thread)
+btn_adr_connect = Button(frame_adr_status, text="Connect to ADR", relief='raised', width=15,
+                         command=start_adr_connection_thread)
 lbl_adr_status = Label(frame_adr_status, text='Disconnected', font='none 12', width=12, bg='light gray')
 lbl_adr_ip = Label(frame_adr_status, text="ADR IP address:")
 ent_adr_ip = Entry(frame_adr_status, width=15)
@@ -232,9 +252,9 @@ lbl_adr_sadc_nam = Label(frame_adr_status, text="ADC source:")
 lbl_adr_sadc_val = Label(frame_adr_status, text="Internal", font='none 9', width=12, bg='yellow')
 
 lbl_adr_fadc_nam.grid(row=1, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_fadc_val.grid(row=1, column=1, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_fadc_val.grid(row=1, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_sadc_nam.grid(row=1, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_sadc_val.grid(row=1, column=3, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_sadc_val.grid(row=1, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_mode_nam = Label(frame_adr_status, text="ADC mode:")
 lbl_adr_mode_val = Label(frame_adr_status, text="")
@@ -242,19 +262,19 @@ lbl_adr_chnl_nam = Label(frame_adr_status, text="Channels:")
 lbl_adr_chnl_val = Label(frame_adr_status, text="")
 
 lbl_adr_mode_nam.grid(row=2, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_mode_val.grid(row=2, column=1, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_mode_val.grid(row=2, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_chnl_nam.grid(row=2, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_chnl_val.grid(row=2, column=3, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_chnl_val.grid(row=2, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
-lbl_adr_fres_nam = Label(frame_adr_status, text="Freq resolution:")
+lbl_adr_fres_nam = Label(frame_adr_status, text="Frequency resolution:")
 lbl_adr_fres_val = Label(frame_adr_status, text="")
 lbl_adr_tres_nam = Label(frame_adr_status, text="Time resolution:")
 lbl_adr_tres_val = Label(frame_adr_status, text="")
 
 lbl_adr_fres_nam.grid(row=3, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_fres_val.grid(row=3, column=1, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_fres_val.grid(row=3, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_tres_nam.grid(row=3, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_tres_val.grid(row=3, column=3, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_tres_val.grid(row=3, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_flow_nam = Label(frame_adr_status, text="From frequency:")
 lbl_adr_flow_val = Label(frame_adr_status, text="")
@@ -262,25 +282,25 @@ lbl_adr_fhig_nam = Label(frame_adr_status, text="To frequency:")
 lbl_adr_fhig_val = Label(frame_adr_status, text="")
 
 lbl_adr_flow_nam.grid(row=4, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_flow_val.grid(row=4, column=1, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_fhig_nam.grid(row=4, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_flow_val.grid(row=4, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+lbl_adr_fhig_nam.grid(row=4, column=2, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_fhig_val.grid(row=4, column=3, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 
 
 lbl_adr_rnam_nam = Label(frame_adr_status, text="Receiver name:")
 lbl_adr_rnam_val = Label(frame_adr_status, text="")
 lbl_adr_rnam_nam.grid(row=5, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_rnam_val.grid(row=5, column=1, rowspan=1, columnspan=3, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_rnam_val.grid(row=5, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_obsn_nam = Label(frame_adr_status, text="Observatory:")
 lbl_adr_obsn_val = Label(frame_adr_status, text="")
 lbl_adr_obsn_nam.grid(row=6, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_obsn_val.grid(row=6, column=1, rowspan=1, columnspan=3, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_obsn_val.grid(row=6, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_desc_nam = Label(frame_adr_status, text="Description:")
 lbl_adr_desc_val = Label(frame_adr_status, text="")
 lbl_adr_desc_nam.grid(row=7, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_desc_val.grid(row=7, column=1, rowspan=1, columnspan=3, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_desc_val.grid(row=7, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_sdms_nam = Label(frame_adr_status, text="Sum/diff mode:")
 lbl_adr_sdms_val = Label(frame_adr_status, text="OFF", font='none 9', width=12, bg='light green')
@@ -288,17 +308,18 @@ lbl_adr_nfcs_nam = Label(frame_adr_status, text="New file create:")
 lbl_adr_nfcs_val = Label(frame_adr_status, text="ON", font='none 9', width=12, bg='light green')
 
 lbl_adr_sdms_nam.grid(row=8, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_sdms_val.grid(row=8, column=1, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_sdms_val.grid(row=8, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_nfcs_nam.grid(row=8, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_nfcs_val.grid(row=8, column=3, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_nfcs_val.grid(row=8, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_recd_status = Label(frame_adr_status, text='Waiting', font='none 12', width=15, bg='light gray')
 lbl_recd_status.grid(row=9, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
 
-# Setting elements of the frame "Control"
+# Setting elements of the frame "Load schedule"
 lbl_path_in = Label(frame_load_schedule, text="  Path:")
-btn_select_file = Button(frame_load_schedule, text="Select file", relief='raised', width=12, command=choose_schedule_file)
+btn_select_file = Button(frame_load_schedule, text="Select file", relief='raised', width=12,
+                         command=choose_schedule_file)
 # btn_select_file.focus_set()
 entry_schedule_file = Entry(frame_load_schedule, width=45)
 
@@ -312,16 +333,17 @@ entry_schedule_file.grid(row=0, column=2, rowspan=1, columnspan=2, stick='nswe',
 btn_start_unblock = Button(frame_control, text="UNBLOCK", font='none 9 bold', relief='raised', width=12,
                            command=block_control_button)
 btn_start_schedule = Button(frame_control, text="Start control", font='none 9 bold', relief='raised', fg='gray',
-                            width=15, command=start_control_by_schedule)
+                            width=15, command=start_control_by_schedule_button)
 btn_start_unblock.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 btn_start_schedule.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
 
-send_tg_messages = IntVar()
+send_tg_messages = IntVar(value=1)
 lbl_send_tg_messages = Label(frame_control, text='Send Telegram\nnotifications', font='none 9', width=12)
 btn_send_tg_messages = Checkbutton(frame_control, text="", variable=send_tg_messages, bg='light gray',
                                    fg='black', activebackground='gray77', activeforeground='SlateBlue1',
                                    selectcolor="white")
+btn_send_tg_messages.config(state=DISABLED)
 
 lbl_send_tg_messages.grid(row=1, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 btn_send_tg_messages.grid(row=1, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
@@ -330,7 +352,7 @@ img = ImageTk.PhotoImage(Image.open(logo_path))
 ira_logo = Label(frame_control, image=img, width=200)
 ira_logo.grid(row=0, column=2, rowspan=3, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
-lbl_control_status = Label(frame_control, text='Waiting', font='none 12', width=15, bg='light gray')
+lbl_control_status = Label(frame_control, text='ADR is not connected!', font='none 12', width=15, bg='light gray')
 lbl_control_status.grid(row=2, column=0, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
 # Setting elements of the frame "Schedule"
