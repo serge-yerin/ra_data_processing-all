@@ -86,6 +86,7 @@ def read_schedule_txt_file(schedule_txt_file):
 def check_correctness_of_schedule(schedule):
     # Check time correctness (later then now, start is before stop): storing them in datetime format in one list
     time_line = []
+    schedule_comment_text = ''
     for item in range(len(schedule)):
         time_point = schedule[item][0]
         dt_time = datetime(int(time_point[0:4]), int(time_point[5:7]), int(time_point[8:10]),
@@ -101,20 +102,57 @@ def check_correctness_of_schedule(schedule):
         if time_line[item+1] > time_line[item]:
             pass
         else:
-            print('\n  ERROR! Time is not in right order!!! \n\n')
-            sys.exit('         Program stopped')
+            schedule_comment_text += ' Time is not in right order!'
+            # print('\n  ERROR! Time is not in right order!!! \n\n')
+            # sys.exit('         Program stopped')
 
     # Check if the first time in the list is in future
     now = datetime.now()
     diff = int((time_line[0] - now).total_seconds())
     if diff <= 0:
-        print('\n  ERROR! Time is in the past!!! \n\n')
-        sys.exit('         Program stopped')
+        schedule_comment_text += ' Time is in the past!'
+        # print('\n  ERROR! Time is in the past!!! \n\n')
+        # sys.exit('         Program stopped')
 
     # check FFT value correctness
-
-    print('\n * Number of observations found: ', len(schedule))
+    if schedule_comment_text == '':
+        schedule_comment_text = 'Schedule seems to be OK, number of observations: ' + str(len(schedule))
+        lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="Dark blue")
+    else:
+        lbl_scedule_comments.config(text=schedule_comment_text, font='none 9 bold', fg="Dark red")
     return schedule
+
+
+def check_adr_parameters_correctness(dict):
+    """
+    Checks dictionary with ADR parameters to set for correct values
+    """
+    error_msg = ''
+    if int(dict["operation_mode_num"]) not in (0, 1, 2, 3, 4, 5, 6):
+        error_msg += 'Operation mode is wrong!'
+    if int(dict["FFT_size_samples"]) not in (2048, 4096, 8192, 16384, 32768):
+        error_msg += 'FFT size is wrong!'
+    if int(dict["operation_mode_num"])  == 6 and int(dict["FFT_size_samples"]) == 32768:
+        error_msg += 'FFT size and ADR mode are incompatible!'
+    if int(dict["spectra_averaging"]) < 16 or int(dict["spectra_averaging"]) > 32768:
+        error_msg += 'Spectra averaging number is wrong!'
+    if int(dict["start_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16):   # 0 … (SFFT-1024)/1024
+        error_msg += 'Start frequency line is wrong!'
+    if int(dict["width_line_freq"]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16):
+        error_msg += 'Frequency width line is wrong!'
+    if int(dict["width_line_freq"]) > ((int(dict["FFT_size_samples"]) - int(dict["start_line_freq"]) * 1024) / 1024): # 1 … (SFFT-SLINE*1024)/1024
+        error_msg += 'Frequency width is bigger than FFT size allows!'
+    if int(dict["clock_source"]) not in (0, 1):
+        error_msg += 'Clock source is wrong!'
+    if int(dict["sum_diff_mode_num"]) not in (0, 1):
+        error_msg += 'Sum-diff mode is wrong!'
+    if int(dict["data_file_size"]) < -1 or int(dict["data_file_size"]) > 4096:
+        error_msg += 'File size value is wrong!'
+    '''
+    if (int(dict["chan_diff_delay"]) < 0 or int(parameters_dict["chan_diff_dalay"]) > 1024):
+        error_msg += 'Channel difference delay is wrong!'
+    '''
+    return dict, error_msg
 
 
 def check_parameters_of_observations(schedule):
@@ -122,33 +160,37 @@ def check_parameters_of_observations(schedule):
     for obs_no in range(len(schedule)):
         parameters_file = 'service_data/' + schedule[obs_no][10]
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
-        parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+        parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
+        if error_msg != '':
+            text = 'Error in parameters observation # ' + str(obs_no+1) + ': ' + error_msg
+            lbl_scedule_comments.config(text=text, font='none 9 bold', fg="Dark red")
     del parameters_dict, parameters_file
-    print('\n   Parameters of all observations have been checked, they seem OK.')
 
 
 def load_schedule_to_gui(schedule):
     ent_schedule.config(state=NORMAL)
+    ent_schedule.delete('1.0', END)  # Erase everything from the schedule window
+    first_line_of_schedule = "No | Start date / time |  | Stop date / time   |  Source  |  Description   \n"
+    ent_schedule.insert(INSERT, first_line_of_schedule, 'first_line')
+    ent_schedule.tag_config('first_line', background='light green')
     for obs_no in range(len(schedule)):
         line = '{:3d}'.format(obs_no+1) + ' ' + schedule[obs_no][0] + ' to ' + schedule[obs_no][1] + \
                '  ' + '{:10s}'.format(schedule[obs_no][6]) + ' ' + '{:25s}'.format(schedule[obs_no][7]) + '\n'
-        ent_schedule.insert(INSERT, line, str(obs_no))
+        ent_schedule.insert(INSERT, line, str(obs_no+1))
     ent_schedule.config(state=DISABLED)
 
 
 def choose_schedule_file():
-    block_selecting_new_schedule_flag
     if not block_selecting_new_schedule_flag:
         filetypes = (('text files', '*.txt'), ('All files', '*.*'))
         file_path = tkinter.filedialog.askopenfilename(title='Open a file', filetypes=filetypes)
         entry_schedule_file.delete(0, END)
         entry_schedule_file.insert(0, file_path)
         schedule = read_schedule_txt_file(file_path)
-        # check_correctness_of_schedule(schedule)
+        check_correctness_of_schedule(schedule)
+        check_parameters_of_observations(schedule)
         load_schedule_to_gui(schedule)
 
-
-# global block_flag
 
 def block_control_button():
     if block_flag:
@@ -322,10 +364,12 @@ btn_select_file = Button(frame_load_schedule, text="Select file", relief='raised
                          command=choose_schedule_file)
 # btn_select_file.focus_set()
 entry_schedule_file = Entry(frame_load_schedule, width=45)
+lbl_scedule_comments = Label(frame_load_schedule, text="")
 
 lbl_path_in.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 btn_select_file.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 entry_schedule_file.grid(row=0, column=2, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+lbl_scedule_comments.grid(row=1, column=0, rowspan=1, columnspan=4, stick='nswe', padx=x_space, pady=y_space)
 
 
 # Frame control ADR by schedule
@@ -357,10 +401,7 @@ lbl_control_status.grid(row=2, column=0, rowspan=1, columnspan=2, stick='nswe', 
 
 # Setting elements of the frame "Schedule"
 
-ent_schedule = ScrolledText(frame_schedule, width=90, height=37)
-first_line_of_schedule = "No | Start date / time |  | Stop date / time   |  Source  |  Description   \n"
-ent_schedule.insert(INSERT, first_line_of_schedule, 'first_line')
-ent_schedule.tag_config('first_line', background='light green')
+ent_schedule = ScrolledText(frame_schedule, width=90, height=39)
 ent_schedule.config(state=DISABLED)
 ent_schedule.grid(row=0, column=0, rowspan=2, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
