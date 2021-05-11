@@ -1,3 +1,4 @@
+import sys  # needed for running in Linux
 import time
 import socket
 import tkinter.filedialog
@@ -69,13 +70,14 @@ def f_connect_to_adr_receiver(host, port):   # UNUSED NOW !!!
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         lbl_adr_status.config(text='Connecting...', bg='yellow2')
+        serversocket.settimeout(10)
         serversocket.connect((host, port))
     except TimeoutError:
         lbl_adr_status.config(text='Failed!', bg='orange')
     else:
         pass
     finally:
-        pass
+        lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
 
     serversocket.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108, 0, 0, 0])
@@ -439,11 +441,11 @@ lbl_path_in = Label(frame_load_schedule, text="  Path:")
 btn_select_file = Button(frame_load_schedule, text="Select file", relief='raised', width=12,
                          command=choose_schedule_file)
 # btn_select_file.focus_set()
-entry_schedule_file = Entry(frame_load_schedule, width=50)
+entry_schedule_file = Entry(frame_load_schedule, width=45)  # 45 works fine for Linux
 lbl_scedule_comments = Label(frame_load_schedule, text="")
 
-lbl_path_in.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 btn_select_file.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
+lbl_path_in.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 entry_schedule_file.grid(row=0, column=2, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 lbl_scedule_comments.grid(row=1, column=0, rowspan=1, columnspan=4, stick='nswe', padx=x_space, pady=y_space)
 
