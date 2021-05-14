@@ -10,6 +10,8 @@ from PIL import ImageTk, Image
 from threading import Thread
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -28,6 +30,7 @@ software_version = '2021.05.08'
 #                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
 adr_ip = '192.168.1.171'
+relay_host = '192.168.1.170'
 port = 38386                    # Port of the receiver to connect (always 38386)
 logo_path = 'media_data/gurt_logo.png'
 x_space = (5, 5)
@@ -327,10 +330,20 @@ window.columnconfigure(1, minsize=40, weight=1)
 # Setting tabs in the main window
 tab_parent = ttk.Notebook(window)
 tab_main = ttk.Frame(tab_parent)
+tab_graphics = ttk.Frame(tab_parent)
+tab_connection_control = ttk.Frame(tab_parent)
 tab_settings = ttk.Frame(tab_parent)
 tab_parent.add(tab_main, text='   Main window   ')
+tab_parent.add(tab_graphics, text='   Plots   ')
+tab_parent.add(tab_connection_control, text='   Devices connection   ')
 tab_parent.add(tab_settings, text='   Settings   ')
 tab_parent.pack(expand=1, fill="both")
+
+
+# *******************************************************************************
+#                               M A I N    T A B                                *
+# *******************************************************************************
+
 
 # Setting frames in tab "Main window"
 time_lbl = Label(tab_main, font=('none', 14, 'bold'), background='black', foreground='yellow')
@@ -486,5 +499,279 @@ ent_schedule.grid(row=0, column=0, rowspan=2, columnspan=1, stick='nswe', padx=x
 # Start time thread
 time_display_thread = Thread(target=time_show, daemon=True)
 time_display_thread.start()
+
+# *******************************************************************************
+#                               T A B    P L O T S                              *
+# *******************************************************************************
+
+
+def plot_schedule():
+    fig = Figure(figsize=(12, 6), dpi=100)
+
+    y = [i ** 2 for i in range(101)]
+
+    main_plot = fig.add_subplot(111)
+    main_plot.plot(y)
+    # creating the Tkinter canvas containing the Matplotlib figure
+    canvas = FigureCanvasTkAgg(fig,  master=tab_graphics)
+    canvas.draw()
+    canvas.get_tk_widget().pack()  # placing the canvas on the Tkinter window
+    toolbar = NavigationToolbar2Tk(canvas, tab_graphics)  # creating the Matplotlib toolbar
+    toolbar.update()
+    canvas.get_tk_widget().pack()  # placing the toolbar on the Tkinter window
+
+
+plot_button = Button(master=tab_graphics, command=plot_schedule, height=2, width=10, text="Plot")
+plot_button.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
+plot_button.pack()
+
+
+# *******************************************************************************
+#              T A B    C O N N E C T I O N    C O N T R O L                    *
+# *******************************************************************************
+# tab_connection_control
+# ################# RELAY #####################
+
+
+def read_relay_output():
+    message = bytearray([])
+    # Wait the response for only 3 sec., if not return empty string
+    ready = select.select([serversocket], [], [], 3)  # 3 -time in seconds to wait respond
+    if ready[0]:
+        byte = serversocket.recv(8)
+        message.extend(byte)
+        message = bytes(message).decode()
+        return message
+    else:
+        return ''
+
+
+def f_send_command_to_relay(serversocket, relay_no, command):
+    """
+    Function sends commands to the SR-201 relay block and shows the relay status
+    Input parameters:
+        serversocket        - socket of the relay to communicate
+        relay_no            - number of the relay on the board
+        command             - command 'ON' or 'OFF'
+    Output parameters:
+    """
+    relay_no_str = str(relay_no)
+    if str(command).lower() == 'on':        # ON and keep state
+        command = '1'
+    elif str(command).lower() == '0':       # Check state
+        command = '0'
+    else:                                   # OFF and keep state
+        command = '2'
+    send_command = command + relay_no_str
+    serversocket.send(send_command.encode())
+    message = read_relay_output()
+    return message
+
+
+def set_indication_by_state(state):
+    if state[0] == '0':
+        lbl_clr_0.config(text='OFF', bg='chartreuse2')
+    else:
+        lbl_clr_0.config(text='ON', bg='SlateBlue1')  # orange red
+
+    if state[1] == '0':
+        lbl_clr_1.config(text='OFF', bg='chartreuse2')
+    else:
+        lbl_clr_1.config(text='ON', bg='SlateBlue1')  # orange red
+
+
+def check_relay_state():
+    state = f_send_command_to_relay(serversocket, 0, 0)
+    if len(state) > 0:
+        set_indication_by_state(state)
+    else:
+        lbl_clr_0.config(text='Unknown', font='none 12', width=12, bg='yellow2')
+        lbl_clr_1.config(text='Unknown', font='none 12', width=12, bg='yellow2')
+        lbl_connect.config(text='Disconnected', font='none 12', width=12, bg='gray')
+    return state
+
+
+def click_on_0():
+    if not block_flag:
+        state = f_send_command_to_relay(serversocket, 1, 'ON')
+        set_indication_by_state(state)
+
+
+def click_on_1():
+    if not block_flag:
+        state = f_send_command_to_relay(serversocket, 2, 'ON')
+        set_indication_by_state(state)
+
+
+def click_off_0():
+    if not block_flag:
+        state = f_send_command_to_relay(serversocket, 1, 'OFF')
+        set_indication_by_state(state)
+
+
+def click_off_1():
+    if not block_flag:
+        state = f_send_command_to_relay(serversocket, 2, 'OFF')
+        set_indication_by_state(state)
+
+
+def click_connect():
+    global block_flag
+    block_flag = True
+    global serversocket
+    relay_host = ent_ip_addrs.get()  # Read the IP address from the entry
+    btn_block_cntrl.focus_set()  # To prevent cursor blinking after setting the correct IP
+    # Connect to relay
+    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serversocket.connect((relay_host, relay_port))
+    serversocket.setblocking(False)  # To wait only the predefined time (see socket.recv())
+    lbl_connect.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
+    connection_thread = Thread(target=keep_connection_alive, daemon=True)
+    connection_thread.start()
+
+
+def keep_connection_alive():
+    while True:
+        state = check_relay_state()
+        time.sleep(1)
+        if len(state) == 0:  # If the connection to relay block is lost
+            block()  # Call block function to block buttons as at the beginning of operation
+            break
+
+
+def block_control():
+    if block_flag:
+        unblock()
+    else:
+        block()
+
+
+def unblock():
+    global block_flag
+    block_flag = False
+    btn_block_cntrl.config(text='BLOCK')
+    btn_of_0.config(fg='black')
+    btn_on_0.config(fg='black')
+    btn_of_1.config(fg='black')
+    btn_on_1.config(fg='black')
+    btn_pc_on_0.config(fg='black')
+    btn_pc_of_0.config(fg='black')
+    btn_pc_on_1.config(fg='black')
+    btn_pc_of_1.config(fg='black')
+
+
+def block():
+    global block_flag
+    block_flag = True
+    btn_block_cntrl.config(text='UNBLOCK')
+    btn_of_0.config(fg='gray')
+    btn_on_0.config(fg='gray')
+    btn_of_1.config(fg='gray')
+    btn_on_1.config(fg='gray')
+    btn_pc_on_0.config(fg='gray')
+    btn_pc_of_0.config(fg='gray')
+    btn_pc_on_1.config(fg='gray')
+    btn_pc_of_1.config(fg='gray')
+
+
+def click_on_pc_0():
+    if not block_flag:
+        f_send_command_to_relay(serversocket, 1, 'ON')
+        lbl_clr_0.config(text='ON', bg='SlateBlue1')
+        time.sleep(0.3)
+        f_send_command_to_relay(serversocket, 1, 'OFF')
+
+
+def click_of_pc_0():
+    if not block_flag:
+        connection_thread = Thread(target=off_pc_0, daemon=True)
+        connection_thread.start()
+
+
+def off_pc_0():
+    f_send_command_to_relay(serversocket, 1, 'ON')
+    btn_pc_of_0.config(relief='sunken')
+    time.sleep(11)
+    f_send_command_to_relay(serversocket, 1, 'OFF')
+    btn_pc_of_0.config(relief='raised')
+
+
+def click_on_pc_1():
+    if not block_flag:
+        f_send_command_to_relay(serversocket, 2, 'ON')
+        lbl_clr_1.config(text='ON', bg='SlateBlue1')
+        time.sleep(0.3)
+        f_send_command_to_relay(serversocket, 2, 'OFF')
+
+
+def click_of_pc_1():
+    if not block_flag:
+        connection_thread = Thread(target=off_pc_1, daemon=True)
+        connection_thread.start()
+
+
+def off_pc_1():
+    f_send_command_to_relay(serversocket, 2, 'ON')
+    btn_pc_of_1.config(relief='sunken')
+    time.sleep(11)
+    f_send_command_to_relay(serversocket, 2, 'OFF')
+    btn_pc_of_1.config(relief='raised')
+
+
+frame_relay_control_01 = LabelFrame(tab_connection_control, text="Relay block 01 control")
+
+lbl_txt_ip = Label(frame_relay_control_01, text='IP address:', font='none 12', width=12)
+ent_ip_addrs = Entry(frame_relay_control_01, width=15)
+ent_ip_addrs.insert(0, relay_host)
+btn_connect = Button(frame_relay_control_01, text='Connect', width=10, command=click_connect)
+btn_connect.focus_set()
+lbl_connect = Label(frame_relay_control_01, text='Disconnected', font='none 12', width=12, bg='gray')
+lbl_blank_relay_txt = Label(frame_relay_control_01, text='    ', font='none 12', width=13)
+
+btn_block_cntrl = Button(frame_relay_control_01, text='UNBLOCK', font='none 9 bold', width=10, command=block_control)
+
+lbl_txt_0 = Label(frame_relay_control_01, text='Pin 0 (ADR):', font='none 12', width=12)
+lbl_clr_0 = Label(frame_relay_control_01, text='Unknown', font='none 12', width=12, bg='yellow2')
+btn_of_0 = Button(frame_relay_control_01, text='OFF', width=10, fg='gray', command=click_off_0)
+btn_on_0 = Button(frame_relay_control_01, text='ON', width=10, fg='gray', command=click_on_0)
+btn_pc_on_0 = Button(frame_relay_control_01, text='Click', width=4, fg='gray', command=click_on_pc_0)
+btn_pc_of_0 = Button(frame_relay_control_01, text='10 s.', width=4, fg='gray', command=click_of_pc_0)
+
+lbl_txt_1 = Label(frame_relay_control_01, text='Pin 1 (Beam):', font='none 12', width=12)
+lbl_clr_1 = Label(frame_relay_control_01, text='Unknown', font='none 12', width=12, bg='yellow2')
+btn_of_1 = Button(frame_relay_control_01, text='OFF', width=10, fg='gray', command=click_off_1)
+btn_on_1 = Button(frame_relay_control_01, text='ON', width=10, fg='gray', command=click_on_1)
+btn_pc_on_1 = Button(frame_relay_control_01, text='Click', width=4, fg='gray', command=click_on_pc_1)
+btn_pc_of_1 = Button(frame_relay_control_01, text='10 s.', width=4, fg='gray', command=click_of_pc_1)
+
+frame_relay_control_01.grid(row=8, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
+
+lbl_txt_ip.grid(row=8, column=0, stick='w', padx=x_space, pady=y_space)
+ent_ip_addrs.grid(row=8, column=1, stick='w', padx=x_space, pady=y_space)
+btn_connect.grid(row=8, column=2, stick='nswe', padx=x_space, pady=10)
+lbl_connect.grid(row=8, column=3, stick='nswe', padx=x_space, pady=10)
+lbl_blank_relay_txt.grid(row=8, column=4, columnspan=3, stick='w', padx=4, pady=y_space)
+
+btn_block_cntrl.grid(row=9, column=2, stick='w', padx=x_space, pady=y_space)
+
+lbl_txt_0.grid(row=10, column=0, stick='w', padx=x_space, pady=y_space)
+lbl_clr_0.grid(row=10, column=1, stick='w', padx=x_space, pady=y_space)
+btn_of_0.grid(row=10, column=2, stick='w', padx=x_space, pady=y_space)
+btn_on_0.grid(row=10, column=3, stick='w', padx=x_space, pady=y_space)
+btn_pc_on_0.grid(row=10, column=4, stick='w', padx=x_space, pady=y_space)
+btn_pc_of_0.grid(row=10, column=5, stick='w', padx=x_space, pady=y_space)
+
+lbl_txt_1.grid(row=11, column=0, stick='w', padx=x_space, pady=y_space)
+lbl_clr_1.grid(row=11, column=1, stick='w', padx=x_space, pady=y_space)
+btn_of_1.grid(row=11, column=2, stick='w', padx=x_space, pady=y_space)
+btn_on_1.grid(row=11, column=3, stick='w', padx=x_space, pady=y_space)
+btn_pc_on_1.grid(row=11, column=4, stick='w', padx=x_space, pady=y_space)
+btn_pc_of_1.grid(row=11, column=5, stick='w', padx=x_space, pady=y_space)
+
+# *******************************************************************************
+#              T A B    C O N N E C T I O N    C O N T R O L                    *
+# *******************************************************************************
+# tab_settings
+
 
 window.mainloop()
