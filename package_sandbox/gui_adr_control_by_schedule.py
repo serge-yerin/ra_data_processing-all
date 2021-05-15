@@ -1,6 +1,7 @@
 import sys  # needed for running in Linux
 import time
 import socket
+import select
 import tkinter.filedialog
 from os import path
 from time import strftime
@@ -30,8 +31,10 @@ software_version = '2021.05.08'
 #                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
 adr_ip = '192.168.1.171'
+adr_port = 38386                    # Port of the receiver to connect (always 38386)
 relay_host = '192.168.1.170'
-port = 38386                    # Port of the receiver to connect (always 38386)
+relay_port = 6722
+
 logo_path = 'media_data/gurt_logo.png'
 x_space = (5, 5)
 y_space = (5, 5)
@@ -56,25 +59,25 @@ def time_show():
     time_lbl.after(1000, time_show)
 
 
-def f_connect_to_adr_receiver(host, port):   # UNUSED NOW !!!
+def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     """
     Function connects to the ADR receiver via specified socket
     Input parameters:
         host                - IP address to connect
-        port                - port to connect
+        adr_port                - port to connect
         control             - to control (1) or to view (0) possibility
         delay               - delay in seconds to wait after connection
     Output parameters:
-        serversocket        - handle of socket to send and receive messages from server
+        socket        - handle of socket to send and receive messages from server
         input_parameters_s  - long string with all receiver parameters at the moment of connection
     """
     control = 1
     delay = 1
-    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_adr = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         lbl_adr_status.config(text='Connecting...', bg='yellow2')
-        serversocket.settimeout(10)
-        serversocket.connect((host, port))
+        socket_adr.settimeout(10)
+        socket_adr.connect((host, adr_port))
     except TimeoutError:
         lbl_adr_status.config(text='Failed!', bg='orange')
     else:
@@ -82,17 +85,17 @@ def f_connect_to_adr_receiver(host, port):   # UNUSED NOW !!!
     finally:
         lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
 
-    serversocket.send('ADRSCTRL'.encode())
+    socket_adr.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108, 0, 0, 0])
     register_cc_msg.extend(b'YeS\0                                                            ')  # Name 64 bytes
     register_cc_msg.extend(b'adrs\0                           ')   # Password 32 bytes
     register_cc_msg.extend([0, 0, 0, control])                     # Priv 4 bytes
     register_cc_msg.extend([0, 0, 0, control])                     # CTRL 4 bytes
     register_cc_msg = bytes(register_cc_msg)
-    serversocket.send(register_cc_msg)
+    socket_adr.send(register_cc_msg)
 
-    data = f_read_adr_meassage(serversocket, 0)
-    data = serversocket.recv(108)
+    data = f_read_adr_meassage(socket_adr, 0)
+    data = socket_adr.recv(108)
     if data[-1] == 1:
         lbl_mast_status.config(text='Control', font='none 9', bg='chartreuse2')
     else:
@@ -103,14 +106,14 @@ def f_connect_to_adr_receiver(host, port):   # UNUSED NOW !!!
     # Reading all parameters valid now
     input_parameters_str = ''
     for i in range(23):
-        input_parameters_str += f_read_adr_meassage(serversocket, 0)
+        input_parameters_str += f_read_adr_meassage(socket_adr, 0)
     time.sleep(delay)   # Making pause to read the data
-    return serversocket, input_parameters_str
+    return socket_adr, input_parameters_str
 
 
 def start_and_keep_adr_connection():
     host = ent_adr_ip.get()
-    serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port)
+    socket_adr, input_parameters_str = f_connect_to_adr_receiver(host, adr_port)
     while True:
         time.sleep(1)
 
@@ -536,9 +539,9 @@ plot_button.pack()
 def read_relay_output():
     message = bytearray([])
     # Wait the response for only 3 sec., if not return empty string
-    ready = select.select([serversocket], [], [], 3)  # 3 -time in seconds to wait respond
+    ready = select.select([socket_relay_01], [], [], 3)  # 3 -time in seconds to wait respond
     if ready[0]:
-        byte = serversocket.recv(8)
+        byte = socket_relay_01.recv(8)
         message.extend(byte)
         message = bytes(message).decode()
         return message
@@ -546,11 +549,11 @@ def read_relay_output():
         return ''
 
 
-def f_send_command_to_relay(serversocket, relay_no, command):
+def f_send_command_to_relay(socket, relay_no, command):
     """
     Function sends commands to the SR-201 relay block and shows the relay status
     Input parameters:
-        serversocket        - socket of the relay to communicate
+        socket_relay_01     - socket of the relay to communicate
         relay_no            - number of the relay on the board
         command             - command 'ON' or 'OFF'
     Output parameters:
@@ -563,7 +566,7 @@ def f_send_command_to_relay(serversocket, relay_no, command):
     else:                                   # OFF and keep state
         command = '2'
     send_command = command + relay_no_str
-    serversocket.send(send_command.encode())
+    socket.send(send_command.encode())
     message = read_relay_output()
     return message
 
@@ -581,7 +584,7 @@ def set_indication_by_state(state):
 
 
 def check_relay_state():
-    state = f_send_command_to_relay(serversocket, 0, 0)
+    state = f_send_command_to_relay(socket_relay_01, 0, 0)
     if len(state) > 0:
         set_indication_by_state(state)
     else:
@@ -593,38 +596,38 @@ def check_relay_state():
 
 def click_on_0():
     if not block_flag:
-        state = f_send_command_to_relay(serversocket, 1, 'ON')
+        state = f_send_command_to_relay(socket_relay_01, 1, 'ON')
         set_indication_by_state(state)
 
 
 def click_on_1():
     if not block_flag:
-        state = f_send_command_to_relay(serversocket, 2, 'ON')
+        state = f_send_command_to_relay(socket_relay_01, 2, 'ON')
         set_indication_by_state(state)
 
 
 def click_off_0():
     if not block_flag:
-        state = f_send_command_to_relay(serversocket, 1, 'OFF')
+        state = f_send_command_to_relay(socket_relay_01, 1, 'OFF')
         set_indication_by_state(state)
 
 
 def click_off_1():
     if not block_flag:
-        state = f_send_command_to_relay(serversocket, 2, 'OFF')
+        state = f_send_command_to_relay(socket_relay_01, 2, 'OFF')
         set_indication_by_state(state)
 
 
 def click_connect():
     global block_flag
     block_flag = True
-    global serversocket
-    relay_host = ent_ip_addrs.get()  # Read the IP address from the entry
+    global socket_relay_01
+    relay_host = ent_relay_ip.get()  # Read the IP address from the entry
     btn_block_cntrl.focus_set()  # To prevent cursor blinking after setting the correct IP
     # Connect to relay
-    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    serversocket.connect((relay_host, relay_port))
-    serversocket.setblocking(False)  # To wait only the predefined time (see socket.recv())
+    socket_relay_01 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_relay_01.connect((relay_host, relay_port))
+    socket_relay_01.setblocking(False)  # To wait only the predefined time (see socket.recv())
     lbl_connect.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
     connection_thread = Thread(target=keep_connection_alive, daemon=True)
     connection_thread.start()
@@ -676,10 +679,10 @@ def block():
 
 def click_on_pc_0():
     if not block_flag:
-        f_send_command_to_relay(serversocket, 1, 'ON')
+        f_send_command_to_relay(socket_relay_01, 1, 'ON')
         lbl_clr_0.config(text='ON', bg='SlateBlue1')
         time.sleep(0.3)
-        f_send_command_to_relay(serversocket, 1, 'OFF')
+        f_send_command_to_relay(socket_relay_01, 1, 'OFF')
 
 
 def click_of_pc_0():
@@ -689,19 +692,19 @@ def click_of_pc_0():
 
 
 def off_pc_0():
-    f_send_command_to_relay(serversocket, 1, 'ON')
+    f_send_command_to_relay(socket_relay_01, 1, 'ON')
     btn_pc_of_0.config(relief='sunken')
     time.sleep(11)
-    f_send_command_to_relay(serversocket, 1, 'OFF')
+    f_send_command_to_relay(socket_relay_01, 1, 'OFF')
     btn_pc_of_0.config(relief='raised')
 
 
 def click_on_pc_1():
     if not block_flag:
-        f_send_command_to_relay(serversocket, 2, 'ON')
+        f_send_command_to_relay(socket_relay_01, 2, 'ON')
         lbl_clr_1.config(text='ON', bg='SlateBlue1')
         time.sleep(0.3)
-        f_send_command_to_relay(serversocket, 2, 'OFF')
+        f_send_command_to_relay(socket_relay_01, 2, 'OFF')
 
 
 def click_of_pc_1():
@@ -711,18 +714,18 @@ def click_of_pc_1():
 
 
 def off_pc_1():
-    f_send_command_to_relay(serversocket, 2, 'ON')
+    f_send_command_to_relay(socket_relay_01, 2, 'ON')
     btn_pc_of_1.config(relief='sunken')
     time.sleep(11)
-    f_send_command_to_relay(serversocket, 2, 'OFF')
+    f_send_command_to_relay(socket_relay_01, 2, 'OFF')
     btn_pc_of_1.config(relief='raised')
 
 
 frame_relay_control_01 = LabelFrame(tab_connection_control, text="Relay block 01 control")
 
 lbl_txt_ip = Label(frame_relay_control_01, text='IP address:', font='none 12', width=12)
-ent_ip_addrs = Entry(frame_relay_control_01, width=15)
-ent_ip_addrs.insert(0, relay_host)
+ent_relay_ip = Entry(frame_relay_control_01, width=15)
+ent_relay_ip.insert(0, relay_host)
 btn_connect = Button(frame_relay_control_01, text='Connect', width=10, command=click_connect)
 btn_connect.focus_set()
 lbl_connect = Label(frame_relay_control_01, text='Disconnected', font='none 12', width=12, bg='gray')
@@ -747,7 +750,7 @@ btn_pc_of_1 = Button(frame_relay_control_01, text='10 s.', width=4, fg='gray', c
 frame_relay_control_01.grid(row=8, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
 
 lbl_txt_ip.grid(row=8, column=0, stick='w', padx=x_space, pady=y_space)
-ent_ip_addrs.grid(row=8, column=1, stick='w', padx=x_space, pady=y_space)
+ent_relay_ip.grid(row=8, column=1, stick='w', padx=x_space, pady=y_space)
 btn_connect.grid(row=8, column=2, stick='nswe', padx=x_space, pady=10)
 lbl_connect.grid(row=8, column=3, stick='nswe', padx=x_space, pady=10)
 lbl_blank_relay_txt.grid(row=8, column=4, columnspan=3, stick='w', padx=4, pady=y_space)
