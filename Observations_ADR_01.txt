@@ -14,163 +14,188 @@
 # Sun 					        Param_full_band_0.1s_4096_spectra_int-clc.txt
 
 
-START: 2021-04-05 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-05 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-01 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-01 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-05 06:45:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-05 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-01 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-01 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-06 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-06 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-02 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-02 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-06 06:45:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-06 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-02 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-02 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-07 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-07 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-03 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-03 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-07 06:45:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-07 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-03 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-03 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-08 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-08 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-04 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-04 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-08 06:45:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-08 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-04 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-04 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-09 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-09 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-05 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-05 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-09 06:45:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-09 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-05 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-05 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-10 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-10 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-06 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-06 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-10 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-10 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-06 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-06 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-11 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-11 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-07 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-07 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-11 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-11 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-07 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-07 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-12 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-12 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-08 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-08 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-12 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-12 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-08 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-08 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-13 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-13 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-09 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-09 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-13 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-13 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-09 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-09 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-14 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-14 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-10 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-10 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-14 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-14 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-10 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-10 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-15 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-15 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-11 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-11 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-15 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-15 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-11 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-11 19:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-16 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-16 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-12 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-12 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-16 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-16 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-12 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-12 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-17 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-17 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-13 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-13 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-17 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-17 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-13 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-13 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-18 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-18 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-14 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-14 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-18 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-18 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-14 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-14 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-19 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-19 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-15 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-15 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-19 06:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-19 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-15 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-15 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-20 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-20 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-16 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-16 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-20 06:10:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-20 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-16 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-16 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-21 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-21 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-17 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-17 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-21 06:10:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-21 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-17 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-17 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-22 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-22 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-18 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-18 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-22 06:10:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-22 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-18 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-18 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-23 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-23 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-19 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-19 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-23 06:10:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-23 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-19 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-19 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-24 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-24 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-20 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-20 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-24 06:10:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-24 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-20 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-20 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-25 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-25 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-21 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-21 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-25 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-25 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-21 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-21 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-26 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-26 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-22 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-22 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-26 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-26 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-22 05:30:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-22 20:30:00, COPY: 1, PROC: 1
 
-START: 2021-04-27 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-27 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-23 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-23 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-27 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-27 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-23 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-23 20:45:00, COPY: 1, PROC: 1
 
-START: 2021-04-28 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-28 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-24 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-24 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-28 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-28 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-24 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-24 20:45:00, COPY: 1, PROC: 1
 
-START: 2021-04-29 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-29 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-25 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-25 00:01:00, COPY: 1, PROC: 1
 
+START: 2021-05-25 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-25 20:45:00, COPY: 1, PROC: 1
 
-START: 2021-04-29 07:18:00, NAME: Jupiter, DESCR: GURT_Sun_SA09_Jupiter_IoA, PARAM: Param_Jupiter_0-40_MHz_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-29 08:48:00, COPY: 1, PROC: 1
+START: 2021-05-26 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-26 00:01:00, COPY: 1, PROC: 1
 
+START: 2021-05-26 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-26 20:45:00, COPY: 1, PROC: 1
 
-START: 2021-04-29 08:50:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-29 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-27 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-27 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-04-30 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-04-30 00:01:00, COPY: 1, PROC: 1
+START: 2021-05-27 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-27 20:45:00, COPY: 1, PROC: 1
 
-START: 2021-04-30 06:00:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-04-30 19:30:00, COPY: 1, PROC: 1
+START: 2021-05-28 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-28 00:01:00, COPY: 1, PROC: 1
+
+START: 2021-05-28 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-28 20:45:00, COPY: 1, PROC: 1
+
+START: 2021-05-29 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-29 00:01:00, COPY: 1, PROC: 1
+
+START: 2021-05-29 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-29 20:45:00, COPY: 1, PROC: 1
+
+START: 2021-05-30 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-30 00:01:00, COPY: 1, PROC: 1
+
+START: 2021-05-30 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-30 20:45:00, COPY: 1, PROC: 1
+
+START: 2021-05-31 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-05-31 00:01:00, COPY: 1, PROC: 1
+
+START: 2021-05-31 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-05-31 20:45:00, COPY: 1, PROC: 1

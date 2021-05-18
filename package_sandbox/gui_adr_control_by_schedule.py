@@ -21,6 +21,9 @@ if __package__ is None:
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_read_schedule_txt_for_adr import find_parameter_value
 from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
+from package_receiver_control.f_synchronize_adr import f_synchronize_adr
+from package_receiver_control.f_initialize_adr import f_initialize_adr
+from package_common_modules.text_manipulations import find_between
 
 """
 The GUI program to control ADR receiver according to schedule
@@ -30,10 +33,11 @@ software_version = '2021.05.08'
 # *******************************************************************************
 #                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
-adr_ip = '192.168.1.171'
+adr_ip = '192.168.1.172'
 adr_port = 38386                    # Port of the receiver to connect (always 38386)
 relay_host = '192.168.1.170'
 relay_port = 6722
+time_server_ip = '192.168.1.150'
 
 logo_path = 'media_data/gurt_logo.png'
 x_space = (5, 5)
@@ -72,7 +76,7 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
         input_parameters_s  - long string with all receiver parameters at the moment of connection
     """
     control = 1
-    delay = 1
+    delay = 0.2
     socket_adr = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         lbl_adr_status.config(text='Connecting...', bg='yellow2')
@@ -100,6 +104,7 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
         lbl_mast_status.config(text='Control', font='none 9', bg='chartreuse2')
     else:
         lbl_mast_status.config(text='View only', font='none 9', bg='orange')
+        lbl_control_status.config(text='ADR view only connection!', font='none 12', bg='orange')
     lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
     adr_connection_flag = True
 
@@ -108,18 +113,55 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     for i in range(23):
         input_parameters_str += f_read_adr_meassage(socket_adr, 0)
     time.sleep(delay)   # Making pause to read the data
+    # print(input_parameters_str)
     return socket_adr, input_parameters_str
 
 
 def start_and_keep_adr_connection():
-    host = ent_adr_ip.get()
-    socket_adr, input_parameters_str = f_connect_to_adr_receiver(host, adr_port)
+    host_adr = ent_adr_ip.get()
+    socket_adr, input_parameters_str = f_connect_to_adr_receiver(host_adr, adr_port)
+    time.sleep(1)
+    # Check if the receiver is initialized, if it is not - initialize it
+    socket_adr.send(b"set prc/srv/ctl/adr 3 1\0")
+    data = f_read_adr_meassage(socket_adr, 1)
+    if 'Failed!' in data or 'Stopped' in data:
+        lbl_recd_status.config(text='Initializing ADR...', font='none 12', bg='orange')
+        # Initialize ADR and set ADR parameters
+        f_initialize_adr(socket_adr, host_adr, 0)
+        lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
+
+    # Update synchronization of PC and ADR
+    lbl_sync_status.config(text='Synchro', font='none 9', bg='SlateBlue1')
+    f_synchronize_adr(socket_adr, host_adr, time_server_ip)
+    lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
+
     while True:
-        time.sleep(10)
+        time.sleep(1)
         # Keeping connection active
-        socket_adr.send(('get prc/srv/ctl/adr 0 \0').encode())
+        socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
         data = f_read_adr_meassage(socket_adr, 0)
-        print(data)
+
+        tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
+        tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
+        tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
+
+        tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))
+        tmp = str(tmp) + ' Mb'  # Current file size in bytes
+
+        tmp = float(find_between(data, 'FileTime: ', '\nF_ADC:'))
+        tmp = str(tmp) + ' Mb'  # Current file length in seconds
+
+        tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))
+        tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + ' Hz'
+        lbl_adr_fadc_val.config(text=tmp, font='none 10 bold')
+
+        tmp = float(find_between(data, 'FS_FREE: ', '\nFS_PERC:'))
+        tmp = str(tmp) + ' Mb'  # Free space in bytes
+
+        tmp = float(find_between(data, 'FS_PERC: ', '\n'))
+        tmp = str(tmp) + ' %'  # Free space in %
+
+        # print(data)
 
 
 def start_adr_connection_thread():
@@ -394,7 +436,7 @@ lbl_adr_fadc_val.grid(row=1, column=1, rowspan=1, columnspan=1, stick='w', padx=
 lbl_adr_sadc_nam.grid(row=1, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_sadc_val.grid(row=1, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
-lbl_adr_mode_nam = Label(frame_adr_status, text="ADC mode:")
+lbl_adr_mode_nam = Label(frame_adr_status, text="ADR mode:")
 lbl_adr_mode_val = Label(frame_adr_status, text="")
 lbl_adr_chnl_nam = Label(frame_adr_status, text="Channels:")
 lbl_adr_chnl_val = Label(frame_adr_status, text="")
