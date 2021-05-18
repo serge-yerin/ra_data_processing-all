@@ -117,8 +117,8 @@ def start_and_keep_adr_connection():
     while True:
         time.sleep(10)
         # Keeping connection active
-        serversocket.send(('get prc/srv/ctl/adr \0').encode())
-        data = f_read_adr_meassage(serversocket, 0)
+        socket_adr.send(('get prc/srv/ctl/adr 0 \0').encode())
+        data = f_read_adr_meassage(socket_adr, 0)
         print(data)
 
 
