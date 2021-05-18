@@ -23,6 +23,7 @@ from package_receiver_control.f_read_schedule_txt_for_adr import find_parameter_
 from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_receiver_control.f_initialize_adr import f_initialize_adr
+from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_common_modules.text_manipulations import find_between
 
 """
@@ -117,13 +118,42 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     return socket_adr, input_parameters_str
 
 
+def get_adr_params_and_set_indication(socket_adr):
+    parameters_dict = f_get_adr_parameters(socket_adr, 0)
+    if   parameters_dict["operation_mode_num"] == 0: lbl_adr_mode_val.config(text='Waveform A')
+    elif parameters_dict["operation_mode_num"] == 1: lbl_adr_mode_val.config(text='Waveform B')
+    elif parameters_dict["operation_mode_num"] == 2: lbl_adr_mode_val.config(text='Waveform A & B')
+    elif parameters_dict["operation_mode_num"] == 3: lbl_adr_mode_val.config(text='Spectra A')
+    elif parameters_dict["operation_mode_num"] == 4: lbl_adr_mode_val.config(text='Spectra B')
+    elif parameters_dict["operation_mode_num"] == 5: lbl_adr_mode_val.config(text='Spectra A & B')
+    elif parameters_dict["operation_mode_num"] == 6: lbl_adr_mode_val.config(text='Correlation')
+    else: parameters_dict["operation_mode_str"] = lbl_adr_mode_val.config(text='Unknown mode')
+
+    lbl_adr_fadc_val.config(text=parameters_dict["clock_frequency"]+' Hz')
+    lbl_adr_sadc_val.config(text=parameters_dict["external_clock"])
+    lbl_adr_chnl_val.config(text=parameters_dict["number_of_channels"])
+    lbl_adr_fres_val.config(text=str(parameters_dict["frequency_resolution"])+' Hz')
+    lbl_adr_tres_val.config(text=str(parameters_dict["time_resolution"])+' s')
+    lbl_adr_flow_val.config(text=str(parameters_dict["lowest_frequency"])+' Hz')
+    lbl_adr_fhig_val.config(text=str(parameters_dict["highest_frequency"])+' Hz')
+    lbl_adr_rnam_val.config(text=parameters_dict["receiver_name"])
+    lbl_adr_obsn_val.config(text=parameters_dict["observation_place"])
+    lbl_adr_desc_val.config(text=parameters_dict["file_description"])
+    lbl_adr_sdms_val.config(text=parameters_dict["sum_diff_mode"])
+    lbl_adr_nfcs_val.config(text=parameters_dict["files_autocreation"])
+
+    # parameters_dict["data_recording"]
+    # parameters_dict["size_of_file"]
+    # parameters_dict["time_of_file"]
+
+
 def start_and_keep_adr_connection():
     host_adr = ent_adr_ip.get()
     socket_adr, input_parameters_str = f_connect_to_adr_receiver(host_adr, adr_port)
-    time.sleep(1)
+    time.sleep(0.2)
     # Check if the receiver is initialized, if it is not - initialize it
     socket_adr.send(b"set prc/srv/ctl/adr 3 1\0")
-    data = f_read_adr_meassage(socket_adr, 1)
+    data = f_read_adr_meassage(socket_adr, 0)
     if 'Failed!' in data or 'Stopped' in data:
         lbl_recd_status.config(text='Initializing ADR...', font='none 12', bg='orange')
         # Initialize ADR and set ADR parameters
@@ -134,6 +164,8 @@ def start_and_keep_adr_connection():
     lbl_sync_status.config(text='Synchro', font='none 9', bg='SlateBlue1')
     f_synchronize_adr(socket_adr, host_adr, time_server_ip)
     lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
+
+    get_adr_params_and_set_indication(socket_adr)
 
     while True:
         time.sleep(1)
@@ -427,9 +459,9 @@ lbl_adr_ip.grid(row=0, column=2, rowspan=1, columnspan=1, stick='nswe', padx=x_s
 ent_adr_ip.grid(row=0, column=3, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
 lbl_adr_fadc_nam = Label(frame_adr_status, text="ADC frequency:")
-lbl_adr_fadc_val = Label(frame_adr_status, text="")
+lbl_adr_fadc_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_sadc_nam = Label(frame_adr_status, text="ADC source:")
-lbl_adr_sadc_val = Label(frame_adr_status, text="Internal", font='none 9', width=12, bg='yellow')
+lbl_adr_sadc_val = Label(frame_adr_status, text="Unknown", font='none 9', width=12, bg='light gray')
 
 lbl_adr_fadc_nam.grid(row=1, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_fadc_val.grid(row=1, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
@@ -437,9 +469,9 @@ lbl_adr_sadc_nam.grid(row=1, column=2, rowspan=1, columnspan=1, stick='e', padx=
 lbl_adr_sadc_val.grid(row=1, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_mode_nam = Label(frame_adr_status, text="ADR mode:")
-lbl_adr_mode_val = Label(frame_adr_status, text="")
+lbl_adr_mode_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_chnl_nam = Label(frame_adr_status, text="Channels:")
-lbl_adr_chnl_val = Label(frame_adr_status, text="")
+lbl_adr_chnl_val = Label(frame_adr_status, text="", font='none 10 bold')
 
 lbl_adr_mode_nam.grid(row=2, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_mode_val.grid(row=2, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
@@ -447,9 +479,9 @@ lbl_adr_chnl_nam.grid(row=2, column=2, rowspan=1, columnspan=1, stick='e', padx=
 lbl_adr_chnl_val.grid(row=2, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_fres_nam = Label(frame_adr_status, text="Frequency resolution:")
-lbl_adr_fres_val = Label(frame_adr_status, text="")
+lbl_adr_fres_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_tres_nam = Label(frame_adr_status, text="Time resolution:")
-lbl_adr_tres_val = Label(frame_adr_status, text="")
+lbl_adr_tres_val = Label(frame_adr_status, text="", font='none 10 bold')
 
 lbl_adr_fres_nam.grid(row=3, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_fres_val.grid(row=3, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
@@ -457,9 +489,9 @@ lbl_adr_tres_nam.grid(row=3, column=2, rowspan=1, columnspan=1, stick='e', padx=
 lbl_adr_tres_val.grid(row=3, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_flow_nam = Label(frame_adr_status, text="Lowest frequency:")
-lbl_adr_flow_val = Label(frame_adr_status, text="")
+lbl_adr_flow_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_fhig_nam = Label(frame_adr_status, text="Highest frequency:")
-lbl_adr_fhig_val = Label(frame_adr_status, text="")
+lbl_adr_fhig_val = Label(frame_adr_status, text="", font='none 10 bold')
 
 lbl_adr_flow_nam.grid(row=4, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_flow_val.grid(row=4, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
@@ -467,24 +499,24 @@ lbl_adr_fhig_nam.grid(row=4, column=2, rowspan=1, columnspan=1, stick='e', padx=
 lbl_adr_fhig_val.grid(row=4, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_rnam_nam = Label(frame_adr_status, text="Receiver name:")
-lbl_adr_rnam_val = Label(frame_adr_status, text="")
+lbl_adr_rnam_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_rnam_nam.grid(row=5, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_rnam_val.grid(row=5, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_obsn_nam = Label(frame_adr_status, text="Observatory:")
-lbl_adr_obsn_val = Label(frame_adr_status, text="")
+lbl_adr_obsn_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_obsn_nam.grid(row=6, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_obsn_val.grid(row=6, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_desc_nam = Label(frame_adr_status, text="Description:")
-lbl_adr_desc_val = Label(frame_adr_status, text="")
+lbl_adr_desc_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_desc_nam.grid(row=7, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_desc_val.grid(row=7, column=1, rowspan=1, columnspan=3, stick='w', padx=x_space, pady=y_space_adr)
 
 lbl_adr_sdms_nam = Label(frame_adr_status, text="Sum/diff mode:")
-lbl_adr_sdms_val = Label(frame_adr_status, text="OFF", font='none 9', width=12, bg='chartreuse2')
+lbl_adr_sdms_val = Label(frame_adr_status, text="Unknown", font='none 9', width=12, bg='light gray')
 lbl_adr_nfcs_nam = Label(frame_adr_status, text="New file create:")
-lbl_adr_nfcs_val = Label(frame_adr_status, text="ON", font='none 9', width=12, bg='chartreuse2')
+lbl_adr_nfcs_val = Label(frame_adr_status, text="Unknown", font='none 9', width=12, bg='light gray')
 
 lbl_adr_sdms_nam.grid(row=8, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_sdms_val.grid(row=8, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
