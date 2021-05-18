@@ -112,7 +112,11 @@ def start_and_keep_adr_connection():
     host = ent_adr_ip.get()
     serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port)
     while True:
-        time.sleep(1)
+        time.sleep(10)
+        # Keeping connection active
+        serversocket.send(('get prc/srv/ctl/adr \0').encode())
+        data = f_read_adr_meassage(serversocket, 0)
+        print(data)
 
 
 def start_adr_connection_thread():
