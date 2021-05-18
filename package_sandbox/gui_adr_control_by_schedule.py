@@ -1,4 +1,5 @@
 import sys  # needed for running in Linux
+import numpy as np
 import time
 import socket
 import select
@@ -88,7 +89,8 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     else:
         pass
     finally:
-        lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
+        pass
+        # lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
 
     socket_adr.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108, 0, 0, 0])
@@ -106,7 +108,7 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     else:
         lbl_mast_status.config(text='View only', font='none 9', bg='orange')
         lbl_control_status.config(text='ADR view only connection!', font='none 12', bg='orange')
-    lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
+    # lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
     adr_connection_flag = True
 
     # Reading all parameters valid now
@@ -129,18 +131,29 @@ def get_adr_params_and_set_indication(socket_adr):
     elif parameters_dict["operation_mode_num"] == 6: lbl_adr_mode_val.config(text='Correlation')
     else: parameters_dict["operation_mode_str"] = lbl_adr_mode_val.config(text='Unknown mode')
 
-    lbl_adr_fadc_val.config(text=parameters_dict["clock_frequency"]+' Hz')
+    tmp = format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ',') + '  Hz'
+    lbl_adr_fadc_val.config(text=tmp)
     lbl_adr_sadc_val.config(text=parameters_dict["external_clock"])
     lbl_adr_chnl_val.config(text=parameters_dict["number_of_channels"])
-    lbl_adr_fres_val.config(text=str(parameters_dict["frequency_resolution"])+' Hz')
-    lbl_adr_tres_val.config(text=str(parameters_dict["time_resolution"])+' s')
-    lbl_adr_flow_val.config(text=str(parameters_dict["lowest_frequency"])+' Hz')
-    lbl_adr_fhig_val.config(text=str(parameters_dict["highest_frequency"])+' Hz')
+    lbl_adr_fres_val.config(text=str(np.round(parameters_dict["frequency_resolution"] / 1000, 3))+' kHz')
+    lbl_adr_tres_val.config(text=str(np.round(parameters_dict["time_resolution"], 3))+' s')
+    lbl_adr_flow_val.config(text=str(np.round(parameters_dict["lowest_frequency"]/1000000, 3))+' MHz')
+    lbl_adr_fhig_val.config(text=str(np.round(parameters_dict["highest_frequency"]/1000000, 3))+' MHz')
     lbl_adr_rnam_val.config(text=parameters_dict["receiver_name"])
     lbl_adr_obsn_val.config(text=parameters_dict["observation_place"])
     lbl_adr_desc_val.config(text=parameters_dict["file_description"])
     lbl_adr_sdms_val.config(text=parameters_dict["sum_diff_mode"])
-    lbl_adr_nfcs_val.config(text=parameters_dict["files_autocreation"])
+    if parameters_dict["sum_diff_mode"] == 'OFF':
+        lbl_adr_sdms_val.config(bg='chartreuse2')
+    elif parameters_dict["sum_diff_mode"] == 'ON':
+        lbl_adr_sdms_val.config(bg='yellow')
+    else:
+        lbl_adr_sdms_val.config(bg='orange')
+
+    if parameters_dict["files_autocreation"] > 0:
+        lbl_adr_nfcs_val.config(text='ON', bg='chartreuse2')
+    else:
+        lbl_adr_nfcs_val.config(text='OFF', bg='yellow')
 
     # parameters_dict["data_recording"]
     # parameters_dict["size_of_file"]
@@ -164,7 +177,7 @@ def start_and_keep_adr_connection():
     lbl_sync_status.config(text='Synchro', font='none 9', bg='SlateBlue1')
     f_synchronize_adr(socket_adr, host_adr, time_server_ip)
     lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
-
+    lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
     get_adr_params_and_set_indication(socket_adr)
 
     while True:
@@ -184,7 +197,7 @@ def start_and_keep_adr_connection():
         tmp = str(tmp) + ' Mb'  # Current file length in seconds
 
         tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))
-        tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + ' Hz'
+        tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + '  Hz'
         lbl_adr_fadc_val.config(text=tmp, font='none 10 bold')
 
         tmp = float(find_between(data, 'FS_FREE: ', '\nFS_PERC:'))
