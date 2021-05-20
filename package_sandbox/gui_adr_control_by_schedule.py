@@ -25,6 +25,7 @@ from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_pa
 from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_receiver_control.f_initialize_adr import f_initialize_adr
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
+from package_receiver_control.f_read_and_set_adr_parameters import f_set_adr_parameters
 from package_common_modules.text_manipulations import find_between
 
 """
@@ -40,7 +41,7 @@ adr_port = 38386                    # Port of the receiver to connect (always 38
 relay_host = '192.168.1.170'
 relay_port = 6722
 time_server_ip = '192.168.1.150'
-
+default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
 logo_path = 'media_data/gurt_logo.png'
 x_space = (5, 5)
 y_space = (5, 5)
@@ -49,6 +50,7 @@ colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1']
 block_flag = True
 block_selecting_new_schedule_flag = False
 adr_connection_flag = False
+schedule = []
 # *******************************************************************************
 #                                F U N C T I O N S                              *
 # *******************************************************************************
@@ -184,7 +186,17 @@ def start_and_keep_adr_connection():
     f_synchronize_adr(socket_adr, host_adr, time_server_ip)
     lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
     lbl_adr_status.config(text='Connected', bg='chartreuse2')
-    lbl_control_status.config(text='ADR connected!', bg='chartreuse2')
+    if schedule == []:
+        lbl_control_status.config(text='Schedule is empty', bg='light gray')
+    else:
+        lbl_control_status.config(text='Ready to start', bg='chartreuse2')
+    # Apply default receiver parameters set in schedule (parameters file)
+    parameters_file = 'service_data/' + default_parameters_file
+    parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+    parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
+    if error_msg == '':
+        f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
+
     get_adr_params_and_set_indication(socket_adr)
 
     while True:
@@ -409,11 +421,151 @@ def start_control_by_schedule():
         block_selecting_new_schedule_flag = True
         btn_select_file.config(fg='gray')
         ent_schedule.tag_config('1', background='yellow')
-        lbl_control_status.config(text='Observation in progress!', bg='SlateBlue1')
+        lbl_control_status.config(text='Schedule in progress!', bg='SlateBlue1')
+
+        # control_by_schedule()
+
         time.sleep(15)
         block_selecting_new_schedule_flag = False
         btn_select_file.config(fg='black')
         lbl_control_status.config(text='Waiting to start', bg='light gray')
+
+
+def control_by_schedule():
+    # Preparing and starting observations
+    for obs_no in range(len(schedule)):
+
+        # Construct datetime variables to start and stop observations
+        dt_time = schedule[obs_no][0]
+        dt_time_to_start_record = datetime(int(dt_time[0:4]), int(dt_time[5:7]), int(dt_time[8:10]),
+                                           int(dt_time[11:13]), int(dt_time[14:16]), int(dt_time[17:19]), 0)
+
+        dt_time = schedule[obs_no][1]
+        dt_time_to_stop_record = datetime(int(dt_time[0:4]), int(dt_time[5:7]), int(dt_time[8:10]),
+                                          int(dt_time[11:13]), int(dt_time[14:16]), int(dt_time[17:19]), 0)
+
+        # Check the correctness of start and stop time
+        if (dt_time_to_start_record < dt_time_to_stop_record) and (dt_time_to_start_record > datetime.now()):
+            pass
+        else:
+            break
+
+        # Prepare directory for data recording
+        dt_time = schedule[obs_no][0]  # Taking date from schedule start time
+        data_directory_name = dt_time[0:10].replace('-', '.') + '_GURT_' + schedule[obs_no][6]
+        socket_adr.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())  # set directory to store data
+        data = f_read_adr_meassage(socket_adr, 0)
+
+        # if data.startswith('SUCCESS'):
+        #     print ('\n * Directory name changed to: ', data_directory_name)
+
+        # Set observation description:
+        socket_adr.send(('set prc/srv/ctl/dsc ' + schedule[obs_no][7] + '\0').encode())
+        data = f_read_adr_meassage(socket_adr, 0)
+
+        # Apply other receiver parameters set in schedule (parameters file)
+        parameters_file = 'service_data/' + schedule[obs_no][10]
+        parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+        f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
+
+        # Requesting and printing current ADR parameters
+        parameters_dict = f_get_adr_parameters(socket_adr, 1)
+
+        if obs_no+1 == len(schedule):
+            message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      ' (IP: ' + receiver_ip + ') was set. It will end on: ' + schedule[obs_no][1] + \
+                      '. Please, consider adding of a new schedule!'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+
+        # Waiting time to start record
+        print('\n * Waiting time to synchronize and start recording...')
+        ok = f_wait_predefined_time_connected(dt_time_to_start_record, socket_adr, 1, receiver_ip, time_server)
+
+        # Start record
+        socket_adr.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
+        data = f_read_adr_meassage(socket_adr, 0)
+        if data.startswith('SUCCESS'):
+            print('\n * Recording started')
+            message = 'GURT ' + data_directory_name.replace('_', ' ') + \
+                      ' observations started successfully!\nStart time: ' + \
+                      schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+                      '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      '\nReceiver IP: ' + receiver_ip + \
+                      '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+                      '\nMode: ' + parameters_dict["operation_mode_str"] + \
+                      '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+                      '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + \
+                      ' kHz.' + '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + \
+                      ' - ' + str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+
+        # Waiting time to stop record
+        ok = f_wait_predefined_time_connected(dt_time_to_stop_record, socket_adr, 0, receiver_ip, time_server)
+
+        # Stop record
+        socket_adr.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
+        data = f_read_adr_meassage(serversocket, 0)
+        if data.startswith('SUCCESS'):
+            print('\n * Recording stopped')
+
+        # Sending message to Telegram
+        message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
+                  + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+                  '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                  '\nReceiver IP: ' + receiver_ip + \
+                  '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+                  '\nMode: ' + parameters_dict["operation_mode_str"] + \
+                  '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+                  '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
+                  '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
+                  str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+
+        if schedule[obs_no][8] > 0 and schedule[obs_no][9] == 0:
+            message = message + '\nData will be copied to GURT server.'
+
+        if schedule[obs_no][9] > 0:
+            message = message + '\nData will be copied to GURT server and processed.'
+
+        # Open Log file and write the data message there
+        obs_log_file = open(obs_log_file_name, "a")
+        obs_log_file.write(message + '\n\n')
+        obs_log_file.close()
+
+        if obs_no + 1 == len(schedule):
+            message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
+        try:
+            test = telegram_bot_sendtext(telegram_chat_id, message)
+        except:
+            pass
+
+        # Data copying processing
+        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
+                             dir_data_on_server, data_directory_name, parameters_dict,
+                             telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
+                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+                             ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
+            p_processing[obs_no].start()
+
+        # If it was the last observation, set the default parameters of the receiver
+        if obs_no+1 == len(schedule):
+            # Apply other receiver parameters set in schedule (parameters file)
+            parameters_file = 'service_data/' + default_parameters_file
+            parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+            parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+            f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
+
+    for obs_no in range(len(schedule)):
+        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+            p_processing[obs_no].join()
 
 
 # *******************************************************************************
