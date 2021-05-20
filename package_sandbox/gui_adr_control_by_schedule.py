@@ -184,6 +184,7 @@ def start_and_keep_adr_connection():
     f_synchronize_adr(socket_adr, host_adr, time_server_ip)
     lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
     lbl_adr_status.config(text='Connected', bg='chartreuse2')
+    lbl_control_status.config(text='ADR connected!', bg='chartreuse2')
     get_adr_params_and_set_indication(socket_adr)
 
     while True:
@@ -192,16 +193,16 @@ def start_and_keep_adr_connection():
         socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
         data = f_read_adr_meassage(socket_adr, 0)
 
-        tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
-        tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
-        tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
+        # tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
+        # tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
+        # tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
 
         tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
         lbl_adr_cfsz_val.config(text=str(tmp) + ' Mb')
         tmp = float(find_between(data, 'FileTime: ', '\nF_ADC:'))  # Current file length in seconds
         lbl_adr_cfln_val.config(text=str(tmp) + ' s')
 
-        tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))
+        tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))  # ADC frequency indication
         tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + '  Hz'
         lbl_adr_fadc_val.config(text=tmp, font='none 10 bold')
 
@@ -420,7 +421,7 @@ def start_control_by_schedule():
 # *******************************************************************************
 
 window = Tk()
-window.title('ADR control GUI v.'+software_version+' (c) YeS')
+window.title('ADR control GUI v.' + software_version + ' (c) YeS')
 window.rowconfigure(0, minsize=30, weight=1)
 window.columnconfigure(1, minsize=40, weight=1)
 
@@ -428,10 +429,12 @@ window.columnconfigure(1, minsize=40, weight=1)
 tab_parent = ttk.Notebook(window)
 tab_main = ttk.Frame(tab_parent)
 tab_graphics = ttk.Frame(tab_parent)
+tab_schedule = ttk.Frame(tab_parent)
 tab_connection_control = ttk.Frame(tab_parent)
 tab_settings = ttk.Frame(tab_parent)
 tab_parent.add(tab_main, text='   Main window   ')
 tab_parent.add(tab_graphics, text='   Plots   ')
+tab_parent.add(tab_schedule, text='   Create schedule   ')
 tab_parent.add(tab_connection_control, text='   Devices connection   ')
 tab_parent.add(tab_settings, text='   Settings   ')
 tab_parent.pack(expand=1, fill="both")
