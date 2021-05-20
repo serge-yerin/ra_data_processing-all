@@ -169,6 +169,7 @@ def get_adr_params_and_set_indication(socket_adr):
 
 
 def start_and_keep_adr_connection():
+    global socket_adr, host_adr
     host_adr = ent_adr_ip.get()
     socket_adr, input_parameters_str = f_connect_to_adr_receiver(host_adr, adr_port)
     time.sleep(0.2)
@@ -371,6 +372,7 @@ def load_schedule_to_gui(schedule):
 
 def choose_schedule_file():
     if not block_selecting_new_schedule_flag:
+        global schedule
         filetypes = (('text files', '*.txt'), ('All files', '*.*'))
         file_path = tkinter.filedialog.askopenfilename(title='Open a file', filetypes=filetypes)
         entry_schedule_file.delete(0, END)
@@ -409,6 +411,45 @@ def unblock_control_by_schedule():
     btn_send_tg_messages.config(state=NORMAL)
 
 
+def wait_predefined_time(time_to_start, serversocket, synchro=0, host='192.168.1.171', time_server='192.168.1.150'):
+    """
+    Function waits the predefined time and once a minute reads something from ADR receiver to
+    save connection to ADR server
+    Input parameters:
+        time_to_start       - datetime variable with time to continue the script
+        serversocket        - socket handle to keep the connection alive
+        synchro             - to synchronize the receiver before timer end (1 - yes, 0 - no)
+    Output parameter:
+        result              - boolean variable (1) if time was chosen correctly (0) if not
+    """
+    now = datetime.now()
+    diff = int((time_to_start - now).total_seconds())
+    if diff > 0:
+        result = True
+        # Wait minutes
+        if int(diff / 60) > 0:
+            while True:
+                time.sleep(60)
+                now = datetime.now()
+                diff = int((time_to_start - now).total_seconds())
+                if int(diff / 60) <= 1:
+                    break
+        if synchro > 0:
+            # Update synchronization of PC and ADR
+            f_synchronize_adr(serversocket, host, time_server)
+
+        # Wait seconds
+        while True:
+            time.sleep(1)
+            now = datetime.now()
+            diff = int((time_to_start - now).total_seconds())
+            if diff < 1:
+                break
+    else:
+        result = False  # Time has passed!
+    return result
+
+
 def start_control_by_schedule_button():
     control_thread = Thread(target=start_control_by_schedule, daemon=True)
     control_thread.start()
@@ -423,15 +464,17 @@ def start_control_by_schedule():
         ent_schedule.tag_config('1', background='yellow')
         lbl_control_status.config(text='Schedule in progress!', bg='SlateBlue1')
 
-        # control_by_schedule()
+        control_by_schedule()
 
-        time.sleep(15)
+        # time.sleep(15)
+
         block_selecting_new_schedule_flag = False
         btn_select_file.config(fg='black')
         lbl_control_status.config(text='Waiting to start', bg='light gray')
 
 
 def control_by_schedule():
+    print('Len:', len(schedule))
     # Preparing and starting observations
     for obs_no in range(len(schedule)):
 
@@ -468,104 +511,121 @@ def control_by_schedule():
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
 
-        # Requesting and printing current ADR parameters
-        parameters_dict = f_get_adr_parameters(socket_adr, 1)
+        # # Requesting and printing current ADR parameters
+        # parameters_dict = f_get_adr_parameters(socket_adr, 1)
 
-        if obs_no+1 == len(schedule):
-            message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-                      ' (IP: ' + receiver_ip + ') was set. It will end on: ' + schedule[obs_no][1] + \
-                      '. Please, consider adding of a new schedule!'
-            try:
-                test = telegram_bot_sendtext(telegram_chat_id, message)
-            except:
-                pass
+        # if obs_no+1 == len(schedule):
+        #     message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+        #               ' (IP: ' + host_adr + ') was set. It will end on: ' + schedule[obs_no][1] + \
+        #               '. Please, consider adding of a new schedule!'
+        #     try:
+        #         test = telegram_bot_sendtext(telegram_chat_id, message)
+        #     except:
+        #         pass
 
         # Waiting time to start record
         print('\n * Waiting time to synchronize and start recording...')
-        ok = f_wait_predefined_time_connected(dt_time_to_start_record, socket_adr, 1, receiver_ip, time_server)
+        ok = wait_predefined_time(dt_time_to_start_record, socket_adr, 1, host_adr, time_server_ip)
 
         # Start record
         socket_adr.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
         data = f_read_adr_meassage(socket_adr, 0)
         if data.startswith('SUCCESS'):
-            print('\n * Recording started')
-            message = 'GURT ' + data_directory_name.replace('_', ' ') + \
-                      ' observations started successfully!\nStart time: ' + \
-                      schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
-                      '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-                      '\nReceiver IP: ' + receiver_ip + \
-                      '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
-                      '\nMode: ' + parameters_dict["operation_mode_str"] + \
-                      '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
-                      '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + \
-                      ' kHz.' + '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + \
-                      ' - ' + str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+            lbl_recd_status.config(text='Recording!',  bg='Deep sky blue')
+        else:
+            lbl_recd_status.config(text='Failed to start record!', bg='orange')
 
-            try:
-                test = telegram_bot_sendtext(telegram_chat_id, message)
-            except:
-                pass
+        # if data.startswith('SUCCESS'):
+        #     print('\n * Recording started')
+        #     message = 'GURT ' + data_directory_name.replace('_', ' ') + \
+        #               ' observations started successfully!\nStart time: ' + \
+        #               schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+        #               '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+        #               '\nReceiver IP: ' + receiver_ip + \
+        #               '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+        #               '\nMode: ' + parameters_dict["operation_mode_str"] + \
+        #               '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+        #               '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + \
+        #               ' kHz.' + '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + \
+        #               ' - ' + str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+        #
+        #     try:
+        #         test = telegram_bot_sendtext(telegram_chat_id, message)
+        #     except:
+        #         pass
 
         # Waiting time to stop record
-        ok = f_wait_predefined_time_connected(dt_time_to_stop_record, socket_adr, 0, receiver_ip, time_server)
+        ok = wait_predefined_time(dt_time_to_stop_record, socket_adr, 0, host_adr, time_server_ip)
 
         # Stop record
         socket_adr.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
-        data = f_read_adr_meassage(serversocket, 0)
+        data = f_read_adr_meassage(socket_adr, 0)
         if data.startswith('SUCCESS'):
-            print('\n * Recording stopped')
+            lbl_recd_status.config(text='Waiting...',  bg='light gray')
+        else:
+            lbl_recd_status.config(text='Failed to stop record!', bg='orange')
 
-        # Sending message to Telegram
-        message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
-                  + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
-                  '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-                  '\nReceiver IP: ' + receiver_ip + \
-                  '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
-                  '\nMode: ' + parameters_dict["operation_mode_str"] + \
-                  '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
-                  '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
-                  '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
-                  str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+        # if data.startswith('SUCCESS'):
+        #     print('\n * Recording stopped')
 
-        if schedule[obs_no][8] > 0 and schedule[obs_no][9] == 0:
-            message = message + '\nData will be copied to GURT server.'
+        # # Sending message to Telegram
+        # message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
+        #           + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+        #           '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+        #           '\nReceiver IP: ' + host_adr + \
+        #           '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+        #           '\nMode: ' + parameters_dict["operation_mode_str"] + \
+        #           '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+        #           '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
+        #           '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
+        #           str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+        #
+        # if schedule[obs_no][8] > 0 and schedule[obs_no][9] == 0:
+        #     message = message + '\nData will be copied to GURT server.'
+        #
+        # if schedule[obs_no][9] > 0:
+        #     message = message + '\nData will be copied to GURT server and processed.'
 
-        if schedule[obs_no][9] > 0:
-            message = message + '\nData will be copied to GURT server and processed.'
+        # # Open Log file and write the data message there
+        # obs_log_file = open(obs_log_file_name, "a")
+        # obs_log_file.write(message + '\n\n')
+        # obs_log_file.close()
 
-        # Open Log file and write the data message there
-        obs_log_file = open(obs_log_file_name, "a")
-        obs_log_file.write(message + '\n\n')
-        obs_log_file.close()
+        # if obs_no + 1 == len(schedule):
+        #     message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
+        # try:
+        #     test = telegram_bot_sendtext(telegram_chat_id, message)
+        # except:
+        #     pass
 
-        if obs_no + 1 == len(schedule):
-            message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
-        try:
-            test = telegram_bot_sendtext(telegram_chat_id, message)
-        except:
-            pass
-
-        # Data copying processing
-        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
-            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
-                             dir_data_on_server, data_directory_name, parameters_dict,
-                             telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
-                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
-                             ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
-            p_processing[obs_no].start()
+        # # Data copying processing
+        # if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+        #     p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
+        #                      dir_data_on_server, data_directory_name, parameters_dict,
+        #                      telegram_chat_id, host_adr, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+        #                      VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
+        #                      DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+        #                      ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
+        #     p_processing[obs_no].start()
 
         # If it was the last observation, set the default parameters of the receiver
         if obs_no+1 == len(schedule):
-            # Apply other receiver parameters set in schedule (parameters file)
+            # # Apply other receiver parameters set in schedule (parameters file)
+            # parameters_file = 'service_data/' + default_parameters_file
+            # parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+            # parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
+            # f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
+
+            # Apply default receiver parameters set in schedule (parameters file)
             parameters_file = 'service_data/' + default_parameters_file
             parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
-            parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
-            f_set_adr_parameters(serversocket, parameters_dict, 0, 0.5)
+            parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
+            if error_msg == '':
+                f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
 
-    for obs_no in range(len(schedule)):
-        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
-            p_processing[obs_no].join()
+    # for obs_no in range(len(schedule)):
+    #     if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+    #         p_processing[obs_no].join()
 
 
 # *******************************************************************************
