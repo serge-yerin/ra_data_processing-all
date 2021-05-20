@@ -133,8 +133,14 @@ def get_adr_params_and_set_indication(socket_adr):
 
     tmp = format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ',') + '  Hz'
     lbl_adr_fadc_val.config(text=tmp)
-    lbl_adr_sadc_val.config(text=parameters_dict["external_clock"])
-    lbl_adr_chnl_val.config(text=parameters_dict["number_of_channels"])
+
+    if parameters_dict["external_clock"] == 'OFF':
+        lbl_adr_sadc_val.config(text="External", bg='yellow')
+    elif parameters_dict["external_clock"] == 'ON':
+        lbl_adr_sadc_val.config(text="Internal", bg='chartreuse2')
+
+    tmp = format(parameters_dict["number_of_channels"], ',').replace(',', ' ').replace('.', ',')
+    lbl_adr_chnl_val.config(text=tmp)
     lbl_adr_fres_val.config(text=str(np.round(parameters_dict["frequency_resolution"] / 1000, 3))+' kHz')
     lbl_adr_tres_val.config(text=str(np.round(parameters_dict["time_resolution"], 3))+' s')
     lbl_adr_flow_val.config(text=str(np.round(parameters_dict["lowest_frequency"]/1000000, 3))+' MHz')
@@ -177,7 +183,7 @@ def start_and_keep_adr_connection():
     lbl_sync_status.config(text='Synchro', font='none 9', bg='SlateBlue1')
     f_synchronize_adr(socket_adr, host_adr, time_server_ip)
     lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
-    lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
+    lbl_adr_status.config(text='Connected', bg='chartreuse2')
     get_adr_params_and_set_indication(socket_adr)
 
     while True:
@@ -190,23 +196,20 @@ def start_and_keep_adr_connection():
         tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
         tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
 
-        tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))
-        tmp = str(tmp) + ' Mb'  # Current file size in bytes
-
-        tmp = float(find_between(data, 'FileTime: ', '\nF_ADC:'))
-        tmp = str(tmp) + ' Mb'  # Current file length in seconds
+        tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
+        lbl_adr_cfsz_val.config(text=str(tmp) + ' Mb')
+        tmp = float(find_between(data, 'FileTime: ', '\nF_ADC:'))  # Current file length in seconds
+        lbl_adr_cfln_val.config(text=str(tmp) + ' s')
 
         tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))
         tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + '  Hz'
         lbl_adr_fadc_val.config(text=tmp, font='none 10 bold')
 
-        tmp = float(find_between(data, 'FS_FREE: ', '\nFS_PERC:'))
-        tmp = str(tmp) + ' Mb'  # Free space in bytes
-
-        tmp = float(find_between(data, 'FS_PERC: ', '\n'))
-        tmp = str(tmp) + ' %'  # Free space in %
-
-        # print(data)
+        tmp = int(float(find_between(data, 'FS_FREE: ', '\nFS_PERC:')) / 1000)  # Free space in bytes
+        tmp = format(tmp, ',').replace(',', ' ').replace('.', ',')
+        lbl_adr_frsb_val.config(text=str(tmp) + ' GB')
+        tmp = float(find_between(data, 'FS_PERC: ', '\n'))  # Free space in %
+        lbl_adr_frsp_val.config(text=str(tmp) + ' %')
 
 
 def start_adr_connection_thread():
@@ -468,7 +471,7 @@ ent_adr_ip.insert(0, adr_ip)
 
 btn_adr_connect.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 lbl_adr_status.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
-lbl_adr_ip.grid(row=0, column=2, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
+lbl_adr_ip.grid(row=0, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space)
 ent_adr_ip.grid(row=0, column=3, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
 lbl_adr_fadc_nam = Label(frame_adr_status, text="ADC frequency:")
@@ -536,12 +539,33 @@ lbl_adr_sdms_val.grid(row=8, column=1, rowspan=1, columnspan=1, stick='w', padx=
 lbl_adr_nfcs_nam.grid(row=8, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_nfcs_val.grid(row=8, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
+lbl_adr_frsb_nam = Label(frame_adr_status, text="Free disk space:")
+lbl_adr_frsb_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_cfsz_nam = Label(frame_adr_status, text="Current file size:")
+lbl_adr_cfsz_val = Label(frame_adr_status, text="", font='none 10 bold')
+
+lbl_adr_frsb_nam.grid(row=9, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_frsb_val.grid(row=9, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+lbl_adr_cfsz_nam.grid(row=9, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_cfsz_val.grid(row=9, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
+lbl_adr_frsp_nam = Label(frame_adr_status, text="or:")
+lbl_adr_frsp_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_cfln_nam = Label(frame_adr_status, text="Current file length:")
+lbl_adr_cfln_val = Label(frame_adr_status, text="", font='none 10 bold')
+
+lbl_adr_frsp_nam.grid(row=10, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_frsp_val.grid(row=10, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+lbl_adr_cfln_nam.grid(row=10, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_cfln_val.grid(row=10, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
 lbl_sync_status = Label(frame_adr_status, text='Synchro', font='none 9', width=12, bg='light gray')
 lbl_recd_status = Label(frame_adr_status, text='Waiting', font='none 12', width=15, bg='light gray')
 lbl_mast_status = Label(frame_adr_status, text='Unknown', font='none 9', width=12, bg='light gray')
-lbl_sync_status.grid(row=9, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space)
-lbl_recd_status.grid(row=9, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
-lbl_mast_status.grid(row=9, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space)
+lbl_sync_status.grid(row=11, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space)
+lbl_recd_status.grid(row=11, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+lbl_mast_status.grid(row=11, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space)
+
 
 # Setting elements of the frame "Load schedule"
 lbl_path_in = Label(frame_load_schedule, text="  Path:")
