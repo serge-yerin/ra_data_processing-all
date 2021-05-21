@@ -91,8 +91,7 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     else:
         pass
     finally:
-        pass
-        # lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
+        lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
 
     socket_adr.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108, 0, 0, 0])
