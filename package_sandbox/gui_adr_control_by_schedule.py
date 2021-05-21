@@ -46,10 +46,11 @@ logo_path = 'media_data/gurt_logo.png'
 x_space = (5, 5)
 y_space = (5, 5)
 y_space_adr = 1
-colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1']
+colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue']
 block_flag = True
 block_selecting_new_schedule_flag = False
 adr_connection_flag = False
+pause_update_info_flag = False
 schedule = []
 # *******************************************************************************
 #                                F U N C T I O N S                              *
@@ -88,10 +89,12 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
         socket_adr.connect((host, adr_port))
     except TimeoutError:
         lbl_adr_status.config(text='Failed!', bg='orange')
+    except OSError:  # works in Linux when there is no such IP in the net
+        lbl_adr_status.config(text='Failed!', bg='orange')
     else:
         pass
     finally:
-        lbl_adr_status.config(text='Failed!', bg='orange')  # Works in Linux instead except TimeoutError
+        pass
 
     socket_adr.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108, 0, 0, 0])
@@ -109,7 +112,6 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     else:
         lbl_mast_status.config(text='View only', font='none 9', bg='orange')
         lbl_control_status.config(text='ADR view only connection!', font='none 12', bg='orange')
-    # lbl_adr_status.config(text='Connected', font='none 12', width=12, bg='chartreuse2')
     adr_connection_flag = True
 
     # Reading all parameters valid now
@@ -117,7 +119,6 @@ def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
     for i in range(23):
         input_parameters_str += f_read_adr_meassage(socket_adr, 0)
     time.sleep(delay)   # Making pause to read the data
-    # print(input_parameters_str)
     return socket_adr, input_parameters_str
 
 
@@ -168,7 +169,7 @@ def get_adr_params_and_set_indication(socket_adr):
 
 
 def start_and_keep_adr_connection():
-    global socket_adr, host_adr
+    global socket_adr, host_adr, pause_update_info_flag
     host_adr = ent_adr_ip.get()
     socket_adr, input_parameters_str = f_connect_to_adr_receiver(host_adr, adr_port)
     time.sleep(0.2)
@@ -201,28 +202,34 @@ def start_and_keep_adr_connection():
 
     while True:
         time.sleep(1)
-        # Keeping connection active
-        socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
-        data = f_read_adr_meassage(socket_adr, 0)
+        if pause_update_info_flag:
+            pass
+        else:
+            # Keeping connection active
+            socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
+            data = f_read_adr_meassage(socket_adr, 0)
 
-        # tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
-        # tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
-        # tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
+            # tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
+            # tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
+            # tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
 
-        tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
-        lbl_adr_cfsz_val.config(text=str(tmp) + ' Mb')
-        tmp = float(find_between(data, 'FileTime: ', '\nF_ADC:'))  # Current file length in seconds
-        lbl_adr_cfln_val.config(text=str(tmp) + ' s')
+            tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
+            tmp = '{:.1f} Mb'.format(tmp)
+            lbl_adr_cfsz_val.config(text=tmp)
+            tmp = float(find_between(data, 'FileTime: ', '\nF_ADC:'))  # Current file length in seconds
+            tmp = '{:.1f} s'.format(tmp)
+            lbl_adr_cfln_val.config(text=tmp)
 
-        tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))  # ADC frequency indication
-        tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + '  Hz'
-        lbl_adr_fadc_val.config(text=tmp, font='none 10 bold')
+            tmp = int(find_between(data, 'F_ADC: ', '\nFS_FREE'))  # ADC frequency indication
+            tmp = format(tmp, ',').replace(',', ' ').replace('.', ',') + '  Hz'
+            lbl_adr_fadc_val.config(text=tmp, font='none 10 bold')
 
-        tmp = int(float(find_between(data, 'FS_FREE: ', '\nFS_PERC:')) / 1000)  # Free space in bytes
-        tmp = format(tmp, ',').replace(',', ' ').replace('.', ',')
-        lbl_adr_frsb_val.config(text=str(tmp) + ' GB')
-        tmp = float(find_between(data, 'FS_PERC: ', '\n'))  # Free space in %
-        lbl_adr_frsp_val.config(text=str(tmp) + ' %')
+            tmp = int(float(find_between(data, 'FS_FREE: ', '\nFS_PERC:')) / 1000)  # Free space in bytes
+            tmp = format(tmp, ',').replace(',', ' ').replace('.', ',')
+            lbl_adr_frsb_val.config(text=str(tmp) + ' GB')
+            tmp = float(find_between(data, 'FS_PERC: ', '\n'))  # Free space in %
+            tmp = '{:.1f} %'.format(tmp)
+            lbl_adr_frsp_val.config(text=tmp)
 
 
 def start_adr_connection_thread():
@@ -369,6 +376,11 @@ def load_schedule_to_gui(schedule):
     ent_schedule.config(state=DISABLED)
 
 
+def start_choose_schedule_file_thread():
+    schedule_choose_thread = Thread(target=choose_schedule_file, daemon=True)
+    schedule_choose_thread.start()
+
+
 def choose_schedule_file():
     if not block_selecting_new_schedule_flag:
         global schedule
@@ -421,6 +433,7 @@ def wait_predefined_time(time_to_start, serversocket, synchro=0, host='192.168.1
     Output parameter:
         result              - boolean variable (1) if time was chosen correctly (0) if not
     """
+    global pause_update_info_flag
     now = datetime.now()
     diff = int((time_to_start - now).total_seconds())
     if diff > 0:
@@ -435,7 +448,10 @@ def wait_predefined_time(time_to_start, serversocket, synchro=0, host='192.168.1
                     break
         if synchro > 0:
             # Update synchronization of PC and ADR
+            # synchro_flag = True
+            pause_update_info_flag = True
             f_synchronize_adr(serversocket, host, time_server)
+            pause_update_info_flag = False
 
         # Wait seconds
         while True:
@@ -461,7 +477,7 @@ def start_control_by_schedule():
         block_selecting_new_schedule_flag = True
         btn_select_file.config(fg='gray')
         ent_schedule.tag_config('1', background='yellow')
-        lbl_control_status.config(text='Schedule in progress!', bg='SlateBlue1')
+        lbl_control_status.config(text='Schedule in progress!', bg='Deep sky blue')
 
         control_by_schedule()
 
@@ -473,6 +489,7 @@ def start_control_by_schedule():
 
 
 def control_by_schedule():
+    global pause_update_info_flag
     print('Len:', len(schedule))
     # Preparing and starting observations
     for obs_no in range(len(schedule)):
@@ -495,11 +512,9 @@ def control_by_schedule():
         # Prepare directory for data recording
         dt_time = schedule[obs_no][0]  # Taking date from schedule start time
         data_directory_name = dt_time[0:10].replace('-', '.') + '_GURT_' + schedule[obs_no][6]
+        pause_update_info_flag = True
         socket_adr.send(('set prc/srv/ctl/pth ' + data_directory_name + '\0').encode())  # set directory to store data
         data = f_read_adr_meassage(socket_adr, 0)
-
-        # if data.startswith('SUCCESS'):
-        #     print ('\n * Directory name changed to: ', data_directory_name)
 
         # Set observation description:
         socket_adr.send(('set prc/srv/ctl/dsc ' + schedule[obs_no][7] + '\0').encode())
@@ -509,6 +524,7 @@ def control_by_schedule():
         parameters_file = 'service_data/' + schedule[obs_no][10]
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
+        pause_update_info_flag = False
 
         # # Requesting and printing current ADR parameters
         # parameters_dict = f_get_adr_parameters(socket_adr, 1)
@@ -527,8 +543,10 @@ def control_by_schedule():
         ok = wait_predefined_time(dt_time_to_start_record, socket_adr, 1, host_adr, time_server_ip)
 
         # Start record
+        pause_update_info_flag = True
         socket_adr.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
         data = f_read_adr_meassage(socket_adr, 0)
+        pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Recording!',  bg='Deep sky blue')
         else:
@@ -557,8 +575,10 @@ def control_by_schedule():
         ok = wait_predefined_time(dt_time_to_stop_record, socket_adr, 0, host_adr, time_server_ip)
 
         # Stop record
+        pause_update_info_flag = True
         socket_adr.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
         data = f_read_adr_meassage(socket_adr, 0)
+        pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Waiting...',  bg='light gray')
         else:
@@ -620,7 +640,9 @@ def control_by_schedule():
             parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
             parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
             if error_msg == '':
+                pause_update_info_flag = True
                 f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
+                pause_update_info_flag = False
 
     # for obs_no in range(len(schedule)):
     #     if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
