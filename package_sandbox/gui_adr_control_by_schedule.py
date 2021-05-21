@@ -4,6 +4,7 @@ import time
 import socket
 import select
 import tkinter.filedialog
+from pexpect import pxssh
 from os import path
 from time import strftime
 from datetime import datetime
@@ -22,7 +23,6 @@ if __package__ is None:
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_read_schedule_txt_for_adr import find_parameter_value
 from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
-from package_receiver_control.f_synchronize_adr import f_synchronize_adr
 from package_receiver_control.f_initialize_adr import f_initialize_adr
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_read_and_set_adr_parameters import f_set_adr_parameters
@@ -66,6 +66,76 @@ def time_show():
     time_lbl.config(text='\n     Local:     ' + loc_time_str +
                          '     \n      UTC:      ' + utc_time_str + '     \n')
     time_lbl.after(1000, time_show)
+
+
+def synchronize_adr(serversocket, receiver_ip, time_server):
+    """
+    Function reads a message from ADR radio astronomy receiver
+    ntp server must be installed on server PC (sudo apt install ntp)
+    to start ntp-server on server pc use "sudo /etc/init.d/ntp start" or/and "sudo systemctl restart ntp"
+    Input parameters:
+        serversocket        - handle of socket to send and receive messages from server
+        receiver_ip                - IP address of receiver_ip to connect for sntp synchro from server
+        time_server         - IP address of the ntp time server (probably PC where the script runs)
+    Output parameters:
+    """
+    # Update synchronization of PC and ADR
+    lbl_sync_status.config(text='Synchro', font='none 9', bg='Deep sky blue')
+    synchro_error_flag = False
+    receiver_file = open('service_data/receiver.txt', 'r')
+    rec_user = receiver_file.readline()[:-1]
+    password = receiver_file.readline()[:-1]
+    receiver_file.close()
+
+    # SSH connection to ADR receiver to send sntp command to synchronize with server
+    s = pxssh.pxssh()
+    if not s.login(receiver_ip, rec_user, password):
+        # print('\n   ERROR! SSH session failed on login!')
+        # print(str(s))
+        lbl_sync_status.config(text='SSH log error!', font='none 9', bg='orange')
+        synchro_error_flag = True
+    else:
+        # print('\n   SSH session login successful')
+        s.sendline('sntp -P no -r ' + time_server)
+        s.prompt()  # match the prompt
+        # print('\n   Answer: ', s.before)  # print everything before the prompt.
+        if s.before == ('sntp -P no -r ' + time_server_ip + '\r\n').encode():
+            pass
+        else:
+            lbl_sync_status.config(text='sntp error!', font='none 9', bg='orange')
+            synchro_error_flag = True
+        s.logout()
+
+    time.sleep(1)
+
+    serversocket.send(b'set prc/dsp/ctl/clc 0 1\0')
+    data_0 = f_read_adr_meassage(serversocket, 0)
+    serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
+    data_1 = f_read_adr_meassage(serversocket, 0)
+    if data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS'):
+        # print('\n   UTC absolute second set')
+        pass
+    else:
+        lbl_sync_status.config(text='Abs sec error!', font='none 9', bg='orange')
+        synchro_error_flag = True
+        # print('\n   ERROR! UTC absolute second was not set!')
+
+    time.sleep(3)
+
+    serversocket.send(b'set prc/dsp/ctl/clc 0 0\0')  # tune second
+    data_0 = f_read_adr_meassage(serversocket, 0)
+    serversocket.send(b'set prc/dsp/ctl/clc 1 0\0')  # tune second
+    data_1 = f_read_adr_meassage(serversocket, 0)
+    serversocket.send(b'set prc/srv/ctl/adr 6 1\0')
+    data_2 = f_read_adr_meassage(serversocket, 0)
+    if data_0.startswith('SUCCESS') and data_1.startswith('SUCCESS') and data_2.startswith('SUCCESS'):
+        # print('\n   UTC absolute second tuned')
+        pass
+    else:
+        lbl_sync_status.config(text='Tune sec error!', font='none 9', bg='orange')
+        synchro_error_flag = True
+    if not synchro_error_flag:
+        lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
 
 
 def f_connect_to_adr_receiver(host, adr_port):   # UNUSED NOW !!!
@@ -183,9 +253,7 @@ def start_and_keep_adr_connection():
         lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
 
     # Update synchronization of PC and ADR
-    lbl_sync_status.config(text='Synchro', font='none 9', bg='SlateBlue1')
-    f_synchronize_adr(socket_adr, host_adr, time_server_ip)
-    lbl_sync_status.config(text='Synchro', font='none 9', bg='chartreuse2')
+    synchronize_adr(socket_adr, host_adr, time_server_ip)
     lbl_adr_status.config(text='Connected', bg='chartreuse2')
     if schedule == []:
         lbl_control_status.config(text='Schedule is empty', bg='light gray')
@@ -196,8 +264,9 @@ def start_and_keep_adr_connection():
     parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
     parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
     if error_msg == '':
+        lbl_recd_status.config(text='Setting ADR parameters...', bg='yellow')
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
-
+        lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
     get_adr_params_and_set_indication(socket_adr)
 
     while True:
@@ -450,7 +519,7 @@ def wait_predefined_time(time_to_start, serversocket, synchro=0, host='192.168.1
             # Update synchronization of PC and ADR
             # synchro_flag = True
             pause_update_info_flag = True
-            f_synchronize_adr(serversocket, host, time_server)
+            synchronize_adr(serversocket, host, time_server)
             pause_update_info_flag = False
 
         # Wait seconds
@@ -523,7 +592,9 @@ def control_by_schedule():
         # Apply other receiver parameters set in schedule (parameters file)
         parameters_file = 'service_data/' + schedule[obs_no][10]
         parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
+        lbl_recd_status.config(text='Setting ADR parameters...', font='none 12', bg='yellow')
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
+        lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
         pause_update_info_flag = False
 
         # # Requesting and printing current ADR parameters
@@ -539,7 +610,6 @@ def control_by_schedule():
         #         pass
 
         # Waiting time to start record
-        print('\n * Waiting time to synchronize and start recording...')
         ok = wait_predefined_time(dt_time_to_start_record, socket_adr, 1, host_adr, time_server_ip)
 
         # Start record
@@ -640,9 +710,11 @@ def control_by_schedule():
             parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
             parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
             if error_msg == '':
+                lbl_recd_status.config(text='Setting ADR parameters', bg='yellow')
                 pause_update_info_flag = True
                 f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
                 pause_update_info_flag = False
+                lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
 
     # for obs_no in range(len(schedule)):
     #     if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
