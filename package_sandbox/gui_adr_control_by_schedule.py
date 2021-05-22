@@ -549,7 +549,6 @@ def start_control_by_schedule():
         lbl_control_status.config(text='Schedule in progress!', bg='Deep sky blue')
 
         control_by_schedule()
-
         # time.sleep(15)
 
         block_selecting_new_schedule_flag = False
@@ -595,6 +594,7 @@ def control_by_schedule():
         lbl_recd_status.config(text='Setting ADR parameters...', font='none 12', bg='yellow')
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
         lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
+        get_adr_params_and_set_indication(socket_adr)
         pause_update_info_flag = False
 
         # # Requesting and printing current ADR parameters
