@@ -242,6 +242,7 @@ def start_and_keep_adr_connection():
     global socket_adr, host_adr, pause_update_info_flag
     host_adr = ent_adr_ip.get()
     socket_adr, input_parameters_str = f_connect_to_adr_receiver(host_adr, adr_port)
+    ent_adr_ip.config(state=DISABLED)
     time.sleep(0.2)
     # Check if the receiver is initialized, if it is not - initialize it
     socket_adr.send(b"set prc/srv/ctl/adr 3 1\0")
@@ -479,16 +480,18 @@ def block_control_by_schedule():
     global block_flag
     block_flag = True
     btn_start_unblock.config(text='UNBLOCK')
-    btn_start_schedule.config(fg='gray')
     btn_send_tg_messages.config(state=DISABLED)
+    btn_start_schedule.config(state=DISABLED, fg='gray')
+    btn_stopnow_schedule.config(state=DISABLED, fg='black')
 
 
 def unblock_control_by_schedule():
     global block_flag
     block_flag = False
     btn_start_unblock.config(text='BLOCK')
-    btn_start_schedule.config(fg='black')
     btn_send_tg_messages.config(state=NORMAL)
+    btn_start_schedule.config(state=NORMAL, fg='black')
+    btn_stopnow_schedule.config(state=NORMAL, fg='black')
 
 
 def wait_predefined_time(time_to_start, serversocket, synchro=0, host='192.168.1.171', time_server='192.168.1.150'):
@@ -557,10 +560,14 @@ def start_control_by_schedule():
 
 
 def control_by_schedule():
-    global pause_update_info_flag
+    global pause_update_info_flag, stopnow_schedule_flag
+    stopnow_schedule_flag = False
     print('Len:', len(schedule))
     # Preparing and starting observations
     for obs_no in range(len(schedule)):
+        if stopnow_schedule_flag:
+            stopnow_schedule_flag = False
+            break
 
         # Construct datetime variables to start and stop observations
         dt_time = schedule[obs_no][0]
@@ -719,6 +726,21 @@ def control_by_schedule():
     # for obs_no in range(len(schedule)):
     #     if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
     #         p_processing[obs_no].join()
+
+
+def stopnow_control_by_schedule_button():
+    global stopnow_schedule_flag, pause_update_info_flag
+    # Stop schedule loop
+    stopnow_schedule_flag = True
+    # Stop record
+    pause_update_info_flag = True
+    socket_adr.send('set prc/srv/ctl/srd 0 0\0'.encode())  # stop data recording
+    data = f_read_adr_meassage(socket_adr, 0)
+    pause_update_info_flag = False
+    if data.startswith('SUCCESS'):
+        lbl_recd_status.config(text='Waiting...', bg='light gray')
+    else:
+        lbl_recd_status.config(text='Failed to stop record!', bg='orange')
 
 
 # *******************************************************************************
@@ -894,9 +916,9 @@ lbl_scedule_comments.grid(row=1, column=0, rowspan=1, columnspan=4, stick='nswe'
 btn_start_unblock = Button(frame_control, text="UNBLOCK", font='none 9 bold', relief='raised', width=12,
                            command=block_control_button)
 btn_start_schedule = Button(frame_control, text="Start control", font='none 9 bold', relief='raised', fg='gray',
-                            width=27, command=start_control_by_schedule_button)
+                            width=27, command=start_control_by_schedule_button, state=DISABLED)
 btn_start_unblock.grid(row=0, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
-btn_start_schedule.grid(row=0, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
+btn_start_schedule.grid(row=0, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
 
 send_tg_messages = IntVar(value=1)
@@ -905,16 +927,20 @@ btn_send_tg_messages = Checkbutton(frame_control, text="", variable=send_tg_mess
                                    fg='black', activebackground='gray77', activeforeground='SlateBlue1',
                                    selectcolor="white")
 btn_send_tg_messages.config(state=DISABLED)
+btn_stopnow_schedule = Button(frame_control, text="Stop now!", font='none 9 bold', relief='raised', fg='gray',
+                           command=stopnow_control_by_schedule_button)
+btn_stopnow_schedule.config(state=DISABLED)
 
 lbl_send_tg_messages.grid(row=1, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 btn_send_tg_messages.grid(row=1, column=1, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
+btn_stopnow_schedule.grid(row=1, column=2, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
 img = ImageTk.PhotoImage(Image.open(logo_path))
 ira_logo = Label(frame_control, image=img, width=145)
-ira_logo.grid(row=0, column=2, rowspan=3, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+ira_logo.grid(row=0, column=3, rowspan=3, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 
 lbl_control_status = Label(frame_control, text='ADR is not connected!', font='none 12', width=15, bg='light gray')
-lbl_control_status.grid(row=2, column=0, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+lbl_control_status.grid(row=2, column=0, rowspan=1, columnspan=3, stick='nswe', padx=x_space, pady=y_space)
 
 # Setting elements of the frame "Schedule"
 
