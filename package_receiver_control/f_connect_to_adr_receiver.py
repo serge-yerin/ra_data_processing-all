@@ -64,4 +64,8 @@ if __name__ == '__main__':
 
     print('\n\n * Connecting to the ADR receiver... \n')
 
-    f_connect_to_adr_receiver(host, port, control, delay)
+    serversocket, input_parameters_str = f_connect_to_adr_receiver(host, port, control, delay)
+
+    # serversocket.send((b"get prc/srv/ctl/adr\0"))  # To apply the ADR DSP parameters (which is set in the [mdo]
+    #
+    # data = f_read_adr_meassage(serversocket, 1)
