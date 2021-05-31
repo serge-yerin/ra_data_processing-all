@@ -13,6 +13,7 @@ from PIL import ImageTk, Image
 from threading import Thread
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
+from multiprocessing import Process
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
@@ -26,7 +27,13 @@ from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_pa
 from package_receiver_control.f_initialize_adr import f_initialize_adr
 from package_receiver_control.f_get_adr_parameters import f_get_adr_parameters
 from package_receiver_control.f_read_and_set_adr_parameters import f_set_adr_parameters
+from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.text_manipulations import find_between
+from package_common_modules.find_and_check_files_in_current_folder import find_files_only_in_current_folder
+from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
+from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
+
 
 """
 The GUI program to control ADR receiver according to schedule
@@ -42,7 +49,9 @@ relay_host = '192.168.1.170'
 relay_port = 6722
 time_server_ip = '192.168.1.150'
 default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
+dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 logo_path = 'media_data/gurt_logo.png'
+telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
 x_space = (5, 5)
 y_space = (5, 5)
 y_space_adr = 1
@@ -52,6 +61,35 @@ block_selecting_new_schedule_flag = False
 adr_connection_flag = False
 pause_update_info_flag = False
 schedule = []
+
+# PROCESSING PARAMETERS
+MaxNim = 1024                 # Number of data chunks for one figure
+RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
+Vmin = -120                   # Lower limit of figure dynamic range for initial spectra
+Vmax = -50                    # Upper limit of figure dynamic range for initial spectra
+VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
+VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
+VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
+VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
+customDPI = 200               # Resolution of images of dynamic spectra
+colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
+DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+SpecterFileSaveSwitch = 1     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
+ImmediateSpNo = 1             # Number of immediate specter to save to TXT file
+where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
+
+averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
+VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
+VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
+VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
+VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
+                                 # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
+
 # *******************************************************************************
 #                                F U N C T I O N S                              *
 # *******************************************************************************
@@ -548,22 +586,91 @@ def start_control_by_schedule():
         # if adr_connection_flag:
         block_selecting_new_schedule_flag = True
         btn_select_file.config(fg='gray')
-        ent_schedule.tag_config('1', background='yellow')
+        # ent_schedule.tag_config('1', background='yellow')
         lbl_control_status.config(text='Schedule in progress!', bg='Deep sky blue')
 
         control_by_schedule()
-        # time.sleep(15)
 
         block_selecting_new_schedule_flag = False
         btn_select_file.config(fg='black')
         lbl_control_status.config(text='Waiting to start', bg='light gray')
 
 
+def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
+                        telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                        VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
+                        DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+                        ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm):
+
+    time.sleep(10)
+
+    if copy_data > 0:
+        ok = f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, 0)
+
+    if process_data > 0:
+        time.sleep(5)
+        # Processing data with ADR reader and DAT reader
+
+        # Find all files in folder once more:
+        file_name_list_current = find_files_only_in_current_folder(dir_data_on_server+data_directory_name+'/',
+                                                                   '.adr', 0)
+        file_name_list_current.sort()
+
+        # print('\n\n * ADR reader analyses data... \n')
+
+        # Making a name of folder for storing the result figures and txt files
+        result_path = dir_data_on_server + data_directory_name + '/' + 'ADR_Results_' + data_directory_name
+
+        for file in range(len(file_name_list_current)):
+            file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
+
+        # Run ADR reader for the current folder
+        ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+                                                           RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                           VminCorrMag, VmaxCorrMag, customDPI, colormap,
+                                                           CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                           DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                           CorrSpecSaveCleaned,
+                                                           SpecterFileSaveSwitch, ImmediateSpNo, 0)
+
+        print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
+
+        result_path = dir_data_on_server + data_directory_name + '/'
+
+        # Run DAT reader for the results of current folder
+        ok = DAT_file_reader('', DAT_file_name, DAT_file_list, result_path, data_directory_name,
+                             averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                             RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+
+    message = ''
+    if process_data > 0:
+        message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
+            "receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied and processed.'
+    else:
+        if copy_data > 0:
+             message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + \
+                       parameters_dict["receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied.'
+
+    print('\n * ' + message)
+
+    # Sending message to Telegram
+    try:
+       test = telegram_bot_sendtext(telegram_chat_id, message)
+    except:
+        pass
+
+    return 1
+
+
 def control_by_schedule():
     global pause_update_info_flag, stopnow_schedule_flag
     stopnow_schedule_flag = False
-    print('Len:', len(schedule))
-    # Preparing and starting observations
+    # print('Len:', len(schedule))
+
+    # Making separated IDs for each observation processing process
+    p_processing = [None] * len(schedule)
+
+    # Preparing and starting observations in a loop
     for obs_no in range(len(schedule)):
         if stopnow_schedule_flag:
             stopnow_schedule_flag = False
@@ -604,17 +711,19 @@ def control_by_schedule():
         get_adr_params_and_set_indication(socket_adr)
         pause_update_info_flag = False
 
-        # # Requesting and printing current ADR parameters
-        # parameters_dict = f_get_adr_parameters(socket_adr, 1)
+        # Requesting and printing current ADR parameters
+        parameters_dict = f_get_adr_parameters(socket_adr, 1)
 
-        # if obs_no+1 == len(schedule):
-        #     message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-        #               ' (IP: ' + host_adr + ') was set. It will end on: ' + schedule[obs_no][1] + \
-        #               '. Please, consider adding of a new schedule!'
-        #     try:
-        #         test = telegram_bot_sendtext(telegram_chat_id, message)
-        #     except:
-        #         pass
+        if obs_no+1 == len(schedule):
+            message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      ' (IP: ' + host_adr + ') was set. It will end on: ' + schedule[obs_no][1] + \
+                      '. Please, consider adding a new schedule!'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+
+        ent_schedule.tag_config(str(obs_no+1), background='cyan')
 
         # Waiting time to start record
         ok = wait_predefined_time(dt_time_to_start_record, socket_adr, 1, host_adr, time_server_ip)
@@ -626,27 +735,28 @@ def control_by_schedule():
         pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Recording!',  bg='Deep sky blue')
+            ent_schedule.tag_config(str(obs_no + 1), background='Deep sky blue')
         else:
             lbl_recd_status.config(text='Failed to start record!', bg='orange')
+            ent_schedule.tag_config(str(obs_no + 1), background='orange')
 
-        # if data.startswith('SUCCESS'):
-        #     print('\n * Recording started')
-        #     message = 'GURT ' + data_directory_name.replace('_', ' ') + \
-        #               ' observations started successfully!\nStart time: ' + \
-        #               schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
-        #               '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-        #               '\nReceiver IP: ' + receiver_ip + \
-        #               '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
-        #               '\nMode: ' + parameters_dict["operation_mode_str"] + \
-        #               '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
-        #               '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + \
-        #               ' kHz.' + '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + \
-        #               ' - ' + str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
-        #
-        #     try:
-        #         test = telegram_bot_sendtext(telegram_chat_id, message)
-        #     except:
-        #         pass
+        if data.startswith('SUCCESS') and send_tg_messages:
+            print('\n * Recording started')
+            message = 'GURT ' + data_directory_name.replace('_', ' ') + \
+                      ' observations started successfully!\nStart time: ' + \
+                      schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+                      '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      '\nReceiver IP: ' + adr_ip + \
+                      '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+                      '\nMode: ' + parameters_dict["operation_mode_str"] + \
+                      '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+                      '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + \
+                      ' kHz.' + '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + \
+                      ' - ' + str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
 
         # Waiting time to stop record
         ok = wait_predefined_time(dt_time_to_stop_record, socket_adr, 0, host_adr, time_server_ip)
@@ -661,57 +771,50 @@ def control_by_schedule():
         else:
             lbl_recd_status.config(text='Failed to stop record!', bg='orange')
 
-        # if data.startswith('SUCCESS'):
-        #     print('\n * Recording stopped')
+        if data.startswith('SUCCESS') and send_tg_messages:
+            # Sending message to Telegram
+            message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
+                      + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
+                      '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+                      '\nReceiver IP: ' + host_adr + \
+                      '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
+                      '\nMode: ' + parameters_dict["operation_mode_str"] + \
+                      '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
+                      '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
+                      '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
+                      str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
 
-        # # Sending message to Telegram
-        # message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
-        #           + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
-        #           '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-        #           '\nReceiver IP: ' + host_adr + \
-        #           '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
-        #           '\nMode: ' + parameters_dict["operation_mode_str"] + \
-        #           '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
-        #           '\nFrequency resolution: ' + str(round(parameters_dict["frequency_resolution"] / 1000, 3)) + ' kHz.' + \
-        #           '\nFrequency range: ' + str(round(parameters_dict["lowest_frequency"] / 1000000, 3)) + ' - ' + \
-        #           str(round(parameters_dict["highest_frequency"] / 1000000, 3)) + ' MHz'
-        #
-        # if schedule[obs_no][8] > 0 and schedule[obs_no][9] == 0:
-        #     message = message + '\nData will be copied to GURT server.'
-        #
-        # if schedule[obs_no][9] > 0:
-        #     message = message + '\nData will be copied to GURT server and processed.'
+            if schedule[obs_no][8] > 0 and schedule[obs_no][9] == 0:
+                message = message + '\nData will be copied to GURT server.'
 
-        # # Open Log file and write the data message there
+            if schedule[obs_no][9] > 0:
+                message = message + '\nData will be copied to GURT server and processed.'
+
+        # Open Log file and write the data message there
         # obs_log_file = open(obs_log_file_name, "a")
         # obs_log_file.write(message + '\n\n')
         # obs_log_file.close()
 
-        # if obs_no + 1 == len(schedule):
-        #     message = message + '\n\nIt was the last observation in schedule. Please, consider adding of a new schedule!'
-        # try:
-        #     test = telegram_bot_sendtext(telegram_chat_id, message)
-        # except:
-        #     pass
+        if obs_no + 1 == len(schedule):
+            message = message + '\n\nIt was the last observation in schedule. Please, consider adding a new schedule!'
+        try:
+            test = telegram_bot_sendtext(telegram_chat_id, message)
+        except:
+            pass
 
-        # # Data copying processing
-        # if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
-        #     p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
-        #                      dir_data_on_server, data_directory_name, parameters_dict,
-        #                      telegram_chat_id, host_adr, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-        #                      VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
-        #                      DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
-        #                      ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
-        #     p_processing[obs_no].start()
+        # Data copying processing
+        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+            ent_schedule.tag_config(str(obs_no + 1), background='sky blue')
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
+                             dir_data_on_server, data_directory_name, parameters_dict,
+                             telegram_chat_id, host_adr, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                             VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
+                             DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+                             ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
+            p_processing[obs_no].start()
 
         # If it was the last observation, set the default parameters of the receiver
         if obs_no+1 == len(schedule):
-            # # Apply other receiver parameters set in schedule (parameters file)
-            # parameters_file = 'service_data/' + default_parameters_file
-            # parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
-            # parameters_dict = f_check_adr_parameters_correctness(parameters_dict)
-            # f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
-
             # Apply default receiver parameters set in schedule (parameters file)
             parameters_file = 'service_data/' + default_parameters_file
             parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
@@ -723,9 +826,10 @@ def control_by_schedule():
                 pause_update_info_flag = False
                 lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
 
-    # for obs_no in range(len(schedule)):
-    #     if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
-    #         p_processing[obs_no].join()
+    for obs_no in range(len(schedule)):
+        if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+            ent_schedule.tag_config(str(obs_no + 1), background='lavender')
+            p_processing[obs_no].join()
 
 
 def stopnow_control_by_schedule_button():
@@ -928,7 +1032,7 @@ btn_send_tg_messages = Checkbutton(frame_control, text="", variable=send_tg_mess
                                    selectcolor="white")
 btn_send_tg_messages.config(state=DISABLED)
 btn_stopnow_schedule = Button(frame_control, text="Stop now!", font='none 9 bold', relief='raised', fg='gray',
-                           command=stopnow_control_by_schedule_button)
+                              command=stopnow_control_by_schedule_button)
 btn_stopnow_schedule.config(state=DISABLED)
 
 lbl_send_tg_messages.grid(row=1, column=0, rowspan=1, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
