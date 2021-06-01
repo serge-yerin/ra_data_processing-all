@@ -38,7 +38,7 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 """
 The GUI program to control ADR receiver according to schedule
 """
-software_version = '2021.05.08'
+software_version = '2021.06.01'
 
 # *******************************************************************************
 #                     R U N   S T A T E   V A R I A B L E S                     *
@@ -476,7 +476,7 @@ def load_schedule_to_gui(schedule):
     ent_schedule.delete('1.0', END)  # Erase everything from the schedule window
     first_line_of_schedule = "No | Start date / time |  | Stop date / time   |  Source  |  Description   \n"
     ent_schedule.insert(INSERT, first_line_of_schedule, 'first_line')
-    ent_schedule.tag_config('first_line', background='light green')
+    # ent_schedule.tag_config('first_line', background='light green')
     for obs_no in range(len(schedule)):
         line = '{:3d}'.format(obs_no+1) + ' ' + schedule[obs_no][0] + ' to ' + schedule[obs_no][1] + \
                '  ' + '{:10s}'.format(schedule[obs_no][6]) + ' ' + '{:25s}'.format(schedule[obs_no][7]) + '\n'
@@ -501,6 +501,7 @@ def choose_schedule_file():
             lbl_scedule_comments.config(text='Schedule is empty!', font='none 9 bold', fg="black", bg="orange")
             ent_schedule.config(state=NORMAL)
             ent_schedule.delete('1.0', END)  # Erase everything from the schedule window
+            ent_schedule.config(bg='snow')
             ent_schedule.config(state=DISABLED)
         check_correctness_of_schedule(schedule)
         check_parameters_of_observations(schedule)
@@ -558,7 +559,6 @@ def wait_predefined_time(time_to_start, serversocket, synchro=0, host='192.168.1
                     break
         if synchro > 0:
             # Update synchronization of PC and ADR
-            # synchro_flag = True
             pause_update_info_flag = True
             synchronize_adr(serversocket, host, time_server)
             pause_update_info_flag = False
@@ -586,7 +586,6 @@ def start_control_by_schedule():
         # if adr_connection_flag:
         block_selecting_new_schedule_flag = True
         btn_select_file.config(fg='gray')
-        # ent_schedule.tag_config('1', background='yellow')
         lbl_control_status.config(text='Schedule in progress!', bg='Deep sky blue')
 
         control_by_schedule()
@@ -596,7 +595,7 @@ def start_control_by_schedule():
         lbl_control_status.config(text='Waiting to start', bg='light gray')
 
 
-def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
+def copy_and_process_adr(obs_no, copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
                         telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                         VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
@@ -616,19 +615,33 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
                                                                    '.adr', 0)
         file_name_list_current.sort()
 
-        # print('\n\n * ADR reader analyses data... \n')
-
         # Making a name of folder for storing the result figures and txt files
         result_path = dir_data_on_server + data_directory_name + '/' + 'ADR_Results_' + data_directory_name
 
         for file in range(len(file_name_list_current)):
             file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
 
+        if parameters_dict['operation_mode_num'] in [3, 5, 6]:
+            longFileSaveAch = 1
+        else:
+            longFileSaveAch = 0
+        if parameters_dict['operation_mode_num'] in [4, 5, 6]:
+            longFileSaveBch = 1
+        else:
+            longFileSaveBch = 0
+        if parameters_dict['operation_mode_num'] in [6]:
+            longFileSaveCMP = 1
+            longFileSaveCRI = 1
+        else:
+            longFileSaveCMP = 0
+            longFileSaveCRI = 0
+
         # Run ADR reader for the current folder
         ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
                                                            RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                                                            VminCorrMag, VmaxCorrMag, customDPI, colormap,
-                                                           CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                           CorrelationProcess, 0, longFileSaveAch, longFileSaveBch,
+                                                           longFileSaveCMP, longFileSaveCRI, 0,
                                                            DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                            CorrSpecSaveCleaned,
                                                            SpecterFileSaveSwitch, ImmediateSpNo, 0)
@@ -644,20 +657,28 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
 
     message = ''
     if process_data > 0:
-        message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + parameters_dict[
-            "receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied and processed.'
+        message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + \
+                  parameters_dict["receiver_name"].replace('_', ' ') + ' receiver, IP: ' + \
+                  receiver_ip + ') were copied and processed.'
     else:
         if copy_data > 0:
              message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + \
-                       parameters_dict["receiver_name"].replace('_', ' ') + ' receiver, IP: ' + receiver_ip + ') were copied.'
+                       parameters_dict["receiver_name"].replace('_', ' ') + ' receiver, IP: ' + \
+                       receiver_ip + ') were copied.'
 
-    print('\n * ' + message)
+    # print('\n * ' + message)
 
+    print('Now we are at the end of process before tg message at obs: ' + str(obs_no + 1))
     # Sending message to Telegram
     try:
        test = telegram_bot_sendtext(telegram_chat_id, message)
     except:
         pass
+
+    ent_schedule.config(state=NORMAL)
+    ent_schedule.tag_config(str(obs_no + 1), background='snow')
+    print('Now we are at the end of process at obs: ' + str(obs_no + 1))
+    ent_schedule.config(state=DISABLED)
 
     return 1
 
@@ -665,7 +686,6 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
 def control_by_schedule():
     global pause_update_info_flag, stopnow_schedule_flag
     stopnow_schedule_flag = False
-    # print('Len:', len(schedule))
 
     # Making separated IDs for each observation processing process
     p_processing = [None] * len(schedule)
@@ -712,7 +732,7 @@ def control_by_schedule():
         pause_update_info_flag = False
 
         # Requesting and printing current ADR parameters
-        parameters_dict = f_get_adr_parameters(socket_adr, 1)
+        parameters_dict = f_get_adr_parameters(socket_adr, 0)
 
         if obs_no+1 == len(schedule):
             message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
@@ -804,14 +824,18 @@ def control_by_schedule():
 
         # Data copying processing
         if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
+            ent_schedule.config(state=NORMAL)
             ent_schedule.tag_config(str(obs_no + 1), background='sky blue')
-            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8], schedule[obs_no][9],
-                             dir_data_on_server, data_directory_name, parameters_dict,
+            ent_schedule.config(state=DISABLED)
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(obs_no, schedule[obs_no][8],
+                             schedule[obs_no][9], dir_data_on_server, data_directory_name, parameters_dict,
                              telegram_chat_id, host_adr, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                              DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                              ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
             p_processing[obs_no].start()
+        else:
+            ent_schedule.tag_config(str(obs_no + 1), background='snow')
 
         # If it was the last observation, set the default parameters of the receiver
         if obs_no+1 == len(schedule):
@@ -828,8 +852,11 @@ def control_by_schedule():
 
     for obs_no in range(len(schedule)):
         if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
-            ent_schedule.tag_config(str(obs_no + 1), background='lavender')
             p_processing[obs_no].join()
+            ent_schedule.config(state=NORMAL)
+            ent_schedule.tag_config(str(obs_no + 1), background='snow')
+            print('Now we are at join point at obs: '+str(obs_no + 1))
+            ent_schedule.config(state=DISABLED)
 
 
 def stopnow_control_by_schedule_button():
