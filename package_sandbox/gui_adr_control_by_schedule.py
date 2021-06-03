@@ -595,7 +595,7 @@ def start_control_by_schedule():
         lbl_control_status.config(text='Waiting to start', bg='light gray')
 
 
-def copy_and_process_adr(obs_no, copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
+def copy_and_process_adr(obs_no, ent_schedule, copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
                         telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                         VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
@@ -669,16 +669,21 @@ def copy_and_process_adr(obs_no, copy_data, process_data, dir_data_on_server, da
     # print('\n * ' + message)
 
     print('Now we are at the end of process before tg message at obs: ' + str(obs_no + 1))
-    # Sending message to Telegram
-    try:
-       test = telegram_bot_sendtext(telegram_chat_id, message)
-    except:
-        pass
 
     ent_schedule.config(state=NORMAL)
     ent_schedule.tag_config(str(obs_no + 1), background='snow')
     print('Now we are at the end of process at obs: ' + str(obs_no + 1))
     ent_schedule.config(state=DISABLED)
+
+    # Sending message to Telegram
+    try:
+       test = telegram_bot_sendtext(telegram_chat_id, message)
+    except:
+        pass
+    else:
+        pass
+    finally:
+        pass
 
     return 1
 
@@ -827,7 +832,7 @@ def control_by_schedule():
             ent_schedule.config(state=NORMAL)
             ent_schedule.tag_config(str(obs_no + 1), background='sky blue')
             ent_schedule.config(state=DISABLED)
-            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(obs_no, schedule[obs_no][8],
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(obs_no, ent_schedule, schedule[obs_no][8],
                              schedule[obs_no][9], dir_data_on_server, data_directory_name, parameters_dict,
                              telegram_chat_id, host_adr, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
