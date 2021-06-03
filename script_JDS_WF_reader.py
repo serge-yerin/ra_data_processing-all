@@ -376,7 +376,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
             bar.finish()
 
-        file.close()  # Close the data file
+        # file.close()  # Close the data file
 
         # Saving averaged spectra to long data files
         if save_long_file_aver == 1:
