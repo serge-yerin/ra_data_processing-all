@@ -20,7 +20,8 @@ def catalogue_pulsar(pulsar_name):
     elif 'B0148-06'   in pulsar_name: pulsar_ra = '01h51m22.701s';  pulsar_dec = '-06d35m02.8s';   pulsar_DM = 25.66;    p_bar = 1.464664549334
     elif 'J0152+0948' in pulsar_name: pulsar_ra = '01h52m23.7s';    pulsar_dec = '+09d48m10.0s';   pulsar_DM = 0;        p_bar = 2.74664729014
 
-    elif 'J0243+6257' in pulsar_name: pulsar_ra = '02h41m00.0s';    pulsar_dec = '+63d00m00.0s';   pulsar_DM = 0;        p_bar = 0.5917393
+    elif 'J0242+6256' in pulsar_name: pulsar_ra = '02h42m35.0s';    pulsar_dec = '+62d56m50.0s';   pulsar_DM = 3.8214;   p_bar = 0.592
+    # elif 'J0243+6257' in pulsar_name: pulsar_ra = '02h41m00.0s';    pulsar_dec = '+63d00m00.0s';   pulsar_DM = 0;        p_bar = 0.5917393
     elif 'J0243+5267' in pulsar_name: pulsar_ra = '           ';    pulsar_dec = '            ';   pulsar_DM = 3.8214;   p_bar = 0
     elif 'J0250+5854' in pulsar_name: pulsar_ra = '02h49m24.0s';    pulsar_dec = '+58d51m47.0s';   pulsar_DM = 45.325;   p_bar = 23.5355039
 
