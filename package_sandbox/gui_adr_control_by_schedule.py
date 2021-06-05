@@ -55,7 +55,7 @@ telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '92753468
 x_space = (5, 5)
 y_space = (5, 5)
 y_space_adr = 1
-colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue']
+colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue', 'antique white']
 block_flag = True
 block_selecting_new_schedule_flag = False
 adr_connection_flag = False
@@ -501,7 +501,7 @@ def choose_schedule_file():
             lbl_scedule_comments.config(text='Schedule is empty!', font='none 9 bold', fg="black", bg="orange")
             ent_schedule.config(state=NORMAL)
             ent_schedule.delete('1.0', END)  # Erase everything from the schedule window
-            ent_schedule.config(bg='snow')
+            ent_schedule.config(bg='ghost white')
             ent_schedule.config(state=DISABLED)
         check_correctness_of_schedule(schedule)
         check_parameters_of_observations(schedule)
@@ -668,13 +668,6 @@ def copy_and_process_adr(obs_no, ent_schedule, copy_data, process_data, dir_data
 
     # print('\n * ' + message)
 
-    print('Now we are at the end of process before tg message at obs: ' + str(obs_no + 1))
-
-    ent_schedule.config(state=NORMAL)
-    ent_schedule.tag_config(str(obs_no + 1), background='snow')
-    print('Now we are at the end of process at obs: ' + str(obs_no + 1))
-    ent_schedule.config(state=DISABLED)
-
     # Sending message to Telegram
     try:
        test = telegram_bot_sendtext(telegram_chat_id, message)
@@ -840,7 +833,7 @@ def control_by_schedule():
                              ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
             p_processing[obs_no].start()
         else:
-            ent_schedule.tag_config(str(obs_no + 1), background='snow')
+            ent_schedule.tag_config(str(obs_no + 1), background='antique white')
 
         # If it was the last observation, set the default parameters of the receiver
         if obs_no+1 == len(schedule):
@@ -859,8 +852,7 @@ def control_by_schedule():
         if schedule[obs_no][8] > 0 or schedule[obs_no][9] > 0:
             p_processing[obs_no].join()
             ent_schedule.config(state=NORMAL)
-            ent_schedule.tag_config(str(obs_no + 1), background='snow')
-            print('Now we are at join point at obs: '+str(obs_no + 1))
+            ent_schedule.tag_config(str(obs_no + 1), background='antique white')
             ent_schedule.config(state=DISABLED)
 
 
