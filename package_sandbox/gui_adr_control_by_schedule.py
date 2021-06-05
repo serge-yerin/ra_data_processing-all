@@ -317,9 +317,20 @@ def start_and_keep_adr_connection():
             socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
             data = f_read_adr_meassage(socket_adr, 0)
 
-            # tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
-            # tmp = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
-            # tmp = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
+            # Show DSP and PC time
+            tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
+            tmp = datetime.utcfromtimestamp(int(tmp)).strftime('%H:%M:%S')  # datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+            lbl_adr_dspt_val.config(text=tmp)
+
+            txt_val = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
+            tmp = datetime.utcfromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
+            tmp = tmp + '.' + txt_val.split(':', 1)[1]
+            lbl_adr_pc1t_val.config(text=tmp)
+
+            txt_val = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
+            tmp = datetime.utcfromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
+            tmp = tmp + '.' + txt_val.split(':', 1)[1]
+            lbl_adr_pc2t_val.config(text=tmp)
 
             tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
             tmp = '{:.1f} Mb'.format(tmp)
@@ -609,7 +620,6 @@ def copy_and_process_adr(obs_no, ent_schedule, copy_data, process_data, dir_data
     if process_data > 0:
         time.sleep(5)
         # Processing data with ADR reader and DAT reader
-
         # Find all files in folder once more:
         file_name_list_current = find_files_only_in_current_folder(dir_data_on_server+data_directory_name+'/',
                                                                    '.adr', 0)
@@ -665,8 +675,6 @@ def copy_and_process_adr(obs_no, ent_schedule, copy_data, process_data, dir_data
              message = 'Data of ' + data_directory_name.replace('_', ' ') + ' observations (' + \
                        parameters_dict["receiver_name"].replace('_', ' ') + ' receiver, IP: ' + \
                        receiver_ip + ') were copied.'
-
-    # print('\n * ' + message)
 
     # Sending message to Telegram
     try:
@@ -759,7 +767,6 @@ def control_by_schedule():
             ent_schedule.tag_config(str(obs_no + 1), background='orange')
 
         if data.startswith('SUCCESS') and send_tg_messages:
-            print('\n * Recording started')
             message = 'GURT ' + data_directory_name.replace('_', ' ') + \
                       ' observations started successfully!\nStart time: ' + \
                       schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
@@ -997,32 +1004,49 @@ lbl_adr_sdms_val.grid(row=8, column=1, rowspan=1, columnspan=1, stick='w', padx=
 lbl_adr_nfcs_nam.grid(row=8, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_nfcs_val.grid(row=8, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
-lbl_adr_frsb_nam = Label(frame_adr_status, text="Free disk space:")
-lbl_adr_frsb_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_dspt_nam = Label(frame_adr_status, text="DSP time (UTC):")
+lbl_adr_dspt_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_dspt_nam.grid(row=10, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_dspt_val.grid(row=10, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
+lbl_adr_pc1t_nam = Label(frame_adr_status, text="PC-1 time (UTC):")
+lbl_adr_pc1t_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_pc1t_nam.grid(row=11, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_pc1t_val.grid(row=11, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
+lbl_adr_pc2t_nam = Label(frame_adr_status, text="PC-2 time (UTC):")
+lbl_adr_pc2t_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_pc2t_nam.grid(row=12, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_pc2t_val.grid(row=12, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
 lbl_adr_cfsz_nam = Label(frame_adr_status, text="Current file size:")
 lbl_adr_cfsz_val = Label(frame_adr_status, text="", font='none 10 bold')
-
-lbl_adr_frsb_nam.grid(row=9, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_frsb_val.grid(row=9, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_cfsz_nam.grid(row=9, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_cfsz_val.grid(row=9, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 
-lbl_adr_frsp_nam = Label(frame_adr_status, text="or:")
-lbl_adr_frsp_val = Label(frame_adr_status, text="", font='none 10 bold')
 lbl_adr_cfln_nam = Label(frame_adr_status, text="Current file length:")
 lbl_adr_cfln_val = Label(frame_adr_status, text="", font='none 10 bold')
-
-lbl_adr_frsp_nam.grid(row=10, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
-lbl_adr_frsp_val.grid(row=10, column=1, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
 lbl_adr_cfln_nam.grid(row=10, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
 lbl_adr_cfln_val.grid(row=10, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
+
+lbl_adr_frsb_nam = Label(frame_adr_status, text="Free disk space:")
+lbl_adr_frsb_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_frsb_nam.grid(row=11, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_frsb_val.grid(row=11, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
+lbl_adr_frsp_nam = Label(frame_adr_status, text="or:")
+lbl_adr_frsp_val = Label(frame_adr_status, text="", font='none 10 bold')
+lbl_adr_frsp_nam.grid(row=12, column=2, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space_adr)
+lbl_adr_frsp_val.grid(row=12, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space_adr)
+
 
 lbl_sync_status = Label(frame_adr_status, text='Synchro', font='none 9', width=12, bg='light gray')
 lbl_recd_status = Label(frame_adr_status, text='Waiting', font='none 12', width=15, bg='light gray')
 lbl_mast_status = Label(frame_adr_status, text='Unknown', font='none 9', width=12, bg='light gray')
-lbl_sync_status.grid(row=11, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space)
-lbl_recd_status.grid(row=11, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
-lbl_mast_status.grid(row=11, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space)
+lbl_sync_status.grid(row=13, column=0, rowspan=1, columnspan=1, stick='e', padx=x_space, pady=y_space)
+lbl_recd_status.grid(row=13, column=1, rowspan=1, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+lbl_mast_status.grid(row=13, column=3, rowspan=1, columnspan=1, stick='w', padx=x_space, pady=y_space)
 
 
 # Setting elements of the frame "Load schedule"
@@ -1072,7 +1096,7 @@ lbl_control_status.grid(row=2, column=0, rowspan=1, columnspan=3, stick='nswe', 
 
 # Setting elements of the frame "Schedule"
 
-ent_schedule = ScrolledText(frame_schedule, width=90, height=39)
+ent_schedule = ScrolledText(frame_schedule, width=90, height=42)
 ent_schedule.config(state=DISABLED)
 ent_schedule.grid(row=0, column=0, rowspan=2, columnspan=1, stick='nswe', padx=x_space, pady=y_space)
 
