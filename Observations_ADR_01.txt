@@ -14,8 +14,8 @@
 # Sun 					        Param_full_band_0.1s_4096_spectra_int-clc.txt
 
 
-START: 2021-06-01 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
-STOP:  2021-06-01 00:01:00, COPY: 1, PROC: 1
+START: 2021-06-06 00:00:00, NAME: Zenith, DESCR: GURT_Zenith_SA09, PARAM: Param_full_band_0.1s_16384_corr_int-clc.txt
+STOP:  2021-06-06 00:01:00, COPY: 1, PROC: 1
 
-START: 2021-06-01 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
-STOP:  2021-06-01 20:45:00, COPY: 1, PROC: 1
+START: 2021-06-06 05:20:00, NAME: Sun, DESCR: GURT_Sun_SA09, PARAM: Param_full_band_0.1s_4096_spectra_int-clc.txt
+STOP:  2021-06-06 20:45:00, COPY: 1, PROC: 1
