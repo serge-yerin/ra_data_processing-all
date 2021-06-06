@@ -5,15 +5,15 @@ Software_version = '2020.07.17'
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 import os
-import struct
+# import struct
 import sys
 import numpy as np
-import pylab
-import matplotlib.pyplot as plt
+# import pylab
+# import matplotlib.pyplot as plt
 import time
 from os import path
 from datetime import datetime, timedelta
-from matplotlib import rc
+# from matplotlib import rc
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -34,22 +34,20 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 # *******************************************************************************
 
 
-def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, result_folder_name,
-                    averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan,
-                    VminNormMan, VmaxNormMan, RFImeanConst, customDPI, colormap,
-                    ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
-                    freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
-                    freqStopTXT, freqList, print_or_not):
-    '''
+def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, result_folder_name, averOrMin,
+                    StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
+                    customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
+                    freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT, freqStopTXT, freq_list,
+                    print_or_not):
+    """
     Function intended to analyze long spectra '.dat' files of radio astronomy data
-    '''
+    """
 
-    currentTime = time.strftime("%H:%M:%S")
-    currentDate = time.strftime("%d.%m.%Y")
+    current_date = time.strftime("%d.%m.%Y")
 
     # Files to be analyzed:
     filename = common_path + DAT_file_name + '_Data_chA.dat'
-    timeLineFileName = common_path + DAT_file_name + '_Timeline.txt'
+    tl_file_name = common_path + DAT_file_name + '_Timeline.txt'
 
     for j in range(len(typesOfData)):  # Main loop by types of data to analyze
 
@@ -76,9 +74,9 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
         # Print the type of data to be analyzed
         if print_or_not == 1: 
-            print ('\n\n   Processing data type: ', typesOfData[j], '\n')
-        # currentTime = time.strftime("%H:%M:%S")
-        print('   Processing file: ', only_file_name, '   started at: ', currentTime)
+            print('\n\n   Processing data type: ', typesOfData[j], '\n')
+        current_time = time.strftime("%H:%M:%S")
+        print('   Processing file: ', only_file_name, '   started at: ', current_time)
         if print_or_not == 1: 
             print('\n')
 
@@ -87,7 +85,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         # *************************************************************
 
         YaxName = 'Intensity, dB'
-        Label = 'Intensity'
+        label = 'Intensity'
         nameAdd = ''
         fileNameAdd = ''
         fileNameAddNorm = ''
@@ -124,7 +122,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         if typesOfData[j] == 'C_p':
             nameAdd = ' correlation phase'
             YaxName = 'Phase, rad'
-            Label = 'Phase'
+            label = 'Phase'
             Vmin = -3.5
             Vmax = 3.5
             fileNameAdd = '005_'
@@ -173,7 +171,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         file = open(filename, 'rb')
 
         # *** Data file header read ***
-        df_filesize = os.stat(filename).st_size                       # Size of file
+        df_filesize = os.stat(filename).st_size                         # Size of file
         df_filename = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
         file.close()
 
@@ -198,7 +196,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         # ************************************************************************************
 
         # Reading timeline file
-        TLfile = open(timeLineFileName, 'r')
+        TLfile = open(tl_file_name, 'r')
         timeline = []
         for line in TLfile:
             timeline.append(str(line))
@@ -208,17 +206,22 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
             # Converting text to ".datetime" format
             dt_timeline = []
-            for i in range (len(timeline)):  # converting text to ".datetime" format
+            for i in range(len(timeline)):  # converting text to ".datetime" format
 
                 # Check is the uS field is empty. If so it means it is equal to '000000'
-                uSecond = timeline[i][20:26]
-                if len(uSecond) < 2: 
-                    uSecond = '000000'
+                u_second = timeline[i][20:26]
+                if len(u_second) < 2:
+                    u_second = '000000'
 
-                dt_timeline.append(datetime(int(timeline[i][0:4]), int(timeline[i][5:7]), int(timeline[i][8:10]), int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]), int(uSecond)))
+                dt_timeline.append(datetime(int(timeline[i][0:4]), int(timeline[i][5:7]), int(timeline[i][8:10]),
+                                            int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]),
+                                            int(u_second)))
 
-            dt_dateTimeStart = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]), int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]), 0)
-            dt_dateTimeStop = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]), int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
+            dt_dateTimeStart = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]),
+                                        int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]),
+                                        0)
+            dt_dateTimeStop = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]),
+                                       int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
 
             # *** Showing the time limits of file and time limits of chosen part
             if print_or_not == 1:
@@ -354,10 +357,10 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         if print_or_not == 1:
             print('\n TimeLine length is now:        ', len(dateTimeNew))
 
-
     # *******************************************************************************
     #                                 F I G U R E S                                 *
     # *******************************************************************************
+
         if print_or_not == 1:
             print('\n\n\n  *** Building images *** \n\n')
 
@@ -382,19 +385,19 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                     'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
                     YaxName, ' ', Suptitle, Title,
                     newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] + ' Immediate Spectrum.png',
-                    currentDate, currentTime, Software_version)
+                    current_date, current_time, Software_version)
 
         # *** Decide to use only list of frequencies or all frequencies in range
         if ListOrAllFreq == 0:
-            freqList = np.array(freqList)
+            freq_list = np.array(freq_list)
         if ListOrAllFreq == 1:
-            freqList = np.array(frequency)
+            freq_list = np.array(frequency)
 
         # *** Finding frequency most close to specified by user ***
-        for fc in range(len(freqList)):
-            if (freqList[fc] > freqStartTXT) and (freqList[fc] < freqStopTXT):
+        for fc in range(len(freq_list)):
+            if (freq_list[fc] > freqStartTXT) and (freq_list[fc] < freqStopTXT):
                 newFreq = np.array(frequency)
-                newFreq = np.absolute(newFreq - freqList[fc])
+                newFreq = np.absolute(newFreq - freq_list[fc])
                 index = np.argmin(newFreq)+1
                 #tempArr1 = np.arange(0, len(dateTimeNew), 1)
 
@@ -408,27 +411,27 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                     for i in range(len(dateTimeNew)):
                         timeline.append(str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23]))
 
-                    Suptitle = 'Intensity variation '+str(df_filename[0:18])+' '+nameAdd
-                    Title = ('Initial parameters: dt = '+str(round(time_resolution,3))+' Sec, df = ' +
-                                str(round(df/1000,3)) + ' kHz, Frequency = '+str(round(frequency[index],3))+
-                                ' MHz ' + sumDifMode + ' Processing: ' + reducing_type + str(averageConst) +
-                                ' spectra ('+str(round(averageConst*time_resolution,3))+' sec.)')
+                    Suptitle = 'Intensity variation ' + str(df_filename[0:18]) + ' ' + nameAdd
+                    Title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' +
+                             str(round(df/1000, 3)) + ' kHz, Frequency = ' + str(round(frequency[index], 3)) +
+                             ' MHz ' + sumDifMode + ' Processing: ' + reducing_type + str(averageConst) +
+                             ' spectra (' + str(round(averageConst*time_resolution, 3)) + ' sec.)')
 
-                    FileName = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j]+ df_filename[-4:]+
-                                ' variation at '+str(round(frequency[index],3))+' MHz.png')
+                    file_name = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j] + df_filename[-4:] +
+                                ' variation at ' + str(round(frequency[index], 3)) + ' MHz.png')
 
-                    OneValueWithTimePlot(timeline, array[[index],:].transpose(), Label,
-                                            0, len(dateTimeNew), Vmin, Vmax, 0, 0,
-                                            'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
-                                            Suptitle, Title, FileName,
-                                            currentDate, currentTime, Software_version)
+                    OneValueWithTimePlot(timeline, array[[index],:].transpose(), label, 0, len(dateTimeNew),
+                                         Vmin, Vmax, 0, 0, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
+                                         Suptitle, Title, file_name, current_date, current_time, Software_version)
 
                 # Saving value changes at particular frequency to TXT file
                 if ChannelSaveTXT == 1:
-                    SingleChannelData = open(newpath + '/' + df_filename[0:14]+'_'+filename[-7:-4:]+ df_filename[-4:] +
-                                             ' variation at '+str(round(frequency[index],3))+' MHz.txt', "w")
+                    SingleChannelData = open(newpath + '/' + df_filename[0:14] + '_' + filename[-7:-4:]
+                                             + df_filename[-4:] + ' variation at ' + str(round(frequency[index], 3)) +
+                                             ' MHz.txt', "w")
                     for i in range(len(dateTimeNew)):
-                        SingleChannelData.write(str(dateTimeNew[i]).rstrip()+'   '+str(array.transpose()[i, index])+' \n' )
+                        SingleChannelData.write(str(dateTimeNew[i]).rstrip() + '   ' +
+                                                str(array.transpose()[i, index]) + ' \n')
                     SingleChannelData.close()
 
         # Cutting the array inside frequency range specified by user
@@ -437,16 +440,16 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             print('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
             A = []
             B = []
-            for i in range (len(frequency)):
+            for i in range(len(frequency)):
                 A.append(abs(frequency[i] - freqStart))
                 B.append(abs(frequency[i] - freqStop))
             ifmin = A.index(min(A))
             ifmax = B.index(min(B))
             array = array[ifmin:ifmax, :]
             print('\n New data array shape is: ', array.shape)
-            freqLine = frequency[ifmin:ifmax]
+            freq_line = frequency[ifmin:ifmax]
         else:
-            freqLine = frequency
+            freq_line = frequency
 
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
         Vmin = np.min(array)
@@ -466,13 +469,13 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                     ', Description: ' + str(df_description))
         fig_file_name = (newpath + '/' + fileNameAdd + df_filename[0:14]+'_' + typesOfData[j] + ' Dynamic spectrum.png')
 
-        OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freqLine,
-                        len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
-                        currentDate, currentTime, Software_version, customDPI)
+        OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freq_line,
+                        len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
+                        current_date, current_time, Software_version, customDPI)
 
         if typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm':
             # Normalization and cleaning of dynamic spectra 
-            Normalization_dB(array.transpose(), len(freqLine), len(dateTimeNew))
+            Normalization_dB(array.transpose(), len(freq_line), len(dateTimeNew))
             simple_channel_clean(array.transpose(), RFImeanConst)
 
             # *** Dynamic spectra of cleaned and normalized signal ***
@@ -488,15 +491,13 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                             ' Dynamic spectrum cleanned and normalized' + '.png')
 
             OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig,
-                             freqLine, len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
-                             fig_file_name, currentDate, currentTime, Software_version, customDPI)
-
-
+                             freq_line, len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
+                             fig_file_name, current_date, current_time, Software_version, customDPI)
 
             '''
             # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
             plt.figure(2, figsize=(16.0, 7.0))
-            ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
+            ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freq_line[0],freq_line[len(freq_line)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
             plt.ylabel('Frequency, MHz', fontsize=12, fontweight='bold')
             #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+nameAdd+
             #            '\n Initial parameters: dt = '+str(round(time_resolution,3))+
@@ -520,7 +521,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             ax1.set_xticklabels(a)
             plt.xticks(fontsize=12, fontweight='bold')
             plt.xlabel('UTC time, HH:MM:SS', fontsize=12, fontweight='bold')
-            #plt.text(0.72, 0.04,'Processed '+currentDate+ ' at '+currentTime, fontsize=6, transform=plt.gcf().transFigure)
+            #plt.text(0.72, 0.04,'Processed '+current_date+ ' at '+current_time, fontsize=6, transform=plt.gcf().transFigure)
             pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = customDPI)
             #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
                                                                                  #filename[-7:-4:]
@@ -538,9 +539,38 @@ if __name__ == '__main__':
 
     common_path = 'DATA/'
     result_path = ''
+    DAT_file_name = ''
+    typesOfData = ['chA, chB']
+    DAT_result_path = ''
+    result_folder_name = ''
+    StartStopSwitch = 0
+    SpecFreqRange = 0
+    RFImeanConst = 8  # Constant of RFI mitigation (usually 8)
+    VminCorrMag = -150  # Lower limit of figure dynamic range for correlation magnitude spectra
+    VmaxCorrMag = -30  # Upper limit of figure dynamic range for correlation magnitude spectra
+    averOrMin = 0  # Use average value (0) per data block or minimum value (1)
+    VminMan = -120  # Manual lower limit of immediate spectrum figure color range
+    VmaxMan = -10  # Manual upper limit of immediate spectrum figure color range
+    VminNormMan = 0  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
+    VmaxNormMan = 12  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+    AmplitudeReIm = 1 * 10 ** (-12)  # Color range of Re and Im dynamic spectra
+    # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
+    customDPI = 200  # Resolution of images of dynamic spectra
+    colormap = 'jet'  # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+    ChannelSaveTXT = 0
+    ChannelSavePNG = 0
+    ListOrAllFreq = 0
+    freqStart = 0
+    freqStop = 0
+    dateTimeStart = ''
+    dateTimeStop = ''
+    freqStartTXT = 0
+    freqStopTXT = 0
+    freq_list = []
+    print_or_not = 1
 
-    ok = DAT_file_reader(common_path, DAT_file_name, typesOfData, averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan,
-                        VminNormMan, VmaxNormMan, RFImeanConst, customDPI, colormap,
-                        ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
-                        freqStart, freqStop, dateTimeStart,dateTimeStop, freqStartTXT,
-                        freqStopTXT, freqList)
+    ok = DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, result_folder_name,
+                         averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+                         RFImeanConst, customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
+                         AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
+                         freqStopTXT, freq_list, print_or_not)
