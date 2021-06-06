@@ -320,16 +320,19 @@ def start_and_keep_adr_connection():
 
             # Show DSP and PC time
             tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
-            tmp = datetime.utcfromtimestamp(int(tmp)).strftime('%H:%M:%S')  # datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+            # tmp = datetime.utcfromtimestamp(int(tmp)).strftime('%H:%M:%S')
+            tmp = datetime.fromtimestamp(int(tmp)).strftime('%H:%M:%S')
             lbl_adr_dspt_val.config(text=tmp)
 
             txt_val = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
-            tmp = datetime.utcfromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
+            # tmp = datetime.utcfromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
+            tmp = datetime.fromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
             tmp = tmp + '.' + txt_val.split(':', 1)[1]
             lbl_adr_pc1t_val.config(text=tmp)
 
             txt_val = find_between(data, 'PC2 Time: ', '\nFileSize:')  # Current time of PC2
-            tmp = datetime.utcfromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
+            # tmp = datetime.utcfromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
+            tmp = datetime.fromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
             tmp = tmp + '.' + txt_val.split(':', 1)[1]
             lbl_adr_pc2t_val.config(text=tmp)
 
