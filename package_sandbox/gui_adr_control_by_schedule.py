@@ -37,8 +37,9 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 """
 The GUI program to control ADR receiver according to schedule
+Works only on Linux OS because uses ssh connection between receiver and server for data copying  
 """
-software_version = '2021.06.01'
+software_version = '2021.06.06'
 
 # *******************************************************************************
 #                     R U N   S T A T E   V A R I A B L E S                     *
@@ -277,9 +278,9 @@ def get_adr_params_and_set_indication(socket_adr):
 
 
 def start_and_keep_adr_connection():
-    global socket_adr, host_adr, pause_update_info_flag
-    host_adr = ent_adr_ip.get()
-    socket_adr, input_parameters_str = f_connect_to_adr_receiver(host_adr, adr_port)
+    global socket_adr, adr_ip, pause_update_info_flag
+    adr_ip = ent_adr_ip.get()
+    socket_adr, input_parameters_str = f_connect_to_adr_receiver(adr_ip, adr_port)
     ent_adr_ip.config(state=DISABLED)
     time.sleep(0.2)
     # Check if the receiver is initialized, if it is not - initialize it
@@ -288,11 +289,11 @@ def start_and_keep_adr_connection():
     if 'Failed!' in data or 'Stopped' in data:
         lbl_recd_status.config(text='Initializing ADR...', font='none 12', bg='orange')
         # Initialize ADR and set ADR parameters
-        f_initialize_adr(socket_adr, host_adr, 0)
+        f_initialize_adr(socket_adr, adr_ip, 0)
         lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
 
     # Update synchronization of PC and ADR
-    synchronize_adr(socket_adr, host_adr, time_server_ip)
+    synchronize_adr(socket_adr, adr_ip, time_server_ip)
     lbl_adr_status.config(text='Connected', bg='chartreuse2')
     if schedule == []:
         lbl_control_status.config(text='Schedule is empty', bg='light gray')
@@ -606,7 +607,7 @@ def start_control_by_schedule():
         lbl_control_status.config(text='Waiting to start', bg='light gray')
 
 
-def copy_and_process_adr(obs_no, ent_schedule, copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
+def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_directory_name, parameters_dict,
                         telegram_chat_id, receiver_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                         VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                         DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
@@ -742,7 +743,7 @@ def control_by_schedule():
 
         if obs_no+1 == len(schedule):
             message = 'Last observation in schedule on receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-                      ' (IP: ' + host_adr + ') was set. It will end on: ' + schedule[obs_no][1] + \
+                      ' (IP: ' + adr_ip + ') was set. It will end on: ' + schedule[obs_no][1] + \
                       '. Please, consider adding a new schedule!'
             try:
                 test = telegram_bot_sendtext(telegram_chat_id, message)
@@ -752,7 +753,7 @@ def control_by_schedule():
         ent_schedule.tag_config(str(obs_no+1), background='cyan')
 
         # Waiting time to start record
-        ok = wait_predefined_time(dt_time_to_start_record, socket_adr, 1, host_adr, time_server_ip)
+        ok = wait_predefined_time(dt_time_to_start_record, socket_adr, 1, adr_ip, time_server_ip)
 
         # Start record
         pause_update_info_flag = True
@@ -784,7 +785,7 @@ def control_by_schedule():
                 pass
 
         # Waiting time to stop record
-        ok = wait_predefined_time(dt_time_to_stop_record, socket_adr, 0, host_adr, time_server_ip)
+        ok = wait_predefined_time(dt_time_to_stop_record, socket_adr, 0, adr_ip, time_server_ip)
 
         # Stop record
         pause_update_info_flag = True
@@ -801,7 +802,7 @@ def control_by_schedule():
             message = 'GURT ' + data_directory_name.replace('_', ' ') + ' observations completed!\nStart time: ' \
                       + schedule[obs_no][0] + '\nStop time: ' + schedule[obs_no][1] + \
                       '\nReceiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
-                      '\nReceiver IP: ' + host_adr + \
+                      '\nReceiver IP: ' + adr_ip + \
                       '\nDescription: ' + parameters_dict["file_description"].replace('_', ' ') + \
                       '\nMode: ' + parameters_dict["operation_mode_str"] + \
                       '\nTime resolution: ' + str(round(parameters_dict["time_resolution"], 3)) + ' s.' + \
@@ -832,9 +833,9 @@ def control_by_schedule():
             ent_schedule.config(state=NORMAL)
             ent_schedule.tag_config(str(obs_no + 1), background='sky blue')
             ent_schedule.config(state=DISABLED)
-            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(obs_no, ent_schedule, schedule[obs_no][8],
+            p_processing[obs_no] = Process(target=copy_and_process_adr, args=(schedule[obs_no][8],
                              schedule[obs_no][9], dir_data_on_server, data_directory_name, parameters_dict,
-                             telegram_chat_id, host_adr, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                             telegram_chat_id, adr_ip, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                              VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, DynSpecSaveInitial,
                              DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned, SpecterFileSaveSwitch,
                              ImmediateSpNo, averOrMin, VminMan, VmaxMan, VminNormMan, VmaxNormMan, AmplitudeReIm))
