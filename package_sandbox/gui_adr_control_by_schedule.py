@@ -316,13 +316,12 @@ def start_and_keep_adr_connection():
         else:
             # Keeping connection active
             socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
+
             try:
                 data = f_read_adr_meassage(socket_adr, 0)
             except TimeoutError:
-                # lbl_scedule_comments.config(text='File not found: ' + schedule[obs_no][10],
-                #                             font='none 9 bold', fg="black", bg="orange")
-                print('\n\n Timeout Error!!! \n\n')
-                break
+                print('\n\n Timeout Error while reading adr message!!! \n\n')
+                # Try to reconnect or indicate that ADR is not connected
             else:
                 pass
             finally:
