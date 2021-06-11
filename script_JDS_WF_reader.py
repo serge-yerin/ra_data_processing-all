@@ -34,6 +34,8 @@ import time
 import numpy as np
 from os import path
 from progress.bar import IncrementalBar
+import matplotlib
+matplotlib.use('agg')
 
 # To change system path to main directory of the project:
 if __package__ is None:
