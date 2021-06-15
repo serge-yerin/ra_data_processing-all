@@ -12,6 +12,8 @@ import gc
 import datetime
 from datetime import datetime, timedelta
 import warnings
+import matplotlib
+matplotlib.use('agg')
 warnings.filterwarnings("ignore")
 
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR

@@ -46,6 +46,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from os import path
 from matplotlib import rc
+import matplotlib
+matplotlib.use('agg')
 
 # To change system path to main directory of the project:
 if __package__ is None:

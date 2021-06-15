@@ -38,6 +38,8 @@ from os import path
 from matplotlib import rc
 from matplotlib.gridspec import GridSpec
 from progress.bar import IncrementalBar
+import matplotlib
+matplotlib.use('agg')
 
 # To change system path to main directory of the project:
 if __package__ is None:
