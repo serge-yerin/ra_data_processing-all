@@ -15,7 +15,7 @@ if __package__ is None:
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 
 
 
@@ -94,7 +94,7 @@ def make_long_spectra_files_from_wf(directory, fileList, result_folder):
                     wf_data = np.reshape(wf_data, [data_block_size, no_of_blocks_in_batch], order='F')
 
                 # Timing
-                timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+                timeline_block_str = jds_waveform_time(wf_data, CLCfrq, data_block_size)
                 #TimeScaleFig.append(timeline_block_str[-1][0:12])
                 for j in range (no_of_blocks_in_batch):
                     TimeScaleFull.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[j][0:12])

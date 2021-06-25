@@ -46,7 +46,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 # ###############################################################################
 
@@ -240,7 +240,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
             print('Waveform read, shape: ', wf_data.shape)
 
             # Timing
-            timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+            timeline_block_str = jds_waveform_time(wf_data, CLCfrq, data_block_size)
             timeline_block_str = timeline_block_str[0::16]
             for j in range(len(timeline_block_str)):
                 TimeScaleFig.append(timeline_block_str[j][0:12])

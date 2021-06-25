@@ -34,7 +34,7 @@ from package_common_modules.check_if_all_files_of_same_size import check_if_all_
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.check_if_JDS_files_of_equal_parameters import check_if_JDS_files_of_equal_parameters
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 # ###############################################################################
 
 def jds_wf_true_resolution(source_directory, result_directory, no_of_points_for_fft, no_of_bunches_per_file):
@@ -229,7 +229,7 @@ def jds_wf_true_resolution(source_directory, result_directory, no_of_points_for_
 
 
                 # Timing
-                timeline_block_str = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+                timeline_block_str = jds_waveform_time(wf_data, CLCfrq, data_block_size)
                 if Channel == 2:  # Two channels mode
                     timeline_block_str = timeline_block_str[0:int(len(timeline_block_str)/2)] # Cut the timeline of second channel
                 for i in range (len(timeline_block_str)):

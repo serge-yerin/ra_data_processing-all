@@ -2,7 +2,7 @@ import numpy as np
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 
 
-def JDS_waveform_time(wf_data, clock_frequency, data_block_size):
+def jds_waveform_time(wf_data, clock_frequency, data_block_size):
     """
     Takes raw data from JDS waveform file and returns string array of time for each data block
     Input:
@@ -19,29 +19,32 @@ def JDS_waveform_time(wf_data, clock_frequency, data_block_size):
     clock_frequency = int(clock_frequency/10**6) * 10**6
     tmp_a = np.uint32(int('00000000000000000000000000000001', 2))  # To separate 1 bit of second part of second of the day
     tmp_b = np.uint32(int('00000111111111111111111111111111', 2))  # To separate 0-26 bits of phase of second
+    tmp_c = np.uint32(int('00000000000000001111111111111111', 2))  # To separate 0-26 bits of phase of second
 
-    second_of_day = np.uint32(wf_data[data_block_size - 2, :]) + \
-                    np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[data_block_size - 1, :], tmp_a))
+    second_of_day = np.uint32(np.bitwise_and(wf_data[-2, :], tmp_c)) + \
+                    np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a))
 
     phase_of_second = np.uint32(wf_data[data_block_size - 4, :]) + \
                       np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
+
     phase_of_second[:] = np.uint32(np.bitwise_and(phase_of_second[:], tmp_b))
 
     hour = np.floor(second_of_day[:] / 3600)
     minutes = np.floor((second_of_day[:] % 3600) / 60)
     seconds = np.zeros(len(hour))
-    for i in range(len(hour)):
-        seconds[i] = second_of_day[i] - (hour[i] * 3600) - (minutes[i] * 60) + \
-                     (np.float(phase_of_second[i]) / clock_frequency)
+    for nt in range(len(hour)):
+        seconds[nt] = second_of_day[nt] - (hour[nt] * 3600) - (minutes[nt] * 60) + \
+                     (float(phase_of_second[nt]) / clock_frequency)
 
     hour[hour > 24] = 0
     minutes[minutes > 59] = 59
     seconds[seconds > 59] = 59
 
     timeline_block_str = ['' for x in range(len(hour))]
-    for i in range(len(hour)):
-        timeline_block_str[i] = ''.join("{:02.0f}".format(hour[i])) + ':' + ''.join("{:02.0f}".format(minutes[i])) + \
-                                ':' + ''.join("{:09.6f}".format(seconds[i]))
+    for nt in range(len(hour)):
+        timeline_block_str[nt] = ''.join("{:02.0f}".format(hour[nt])) + ':' + \
+                                 ''.join("{:02.0f}".format(minutes[nt])) + \
+                                ':' + ''.join("{:09.6f}".format(seconds[nt]))
 
     del hour, minutes, seconds, phase_of_second
     return timeline_block_str
@@ -49,7 +52,7 @@ def JDS_waveform_time(wf_data, clock_frequency, data_block_size):
 
 if __name__ == '__main__':
 
-    fname = 'DATA/E251015_050029 - wf.jds'
+    fname = 'DATA/E010621_090610.jds'
 
     print('\n\n Parameters of the file: ')
 
@@ -66,11 +69,13 @@ if __name__ == '__main__':
     print('\n  *** Reading data from file *** \n')
 
     with open(fname, 'rb') as file:
-        file.seek(1024)  # Jumping to 1024 byte from file beginning #+ (sizeOfChunk+8) * chunkSkip
+        file.seek(1024)  # Jumping to 1024 byte from file beginning #
         for av_sp in range(1):
 
             # Reading and reshaping all data with readers
             wf_data = np.fromfile(file, dtype='i2', count=no_of_spectra_to_average * data_block_size)
             wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_to_average], order='F')
 
-            time_block = JDS_waveform_time(wf_data, CLCfrq, data_block_size)
+            time_block = jds_waveform_time(wf_data, CLCfrq, data_block_size)
+            for i in range(len(time_block)):
+                print(time_block[i])

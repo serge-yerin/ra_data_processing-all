@@ -3,7 +3,7 @@ import numpy as np
 from progress.bar import IncrementalBar
 
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_ra_data_files_formats.JDS_waveform_time import JDS_waveform_time
+from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 
 # *******************************************************************************
@@ -114,7 +114,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
 
                 # Timing
-                timeline_block_str = JDS_waveform_time(wf_data, clock_freq, data_block_size)
+                timeline_block_str = jds_waveform_time(wf_data, clock_freq, data_block_size)
                 if channel == 2:                    # Two channels mode
                     # Cut the timeline of second channel
                     timeline_block_str = timeline_block_str[0:int(len(timeline_block_str) / 2)]  
