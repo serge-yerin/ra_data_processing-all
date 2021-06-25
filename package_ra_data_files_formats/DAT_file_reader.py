@@ -5,16 +5,14 @@ Software_version = '2020.07.17'
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 import os
-# import struct
 import sys
 import numpy as np
-# import pylab
-# import matplotlib.pyplot as plt
 import time
 from os import path
 from datetime import datetime, timedelta
-# from matplotlib import rc
 import warnings
+import matplotlib
+matplotlib.use('agg')
 warnings.filterwarnings("ignore")
 
 # To change system path to main directory of the project:

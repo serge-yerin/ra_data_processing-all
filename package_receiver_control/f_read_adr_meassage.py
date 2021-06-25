@@ -1,15 +1,15 @@
 # Python 3
-#*************************************************************
-#                       MAIN FUNCTION                        *
-#*************************************************************
+# *************************************************************
+#                        MAIN FUNCTION                        *
+# *************************************************************
 def f_read_adr_meassage(serversocket, print_or_not):
-    '''
+    """
     Function reads a message from ADR radio astronomy receiver
     Input parameters:
         print_or_not   - to print (1) or not (0) the message to terminal
     Output parameters:
         message        - string message
-    '''
+    """
     byte = b'a'
     message = bytearray([])
     while byte != b'\0':
@@ -28,5 +28,6 @@ if __name__ == '__main__':
 
     print('\n\n * Reading message from the ADR receiver... \n')
 
-    f_read_adr_meassage(1)
+    server_socket = ''
+    f_read_adr_meassage(server_socket, 1)
 
