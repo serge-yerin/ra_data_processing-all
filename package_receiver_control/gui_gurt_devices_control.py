@@ -38,18 +38,12 @@ gurt_lan_log_file_name = 'service_data/gurt_lan_connection_log.txt'
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
 token_file_name = 'service_data/bot.txt'
 
-hosts = ['8.8.8.8', '192.168.1.150',
-         '192.168.1.171', '192.168.1.172',
-         '192.168.1.11', '192.168.1.12',
+hosts = ['8.8.8.8', '192.168.1.150', '192.168.1.171', '192.168.1.172', '192.168.1.11', '192.168.1.12',
          '192.168.1.170', '192.168.1.161']
-# hosts = ['8.8.8.8', '172.16.1.100',
-#          '172.16.10.1', '172.16.1.1',
-#          '172.16.10.1', '172.16.1.1',
+# hosts = ['8.8.8.8', '172.16.1.100', '172.16.10.1', '172.16.1.1', '172.16.10.1', '172.16.1.1',
 #          '172.16.1.169', '172.16.10.1']
-device_names = ['Internet connection', 'GURT server',
-                'ADR 01', 'ADR 02',
-                'Beam control block 01', 'Beam control block 02',
-                'Relay block 01', 'Relay block 02']
+device_names = ['Internet connection', 'GURT server', 'ADR 01', 'ADR 02', 'Beam control block 01',
+                'Beam control block 02', 'Relay block 01', 'Relay block 02']
 
 
 # *******************************************************************************
@@ -96,6 +90,35 @@ def check_if_hosts_online():
               lbl_relay_01_online_clr, lbl_relay_02_online_clr]
     previous_states = [False, False, False, False, False, False, False, False]
     lbl_start.config(text='Checking...', bg='yellow')
+
+    # Set the IP addresses in memory to entries in Settings tab and freeze them
+    ent_internet_ip_val.delete(0, 'end')
+    ent_gurt_server_val.delete(0, 'end')
+    ent_adr_01_val.delete(0, 'end')
+    ent_adr_02_val.delete(0, 'end')
+    ent_beam_01_val.delete(0, 'end')
+    ent_beam_02_val.delete(0, 'end')
+    ent_relay_01_val.delete(0, 'end')
+    ent_relay_02_val.delete(0, 'end')
+
+    ent_internet_ip_val.insert(0, hosts[0])
+    ent_gurt_server_val.insert(0, hosts[1])
+    ent_adr_01_val.insert(0, hosts[2])
+    ent_adr_02_val.insert(0, hosts[3])
+    ent_beam_01_val.insert(0, hosts[4])
+    ent_beam_02_val.insert(0, hosts[5])
+    ent_relay_01_val.insert(0, hosts[6])
+    ent_relay_02_val.insert(0, hosts[7])
+
+    ent_internet_ip_val.config(state=DISABLED)
+    ent_gurt_server_val.config(state=DISABLED)
+    ent_adr_01_val.config(state=DISABLED)
+    ent_adr_02_val.config(state=DISABLED)
+    ent_beam_01_val.config(state=DISABLED)
+    ent_beam_02_val.config(state=DISABLED)
+    ent_relay_01_val.config(state=DISABLED)
+    ent_relay_02_val.config(state=DISABLED)
+
     lbl_check_interval_txt.config(text='Checking each 60 s.')
     first_check = True
     while True:
@@ -367,7 +390,14 @@ def off_pc_1():
 
 
 def apply_ip_addresses():
-    pass
+    hosts[0] = ent_internet_ip_val.get()  # Read the IP address from the entry
+    hosts[1] = ent_gurt_server_val.get()  # Read the IP address from the entry
+    hosts[2] = ent_adr_01_val.get()  # Read the IP address from the entry
+    hosts[3] = ent_adr_02_val.get()  # Read the IP address from the entry
+    hosts[4] = ent_beam_01_val.get()  # Read the IP address from the entry
+    hosts[5] = ent_beam_02_val.get()  # Read the IP address from the entry
+    hosts[6] = ent_relay_01_val.get()  # Read the IP address from the entry
+    hosts[7] = ent_relay_02_val.get()  # Read the IP address from the entry
 
 
 # *******************************************************************************
@@ -575,60 +605,57 @@ btn_pc_of_1.grid(row=11, column=5, stick='w', padx=x_space, pady=y_space)
 frame_ip_addresses_set = LabelFrame(tab_settings, text="IP addresses of devices to check")
 frame_ip_addresses_set.grid(row=0, column=0, rowspan=5, columnspan=4, stick='wn', padx=10, pady=10)
 
-# lbl_start = Label(frame_ip_addresses_set, text='Stopped', font='none 12', width=12, bg='gray')
-# lbl_check_interval_txt = Label(frame_ip_addresses_set, text='   ', font='none 9', width=20)
-
 lbl_internet_ip_txt = Label(frame_ip_addresses_set, text=device_names[0], font='none 12', width=24)
-ent_internet_ip_val = Entry(frame_ip_addresses_set, width=16)
+ent_internet_ip_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_internet_ip_val.insert(0, hosts[0])
 
 lbl_internet_ip_txt.grid(row=0, column=0, stick='w', padx=x_space, pady=y_space)
 ent_internet_ip_val.grid(row=0, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_gurt_server_txt = Label(frame_ip_addresses_set, text=device_names[1], font='none 12', width=24)
-ent_gurt_server_val = Entry(frame_ip_addresses_set, width=16)
+ent_gurt_server_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_gurt_server_val.insert(0, hosts[1])
 
 lbl_gurt_server_txt.grid(row=1, column=0, stick='w', padx=x_space, pady=y_space)
 ent_gurt_server_val.grid(row=1, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_adr_01_txt = Label(frame_ip_addresses_set, text=device_names[2], font='none 12', width=24)
-ent_adr_01_val = Entry(frame_ip_addresses_set, width=16)
+ent_adr_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_adr_01_val.insert(0, hosts[2])
 
 lbl_adr_01_txt.grid(row=2, column=0, stick='w', padx=x_space, pady=y_space)
 ent_adr_01_val.grid(row=2, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_adr_02_txt = Label(frame_ip_addresses_set, text=device_names[3], font='none 12', width=24)
-ent_adr_02_val = Entry(frame_ip_addresses_set, width=16)
+ent_adr_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_adr_02_val.insert(0, hosts[3])
 
 lbl_adr_02_txt.grid(row=3, column=0, stick='w', padx=x_space, pady=y_space)
 ent_adr_02_val.grid(row=3, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_beam_01_txt = Label(frame_ip_addresses_set, text=device_names[4], font='none 12', width=24)
-ent_beam_01_val = Entry(frame_ip_addresses_set, width=16)
+ent_beam_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_beam_01_val.insert(0, hosts[4])
 
 lbl_beam_01_txt.grid(row=4, column=0, stick='w', padx=x_space, pady=y_space)
 ent_beam_01_val.grid(row=4, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_beam_02_txt = Label(frame_ip_addresses_set, text=device_names[5], font='none 12', width=24)
-ent_beam_02_val = Entry(frame_ip_addresses_set, width=16)
+ent_beam_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_beam_02_val.insert(0, hosts[5])
 
 lbl_beam_02_txt.grid(row=5, column=0, stick='w', padx=x_space, pady=y_space)
 ent_beam_02_val.grid(row=5, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_relay_01_txt = Label(frame_ip_addresses_set, text=device_names[6], font='none 12', width=24)
-ent_relay_01_val = Entry(frame_ip_addresses_set, width=16)
+ent_relay_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_relay_01_val.insert(0, hosts[6])
 
 lbl_relay_01_txt.grid(row=6, column=0, stick='w', padx=x_space, pady=y_space)
 ent_relay_01_val.grid(row=6, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_relay_02_txt = Label(frame_ip_addresses_set, text=device_names[7], font='none 12', width=24)
-ent_relay_02_val = Entry(frame_ip_addresses_set, width=16)
+ent_relay_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_relay_02_val.insert(0, hosts[7])
 
 lbl_relay_02_txt.grid(row=7, column=0, stick='w', padx=x_space, pady=y_space)
