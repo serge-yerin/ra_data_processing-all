@@ -18,6 +18,7 @@ from wakeonlan import send_magic_packet
 from time import strftime
 from threading import Thread
 from tkinter import *
+from tkinter import ttk
 from PIL import ImageTk, Image
 from os import path
 
@@ -389,10 +390,18 @@ window.title('GURT online status board     (YeS 2020)')
 window.rowconfigure(0, minsize=30, weight=1)
 window.columnconfigure(1, minsize=40, weight=1)
 
-time_lbl = Label(window, font=('none', 14, 'bold'), background='black', foreground='yellow')
+# Setting tabs in the main window
+tab_parent = ttk.Notebook(window)
+tab_main = ttk.Frame(tab_parent)
+tab_settings = ttk.Frame(tab_parent)
+tab_parent.add(tab_main, text='   Main window   ')
+tab_parent.add(tab_settings, text='   Settings   ')
+tab_parent.pack(expand=1, fill="both")
 
 
-frame_online_status = LabelFrame(window, text="Network status of GURT devices")
+time_lbl = Label(tab_main, font=('none', 14, 'bold'), background='black', foreground='yellow')
+
+frame_online_status = LabelFrame(tab_main, text="Network status of GURT devices")
 
 btn_start = Button(frame_online_status, text='Start ping', width=10, command=start_check_thread)
 btn_start.focus_set()
@@ -433,7 +442,7 @@ btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=sen
                                    selectcolor="white")
 lbl_send_tg_messages = Label(frame_tg_notifications, text='Send\nTelegram\nnotifications', font='none 12', width=12)
 
-frame_on_server = LabelFrame(window, text="GURT server turning on")
+frame_on_server = LabelFrame(tab_main, text="GURT server turning on")
 
 btn_unblock_server_on = Button(frame_on_server, text='UNBLOCK', font='none 9 bold',
                                width=12, command=server_on_block_control)
@@ -443,7 +452,7 @@ lbl_server_on = Label(frame_on_server, text='Works only if server power supply i
 lbl_blank_server_txt = Label(frame_on_server, text=' ', font='none 12', width=3)
 
 
-frame_relay_control_01 = LabelFrame(window, text="Relay block 01 control")
+frame_relay_control_01 = LabelFrame(tab_main, text="Relay block 01 control")
 
 lbl_txt_ip = Label(frame_relay_control_01, text='IP address:', font='none 12', width=12)
 ent_ip_addrs = Entry(frame_relay_control_01, width=15)
@@ -474,7 +483,7 @@ time_display_thread = Thread(target=time_show, daemon=True)
 time_display_thread.start()
 
 img = ImageTk.PhotoImage(Image.open(logo_path))
-ira_logo = Label(window, image=img)
+ira_logo = Label(tab_main, image=img)
 
 time_lbl.grid(row=0, column=0, rowspan=2, columnspan=4, stick='nswe', padx=x_space, pady=y_space)
 ira_logo.grid(row=0, column=4, rowspan=2, columnspan=2, stick='w', padx=x_space, pady=y_space)
