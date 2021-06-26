@@ -41,7 +41,7 @@ token_file_name = 'service_data/bot.txt'
 hosts = ['8.8.8.8', '192.168.1.150',
          '192.168.1.171', '192.168.1.172',
          '192.168.1.11', '192.168.1.12',
-         '192.168.1.170', '192.168.1.169']
+         '192.168.1.170', '192.168.1.161']
 # hosts = ['8.8.8.8', '172.16.1.100',
 #          '172.16.10.1', '172.16.1.1',
 #          '172.16.10.1', '172.16.1.1',
@@ -620,12 +620,24 @@ ent_beam_02_val.insert(0, hosts[5])
 lbl_beam_02_txt.grid(row=5, column=0, stick='w', padx=x_space, pady=y_space)
 ent_beam_02_val.grid(row=5, column=1, stick='w', padx=x_space, pady=y_space)
 
+lbl_relay_01_txt = Label(frame_ip_addresses_set, text=device_names[6], font='none 12', width=24)
+ent_relay_01_val = Entry(frame_ip_addresses_set, width=16)
+ent_relay_01_val.insert(0, hosts[6])
 
+lbl_relay_01_txt.grid(row=6, column=0, stick='w', padx=x_space, pady=y_space)
+ent_relay_01_val.grid(row=6, column=1, stick='w', padx=x_space, pady=y_space)
+
+lbl_relay_02_txt = Label(frame_ip_addresses_set, text=device_names[7], font='none 12', width=24)
+ent_relay_02_val = Entry(frame_ip_addresses_set, width=16)
+ent_relay_02_val.insert(0, hosts[7])
+
+lbl_relay_02_txt.grid(row=7, column=0, stick='w', padx=x_space, pady=y_space)
+ent_relay_02_val.grid(row=7, column=1, stick='w', padx=x_space, pady=y_space)
 
 btn_read_ip_addresses = Button(frame_ip_addresses_set, text='Apply IP addresses', width=16, command=apply_ip_addresses)
 btn_read_ip_addresses.focus_set()
 
-btn_read_ip_addresses.grid(row=9, column=1, stick='w', padx=x_space, pady=y_space)
+btn_read_ip_addresses.grid(row=8, column=1, stick='w', padx=x_space, pady=y_space)
 
 
 
