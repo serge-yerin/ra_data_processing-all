@@ -21,6 +21,9 @@ colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet'
 
 
 def cut_needed_time_points_from_txt(path, filename):
+    import matplotlib
+    matplotlib.use('TkAgg')
+
     """
     Function to cut the part of pulsar period data with the pulse from one txt file to the new smalled one
     User is asked to specify the start and stop point of the selected pulse period.
