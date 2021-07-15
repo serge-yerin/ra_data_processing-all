@@ -3,6 +3,7 @@ from tkinter import *
 import tkinter.filedialog
 from os import path
 import numpy as np
+import sys
 
 # To change system path to main directory of the project:
 if __package__ is None:
