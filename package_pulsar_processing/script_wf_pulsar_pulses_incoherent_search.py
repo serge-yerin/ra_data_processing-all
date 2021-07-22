@@ -12,9 +12,10 @@ run the "script_wf_pulsar_coherent_dispersion_delay_removing.py" for selected fi
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/server2a/LC4-21-UTR2_002/PSRB0809p74_LC4-21_26-10-15_WF_Cl33_Ch1-NS_CH2-W/'
+# directory = '/media/server2a/LC4-21-UTR2_002/PSRB0809p74_LC4-21_26-10-15_WF_Cl33_Ch1-NS_CH2-W/'
+directory = '/media/server2a/PSR_01_Jul_NenuFar/2021.07.01_PSRB0809+74_NenuFAR_2/'
 
-pulsar_name = 'J0242+6256'  # 'B0809+74' # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21'
+pulsar_name = 'B0809+74'  # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
 process_channel_b = False       # Process channel B or save time

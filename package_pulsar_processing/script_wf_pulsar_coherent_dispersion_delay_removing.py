@@ -1,6 +1,6 @@
 # Python3
 # pip install progress
-Software_version = '2021.01.25'
+Software_version = '2021.07.22'
 Software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dispersion delay removing and saving found pulses
@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0809+74'  # 'B0809+74' 'B0950+08' 'B1133+16'
+pulsar_name = 'B0809+74'  # 'B0950+08' 'B1133+16' 'B0809+74' # 'J0242+6256'
 
 make_sum = True
 dm_step = 1.0
@@ -21,10 +21,10 @@ result_directory = ''                   # Directory where DAT files to be stored
 median_filter_window = 80               # Window of median filter to smooth the average profile
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
-phase_calibr_txt_file = 'DATA/Calibration_E261015_044242.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = 'DATA/Calibration_E020721_002539.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
-use_window_for_fft = True               # Use FFT window (not finished)
+use_window_for_fft = False              # Use FFT window (not finished)
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -79,8 +79,13 @@ if __name__ == '__main__':
     # Calculation of the maximal time shift for dispersion delay removing
     shift_vector = DM_full_shift_calc(8192, 16.5, 33.0, 2014 / pow(10, 6), 0.000496, pulsar_dm, 'jds')
     max_shift = np.abs(shift_vector[0])
-    print('  * Maximal shift of dynamic spectrum: ', max_shift, ' points')
-    print('                                  or : ', max_shift * 0.000496, ' seconds')
+    print('  * Pulsar ', pulsar_name)
+    print('                               Period: ', p_bar, 's.')
+    print('                   Dispersion measure:  {} pc・cm\u00b3'.format(pulsar_dm))
+    print('    Maximal shift of dynamic spectrum: ', max_shift, ' points')
+    print('                                  or : ', np.round(max_shift * 16384/33000000, 1), ' seconds')  # nfft/f_cl
+    print('                                  or :  ~', int(np.ceil((max_shift * 16384/33000000) / 16)),
+          ' files in 2 ch 33 MHz mode\n\n')
 
     # Reading initial jds file list to save the list of files in the result folder
     file_list = find_files_only_in_current_folder(source_directory, '.jds', 0)
@@ -98,6 +103,7 @@ if __name__ == '__main__':
     
     #
     #
+    # Do not forget to comment variables below!!!
     # initial_wf32_files = ['E261015_035419.jds_Data_chA.wf32']
     #
     #
@@ -109,6 +115,7 @@ if __name__ == '__main__':
 
     #
     #
+    # Do not forget to comment variables below!!!
     # initial_wf32_files = ['E150221_231756.jds_Data_chA.wf32', 'E150221_231756.jds_Data_chB.wf32']
     #
     #
@@ -124,7 +131,7 @@ if __name__ == '__main__':
 
     #
     #
-    #
+    # Do not forget to comment variables below!!!
     # file_name = 'E261015_035419.jds_Data_wfA+B.wf32'
     # typesOfData = ['wfA+B']
     #
@@ -142,6 +149,7 @@ if __name__ == '__main__':
 
     #
     #
+    # Do not forget to comment variables below!!!
     # file_name = 'DM_5.755_E261015_035419.jds_Data_chA.wf32'  # 'DM_5.752_E150221_203739.jds_Data_wfA+B.wf32'
     # typesOfData = ['chA']  # ['wfA+B']
     #
@@ -157,17 +165,18 @@ if __name__ == '__main__':
 
     #
     #
-    file_name = 'DM_5.755_E261015_035419.jds_Data_wfA+B.wf32'
-    typesOfData = ['wfA+B']
+    # Do not forget to comment variables below!!!
+    # file_name = 'DM_2.972_E310120_225419.jds_Data_wfA+B.wf32'
+    # typesOfData = ['wfA+B']
     #
     #
 
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
 
-    # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
-                                                 int(no_of_spectra_in_bunch/2), use_window_for_fft)
+    file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    # file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
+    #                                              int(no_of_spectra_in_bunch/2), use_window_for_fft)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
     
@@ -209,7 +218,7 @@ if __name__ == '__main__':
 
     #
     #
-    # output_file_name = 'Norm_DM_5.755_E261015_035701.jds_Data_wfA+B.dat'
+    # output_file_name = 'Norm_DM_5.755_E010721_100519.jds_Data_wfA+B.dat'
     #
     #
 
