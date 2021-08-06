@@ -131,7 +131,6 @@ def check_if_hosts_online():
         else:
             lbl_start.config(text='Pinging...', bg='Deep sky blue')
         for item in range(len(labels)):  # hosts
-            # answer = ping(hosts[item])
             answer = ping(devices[item]['IP'])
             if answer:
                 if answer == previous_states[item]:
@@ -206,7 +205,8 @@ def turn_on_server():
     if server_on_block_flag:
         pass
     else:
-        send_magic_packet('74.d0.2b.28.5f.c8')
+        # send_magic_packet('74.d0.2b.28.5f.c8')
+        send_magic_packet(devices[1]['MAC'])
 
 
 # ################# RELAY #####################
