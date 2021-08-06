@@ -38,15 +38,6 @@ gurt_lan_log_file_name = 'service_data/gurt_lan_connection_log.txt'
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
 token_file_name = 'service_data/bot.txt'
 
-# hosts = ['8.8.8.8', '192.168.1.150', '192.168.1.171', '192.168.1.172', '192.168.1.11', '192.168.1.12',
-#          '192.168.1.170', '192.168.1.161', '192.168.1.64 ']
-# # hosts = ['8.8.8.8', '172.16.1.100', '172.16.10.1', '172.16.1.1', '172.16.10.1', '172.16.1.1',
-# #          '172.16.1.169', '172.16.10.1']
-# device_macs = ['', '74.d0.2b.28.5f.c8', '74:d0:2b:27:c2:af', '', '', '', '', '', '']
-#
-# device_names = ['Internet connection', 'GURT server', 'ADR 01', 'ADR 02', 'Beam control block 01',
-#                 'Beam control block 02', 'Relay block 01', 'Relay block 02', 'IP camera 01']
-
 devices = {0: {'Name': 'Internet',        'IP': '8.8.8.8',       'MAC': ''},
            1: {'Name': 'GURT server',     'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
            2: {'Name': 'ADR 01',          'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
@@ -100,17 +91,6 @@ def check_if_hosts_online():
               lbl_ctrl_block_01_online_clr, lbl_ctrl_block_02_online_clr,
               lbl_relay_01_online_clr, lbl_relay_02_online_clr, lbl_ipcam_01_online_clr]
     previous_states = [False, False, False, False, False, False, False, False, False]
-    lbl_start.config(text='Checking...', bg='yellow')
-
-    # devices = {0: {'Name': 'Internet', 'IP': '8.8.8.8', 'MAC': ''},
-    #            1: {'Name': 'GURT server', 'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
-    #            2: {'Name': 'ADR 01', 'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
-    #            3: {'Name': 'ADR 02', 'IP': '192.168.1.172', 'MAC': ''},
-    #            4: {'Name': 'Beam control 01', 'IP': '192.168.1.11', 'MAC': ''},
-    #            5: {'Name': 'Beam control 02', 'IP': '192.168.1.12', 'MAC': ''},
-    #            6: {'Name': 'Relay block 01', 'IP': '192.168.1.170', 'MAC': ''},
-    #            7: {'Name': 'Relay block 02', 'IP': '192.168.1.161', 'MAC': ''},
-    #            8: {'Name': 'IP camera GURT', 'IP': '192.168.1.64', 'MAC': ''}}
 
     # Set the IP addresses in memory to entries in Settings tab and freeze them
     ent_internet_ip_val.delete(0, 'end')
@@ -146,6 +126,10 @@ def check_if_hosts_online():
     lbl_check_interval_txt.config(text='Checking each 60 s.')
     first_check = True
     while True:
+        if first_check:
+            lbl_start.config(text='Checking...', bg='yellow')
+        else:
+            lbl_start.config(text='Pinging...', bg='Deep sky blue')
         for item in range(len(labels)):  # hosts
             # answer = ping(hosts[item])
             answer = ping(devices[item]['IP'])
@@ -155,7 +139,6 @@ def check_if_hosts_online():
                 else:
                     labels[item].config(text='Just ON', bg='SpringGreen2')
                     t = strftime(" %Y-%m-%d %H:%M Loc")
-                    # message = t + ': ' + device_names[item] + ' (IP: ' + hosts[item] + ') connected'
                     message = t + ': ' + devices[item]['Name'] + ' (IP: ' + devices[item]['IP'] + ') connected'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
@@ -169,7 +152,6 @@ def check_if_hosts_online():
                 else:
                     labels[item].config(text='Just OFF', bg='orange red')
                     t = strftime(" %Y-%m-%d %H:%M Loc")
-                    # message = t + ': ' + device_names[item] + ' (IP: ' + hosts[item] + ') disconnected'
                     message = t + ': ' + devices[item]['Name'] + ' (IP: ' + devices[item]['IP'] + ') disconnected'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
@@ -179,9 +161,8 @@ def check_if_hosts_online():
                         test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
 
             previous_states[item] = answer
+        lbl_start.config(text='Working', bg='chartreuse2')
         # If the program has just started operation
-        if first_check:
-            lbl_start.config(text='Working', bg='chartreuse2')
         first_check = False
         time.sleep(60)
 
@@ -504,17 +485,6 @@ lbl_relay_02_online_clr = Label(frame_online_status, text='Unknown', font='none 
 lbl_ipcam_01_online_txt = Label(frame_online_status, text=devices[8]['Name'], font='none 12', width=12)
 lbl_ipcam_01_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-# devices = {0: {'Name': 'Internet', 'IP': '8.8.8.8', 'MAC': ''},
-#            1: {'Name': 'GURT server', 'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
-#            2: {'Name': 'ADR 01', 'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
-#            3: {'Name': 'ADR 02', 'IP': '192.168.1.172', 'MAC': ''},
-#            4: {'Name': 'Beam control 01', 'IP': '192.168.1.11', 'MAC': ''},
-#            5: {'Name': 'Beam control 02', 'IP': '192.168.1.12', 'MAC': ''},
-#            6: {'Name': 'Relay block 01', 'IP': '192.168.1.170', 'MAC': ''},
-#            7: {'Name': 'Relay block 02', 'IP': '192.168.1.161', 'MAC': ''},
-#            8: {'Name': 'IP camera GURT', 'IP': '192.168.1.64', 'MAC': ''}}
-
-
 frame_tg_notifications = LabelFrame(frame_online_status)
 
 send_tg_messages = IntVar()
@@ -649,16 +619,6 @@ btn_pc_of_1.grid(row=11, column=5, stick='w', padx=x_space, pady=y_space)
 
 frame_ip_addresses_set = LabelFrame(tab_settings, text="IP and MAC addresses of devices to check")
 frame_ip_addresses_set.grid(row=0, column=0, rowspan=5, columnspan=4, stick='wn', padx=10, pady=10)
-
-# devices = {0: {'Name': 'Internet',        'IP': '8.8.8.8',       'MAC': ''},
-#            1: {'Name': 'GURT server',     'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
-#            2: {'Name': 'ADR 01',          'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
-#            3: {'Name': 'ADR 02',          'IP': '192.168.1.172', 'MAC': ''},
-#            4: {'Name': 'Beam control 01', 'IP': '192.168.1.11',  'MAC': ''},
-#            5: {'Name': 'Beam control 02', 'IP': '192.168.1.12',  'MAC': ''},
-#            6: {'Name': 'Relay block 01',  'IP': '192.168.1.170', 'MAC': ''},
-#            7: {'Name': 'Relay block 02',  'IP': '192.168.1.161', 'MAC': ''},
-#            8: {'Name': 'IP camera GURT',  'IP': '192.168.1.64',  'MAC': ''}}
 
 lbl_internet_ip_txt = Label(frame_ip_addresses_set, text=devices[0]['Name'], font='none 12', width=24)
 ent_internet_ip_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
