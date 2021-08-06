@@ -41,7 +41,7 @@ token_file_name = 'service_data/bot.txt'
 devices = {0: {'Name': 'Internet',        'IP': '8.8.8.8',       'MAC': ''},
            1: {'Name': 'GURT server',     'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
            2: {'Name': 'ADR 01',          'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
-           3: {'Name': 'ADR 02',          'IP': '192.168.1.172', 'MAC': ''},
+           3: {'Name': 'ADR 02',          'IP': '192.168.1.172', 'MAC': '74:d0:2b:c7:87:20'},
            4: {'Name': 'Beam control 01', 'IP': '192.168.1.11',  'MAC': ''},
            5: {'Name': 'Beam control 02', 'IP': '192.168.1.12',  'MAC': ''},
            6: {'Name': 'Relay block 01',  'IP': '192.168.1.170', 'MAC': ''},
@@ -629,24 +629,36 @@ ent_internet_ip_val.grid(row=0, column=1, stick='w', padx=x_space, pady=y_space)
 
 lbl_gurt_server_txt = Label(frame_ip_addresses_set, text=devices[1]['Name'], font='none 12', width=24)
 ent_gurt_server_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_gurt_server_mac = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_gurt_server_val.insert(0, devices[1]['IP'])
+ent_gurt_server_mac.insert(0, devices[1]['MAC'])
+ent_gurt_server_mac.config(state=DISABLED)
 
 lbl_gurt_server_txt.grid(row=1, column=0, stick='w', padx=x_space, pady=y_space)
 ent_gurt_server_val.grid(row=1, column=1, stick='w', padx=x_space, pady=y_space)
+ent_gurt_server_mac.grid(row=1, column=2, stick='w', padx=x_space, pady=y_space)
 
 lbl_adr_01_txt = Label(frame_ip_addresses_set, text=devices[2]['Name'], font='none 12', width=24)
 ent_adr_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_adr_01_mac = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_adr_01_val.insert(0, devices[2]['IP'])
+ent_adr_01_mac.insert(0, devices[2]['MAC'])
+ent_adr_01_mac.config(state=DISABLED)
 
 lbl_adr_01_txt.grid(row=2, column=0, stick='w', padx=x_space, pady=y_space)
 ent_adr_01_val.grid(row=2, column=1, stick='w', padx=x_space, pady=y_space)
+ent_adr_01_mac.grid(row=2, column=2, stick='w', padx=x_space, pady=y_space)
 
 lbl_adr_02_txt = Label(frame_ip_addresses_set, text=devices[3]['Name'], font='none 12', width=24)
 ent_adr_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_adr_02_mac = Entry(frame_ip_addresses_set, font='none 12', width=16)
 ent_adr_02_val.insert(0, devices[3]['IP'])
+ent_adr_02_mac.insert(0, devices[3]['MAC'])
+ent_adr_02_mac.config(state=DISABLED)
 
 lbl_adr_02_txt.grid(row=3, column=0, stick='w', padx=x_space, pady=y_space)
 ent_adr_02_val.grid(row=3, column=1, stick='w', padx=x_space, pady=y_space)
+ent_adr_02_mac.grid(row=3, column=2, stick='w', padx=x_space, pady=y_space)
 
 lbl_beam_01_txt = Label(frame_ip_addresses_set, text=devices[4]['Name'], font='none 12', width=24)
 ent_beam_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
