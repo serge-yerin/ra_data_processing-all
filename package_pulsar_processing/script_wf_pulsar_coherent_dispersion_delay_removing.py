@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0809+74'  # 'B0950+08' 'B1133+16' 'B0809+74' # 'J0242+6256'
+pulsar_name = 'B0950+08'  # 'B1133+16' 'B0809+74' # 'J0242+6256'
 
 make_sum = True
 dm_step = 1.0
@@ -21,7 +21,7 @@ result_directory = ''                   # Directory where DAT files to be stored
 median_filter_window = 80               # Window of median filter to smooth the average profile
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
-phase_calibr_txt_file = 'DATA/Calibration_E020721_002539.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = 'DATA/Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
 use_window_for_fft = False              # Use FFT window (not finished)
@@ -44,10 +44,12 @@ if __package__ is None:
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
-from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
+# from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
+from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
-from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
+# from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
+from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_dat_to_txt
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.f_convert_jds_wf_to_wf32 import convert_jds_wf_to_wf32
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
@@ -162,7 +164,7 @@ if __name__ == '__main__':
         shutil.copyfile(current_tl_fname, correct_tl_fname)
         print('  Current time line file name:', current_tl_fname)
         print('  Correct time line file name:', correct_tl_fname)
-
+    
     #
     #
     # Do not forget to comment variables below!!!
@@ -174,9 +176,9 @@ if __name__ == '__main__':
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
 
-    file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    # file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
-    #                                              int(no_of_spectra_in_bunch/2), use_window_for_fft)
+    # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
+                                                 int(no_of_spectra_in_bunch/2), use_window_for_fft)
 
     print('\n Dedispersed DAT file: ', file_name, '\n')
     
@@ -218,7 +220,7 @@ if __name__ == '__main__':
 
     #
     #
-    # output_file_name = 'Norm_DM_5.755_E010721_100519.jds_Data_wfA+B.dat'
+    output_file_name = 'Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
     #
     #
 
@@ -230,9 +232,12 @@ if __name__ == '__main__':
     period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
-    path, txt_fname, png_fname = cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number,
-                                                                   -0.15, 0.55, -0.2, 3.0,
-                                                                   periods_per_fig, 500, 'Greys')
+    # path, txt_fname, png_fname = cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number,
+    #                                                                       -0.15, 0.55, -0.2, 3.0,
+    #                                                                       periods_per_fig, 500, 'Greys')
+    path, dat_fname, png_fname = cut_needed_pulsar_period_from_dat_to_dat('', output_file_name, pulsar_name,
+                                                                          period_number, -0.15, 0.55, -0.2, 3.0,
+                                                                          periods_per_fig, 500, 'Greys')
     #
     #
     #
@@ -241,7 +246,8 @@ if __name__ == '__main__':
     
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Cutting the data of pulse from pulsar period data... \n')
-    start_point, end_point = cut_needed_time_points_from_txt(path, txt_fname)
+    # start_point, end_point = cut_needed_time_points_from_txt(path, txt_fname)
+    start_point, end_point = cut_needed_time_points_from_dat_to_txt(path, dat_fname)
 
     #
     #
