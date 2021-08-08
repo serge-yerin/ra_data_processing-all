@@ -232,21 +232,22 @@ if __name__ == '__main__':
     period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
-    # path, txt_fname, png_fname = cut_needed_pulsar_period_from_dat('', output_file_name, pulsar_name, period_number,
-    #                                                                       -0.15, 0.55, -0.2, 3.0,
-    #                                                                       periods_per_fig, 500, 'Greys')
     path, dat_fname, png_fname = cut_needed_pulsar_period_from_dat_to_dat('', output_file_name, pulsar_name,
                                                                           period_number, -0.15, 0.55, -0.2, 3.0,
                                                                           periods_per_fig, 500, 'Greys')
+
     #
     #
+    #
+    # path = 'RESULTS_pulsar_extracted_pulse_Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
+    # dat_fname = 'Single_pulse_Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
+    # period_number = 45
     #
     #
     #
     
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Cutting the data of pulse from pulsar period data... \n')
-    # start_point, end_point = cut_needed_time_points_from_txt(path, txt_fname)
     start_point, end_point = cut_needed_time_points_from_dat_to_txt(path, dat_fname)
 
     #
