@@ -8,7 +8,7 @@ Software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-pulsar_name = 'B0950+08'  # 'B1133+16' 'B0809+74' # 'J0242+6256'
+pulsar_name = 'B0950+08'  # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'J0242+6256'
 
 make_sum = True
 dm_step = 1.0
@@ -26,6 +26,8 @@ phase_calibr_txt_file = 'DATA/Calibration_E300120_232956.jds_cross_spectra_phase
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
 use_window_for_fft = False              # Use FFT window (not finished)
 
+only_extract_pulse = False
+norm_compensated_dat_file_name = 'Norm_DM_4.8471_E150721_154000.jds_Data_wfA+B.dat'
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -97,132 +99,132 @@ if __name__ == '__main__':
     # Start commenting lines here!
     #
     #
+    # '''
 
-    print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
+    if not only_extract_pulse:
 
-    initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
-    print('\n List of WF32 files: ', initial_wf32_files, '\n')
-    
-    #
-    #
-    # Do not forget to comment variables below!!!
-    # initial_wf32_files = ['E261015_035419.jds_Data_chA.wf32']
-    #
-    #
+        print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
 
-    if len(initial_wf32_files) > 1 and calibrate_phase:
-        print('\n\n  * Making phase calibration of wf32 file... \n')
-        wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
-                                           phase_calibr_txt_file)
+        initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
+        print('\n List of WF32 files: ', initial_wf32_files, '\n')
 
-    #
-    #
-    # Do not forget to comment variables below!!!
-    # initial_wf32_files = ['E150221_231756.jds_Data_chA.wf32', 'E150221_231756.jds_Data_chB.wf32']
-    #
-    #
+        #
+        #
+        # Do not forget to comment variables below!!!
+        # initial_wf32_files = ['E261015_035419.jds_Data_chA.wf32']
+        #
+        #
 
-    if len(initial_wf32_files) > 1 and make_sum:
-        print('\n\n  * Making sum of two WF32 files... \n')
-        file_name = sum_signals_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
-        print('  Sum file:', file_name, '\n')
-        typesOfData = ['wfA+B']
-    else:
-        file_name = initial_wf32_files[0]  # [0] or [1]
-        typesOfData = ['chA']  # ['chA'] or ['chB']
+        if len(initial_wf32_files) > 1 and calibrate_phase:
+            print('\n\n  * Making phase calibration of wf32 file... \n')
+            wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
+                                               phase_calibr_txt_file)
 
-    #
-    #
-    # Do not forget to comment variables below!!!
-    # file_name = 'E261015_035419.jds_Data_wfA+B.wf32'
-    # typesOfData = ['wfA+B']
-    #
-    #
+        #
+        #
+        # Do not forget to comment variables below!!!
+        # initial_wf32_files = ['E150221_231756.jds_Data_chA.wf32', 'E150221_231756.jds_Data_chB.wf32']
+        #
+        #
 
-    print('\n\n  * Making coherent dispersion delay removing... \n')
-    for i in range(int(pulsar_dm // dm_step)):  #
+        if len(initial_wf32_files) > 1 and make_sum:
+            print('\n\n  * Making sum of two WF32 files... \n')
+            file_name = sum_signals_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
+            print('  Sum file:', file_name, '\n')
+            typesOfData = ['wfA+B']
+        else:
+            file_name = initial_wf32_files[0]  # [0] or [1]
+            typesOfData = ['chA']  # ['chA'] or ['chB']
+
+        #
+        #
+        # Do not forget to comment variables below!!!
+        # file_name = 'E261015_035419.jds_Data_wfA+B.wf32'
+        # typesOfData = ['wfA+B']
+        #
+        #
+
+        print('\n\n  * Making coherent dispersion delay removing... \n')
+        for i in range(int(pulsar_dm // dm_step)):  #
+            t = strftime("%Y-%m-%d %H:%M:%S")
+            print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), ' started at: ', t, '\n')
+            file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
         t = strftime("%Y-%m-%d %H:%M:%S")
-        print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), ' started at: ', t, '\n')
-        file_name = coherent_wf_to_wf_dedispersion(dm_step, file_name, no_of_points_for_fft_dedisp)
-    t = strftime("%Y-%m-%d %H:%M:%S")
-    print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 started at: ', t, '\n')
-    file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
-    print('\n List of WF32 files with removed dispersion delay: ', file_name, '\n')
+        print('\n Last step of ', np.round(pulsar_dm % dm_step, 6), ' pc/cm3 started at: ', t, '\n')
+        file_name = coherent_wf_to_wf_dedispersion(pulsar_dm % dm_step, file_name, no_of_points_for_fft_dedisp)
+        print('\n List of WF32 files with removed dispersion delay: ', file_name, '\n')
 
-    #
-    #
-    # Do not forget to comment variables below!!!
-    # file_name = 'DM_5.755_E261015_035419.jds_Data_chA.wf32'  # 'DM_5.752_E150221_203739.jds_Data_wfA+B.wf32'
-    # typesOfData = ['chA']  # ['wfA+B']
-    #
-    #
+        #
+        #
+        # Do not forget to comment variables below!!!
+        # file_name = 'DM_5.755_E261015_035419.jds_Data_chA.wf32'  # 'DM_5.752_E150221_203739.jds_Data_wfA+B.wf32'
+        # typesOfData = ['chA']  # ['wfA+B']
+        #
+        #
 
-    # Correction of file names for further processing with timeline files (made for wfA+B case)
-    if typesOfData == ['wfA+B']:
-        current_tl_fname = file_name + '_Timeline.wtxt'
-        correct_tl_fname = file_name.split('.jds')[0] + '.jds_Timeline.wtxt'
-        shutil.copyfile(current_tl_fname, correct_tl_fname)
-        print('  Current time line file name:', current_tl_fname)
-        print('  Correct time line file name:', correct_tl_fname)
-    
-    #
-    #
-    # Do not forget to comment variables below!!!
-    # file_name = 'DM_2.972_E310120_225419.jds_Data_wfA+B.wf32'
-    # typesOfData = ['wfA+B']
-    #
-    #
+        # Correction of file names for further processing with timeline files (made for wfA+B case)
+        if typesOfData == ['wfA+B']:
+            current_tl_fname = file_name + '_Timeline.wtxt'
+            correct_tl_fname = file_name.split('.jds')[0] + '.jds_Timeline.wtxt'
+            shutil.copyfile(current_tl_fname, correct_tl_fname)
+            print('  Current time line file name:', current_tl_fname)
+            print('  Correct time line file name:', correct_tl_fname)
 
-    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
+        #
+        #
+        # Do not forget to comment variables below!!!
+        # file_name = 'DM_2.972_E310120_225419.jds_Data_wfA+B.wf32'
+        # typesOfData = ['wfA+B']
+        #
+        #
 
-    # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-    file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
-                                                 int(no_of_spectra_in_bunch/2), use_window_for_fft)
+        t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+        print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
 
-    print('\n Dedispersed DAT file: ', file_name, '\n')
-    
-    #
-    #
-    # file_name = 'DM_2.972_E150221_213204.jds_Data_wfA+B.dat'
-    # typesOfData = ['wfA+B']
-    #
-    #
+        file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
+        # file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
+        #                                              int(no_of_spectra_in_bunch/2), use_window_for_fft)
 
-    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
+        print('\n Dedispersed DAT file: ', file_name, '\n')
 
-    output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch,
-                                          median_filter_window, show_av_sp_to_normalize)
+        #
+        #
+        # file_name = 'DM_2.972_E150221_213204.jds_Data_wfA+B.dat'
+        # typesOfData = ['wfA+B']
+        #
+        #
 
-    print(' Files names after normalizing: ', output_file_name)
+        t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+        print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
 
-    t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
+        output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch,
+                                              median_filter_window, show_av_sp_to_normalize)
 
-    pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500,
-                                      'Greys', False, 0.25)
+        print(' Files names after normalizing: ', output_file_name)
 
-    #
-    #
-    # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
-    # typesOfData = ['chA']
-    #
-    #
+        t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+        print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
 
-    # t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-    # print('\n\n', t, 'Making dynamic spectra figures of the dedispersed data... \n')
-    #
-    # result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-    # file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
-    # ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
-    #                      0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+        pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500,
+                                          'Greys', False, 0.25)
 
-    #
-    #
-    output_file_name = 'Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
-    #
-    #
+        #
+        #
+        # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
+        # typesOfData = ['chA']
+        #
+        #
+
+        # t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+        # print('\n\n', t, 'Making dynamic spectra figures of the dedispersed data... \n')
+        #
+        # result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
+        # file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
+        # ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
+        #                      0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+
+    else:
+        output_file_name = norm_compensated_dat_file_name
 
     t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
     print('\n\n', t, 'Cutting the data of found pulse period from whole data... ')
