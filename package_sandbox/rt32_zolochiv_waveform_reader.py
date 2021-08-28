@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2021.06.28'
+Software_version = '2021.08.28'
 Software_name = 'RT-32 Zolochiv waveform reader'
 # Script intended to read, show and analyze data from MARK5 receiver
 # *******************************************************************************
@@ -7,6 +7,7 @@ Software_name = 'RT-32 Zolochiv waveform reader'
 # *******************************************************************************
 directory = 'DATA/'
 filename = 'A210612_075610.adr'
+filepath = directory + filename
 result_path = ''
 
 # *******************************************************************************
@@ -16,78 +17,193 @@ result_path = ''
 import sys
 import numpy as np
 from os import path
-from datetime import datetime
-from datetime import timedelta
-import matplotlib.pyplot as plt
-from matplotlib import rc
-import pylab
+# import matplotlib.pyplot as plt
+from matplotlib import pylab as plt
 import os
-import time
 import matplotlib
 matplotlib.use('TkAgg')
-
 
 # To change system path to main directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 
-def mark_5_data_header_read():
+def rpr_wf_header_reader(filepath):
     """
-    RT-32 waveform data reader ?
+    Zolochiv Ukraine RPR receiver waveform data header reader (not finished, just POC)
+    """
+    with open(filepath, "rb") as file:
+        df_file_size = os.stat(filepath).st_size  # Size of file
+
+        fheader_tag = file.read(640)
+        df_file_name = fheader_tag[0:32].decode('utf-8').rstrip('\x00')  # original name of the file
+        df_file_loc_time = fheader_tag[32:58].decode('utf-8').rstrip('\x00')  # original name of the file
+        # !!! In the real file bytes between 58 and 64 do not decode with utf-8 but has some info
+        tmp = fheader_tag[58:64]
+        # tmp = int.from_bytes(fheader_tag[58:64], byteorder='big', signed=True)
+
+        df_file_gmt_time = fheader_tag[64:96].decode('utf-8').rstrip('\x00')  # time of the file creation
+        df_file_sys_name = fheader_tag[96:128].decode('utf-8').rstrip('\x00')  # time of the file creation
+        df_file_obs_place = fheader_tag[128:256].decode('utf-8').rstrip('\x00')  # time of the file creation
+        df_file_obs_descr = fheader_tag[256:512].decode('utf-8').rstrip('\x00')  # time of the file creation
+
+        # fheader_tag[512:640]  # uint32 processing and service parameters only for compatibility with old formats
+
+        print('\n File to analyse:             ', filepath)
+        print(' File size:                   ', round(df_file_size / 1024 / 1024, 3), ' Mb (', df_file_size, ' bytes )')
+        print(' Initial file name:           ', df_file_name)
+        print(' Initial file local time:     ', str(df_file_loc_time)[:-1])
+        # print(' Unrecognized data from bytes 58:64: ', tmp)
+        print(' Initial file GMT time:       ', df_file_gmt_time)
+        print(' Receiver name:               ', df_file_sys_name)  # operator (can be used as name of the system)
+        print(' Observation place:           ', df_file_obs_place)  # description of the measurements place
+        print(' Observation description:     ', df_file_obs_descr)  # additional measurements description
+
+        adrs_param_tag = file.read(28)
+        df_adrs_mode = int.from_bytes(adrs_param_tag[0:4], byteorder='big', signed=True)
+        df_fft_size = int.from_bytes(adrs_param_tag[4:8], byteorder='big', signed=True)
+        df_aver_const = int.from_bytes(adrs_param_tag[8:12], byteorder='big', signed=True)
+        df_fft_start_line = int.from_bytes(adrs_param_tag[12:16], byteorder='big', signed=True)
+        df_fft_width = int.from_bytes(adrs_param_tag[16:20], byteorder='big', signed=True)
+        df_block_size = int.from_bytes(adrs_param_tag[20:24], byteorder='big', signed=True)
+        df_adc_freq = int.from_bytes(adrs_param_tag[20:24], byteorder='big', signed=True)
+
+        print('\n Receiver mode:               ', df_adrs_mode)  # ADRS_MODE (0..2)WVF, (3..5)SPC, 6-CRL
+        print(' FFT size:                    ', df_fft_size)  # 2048 ... 32768
+        print(' Number of averaged spectra:  ', df_aver_const)  # 16 ... 1000
+        print(' FFT start line:              ', df_fft_start_line)  # 0 ... 7, SLine*1024 first line for spectrum output
+        print(' FFT width:                   ', df_fft_width)  # 2048 ... 32768
+        print(' Data block size:             ', df_block_size)  # bytes, data block size calculated from data processing/output parameters
+        print(' Measured ADC frequency:      ', df_adc_freq, ' Hz')  # ADC frequency reported by Astro-Digital-Receiver
+
+        adrs_opt_tag = file.read(36)
+        df_opt_size = int.from_bytes(adrs_opt_tag[0:4], byteorder='big', signed=True)
+        df_opt_start_stop = int.from_bytes(adrs_opt_tag[4:8], byteorder='big', signed=True)
+        df_opt_start_sec = int.from_bytes(adrs_opt_tag[8:12], byteorder='big', signed=True)
+        df_opt_stop_sec = int.from_bytes(adrs_opt_tag[12:16], byteorder='big', signed=True)
+        df_opt_test_mode = int.from_bytes(adrs_opt_tag[16:20], byteorder='big', signed=True)
+        df_opt_norm_1 = int.from_bytes(adrs_opt_tag[20:24], byteorder='big', signed=True)
+        df_opt_norm_2 = int.from_bytes(adrs_opt_tag[24:28], byteorder='big', signed=True)
+        df_opt_delay = int.from_bytes(adrs_opt_tag[28:32], byteorder='big', signed=True)
+        df_opt_bit_opt = int.from_bytes(adrs_opt_tag[32:36], byteorder='big', signed=True)
+
+        '''
+        ADRS options (data block size and format do not depends on)
+        uint32_t  Opt;		// bit 0 - StartBySec: no(0)/yes(1)
+                            // bit 1 - CLC: internal(0)/external(1)
+                            // bit 2 - FFT Window: Hanning(0)/rectangle(1)
+                            // bit 3 - DC removing: No(0)/Yes(1)
+                            // bit 4 - averaging(0)/decimation(1)
+                            // bit 5 - CH1: On(0)/Off(1)
+                            // bit 6 - CH2: On(0)/Off(1)
+        '''
+
+        print('\n Size:                        ', df_opt_size)
+        print(' Start / Stop:                ', df_opt_start_stop)  # StartStop 0/1	(-1 - ignore)
+        print(' Start second:                ', df_opt_start_sec)  # abs.time.sec - processing starts
+        print(' Stop second:                 ', df_opt_stop_sec)  # abs.time.sec - processing stops
+        print(' Test mode:                   ', df_opt_test_mode)  # Test Mode: 0, 1, 2...
+        print(' Norm. coefficient 1-CH:      ', df_opt_norm_1)  # Normalization coefficient 1-CH (1 ... 65535)
+        print(' Norm. coefficient 1-CH       ', df_opt_norm_2)  # Normalization coefficient 2-CH (1 ... 65535)
+        print(' Delay:                       ', df_opt_delay, ' ps')  # Delay in pico-seconds (-1000000000 ... 1000000000)
+        print(' Options:                     ', df_opt_bit_opt)
+
+        # print('Fheader tag 1:', fheader_tag[0:32])
+        # print('Fheader tag 2:', fheader_tag[32:64])
+        # print('F param tag:', adrs_param_tag)
+        # print('F opt tag:', adrs_opt_tag)
+
+    return
+
+
+def rpr_wf_data_reader(filepath):
+    """
+    RT-32 Zolochiv Ukraine RPR receiver waveform data reader (not finished, just POC)
     """
 
-    nGates = 4 * 64 * 1
-    nFFT = 64 * 256 * 1
+    nFFT = 64 * 256 * 1  # 16384 fop2
+    # nGates = 4 * 64 * 1  # 256
+    nGates = 8192  # 4096  # 2048  # 256
+    # Calculate nGates from file size
+    # df_filesize = os.stat(filepath).st_size         # Size of the file
+    # print(' File size:                     ', round(df_filesize/1024/1024, 3), ' Mb (', df_filesize, ' bytes )')
+    # nGates = (df_filesize - 5120) / (4 * nFFT)
+    # print('Calculated nGates = ', nGates)
 
-    # inX = np.linspace(0, nFFT * nGates - 1)
-    even = np.arange(1, nFFT * nGates * 2 * 2+1, 2)
-    odd = np.arange(0, nFFT * nGates * 2 * 2, 2)
+    with open(filepath) as f:  # Open data file
+        f.seek(5120)  # Jump to 5120 byte in the file
+        # Read raw data from file in int8 format
+        rdd = np.fromfile(f, dtype=np.int8, count=nFFT * nGates * 2 * 2)  # need numpy v1.17 for "offset=5120" ...
+        print('Shape of data read from file:', rdd.shape)
 
-    print(even)
-    print(odd)
+        # Preparing empty matrix for complex data
+        crd = np.empty(nFFT * nGates * 2, dtype=np.complex64)
+        print('Shape of prepared complex data array:', crd.shape)
 
-    i = 0
-    # rsh_crd = np.zeros(2, nFFT, nGates)
-    # tt = []
-    # wind = np.hamming(nFFT)
-    # for i in range(1):
-    file = open(directory + filename, 'r')
-    file.seek(5120 + (1 - 1) * 1327244)   # FFTD block 320 gates
-    data = np.fromfile(file, dtype='i', count=int(nFFT * nGates * 2 * 2))
-    print(data)
-    print(data.shape)
-    # data = file.read(nFFT * nGates * 2 * 2, 'int8')
-    file.close()
-    data_re = data[odd]
-    data_im = data[even]
-    print('Re shape', data_re.shape)
-    del data
-    cmplx_data = data_re + 1j * data_im  # np.complex(,)
-    rsh_crd = np.reshape(cmplx_data, [2, nFFT, nGates])
+        # Separating real and imaginary data from the raw data
+        crd.real = rdd[0: nFFT * nGates * 2 * 2: 2]
+        crd.imag = rdd[1: nFFT * nGates * 2 * 2: 2]
+        del rdd
 
-    # tt0 = np.zeros((nFFT, nGates))
-    tt1 = np.zeros((nFFT, nGates))
+        # Reshaping complex data to separate data of channels
+        rsh_crd = np.reshape(crd, (nGates, nFFT, 2))
+        del crd
+        print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
+        rsh_crd = np.transpose(rsh_crd)
+        print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
 
-    # tt0[:, :] = rsh_crd[1, :, :] - 0.0 * np.sum(rsh_crd[1, :, :], 2) / nFFT
-    # tt1[:, :] = rsh_crd[2, :, :] - 0.0 * np.sum(rsh_crd[2, :, :], 2) / nFFT
+        # Separate data of channels
+        tt0 = rsh_crd[0, :, :]
+        tt1 = rsh_crd[1, :, :]
+        print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
 
-    # tt0[:, :] = rsh_crd[0, :, :] / nFFT
-    tt1[:, :] = rsh_crd[1, :, :] / nFFT
+        # Display real and imaginary data of tt0 separately
+        fig, axs = plt.subplots(2)
+        axs[0].plot(np.real(tt0[:, 0]), linewidth='0.20', color='C0')
+        axs[0].set_xlim([-50, 16500])
+        axs[0].set_ylim([-150, 150])
+        axs[1].plot(np.imag(tt0[:, 0]), linewidth='0.30', color='C1')
+        axs[1].set_xlim([-10, 16400])
+        axs[1].set_ylim([-150, 150])
+        plt.show()
+        plt.close('all')
 
-    fig = plt.figure(1, figsize=(12.0, 5.0))
-    ax1 = fig.add_subplot(111)
-    ax1.plot(np.real(tt1[0, 0:200]), label='Real')
-    ax1.plot(np.real(tt1[1, 0:200]), label='Real')
-    # ax1.plot(np.imag(tt1), label='Imag')
-    # pylab.savefig(result_path + 'RT-32_waveform_fig.' + str(1) + ' of ' + str(1) + '.png',
-    #               bbox_inches='tight', dpi=200)
-    plt.show()
-    plt.close('all')
+        # Display spectra of the data in dB
+        spectra_tt0 = 20 * np.log10(np.abs((np.fft.fftshift(np.fft.fft(tt0[:, 0])))) + 0.01)
+        plt.figure()
+        plt.plot(spectra_tt0, linewidth='0.20')
+        plt.show()
+        plt.close('all')
+
+        # Calculation of integrated spectra
+        fft_tt0 = np.fft.fft(np.transpose(tt0))
+        print('Shape of fft_tt0:', fft_tt0.shape)
+        #
+        # Remove current leak to the zero harmonic
+        fft_tt0[:, 0] = (np.abs(fft_tt0[:, 1]) + np.abs(fft_tt0[:, nFFT - 1])) / 2
+        # print('Shape of fft_tt0[0]:', fft_tt0[0].shape)
+
+        fft_tt1 = np.fft.fft(np.transpose(tt1))
+        fft_tt1[:, 0] = (np.abs(fft_tt1[:, 1]) + np.abs(fft_tt1[:, nFFT - 1])) / 2
+
+        # Calculate and show integrated spectra
+        integr_spectra_0 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt0)), axis=0) + 0.01)
+        integr_spectra_1 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt1)), axis=0) + 0.01)
+        plt.figure()
+        plt.plot(integr_spectra_0, linewidth='0.50')
+        plt.plot(integr_spectra_1, linewidth='0.50')
+        plt.show()
+        plt.close('all')
+
+        # plt.figure()
+        # plt.plot(20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt1)), axis=1) + 0.01), linewidth='0.20')
+        # plt.show()
+        # plt.close('all')
 
 
 if __name__ == '__main__':
-    mark_5_data_header_read()
+    # rpr_wf_data_reader(filepath)
+    rpr_wf_header_reader(filepath)
 
 
 ################################################################################
@@ -107,12 +223,4 @@ if __name__ == '__main__':
 #     result_path = 'RESULTS_MARK5_Reader'
 #     if not os.path.exists(result_path):
 #         os.makedirs(result_path)
-#
-#     filepath = directory + filename
-#
-#     file_size = (os.stat(filepath).st_size)  # Size of file
-#     print('\n   File size:                    ', round(file_size / 1024 / 1024, 3), ' Mb (', file_size, ' bytes )')
-#
-#     with open(filepath, 'rb') as file:
-#
 #
