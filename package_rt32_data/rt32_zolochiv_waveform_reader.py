@@ -30,6 +30,7 @@ if __package__ is None:
 
 def rpr_wf_header_reader(filepath):
     """
+    !!! DEPRECATED !!! Use rpr_wf_header_reader_dict insted!
     Zolochiv Ukraine RPR receiver waveform data header reader (not finished, just POC)
     """
     with open(filepath, "rb") as file:
@@ -104,7 +105,7 @@ def rpr_wf_header_reader(filepath):
         print(' Stop second:                 ', df_opt_stop_sec)  # abs.time.sec - processing stops
         print(' Test mode:                   ', df_opt_test_mode)  # Test Mode: 0, 1, 2...
         print(' Norm. coefficient 1-CH:      ', df_opt_norm_1)  # Normalization coefficient 1-CH (1 ... 65535)
-        print(' Norm. coefficient 1-CH       ', df_opt_norm_2)  # Normalization coefficient 2-CH (1 ... 65535)
+        print(' Norm. coefficient 2-CH       ', df_opt_norm_2)  # Normalization coefficient 2-CH (1 ... 65535)
         print(' Delay:                       ', df_opt_delay, ' ps')  # Delay in pico-seconds (-1000000000 ... 1000000000)
         print(' Options:                     ', df_opt_bit_opt)
 
@@ -114,6 +115,98 @@ def rpr_wf_header_reader(filepath):
         # print('F opt tag:', adrs_opt_tag)
 
     return
+
+
+def rpr_wf_header_reader_dict(filepath):
+    """
+    Zolochiv Ukraine RPR receiver waveform data header reader (not finished, just POC)
+    """
+
+    param_dict = {}
+
+    with open(filepath, "rb") as file:
+        param_dict["File size in bytes"] = os.stat(filepath).st_size  # Size of file
+
+        fheader_tag = file.read(640)
+        param_dict["Initial file name"] = fheader_tag[0:32].decode('utf-8').rstrip('\x00')  # original name of the file
+        param_dict["File creation local time"] = fheader_tag[32:58].decode('utf-8').rstrip('\x00')  # file creation local time
+        # !!! In the real file bytes between 58 and 64 do not decode with utf-8 but has some info
+        tmp = fheader_tag[58:64]
+        # tmp = int.from_bytes(fheader_tag[58:64], byteorder='big', signed=True)
+
+        param_dict["File creation utc time"] = fheader_tag[64:96].decode('utf-8').rstrip('\x00')
+        param_dict["System name"] = fheader_tag[96:128].decode('utf-8').rstrip('\x00')
+        param_dict["Observation place"] = fheader_tag[128:256].decode('utf-8').rstrip('\x00')
+        param_dict["Observation description"] = fheader_tag[256:512].decode('utf-8').rstrip('\x00')
+
+        # fheader_tag[512:640]  # uint32 processing and service parameters only for compatibility with old formats
+
+        print('\n File to analyse:             ', filepath)
+        print(' File size:                   ', round(param_dict["File size in bytes"] / 1024 / 1024, 3), ' Mb (',
+              param_dict["File size in bytes"], ' bytes )')
+        print(' Initial file name:           ', param_dict["Initial file name"])
+        print(' Initial file local time:     ', str(param_dict["File creation local time"])[:-1])
+        # print(' Unrecognized data from bytes 58:64: ', tmp)
+        print(' Initial file GMT time:       ', param_dict["File creation utc time"])
+        print(' Receiver name:               ', param_dict["System name"])  # operator (can be used as name of the system)
+        print(' Observation place:           ', param_dict["Observation place"])  # description of the measurements place
+        print(' Observation description:     ', param_dict["Observation description"])  # additional measurements description
+
+        adrs_param_tag = file.read(28)
+        param_dict["ADR mode"] = int.from_bytes(adrs_param_tag[0:4], byteorder='big', signed=True)
+        param_dict["FFT size"] = int.from_bytes(adrs_param_tag[4:8], byteorder='big', signed=True)
+        param_dict["Average constant"] = int.from_bytes(adrs_param_tag[8:12], byteorder='big', signed=True)
+        param_dict["FFT start line"] = int.from_bytes(adrs_param_tag[12:16], byteorder='big', signed=True)
+        param_dict["FFT width"] = int.from_bytes(adrs_param_tag[16:20], byteorder='big', signed=True)
+        param_dict["Block size"] = int.from_bytes(adrs_param_tag[20:24], byteorder='big', signed=True)
+        param_dict["ADC frequency, Hz"] = int.from_bytes(adrs_param_tag[20:24], byteorder='big', signed=True)
+
+        print('\n Receiver mode:               ', param_dict["ADR mode"])  # ADRS_MODE (0..2)WVF, (3..5)SPC, 6-CRL
+        print(' FFT size:                    ', param_dict["FFT size"])  # 2048 ... 32768
+        print(' Number of averaged spectra:  ', param_dict["Average constant"])  # 16 ... 1000
+        print(' FFT start line:              ', param_dict["FFT start line"])  # 0 ... 7, SLine*1024 first line for spectrum output
+        print(' FFT width:                   ', param_dict["FFT width"])  # 2048 ... 32768
+        print(' Data block size:             ', param_dict["Block size"])  # bytes, data block size calculated from data processing/output parameters
+        print(' Measured ADC frequency:      ', param_dict["ADC frequency, Hz"], ' Hz')  # ADC frequency reported by Astro-Digital-Receiver
+
+        adrs_opt_tag = file.read(36)
+        param_dict["Opt size"] = int.from_bytes(adrs_opt_tag[0:4], byteorder='big', signed=True)
+        param_dict["Start/stop switch"] = int.from_bytes(adrs_opt_tag[4:8], byteorder='big', signed=True)
+        param_dict["Start second"] = int.from_bytes(adrs_opt_tag[8:12], byteorder='big', signed=True)
+        param_dict["Stop second"] = int.from_bytes(adrs_opt_tag[12:16], byteorder='big', signed=True)
+        param_dict["Test mode"] = int.from_bytes(adrs_opt_tag[16:20], byteorder='big', signed=True)
+        param_dict["Norm coeff 1"] = int.from_bytes(adrs_opt_tag[20:24], byteorder='big', signed=True)
+        param_dict["Norm coeff 2"] = int.from_bytes(adrs_opt_tag[24:28], byteorder='big', signed=True)
+        param_dict["Channel delay"] = int.from_bytes(adrs_opt_tag[28:32], byteorder='big', signed=True)
+        df_opt_bit_opt = int.from_bytes(adrs_opt_tag[32:36], byteorder='big', signed=True)
+
+        '''
+        ADRS options (data block size and format do not depends on)
+        uint32_t  Opt;		// bit 0 - StartBySec: no(0)/yes(1)
+                            // bit 1 - CLC: internal(0)/external(1)
+                            // bit 2 - FFT Window: Hanning(0)/rectangle(1)
+                            // bit 3 - DC removing: No(0)/Yes(1)
+                            // bit 4 - averaging(0)/decimation(1)
+                            // bit 5 - CH1: On(0)/Off(1)
+                            // bit 6 - CH2: On(0)/Off(1)
+        '''
+
+        print('\n Size:                        ', param_dict["Opt size"])
+        print(' Start / Stop:                ', param_dict["Start/stop switch"])  # StartStop 0/1	(-1 - ignore)
+        print(' Start second:                ', param_dict["Start second"])  # abs.time.sec - processing starts
+        print(' Stop second:                 ', param_dict["Stop second"])  # abs.time.sec - processing stops
+        print(' Test mode:                   ', param_dict["Test mode"])  # Test Mode: 0, 1, 2...
+        print(' Norm. coefficient 1-CH:      ', param_dict["Norm coeff 1"])  # Normalization coefficient 1-CH (1 ... 65535)
+        print(' Norm. coefficient 2-CH       ', param_dict["Norm coeff 2"])  # Normalization coefficient 2-CH (1 ... 65535)
+        print(' Delay:                       ', param_dict["Channel delay"], ' ps')  # Delay in pico-seconds (-1000000000 ... 1000000000)
+        print(' Options:                     ', df_opt_bit_opt)
+
+        # print('Fheader tag 1:', fheader_tag[0:32])
+        # print('Fheader tag 2:', fheader_tag[32:64])
+        # print('F param tag:', adrs_param_tag)
+        # print('F opt tag:', adrs_opt_tag)
+
+    return param_dict
 
 
 def rpr_wf_data_reader(filepath):
