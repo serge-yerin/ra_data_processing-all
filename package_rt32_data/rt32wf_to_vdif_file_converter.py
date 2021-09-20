@@ -67,11 +67,11 @@ def rt32wf_to_vdf_file_converter(filepath):
                             int(file_header_param_dict["File creation utc time"][6:8]),
                             int(file_header_param_dict["File creation utc time"][9:12]) * 1000)
 
-    seconds_from_epoch = (dt_data_time - dt_reference_epoch).total_seconds()
+    seconds_from_epoch = int((dt_data_time - dt_reference_epoch).total_seconds())
 
-    print(dt_data_time)
-    print(dt_reference_epoch)
-    print(seconds_from_epoch)
+    print(' Current time:                           ', dt_data_time)
+    print(' Reference epoch:                        ', dt_reference_epoch)
+    print(' Number of seconds from reference epoch: ', seconds_from_epoch)
 
     return
 
