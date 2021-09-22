@@ -209,7 +209,7 @@ def data_conversion(source, result):
         indexes = []
         # bundle_dir = sys._MEIPASS
         # ifname = bundle_dir + '\\fft\\' + str(FFT_Size) + '.fft'
-        ifname = 'package_ra_data_files_formats/' + str(FFT_Size) + '.fft'
+        ifname = 'package_ra_data_files_formats/' + str(int(FFT_Size/2)) + '.fft'
         indexfile = open(ifname, 'r')
         num = 0
         for line in indexfile:
@@ -313,7 +313,7 @@ def data_conversion(source, result):
                     data = np.reshape(data, [freq_points_num, chunks_per_image * frames_in_chunk * sp_in_frame], order='F')
                     FPGAdataRawB = data[0:freq_points_num:1, :].transpose()
                 if ADRmode == 5:
-                    data = np.reshape(data, [freq_points_num * 4, chunks_per_image * frames_in_chunk * sp_in_frame], order='F')
+                    data = np.reshape(data, [freq_points_num * 2, chunks_per_image * frames_in_chunk * sp_in_frame], order='F')
                     FPGAdataRawB = data[0:(freq_points_num*2):2, :].transpose()
                     FPGAdataRawA = data[1:(freq_points_num*2):2, :].transpose()
                 if (ADRmode == 6):
@@ -459,12 +459,12 @@ result_btn.place(x=20, y=60, width=100, height=30)
 
 start_btn.place(x=170, y=120, width=150, height=30)
 
-label_path_in.place (x = 140, y = 20, width = 30, height = 30)
-label_path_out.place(x = 140, y = 60, width = 30, height = 30)
-label_copyright.place(x = 100, y = 230, width = 400, height = 20)
+label_path_in.place(x=140, y=20, width=30, height=30)
+label_path_out.place(x=140, y=60, width=30, height=30)
+label_copyright.place(x=100, y=230, width=400, height=20)
 
-entry_source_dir.place(x = 180, y = 20, width = 290, height = 30)
-entry_result_dir.place(x = 180, y = 60, width = 290, height = 30)
+entry_source_dir.place(x=180, y=20, width=290, height=30)
+entry_result_dir.place(x=180, y=60, width=290, height=30)
 
 root_window.mainloop()  # Main loop
     
