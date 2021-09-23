@@ -9,11 +9,11 @@ Software_version = '2019.05.08'
 common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A170719_230748.jds_Data_chA.dat'
+filename = common_path + 'C050620_084900.jds_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
-data_types = ['chA']
+data_types = ['chA', 'chB']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 # freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
@@ -41,14 +41,14 @@ freqStart = 20.0
 freqStop = 30.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2019-07-19 12:00:00'
-dateTimeStop =  '2019-07-21 12:00:00'
+dateTimeStart = '2020-06-05 09:35:30'
+dateTimeStop =  '2020-06-05 09:38:30'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
 freqStopTXT = 33.0
 
-save_to_txt_file = False         # Save short part of dynamic spectrum to txt file
+save_to_txt_file = True         # Save short part of dynamic spectrum to txt file
 
 # ###############################################################################
 # *******************************************************************************
@@ -59,6 +59,8 @@ import sys
 import numpy as np
 import time
 from datetime import datetime
+import matplotlib.pyplot as plt
+from matplotlib import pylab, rc
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
@@ -223,11 +225,12 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # Converting text to ".datetime" format
         dt_timeline = []
-        for i in range (len(timeline)):  # converting text to ".datetime" format
+        for i in range(len(timeline)):  # converting text to ".datetime" format
 
             # Check is the uS field is empty. If so it means it is equal to '000000'
             uSecond = timeline[i][20:26]
-            if len(uSecond) < 2: uSecond = '000000'
+            if len(uSecond) < 2:
+                uSecond = '000000'
 
             dt_timeline.append(datetime(int(timeline[i][0:4]), int(timeline[i][5:7]), int(timeline[i][8:10]),
                                         int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]),
@@ -256,7 +259,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         # Finding the closest spectra to the chosen time limits
         A = []
         B = []
-        for i in range (len(timeline)):
+        for i in range(len(timeline)):
             dt_diff_start = dt_timeline[i] - dt_dateTimeStart
             dt_diff_stop  = dt_timeline[i] - dt_dateTimeStop
             A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0]*60 + divmod(dt_diff_start.total_seconds(), 60)[1]))
@@ -281,7 +284,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
     print(' ')
     print(' Number of frequency channels:     ', nx, '\n')
     print(' Number of spectra:                ', ny, '\n')
-    print(' Recomended spectra number for averaging is:  ', int(ny/1024))
+    print(' Recommended spectra number for averaging is: ', int(ny/1024))
     # averageConst = raw_input('\n Enter number of spectra to be averaged:       ')
 
     # if (len(averageConst) < 1 or int(averageConst) < 1):
@@ -327,7 +330,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         dataApp = np.empty((nx, 1), float)
 
         if data_types[j] == 'chA' or data_types[j] == 'chB'  or data_types[j] == 'A+B':
-        # If analyzing intensity - average and log data
+            # If analyzing intensity - average and log data
             if averOrMin == 0:
                 with np.errstate(invalid='ignore'):
                     dataApp[:, 0] = 10 * np.log10(data.mean(axis=1)[:])
@@ -396,10 +399,10 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
              sumDifMode + 'Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
              str(round(averageConst * time_res, 3)) + ' sec.)')
 
-    TwoOrOneValuePlot(1, frequency, array[:, [1]], [], 'Spectrum', ' ', frequency[0], frequency[freq_points_num-1],
-                Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz', YaxName, ' ', Suptitle, Title,
-                'DAT_Results/' + fileNameAddSpectr + df_filename[0:14] + '_' + data_types[j] +
-                ' Immediate Spectrum.png', current_date, current_time, Software_version)
+    TwoOrOneValuePlot(1, frequency, array[:, [1]], [], 'Spectrum', ' ', frequency[0], frequency[-1],
+                      Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz', YaxName, ' ', Suptitle, Title,
+                      'DAT_Results/' + fileNameAddSpectr + df_filename[0:14] + '_' + data_types[j] +
+                      ' Immediate Spectrum.png', current_date, current_time, Software_version)
 
     # *** Decide to use only list of frequencies or all frequencies in range
     if ListOrAllFreq == 0:
@@ -420,26 +423,25 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                     Vmin = 0 - AmplitudeReIm
                     Vmax = 0 + AmplitudeReIm
 
-
                 # *** Plotting intensity changes at particular frequency ***
                 timeline = []
                 for i in range(len(dateTimeNew)):
                     timeline.append(str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23]))
 
-                Suptitle = 'Intensity variation '+str(df_filename[0:18])+' '+nameAdd
+                Suptitle = 'Intensity variation ' + str(df_filename[0:18]) + ' ' + nameAdd
                 Title = ('Initial parameters: dt = ' + str(round(time_res, 3)) + ' Sec, df = ' +
                          str(round(df/1000, 3)) + ' kHz, Frequency = ' + str(round(frequency[index], 3)) +
                          ' MHz ' + sumDifMode+' Processing: ' + reducing_type + str(averageConst) +
                          ' spectra (' + str(round(averageConst * time_res, 3)) + ' sec.)')
 
-                FileName = ('DAT_Results/'+df_filename[0:14]+'_'+data_types[j]+
-                            ' Intensity variation at '+str(round(frequency[index],3))+'.png')
+                FileName = ('DAT_Results/' + df_filename[0:14] + '_' + data_types[j] +
+                            ' Intensity variation at ' + str(round(frequency[index], 3)) + '.png')
 
-                OneValueWithTimePlot(timeline, array[[index],:].transpose(), Label,
-                                        0, len(dateTimeNew), Vmin, Vmax, 0, 0,
-                                        'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
-                                        Suptitle, Title, FileName,
-                                        current_date, current_time, Software_version)
+                OneValueWithTimePlot(timeline, array[[index], :].transpose(), Label,
+                                     0, len(dateTimeNew), Vmin, Vmax, 0, 0,
+                                     'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
+                                     Suptitle, Title, FileName,
+                                     current_date, current_time, Software_version)
 
             # *** Saving value changes at particular frequency to TXT file ***
             if ChannelSaveTXT == 1:
@@ -457,13 +459,13 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         print('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
         A = []
         B = []
-        for i in range (len(frequency)):
+        for i in range(len(frequency)):
             A.append(abs(frequency[i] - freqStart))
             B.append(abs(frequency[i] - freqStop))
         ifmin = A.index(min(A))
         ifmax = B.index(min(B))
         array = array[ifmin:ifmax, :]
-        print ('\n New data array shape is: ', array.shape)
+        print('\n New data array shape is: ', array.shape)
         freqLine = frequency[ifmin:ifmax]
     else:
         freqLine = frequency
@@ -504,7 +506,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                     str(round(averageConst * time_res, 3)) + ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
                     ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
         fig_file_name = ('DAT_Results/' + fileNameAddNorm + df_filename[0:14] + '_' + data_types[j] +
-                        ' Dynamic spectrum cleaned and normalized' + '.png')
+                         ' Dynamic spectrum cleaned and normalized' + '.png')
 
         OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, 
                           freqLine, len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', 
@@ -524,8 +526,8 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
             # Saving time axis
             timeline_txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
-                            dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + \
-                            '_timeline.txt'
+                                     dateTimeStart[11:].replace(':', '-') + ' - ' + \
+                                     dateTimeStop[11:].replace(':', '-') + '_timeline.txt'
             txt_file = open(timeline_txt_file_name, "w")
             for i in range(len(dateTimeNew)):
                 txt_file.write(dateTimeNew[i])
@@ -533,18 +535,21 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # Figure in PhD thesis format
         '''
-        fig_file_name = ('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+data_types[j]+
-                        ' Dynamic spectrum cleanned and normalized_PhD'+'.png')
-        OneDynSpectraPlotPhD(array, 0, 4, Suptitle,
-                        'Інтенсивність, дБ', len(dateTimeNew),
-                        TimeScaleFig, freqLine,
-                        len(freqLine), 'Greys', 'Дата та час UTC', fig_file_name,
-                        current_date, current_time, Software_version, customDPI)
-        '''
+        TimeScaleFigNew = []
+        for i in range(len(TimeScaleFig)):
+            TimeScaleFigNew.append(TimeScaleFig[i][12:20])
+        fig_file_name = ('DAT_Results/' + fileNameAddNorm + df_filename[0:14] + '_'+data_types[j] +
+                         ' Dynamic spectrum cleaned and normalized_PhD'+'.png')
+        OneDynSpectraPlotPhD(array, 0, 20, Suptitle, 'Інтенсивність, дБ', len(dateTimeNew), TimeScaleFigNew, freqLine,
+                             len(freqLine), 'jet', 'Час UTC', fig_file_name, current_date, current_time,
+                             Software_version, customDPI)
         '''
         # *** TEMPLATE FOR JOURNALS Dynamic spectra of cleaned and normalized signal ***
+        '''
         plt.figure(2, figsize=(16.0, 7.0))
-        ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freqLine[0],freqLine[len(freqLine)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
+        ImA = plt.imshow(np.flipud(array), aspect='auto', 
+                         extent=[0, len(dateTimeNew), freqLine[0], freqLine[-1]], 
+                         vmin=VminNorm, vmax=VmaxNorm, cmap=colormap)
         plt.ylabel('Frequency, MHz', fontsize=12, fontweight='bold')
         #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+nameAdd+
         #            '\n Initial parameters: dt = '+str(round(time_res,3))+
@@ -569,14 +574,16 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         plt.xticks(fontsize=12, fontweight='bold')
         plt.xlabel('UTC time, HH:MM:SS', fontsize=12, fontweight='bold')
         #plt.text(0.72, 0.04,'Processed '+current_date+ ' at '+current_time, fontsize=6, transform=plt.gcf().transFigure)
-        pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+data_types[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = customDPI)
-        #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+data_types[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
+        pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14] + '_'+data_types[j] +
+                      ' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi=customDPI)
+        #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+data_types[j]+
+        # ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
                                                                              #filename[-7:-4:]
         plt.close('all')
         '''
 
 
 endTime = time.time()
-print('\n\n\n  The program execution lasted for ', round((endTime - start_time), 2), 'seconds (',
-                                                round((endTime - start_time)/60, 2), 'min. ) \n')
+print('\n\n\n  The program execution lasted for ',
+      round((endTime - start_time), 2), 'seconds (', round((endTime - start_time)/60, 2), 'min. ) \n')
 print('\n           *** Program DAT_reader has finished! *** \n\n\n')
