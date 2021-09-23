@@ -11,7 +11,7 @@ time_file_name = 'DATA/C050620_084900.jds_chA_09-35-30 - 09-38-30_timeline.txt'
 v_min = 0
 v_max = 20
 
-colormap = 'Greys'                                          # Possible: 'jet', 'Blues', 'Purples', 'Greys'
+colormap = 'jet'                                          # Possible: 'jet', 'Blues', 'Purples', 'Greys'
 customDPI = 200
 
 median_filter_window = 80  # Window of median filter to smooth the average profile
@@ -99,7 +99,7 @@ fig_file_name = 'DATA/Dynamic spectrum cleanned and normalized (joint).png'
 OneDynSpectraPlotPhD(array, v_min, v_max, '',
                      'Інтенсивність, дБ', len(time_scale_fig),
                      time_scale_fig, freq_line,
-                     len(freq_line), 'Greys', 'Час UTC', fig_file_name,
+                     len(freq_line), colormap, 'Час UTC', fig_file_name,
                      current_date, current_time, '', customDPI)
 
 
