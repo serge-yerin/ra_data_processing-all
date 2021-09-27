@@ -5,8 +5,8 @@ Software_name = 'RT-32 Zolochiv waveform reader'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-directory = 'DATA/'
-filename = 'A210612_075610.adr'
+directory = '../RA_DATA_ARCHIVE/'
+filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 filepath = directory + filename
 result_path = ''
 
@@ -224,7 +224,7 @@ def rpr_wf_data_reader(filepath):
     # print('Calculated nGates = ', nGates)
 
     with open(filepath) as f:  # Open data file
-        f.seek(5120)  # Jump to 5120 byte in the file
+        f.seek(1024)  # Jump to 1024 byte in the file to skip the header
         # Read raw data from file in int8 format
         rdd = np.fromfile(f, dtype=np.int8, count=nFFT * nGates * 2 * 2)  # need numpy v1.17 for "offset=5120" ...
         print('Shape of data read from file:', rdd.shape)
@@ -295,25 +295,6 @@ def rpr_wf_data_reader(filepath):
 
 
 if __name__ == '__main__':
-    # rpr_wf_data_reader(filepath)
-    rpr_wf_header_reader(filepath)
+    rpr_wf_data_reader(filepath)
+    # rpr_wf_header_reader(filepath)
 
-
-################################################################################
-
-# if __name__ == '__main__':
-#
-#     print('\n\n\n\n\n\n\n\n   **************************************************************************')
-#     print('   *               ', Software_name, ' v.', Software_version, '              *      (c) YeS 2018')
-#     print('   ************************************************************************** \n')
-#
-#     startTime = time.time()
-#     currentTime = time.strftime("%H:%M:%S")
-#     currentDate = time.strftime("%d.%m.%Y")
-#     print('   Today is ', currentDate, ' time is ', currentTime, '\n')
-#
-#     # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-#     result_path = 'RESULTS_MARK5_Reader'
-#     if not os.path.exists(result_path):
-#         os.makedirs(result_path)
-#

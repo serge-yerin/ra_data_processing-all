@@ -33,7 +33,7 @@ if __package__ is None:
 from package_rt32_data.rt32_zolochiv_waveform_reader import rpr_wf_header_reader_dict
 
 
-def rt32wf_to_vdf_file_converter(filepath):
+def rt32wf_to_vdf_file_header(filepath):
     """
 
     """
@@ -71,7 +71,7 @@ def rt32wf_to_vdf_file_converter(filepath):
 
     seconds_from_epoch = int((dt_data_time - dt_reference_epoch).total_seconds())
 
-    print(' Current time:                           ', dt_data_time)
+    print(' Data time:                              ', dt_data_time)
     print(' Reference epoch:                        ', dt_reference_epoch)
     print(' Number of seconds from reference epoch: ', seconds_from_epoch)
 
@@ -102,23 +102,23 @@ def rt32wf_to_vdf_file_converter(filepath):
     vdif_version = 0  # Temporary value!!!
 
     # Word 2 Bits 28-24: log2(#channels in Data Array); #chans must be power of 2; see Note 4
-    channel_no = 2  # Temporary value!!!
+    channel_no = 1  # We have 2 channels so the log2(2) = 1
 
     # Word 2 Bits 23-0: Data Frame length (including header) in units of 8 bytes with a maximum length of 2^27 bytes
     data_frame_length = 16384  # Temporary value!!!
 
     # Word 3 Bit 31 - Data type
-    data_type_bit = 1  # Complex, if Real, data_type_bit = 0
+    data_type_bit = 1  # We have complex, if real, data_type_bit = 0
     # Each complex sample consists of two sample components, designated ‘I’ (In-phase) and ‘Q’ (Quadrature),
     # each containing the same number of bits
 
     # Word 3 Bits 30-26:  # bits/sample-1 (32 bits/sample max); see Note 7
     # If the data type is ‘complex’, this parameter is set according to the #bits in each complex-sample component
     # (i.e. half the total #bits per complex sample).
-    bits_per_sample = 2  # Temporary value!!!
+    bits_per_sample = 7  # 8 bits actually
 
     # Word 3 Bits 25-16: Thread ID (0 to 1023)
-    thread_id = 0  # Temporary value!!!
+    thread_id = 0  # Seems to be the only thread, so 0.
 
     # Word 3 Bits 15-0: Station ID; see Note 8 (standard globally assigned 2-character ASCII ID)
 
@@ -126,28 +126,69 @@ def rt32wf_to_vdf_file_converter(filepath):
     # Extended User Data: Format and interpretation of extended user data is indicated by the value of
     # Extended Data Version (EDV) in Word 4 Bits 31-24; see Note 9
 
+    vdif_header = bytearray(8 * 4)
+
+    return vdif_header, file_header_param_dict
+
+
+def rt32wf_to_vdf_data_converter(filepath):
+    """
+    Function takes the header and RPR (.adr) data and creates the VDIF file
+    """
+    vdif_header, adr_header_dict = rt32wf_to_vdf_file_header(filepath)
+    print('\n Header: ', vdif_header)
+
+    # Calculate the number of complex data point in the file
+    num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
+    print(' Number of complex points for both channels: ', num_of_complex_points)
+
+    nFFT = 16384
+    nGates = 8192
+
+    with open(filepath) as adr_file:  # Open data file
+        adr_file.seek(1024)  # Jump to 1024 byte in the file to skip header
+        # Read raw data from file in int8 format
+        raw_data = np.fromfile(adr_file, dtype=np.int8, count=nFFT * nGates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
+        print('Shape of data read from file:', raw_data.shape)
+
+        # Preparing empty matrix for complex data
+        # cmplx_data = np.empty(nFFT * nGates * 2, dtype=np.complex8)
+        # print('Shape of prepared complex data array:', cmplx_data.shape)
+
+        # Separating real and imaginary data from the raw data
+        real_data = raw_data[0: nFFT * nGates * 2 * 2: 2]
+        imag_data = raw_data[1: nFFT * nGates * 2 * 2: 2]
+        del raw_data
+        print('Shape of real data array                  :', real_data.shape)
+        print('Shape of imag data array                  :', imag_data.shape)
+
+        # Separate channels of data for real and imag parts:
+        real_2ch_data = np.reshape(real_data, (nGates * nFFT, 2))
+        imag_2ch_data = np.reshape(imag_data, (nGates * nFFT, 2))
+        del real_data, imag_data
+        print('Shape of real data array                  :', real_2ch_data.shape)
+        print('Shape of imag data array                  :', imag_2ch_data.shape)
+        print('Type of imag data array                   :', imag_2ch_data.dtype)
+
+
+        # rsh_crd = np.reshape(cmplx_data, (nGates, nFFT, 2))
+        # del cmplx_data
+        # print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
+        # rsh_crd = np.transpose(rsh_crd)
+        # print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
+        #
+        # # Separate data of channels
+        # tt0 = rsh_crd[0, :, :]
+        # tt1 = rsh_crd[1, :, :]
+        # print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
+
+
+
+
     return
 
 
 if __name__ == '__main__':
-    rt32wf_to_vdf_file_converter(filepath)
+    # rt32wf_to_vdf_file_header(filepath)
+    rt32wf_to_vdf_data_converter(filepath)
 
-
-################################################################################
-
-# if __name__ == '__main__':
-#
-#     print('\n\n\n\n\n\n\n\n   **************************************************************************')
-#     print('   *               ', Software_name, ' v.', Software_version, '              *      (c) YeS 2018')
-#     print('   ************************************************************************** \n')
-#
-#     startTime = time.time()
-#     currentTime = time.strftime("%H:%M:%S")
-#     currentDate = time.strftime("%d.%m.%Y")
-#     print('   Today is ', currentDate, ' time is ', currentTime, '\n')
-#
-#     # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
-#     result_path = 'RESULTS_MARK5_Reader'
-#     if not os.path.exists(result_path):
-#         os.makedirs(result_path)
-#
