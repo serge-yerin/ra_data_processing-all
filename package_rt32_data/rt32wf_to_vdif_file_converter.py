@@ -38,8 +38,10 @@ def rt32wf_to_vdf_file_header(filepath):
 
     """
     file_header_param_dict = rpr_wf_header_reader_dict(filepath)
+    ones_byte = int('11111111', 2)
 
     # Configure Words of VDIF header
+    # ------------------------------------------------------------------------------------------------------------------
     # Word 0 Bits 31-30
     b31 = 0  # Invalid data
     b30 = 0  # Standard 32-byte VDIF Data Frame header
@@ -75,6 +77,9 @@ def rt32wf_to_vdf_file_header(filepath):
     print(' Reference epoch:                        ', dt_reference_epoch)
     print(' Number of seconds from reference epoch: ', seconds_from_epoch)
 
+    header_bytearray = []
+
+    # ------------------------------------------------------------------------------------------------------------------
     # Word 1 Bits 31-30 Unassigned (should be 0)
     b31 = 0
     b30 = 0
@@ -97,6 +102,16 @@ def rt32wf_to_vdf_file_header(filepath):
 
     # Word 1 Bits 23-0 - Data Frame # within second, starting at zero; must be integral number of Data Frames per second
     frame_no = 0  # Temporary value!!!
+
+    word = epoch_no << 23
+    word = word | frame_no
+    byte_0 = ones_byte & word
+    byte_1 = ones_byte & word >> 8
+    byte_2 = ones_byte & word >> 16
+    byte_3 = ones_byte & word >> 24
+    word_bytearray = bytearray([byte_3, byte_2, byte_1, byte_0])
+    header_bytearray += word_bytearray
+    # ------------------------------------------------------------------------------------------------------------------
 
     # Word 2 Bits 31-29: VDIF version number; see Note 3
     vdif_version = 0  # Temporary value!!!
