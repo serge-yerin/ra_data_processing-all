@@ -46,6 +46,12 @@ AmplitudeReIm = 1 * 10**(-12) # Color range of Re and Im dynamic spectra
 import time
 import sys
 import numpy as np
+from os import path
+
+# To change system path to main source_directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
 from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
 from package_common_modules.find_unique_strings_in_list import find_unique_strings_in_list
 from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
