@@ -5,7 +5,7 @@ Software_name = 'RT-32 Zolochiv waveform reader'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-directory = '../RA_DATA_ARCHIVE/'
+directory = '../RA_DATA_ARCHIVE/RT-32_Zolochiv_waveform_first_sample/'
 filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 filepath = directory + filename
 result_path = ''
@@ -33,12 +33,26 @@ if __package__ is None:
 from package_rt32_data.rt32_zolochiv_waveform_reader import rpr_wf_header_reader_dict
 
 
-def rt32wf_to_vdf_file_header(filepath):
+def word_to_bytearray(word):
     """
+    The function converts formed 4 byte unsigned integers (words) to bytearray of 4 bytes
+    """
+    ones_byte = int('11111111', 2)
+    byte_0 = ones_byte & word
+    byte_1 = ones_byte & word >> 8
+    byte_2 = ones_byte & word >> 16
+    byte_3 = ones_byte & word >> 24
+    word_bytearray = bytearray([byte_3, byte_2, byte_1, byte_0])
+    return word_bytearray
 
+
+def rt32wf_to_vdf_frame_header(filepath):
+    """
+    The function forms a vdif data frame header
     """
     file_header_param_dict = rpr_wf_header_reader_dict(filepath)
-    ones_byte = int('11111111', 2)
+    A = np.uint32(int('00111111111111111111111111111111', 2))
+    header_bytearray = bytearray([])
 
     # Configure Words of VDIF header
     # ------------------------------------------------------------------------------------------------------------------
@@ -73,11 +87,18 @@ def rt32wf_to_vdf_file_header(filepath):
 
     seconds_from_epoch = int((dt_data_time - dt_reference_epoch).total_seconds())
 
-    print(' Data time:                              ', dt_data_time)
-    print(' Reference epoch:                        ', dt_reference_epoch)
-    print(' Number of seconds from reference epoch: ', seconds_from_epoch)
+    print(' Data time:                                  ', dt_data_time)
+    print(' Reference epoch:                            ', dt_reference_epoch)
+    print(' Number of seconds from the reference epoch: ', seconds_from_epoch)
 
-    header_bytearray = []
+    # Forming the word from values
+    if seconds_from_epoch > 1073741823:
+        raise ValueError('Seconds from Epoch got the wrong (too high) value! ')
+    b31 = b31 << 31
+    b30 = b30 << 30
+    word = b31 | b30 | seconds_from_epoch
+    word_bytearray = word_to_bytearray(word)
+    header_bytearray += word_bytearray
 
     # ------------------------------------------------------------------------------------------------------------------
     # Word 1 Bits 31-30 Unassigned (should be 0)
@@ -103,14 +124,18 @@ def rt32wf_to_vdf_file_header(filepath):
     # Word 1 Bits 23-0 - Data Frame # within second, starting at zero; must be integral number of Data Frames per second
     frame_no = 0  # Temporary value!!!
 
-    word = epoch_no << 23
-    word = word | frame_no
-    byte_0 = ones_byte & word
-    byte_1 = ones_byte & word >> 8
-    byte_2 = ones_byte & word >> 16
-    byte_3 = ones_byte & word >> 24
-    word_bytearray = bytearray([byte_3, byte_2, byte_1, byte_0])
+    # Forming the word from values
+    if epoch_no > 63:
+        raise ValueError('Epoch number got the wrong (too high) value! ')
+    if frame_no >= 8388607:
+        raise ValueError('Frame number got the wrong (too high) value! ')
+    b31 = b31 << 31
+    b30 = b30 << 30
+    epoch_no = epoch_no << 24
+    word = b31 | b30 | epoch_no | frame_no
+    word_bytearray = word_to_bytearray(word)
     header_bytearray += word_bytearray
+
     # ------------------------------------------------------------------------------------------------------------------
 
     # Word 2 Bits 31-29: VDIF version number; see Note 3
@@ -121,6 +146,21 @@ def rt32wf_to_vdf_file_header(filepath):
 
     # Word 2 Bits 23-0: Data Frame length (including header) in units of 8 bytes with a maximum length of 2^27 bytes
     data_frame_length = 16384  # Temporary value!!!
+
+    # Forming the word from values
+    if vdif_version > 7:
+        raise ValueError('VDIF version is wrong (too high)! ')
+    if channel_no > 31:
+        raise ValueError('Number of channels got the wrong (too high) value! ')
+    if data_frame_length > 8388607:
+        raise ValueError('Data frame length got the wrong (too high) value! ')
+    vdif_version = vdif_version << 29
+    channel_no = channel_no << 24
+    word = vdif_version | channel_no | data_frame_length
+    word_bytearray = word_to_bytearray(word)
+    header_bytearray += word_bytearray
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     # Word 3 Bit 31 - Data type
     data_type_bit = 1  # We have complex, if real, data_type_bit = 0
@@ -136,22 +176,45 @@ def rt32wf_to_vdf_file_header(filepath):
     thread_id = 0  # Seems to be the only thread, so 0.
 
     # Word 3 Bits 15-0: Station ID; see Note 8 (standard globally assigned 2-character ASCII ID)
+    station_id = 380  # Dummy number! Ask the right one!!!
+
+    # Forming the word from values
+    if data_type_bit > 1:
+        raise ValueError('Data type is wrong (too high)! ')
+    if bits_per_sample > 31:
+        raise ValueError('Bits per sample got the wrong (too high) value! ')
+    if thread_id > 1023:
+        raise ValueError('Thread ID got the wrong (too high) value! ')
+    if station_id > 32767:
+        raise ValueError('Station ID got the wrong (too high) value! ')
+    data_type_bit = data_type_bit << 31
+    bits_per_sample = bits_per_sample << 26
+    thread_id = thread_id << 16
+    word = data_type_bit | bits_per_sample | thread_id | station_id
+    word_bytearray = word_to_bytearray(word)
+    header_bytearray += word_bytearray
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     # Words 4-7
     # Extended User Data: Format and interpretation of extended user data is indicated by the value of
     # Extended Data Version (EDV) in Word 4 Bits 31-24; see Note 9
 
-    vdif_header = bytearray(8 * 4)
+    header_bytearray += bytearray([0] * 16)
 
-    return vdif_header, file_header_param_dict
+    return header_bytearray, file_header_param_dict
 
 
 def rt32wf_to_vdf_data_converter(filepath):
     """
     Function takes the header and RPR (.adr) data and creates the VDIF file
     """
-    vdif_header, adr_header_dict = rt32wf_to_vdf_file_header(filepath)
+    vdif_header, adr_header_dict = rt32wf_to_vdf_frame_header(filepath)
     print('\n Header: ', vdif_header)
+
+    vdif_file = open("DATA/test_file_header.vdif", "wb")
+    vdif_file.write(vdif_header)
+    vdif_file.close()
 
     # Calculate the number of complex data point in the file
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
@@ -204,6 +267,6 @@ def rt32wf_to_vdf_data_converter(filepath):
 
 
 if __name__ == '__main__':
-    # rt32wf_to_vdf_file_header(filepath)
+    # rt32wf_to_vdf_frame_header(filepath)
     rt32wf_to_vdf_data_converter(filepath)
 
