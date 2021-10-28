@@ -46,15 +46,27 @@ def word_to_bytearray(word):
     return word_bytearray
 
 
+def big_to_little_endian(data_bytearray):
+    """
+    The function takes input bytearray data type and returns little endian encoded bytearray
+    """
+    for offset in range(0, len(data_bytearray), 4):
+        chunk = data_bytearray[offset:offset + 4]
+        if len(chunk) != 4:
+            raise ValueError('alignment error')
+        data_bytearray[offset:offset + 4] = chunk[::-1]
+    return data_bytearray
+
+
 def rt32wf_to_vdf_frame_header(filepath):
     """
     The function forms a vdif data frame header
     """
+    # Reading the rpr header parameters
     file_header_param_dict = rpr_wf_header_reader_dict(filepath)
-    A = np.uint32(int('00111111111111111111111111111111', 2))
-    header_bytearray = bytearray([])
 
     # Configure Words of VDIF header
+    header_bytearray = bytearray([])
     # ------------------------------------------------------------------------------------------------------------------
     # Word 0 Bits 31-30
     b31 = 0  # Invalid data
@@ -201,6 +213,9 @@ def rt32wf_to_vdf_frame_header(filepath):
     # Extended Data Version (EDV) in Word 4 Bits 31-24; see Note 9
 
     header_bytearray += bytearray([0] * 16)
+
+    # Encoding the bytearray to little endian format
+    header_bytearray = big_to_little_endian(header_bytearray)
 
     return header_bytearray, file_header_param_dict
 
