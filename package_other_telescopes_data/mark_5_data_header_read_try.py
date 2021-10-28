@@ -6,8 +6,7 @@ Software_name = 'MARK5 reader'
 #                             P A R A M E T E R S                              *
 #*******************************************************************************
 directory = 'DATA/'
-# filename = 'pul_b0329+54_ir_no0004.m5a '
-filename = 'test_file_header.vdif'
+filename = 'pul_b0329+54_ir_no0004.m5a '
 no_of_samples_to_average = 512000  # 64000
 points_in_bunch = 1280
 y_min_sum = 6180000   #6170000
