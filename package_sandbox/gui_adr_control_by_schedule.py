@@ -310,6 +310,12 @@ def start_and_keep_adr_connection():
         lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
     get_adr_params_and_set_indication(socket_adr)
 
+    # # Parameters for disconnection check
+    # old_dsp_time = '00:00:00'
+    # info_update_counter = 0
+    connection_try_counter = 0
+    disconnected_message_sent = False
+
     while True:
         time.sleep(1)
         if pause_update_info_flag:
@@ -320,11 +326,33 @@ def start_and_keep_adr_connection():
 
             try:
                 data = f_read_adr_meassage(socket_adr, 0)
-            except TimeoutError:
-                print('\n\n Timeout Error while reading adr message!!! \n\n')
+            except:  # TimeoutError
+                # If the connection was lost
+                print('\n Connection lost... \n')
                 # Try to reconnect or indicate that ADR is not connected
+                if connection_try_counter < 3:
+                    connection_try_counter += 1
+                else:
+                    if not disconnected_message_sent:
+                        lbl_adr_status.config(text='Lost connect', bg='orange')
+                        message = '\nALARM! \n\nGURT Server lost connection with Receiver IP: ' + adr_ip + ' !!!\n\n'
+                        try:
+                            test = telegram_bot_sendtext(telegram_chat_id, message)
+                        except:
+                            pass
+                        disconnected_message_sent = True
             else:
-                pass
+                # If the connection was restored after some time return to initial state
+                if disconnected_message_sent:
+                    lbl_adr_status.config(text='Connected', bg='chartreuse2')
+                    disconnected_message_sent = False
+                    message = 'GURT Server restored connection with Receiver IP: ' + adr_ip + \
+                              ', but it is better to check it!'
+                    try:
+                        test = telegram_bot_sendtext(telegram_chat_id, message)
+                    except:
+                        pass
+
             finally:
                 pass
 
@@ -334,6 +362,7 @@ def start_and_keep_adr_connection():
             tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
             tmp = datetime.fromtimestamp(int(tmp)).strftime('%H:%M:%S')
             lbl_adr_dspt_val.config(text=tmp)
+            # new_dsp_time = tmp
 
             txt_val = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
             tmp = datetime.fromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
@@ -344,6 +373,21 @@ def start_and_keep_adr_connection():
             tmp = datetime.fromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
             tmp = tmp + '.' + txt_val.split(':', 1)[1]
             lbl_adr_pc2t_val.config(text=tmp)
+
+            # # Check if the DSP time runs (each 5 seconds)
+            # info_update_counter += 1
+            # if info_update_counter > 5:
+            #     info_update_counter = 0
+            #     if new_dsp_time == old_dsp_time and not disconnected_message_sent:
+            #         old_dsp_time = new_dsp_time
+            #         disconnected_message_sent = True
+            #         lbl_connect.config(text='Lost connect', font='none 12', width=12, bg='orange')
+            #         message = 'GURT Receiver: ' + parameters_dict["receiver_name"].replace('_', ' ') + \
+            #                   '\nReceiver IP: ' + adr_ip + ' lost connection with the server!!!'
+            #         try:
+            #             test = telegram_bot_sendtext(telegram_chat_id, message)
+            #         except:
+            #             pass
 
             tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
             tmp = '{:.1f} Mb'.format(tmp)
@@ -408,7 +452,7 @@ def read_schedule_txt_file(schedule_txt_file):
 
 def check_correctness_of_schedule(schedule):
     """
-    Check time correctness (later then now, start is before stop): storing them in datetime format in one list
+    Check time correctness (later than now, start is before stop): storing them in datetime format in one list
     """
     time_line = []
     schedule_comment_text = ''
