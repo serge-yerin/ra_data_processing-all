@@ -44,24 +44,25 @@ software_version = '2021.12.16'
 # *******************************************************************************
 #                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
-adr_ip = '192.168.1.172'
-adr_port = 38386                    # Port of the receiver to connect (always 38386)
-relay_host = '192.168.1.170'
-relay_port = 6722
-time_server_ip = '192.168.1.1'  # '192.168.1.150'
-default_parameters_file = 'Param_full_band_0.1s_16384_corr_ext-clc.txt'  # or int_clc.txt
+adr_ip = '192.168.1.171'            # Default ADR IP address
+adr_port = 38386                    # Port of the receiver to connect (always 38386, do not change)
+relay_host = '192.168.1.170'        # Default relay IP address
+relay_port = 6722                   # Port of the relay to connect (always 6722, do not change)
+time_server_ip = '192.168.1.1'      # Time server IP address, previously used 192.168.1.150, but now we use router
+default_parameters_file = 'Param_full_band_0.1s_16384_corr.txt'  # or int_clc.txt
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
-logo_path = 'media_data/gurt_logo.png'
-telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
-x_space = (5, 5)
-y_space = (5, 5)
+logo_path = 'media_data/gurt_logo.png'  # Pth to GURT logo
+telegram_chat_id = '927534685'      # Telegram chat ID to send messages  - '927534685' - YeS
+x_space = (5, 5)                    # Horizontal space between elements in GUI
+y_space = (5, 5)                    # Vertical space between elements in GUI
 y_space_adr = 1
-colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue', 'antique white']
 block_flag = True
 block_selecting_new_schedule_flag = False
 adr_connection_flag = False
 pause_update_info_flag = False
 schedule = []
+
+# colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue', 'antique white']
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -239,7 +240,7 @@ def get_adr_params_and_set_indication(socket_adr):
     elif parameters_dict["operation_mode_num"] == 3: lbl_adr_mode_val.config(text='Spectra A')
     elif parameters_dict["operation_mode_num"] == 4: lbl_adr_mode_val.config(text='Spectra B')
     elif parameters_dict["operation_mode_num"] == 5: lbl_adr_mode_val.config(text='Spectra A & B')
-    elif parameters_dict["operation_mode_num"] == 6: lbl_adr_mode_val.config(text='Correlation')
+    elif parameters_dict["operation_mode_num"] == 6: lbl_adr_mode_val.config(text='Cross spectra A&B')
     else: parameters_dict["operation_mode_str"] = lbl_adr_mode_val.config(text='Unknown mode')
 
     tmp = format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ',') + '  Hz'
@@ -929,9 +930,10 @@ def stopnow_control_by_schedule_button():
     data = f_read_adr_meassage(socket_adr, 0)
     pause_update_info_flag = False
     if data.startswith('SUCCESS'):
-        lbl_recd_status.config(text='Waiting...', bg='light gray')
+        lbl_recd_status.config(text='Stopped observations!', bg='orange')
+        ent_adr_ip.config(state=NORMAL)
     else:
-        lbl_recd_status.config(text='Failed to stop record!', bg='orange')
+        lbl_recd_status.config(text='Failed to stop record!', bg='orange red')
 
 
 # *******************************************************************************
