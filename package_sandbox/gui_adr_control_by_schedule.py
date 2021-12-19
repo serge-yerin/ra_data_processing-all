@@ -49,7 +49,6 @@ adr_port = 38386                    # Port of the receiver to connect (always 38
 relay_host = '192.168.1.170'        # Default relay IP address
 relay_port = 6722                   # Port of the relay to connect (always 6722, do not change)
 time_server_ip = '192.168.1.1'      # Time server IP address, previously used 192.168.1.150, but now we use router
-default_parameters_file = 'Param_full_band_0.1s_16384_corr.txt'  # or int_clc.txt
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
 logo_path = 'media_data/gurt_logo.png'  # Pth to GURT logo
 telegram_chat_id = '927534685'      # Telegram chat ID to send messages  - '927534685' - YeS
@@ -247,9 +246,9 @@ def get_adr_params_and_set_indication(socket_adr):
     lbl_adr_fadc_val.config(text=tmp)
 
     if parameters_dict["external_clock"] == 'OFF':
-        lbl_adr_sadc_val.config(text="External", bg='yellow')
+        lbl_adr_sadc_val.config(text="Internal", bg='yellow')
     elif parameters_dict["external_clock"] == 'ON':
-        lbl_adr_sadc_val.config(text="Internal", bg='chartreuse2')
+        lbl_adr_sadc_val.config(text="External", bg='chartreuse2')
 
     tmp = format(parameters_dict["number_of_channels"], ',').replace(',', ' ').replace('.', ',')
     lbl_adr_chnl_val.config(text=tmp)
@@ -281,8 +280,12 @@ def get_adr_params_and_set_indication(socket_adr):
 def start_and_keep_adr_connection():
     global socket_adr, adr_ip, pause_update_info_flag
     adr_ip = ent_adr_ip.get()
-    socket_adr, input_parameters_str = f_connect_to_adr_receiver(adr_ip, adr_port)
     ent_adr_ip.config(state=DISABLED)
+    if adr_ip[-3:] == '171':
+        default_parameters_file = 'Param_full_band_0.1s_16384_corr.txt'
+    else:
+        default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
+    socket_adr, input_parameters_str = f_connect_to_adr_receiver(adr_ip, adr_port)
     time.sleep(0.2)
     # Check if the receiver is initialized, if it is not - initialize it
     socket_adr.send(b"set prc/srv/ctl/adr 3 1\0")
@@ -902,6 +905,10 @@ def control_by_schedule():
         # If it was the last observation, set the default parameters of the receiver
         if obs_no+1 == len(schedule):
             # Apply default receiver parameters set in schedule (parameters file)
+            if adr_ip[-3:] == '171':
+                default_parameters_file = 'Param_full_band_0.1s_16384_corr.txt'
+            else:
+                default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
             parameters_file = 'service_data/' + default_parameters_file
             parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
             parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
