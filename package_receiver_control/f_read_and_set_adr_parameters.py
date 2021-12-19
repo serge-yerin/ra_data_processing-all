@@ -14,13 +14,13 @@ import sys
 
 
 def f_read_adr_parameters_from_csv_file(parameters_file):
-    '''
+    """
     Function reads ADR receiver parameters from csv (txt) file and returns a dictionary with parameters
     Input parameters:
         parameters_file         - path to parameters file (txt or csv)
     Output parameters:
         parameters_dict         - dictionary with ADR receiver parameters
-    '''
+    """
     parameters_dict = {}
     file = open(parameters_file, "r")
     for line in file:
@@ -42,13 +42,13 @@ def f_read_adr_parameters_from_csv_file(parameters_file):
 
 
 def f_read_adr_parameters_from_txt_file(parameters_file):
-    '''
+    """
     Function reads ADR receiver parameters from csv (txt) file and return a dictionary with parameters
     Input parameters:
         parameters_file         - path to parameters file (txt or csv)
     Output parameters:
         parameters_dict         - dictionary with ADR receiver parameters
-    '''
+    """
     dict = {}
     file = open(parameters_file, "r")
     for line in file:
@@ -70,9 +70,9 @@ def f_read_adr_parameters_from_txt_file(parameters_file):
 
 
 def f_check_adr_parameters_correctness(dict):
-    '''
+    """
     Checks dictionary with ADR parameters to set for correct values
-    '''
+    """
 
     if int(dict["operation_mode_num"]) not in (0, 1, 2, 3, 4, 5, 6):
         print('\n  Error!!! Operation mode is wrong!\n')
@@ -122,13 +122,13 @@ def f_check_adr_parameters_correctness(dict):
 
 
 def f_set_adr_parameters(serversocket, parameters_dict, print_or_not, pause=0.5):
-    '''
+    """
     Function sets ADR receiver parameters
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         print_or_not        - to print the parameters to console (1) or not (0)
     Output parameters:
-    '''
+    """
 
     # MDO parameters
     serversocket.send(('set prc/dsp/ctl/mdo 0 ' + str(parameters_dict["operation_mode_num"]) + '\0').encode())  # Set operation mode 0-6 (6 - correlation)
