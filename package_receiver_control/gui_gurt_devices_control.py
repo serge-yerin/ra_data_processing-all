@@ -42,8 +42,8 @@ devices = {0: {'Name': 'Internet',        'IP': '8.8.8.8',       'MAC': ''},
            1: {'Name': 'GURT server',     'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
            2: {'Name': 'ADR 01',          'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
            3: {'Name': 'ADR 02',          'IP': '192.168.1.172', 'MAC': '74:d0:2b:c7:87:20'},
-           4: {'Name': 'Beam control 01', 'IP': '192.168.1.11',  'MAC': ''},
-           5: {'Name': 'Beam control 02', 'IP': '192.168.1.12',  'MAC': ''},
+           4: {'Name': 'Beam block 01',   'IP': '192.168.1.11',  'MAC': ''},
+           5: {'Name': 'Beam block 02',   'IP': '192.168.1.12',  'MAC': ''},
            6: {'Name': 'Relay block 01',  'IP': '192.168.1.170', 'MAC': ''},
            7: {'Name': 'Relay block 02',  'IP': '192.168.1.161', 'MAC': ''},
            8: {'Name': 'IP camera 01',    'IP': '192.168.1.64',  'MAC': ''}}
@@ -180,37 +180,44 @@ def start_check_thread():
     check_thread.start()
 
 
-def server_on_block_control():
-    if server_on_block_flag:
-        server_on_unblock()
+def wake_on_lan_block_control():
+    if wake_on_lan_block_flag:
+        wake_on_lan_unblock()
     else:
-        server_on_block()
+        wake_on_lan_block()
 
 
-def server_on_unblock():
-    global server_on_block_flag
-    server_on_block_flag = False
+def wake_on_lan_unblock():
+    global wake_on_lan_block_flag
+    wake_on_lan_block_flag = False
     btn_unblock_server_on.config(text='BLOCK')
     btn_server_on.config(fg='black')
+    btn_adr_02_on.config(fg='black')
 
 
-def server_on_block():
-    global server_on_block_flag
-    server_on_block_flag = True
+def wake_on_lan_block():
+    global wake_on_lan_block_flag
+    wake_on_lan_block_flag = True
     btn_unblock_server_on.config(text='UNBLOCK')
     btn_server_on.config(fg='gray')
+    btn_adr_02_on.config(fg='gray')
 
 
 def turn_on_server():
-    if server_on_block_flag:
+    if wake_on_lan_block_flag:
         pass
     else:
-        # send_magic_packet('74.d0.2b.28.5f.c8')
-        send_magic_packet(devices[1]['MAC'])
+        send_magic_packet(devices[1]['MAC'])  # send_magic_packet('74.d0.2b.28.5f.c8')
+
+
+def turn_on_adr_02():
+    if wake_on_lan_block_flag:
+        pass
+    else:
+        send_magic_packet(devices[3]['MAC'])
 
 
 # ################# RELAY #####################
-
 
 def read_relay_output():
     message = bytearray([])
@@ -419,8 +426,8 @@ bot_token = token_file.readline()[:-1]
 token_file.close()
 
 # Define a global variable to store relay control block flag
-global server_on_block_flag
-server_on_block_flag = True
+global wake_on_lan_block_flag
+wake_on_lan_block_flag = True
 
 t = strftime(" %Y-%m-%d %H:%M Loc")
 message = t + ': GURT online status board software started.'
@@ -494,13 +501,15 @@ btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=sen
                                    selectcolor="white")
 lbl_send_tg_messages = Label(frame_tg_notifications, text='Send\nTelegram\nnotifications', font='none 12', width=12)
 
-frame_on_server = LabelFrame(tab_main, text="GURT server turning on by Wake on LAN")
+frame_on_server = LabelFrame(tab_main, text="GURT devices turning on by Wake on LAN")
 
 btn_unblock_server_on = Button(frame_on_server, text='UNBLOCK', font='none 9 bold',
-                               width=12, command=server_on_block_control)
+                               width=12, command=wake_on_lan_block_control)
 btn_unblock_server_on.focus_set()
 btn_server_on = Button(frame_on_server, text='Turn on GURT server', fg='gray', width=22, command=turn_on_server)
 lbl_server_on = Label(frame_on_server, text='Works only if server power supply is ON!', font='none 9', width=32)
+btn_adr_02_on = Button(frame_on_server, text='Turn on ADR 02', fg='gray', width=22, command=turn_on_adr_02)
+
 lbl_blank_server_txt = Label(frame_on_server, text=' ', font='none 12', width=3)
 
 
@@ -584,10 +593,12 @@ lbl_send_tg_messages.grid(row=5, column=4, rowspan=2, columnspan=2, stick='nswe'
 
 frame_on_server.grid(row=7, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
 
-btn_unblock_server_on.grid(row=7, column=0, stick='w', padx=x_space, pady=y_space)
-btn_server_on.grid(row=7, column=1, columnspan=2, stick='w', padx=x_space, pady=y_space)
-lbl_server_on.grid(row=7, column=3, columnspan=3, stick='w', padx=x_space, pady=y_space)
-lbl_blank_server_txt.grid(row=7, column=6, stick='w', padx=6, pady=y_space)
+btn_unblock_server_on.grid(row=0, column=0, stick='w', padx=x_space, pady=y_space)  # row=7
+btn_server_on.grid(row=0, column=1, columnspan=2, stick='w', padx=x_space, pady=y_space)  # row=7
+lbl_server_on.grid(row=0, column=3, columnspan=3, stick='w', padx=x_space, pady=y_space)  # row=7
+lbl_blank_server_txt.grid(row=0, column=6, stick='w', padx=6, pady=y_space)  # row=7
+
+btn_adr_02_on.grid(row=1, column=1, columnspan=2, stick='w', padx=x_space, pady=y_space)  # row=7
 
 frame_relay_control_01.grid(row=8, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
 
