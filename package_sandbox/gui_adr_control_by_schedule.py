@@ -310,14 +310,27 @@ def start_and_keep_adr_connection():
     if error_msg == '':
         lbl_recd_status.config(text='Setting ADR parameters...', bg='yellow')
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
-        lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
+        # lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
     get_adr_params_and_set_indication(socket_adr)
 
-    # # Parameters for disconnection check
+    # We read the clock frequency and apply it:
+    lbl_recd_status.config(text='Applying clock frequency...', bg='yellow')
+    time.sleep(10)
+    parameters_dict = f_get_adr_parameters(socket_adr, 0)
+    print(str(parameters_dict["clock_frequency"]))
+    # 'set prc/dsp/ctl/mdo 5 160002070'
+    socket_adr.send(("set prc/dsp/ctl/mdo 5 " + str(parameters_dict["clock_frequency"]) + "\0").encode())
+    data = f_read_adr_meassage(socket_adr, 1)
+    time.sleep(0.5)
+    get_adr_params_and_set_indication(socket_adr)
+    lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
+
+    # Parameters for loose connection check
     old_dsp_time = '00:00:00'
     info_update_counter = 0
     connection_try_counter = 0
     disconnected_message_sent = False
+    time_stopped_message_sent = False
 
     while True:
         time.sleep(1)  # Repeat each 1 second
@@ -378,17 +391,20 @@ def start_and_keep_adr_connection():
             # Check if the DSP time runs (each 5 seconds)
             info_update_counter += 1
             if info_update_counter > 5:
-                info_update_counter = 0
-                if new_dsp_time == old_dsp_time and not disconnected_message_sent:
-                    old_dsp_time = new_dsp_time
-                    disconnected_message_sent = True
-                    lbl_connect.config(text='Lost connect', bg='orange red')
-                    message = '\n\nALARM! \n\nReceiver IP: ' + adr_ip + ' time stopped!!!\n' + \
-                              'The receiver need reboot\n'
+                if new_dsp_time == old_dsp_time and not time_stopped_message_sent:
+
+                    print('Here!', new_dsp_time, old_dsp_time)
+
+                    lbl_adr_status.config(text='Time stopped!', bg='orange red')
+                    message = '!!!\n\nALARM! \n\nGURT receiver IP: ' + adr_ip + ' time stopped!!!\n' + \
+                              'The receiver needs reboot!\n\n!!!'
                     try:
                         test = telegram_bot_sendtext(telegram_chat_id, message)
                     except:
                         pass
+                    time_stopped_message_sent = True
+                info_update_counter = 0
+                old_dsp_time = new_dsp_time
 
             # NEW Test code ends here **********************************************************************************
 
