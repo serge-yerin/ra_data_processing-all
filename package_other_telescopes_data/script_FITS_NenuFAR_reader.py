@@ -1,10 +1,10 @@
 # Python3
-Software_version = '2019.04.13'
+Software_version = '2021.12.25'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-foldpath = 'DATA/'
-filename = '20200520_111700_BST.fits'
+foldpath = '../RA_DATA_ARCHIVE/NenuFAR_beamstatistic_file_Jupiter/'
+filename = '20210724_015600_BST.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot
@@ -12,20 +12,20 @@ VmaxNorm = 10               # Max value on normalized spectra plot
 colormap = 'jet'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300             # Resolution of images of dynamic spectra
 
+single_plot_for_digital_beams = True
+
 # *******************************************************************************
 #                               L I B R A R I E S                               *
 # *******************************************************************************
 import os
 import numpy as np
 import time
-import pylab
 from astropy.io import fits
 from astropy.time import Time
-import matplotlib.pyplot as plt
 
 from package_ra_data_processing.spectra_normalization import Normalization_dB
-from package_plot_formats.plot_formats import plot2D, TwoDynSpectraPlot, TwoOrOneValuePlot #, OneImmedSpecterPlot
-from package_ra_data_files_formats.file_header_FITS import FileHeaderReaderFITS
+from package_plot_formats.plot_formats import TwoDynSpectraPlot, TwoOrOneValuePlot  # OneImmedSpecterPlot, plot2D
+from package_ra_data_files_formats.file_header_FITS import file_header_reader_fits
 
 
 # *******************************************************************************
@@ -45,7 +45,7 @@ newpath = "FITS_Results"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 
-FileHeaderReaderFITS(foldpath, filename)
+file_header_reader_fits(foldpath, filename)
 
 print('\n Reading data and plotting figures... \n')
 
@@ -74,9 +74,19 @@ for beam in range(0, no_digit_beams):
     beam_list[beam, :] = hdul[4].data.field('beamletlist')[beam]
     beam_freq[beam, :] = hdul[4].data.field('freqlist')[beam]
 
-frequency = np.zeros([no_digit_beams, num_beamlet[beam]])
-frequency[:, :] = beam_freq[beam, 0:num_beamlet[beam]]
-_, FreqPointsNum = frequency.shape
+# frequency = np.zeros([no_digit_beams, num_beamlet[beam]])
+# frequency[:, :] = beam_freq[beam, 0:num_beamlet[beam]]
+# _, freq_points_num = frequency.shape
+
+# If we want to built all beams in a single spectra as they are two subbands of single source observation
+if single_plot_for_digital_beams:
+
+    frequency = beam_freq[0, 0: num_beamlet[0]]
+    # If there are more than one digital beam - add frequencies from each one
+    for beam in range(1, no_digit_beams):
+        frequency = np.concatenate((frequency[:], beam_freq[beam, 0: num_beamlet[beam]]))
+
+    freq_points_num = frequency.shape[0]
 
 
 # Reading time line and convert from JD to UTC
@@ -88,7 +98,7 @@ time_line_str = time_line.iso
 
 # Reading dynamic spectra data
 dynamic_spectra = hdul[7].data.field('DATA')
-dynamic_spectra = dynamic_spectra[:, :, 0: FreqPointsNum]
+dynamic_spectra = dynamic_spectra[:, :, 0: freq_points_num]
 
 with np.errstate(divide='ignore'):                      # Conversion to dB
     dynamic_spectra = 10*np.log10(dynamic_spectra)
@@ -103,17 +113,17 @@ no_of_spectra, pol, freq_num = dynamic_spectra.shape
 # ******************************************************************************
 
 # Calculation of min and max values in both channels
-Vmin = np.min([np.min(dynamic_spectra1[0, 0:FreqPointsNum]), np.min(dynamic_spectra2[0, 0:FreqPointsNum])])
+Vmin = np.min([np.min(dynamic_spectra1[0, 0:freq_points_num]), np.min(dynamic_spectra2[0, 0:freq_points_num])])
 if Vmin == float('-inf') or Vmin == float('inf'):
     Vmin = -50
-Vmax = np.max([np.max(dynamic_spectra1[0, 0:FreqPointsNum]), np.max(dynamic_spectra2[0, 0:FreqPointsNum])])
+Vmax = np.max([np.max(dynamic_spectra1[0, 0:freq_points_num]), np.max(dynamic_spectra2[0, 0:freq_points_num])])
 if Vmax == float('-inf') or Vmax == float('inf'):
     Vmax = 250
 
 
 # *** FIGURE Immediate spectra of initial data ***
-TwoOrOneValuePlot(2, frequency[0, :],  dynamic_spectra1[0, 0:FreqPointsNum],  dynamic_spectra2[0, 0:FreqPointsNum],
-                  Label01, Label02, frequency[0, 0], frequency[0, FreqPointsNum-1],
+TwoOrOneValuePlot(2, frequency[:],  dynamic_spectra1[0, 0:freq_points_num],  dynamic_spectra2[0, 0:freq_points_num],
+                  Label01, Label02, frequency[0], frequency[-1],
                   Vmin-3, Vmax+3, Vmin-3, Vmax+3, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                   'Immediate spectrum', 'for file ' + filename + ', Description: ' + df_description,
                   'FITS_Results/' + filename[0:19] + ' ' + str(df_description).replace('"', '') +
@@ -140,14 +150,13 @@ for i in range(len(time_line_str)):
 # *** FIGURE Initial dynamic spectra channels A and B ***
 TwoDynSpectraPlot(dynamic_spectra1.transpose(), dynamic_spectra2.transpose(), np.min(dynamic_spectra1),
                   np.max(dynamic_spectra1), np.min(dynamic_spectra2), np.max(dynamic_spectra2), Suptitle,
-                  'Intensity, dB', 'Intensity, dB', no_of_spectra, TimeFigureScaleFig, TimeScaleFig, frequency[0, :],
-                  FreqPointsNum, colormap, 'Channel A - ' + Label01, 'Channel B - ' + Label02, fig_file_name,
+                  'Intensity, dB', 'Intensity, dB', no_of_spectra, TimeFigureScaleFig, TimeScaleFig, frequency[:],
+                  freq_points_num, colormap, 'Channel A - ' + Label01, 'Channel B - ' + Label02, fig_file_name,
                   currentDate, currentTime, Software_version, customDPI)
 
-
 # Normalization of data (extracting the frequency response of the signal path)
-Normalization_dB(dynamic_spectra1, FreqPointsNum, nt)
-Normalization_dB(dynamic_spectra2, FreqPointsNum, nt)
+Normalization_dB(dynamic_spectra1, freq_points_num, nt)
+Normalization_dB(dynamic_spectra2, freq_points_num, nt)
 
 
 # Preparing variables for figure
@@ -161,12 +170,12 @@ Suptitle = 'Dynamic spectrum (normalized) ' + str(filename) + ' - Fig. ' + str(f
 # *** FIGURE Dynamic spectra channels A and B normalized ***
 TwoDynSpectraPlot(dynamic_spectra1.transpose(), dynamic_spectra2.transpose(), VminNorm, VmaxNorm, VminNorm, VmaxNorm,
                   Suptitle, 'Intensity, dB', 'Intensity, dB', no_of_spectra, TimeFigureScaleFig, TimeScaleFig,
-                  frequency[0, :], FreqPointsNum, colormap, 'Channel A - ' + Label01, 'Channel B - ' + Label02,
+                  frequency[:], freq_points_num, colormap, 'Channel A - ' + Label01, 'Channel B - ' + Label02,
                   fig_file_name, currentDate, currentTime, Software_version, customDPI)
 
 hdul.close()
 
 endTime = time.time()    # Time of calculations
 
-print(' The program execution lasted for ', round((endTime - startTime),2), 'seconds')
+print(' The program execution lasted for ', round((endTime - startTime), 2), 'seconds')
 print('\n\n       * * *    Program NenuFAR FITS reader has finished!    * * *\n\n\n')

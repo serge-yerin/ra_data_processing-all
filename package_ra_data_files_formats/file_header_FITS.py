@@ -1,32 +1,32 @@
-'''
-'''
+
 import numpy as np
 from astropy.io import fits
 
+
 ################################################################################
 
-def FileHeaderReaderFITS(foldpath, filename):
-    '''
+def file_header_reader_fits(fold_path, file_name):
+    """
     Reads info from FITS (.fits) data file header, prints to terminal
     all names, dimensions and units of fields, returns nothing
     Input parameters:
-        foldpath - path to folder with file
-        filename - name of file
+        fold_path - path to folder with file
+        file_name - name of file
     Output parameters:
         no
-    '''
+    """
 
-    hdul = fits.open(foldpath + filename)
-    print ('\n  File: ', filename)
-    #hdul.info()
+    hdul = fits.open(fold_path + file_name)
+    print('\n  File: ', file_name)
+    # hdul.info()
 
     num_of_groups = len(hdul)
-    num_of_fields = np.zeros(num_of_groups, dtype = 'int')
-    num_of_column = np.zeros(num_of_groups, dtype = 'int')
-    for i in range (num_of_groups):
+    num_of_fields = np.zeros(num_of_groups, dtype='int')
+    num_of_column = np.zeros(num_of_groups, dtype='int')
+    for i in range(num_of_groups):
         num_of_fields[i] = int(hdul.info(0)[i][4])
 
-    for group in range (1, num_of_groups):
+    for group in range(1, num_of_groups):
         num_of_column[group] = int(len(hdul[group].columns))
 
     # ******************************************************
@@ -35,14 +35,14 @@ def FileHeaderReaderFITS(foldpath, filename):
 
     # Zero header have special format
     print('\n * Header # 0    PRIMARY \n')
-    for i in range (len(hdul[0].header)):
-        print (' %2i' % i, ' %50s: ' % hdul[0].header.comments[i], hdul[0].header[i])
+    for i in range(len(hdul[0].header)):
+        print(' %2i' % i, ' %50s: ' % hdul[0].header.comments[i], hdul[0].header[i])
 
     # Next headers
-    for group in range (1, num_of_groups):
-        print ('\n ********************************************************************************** \n')
-        print(' * Header # ', group,'   ', hdul.info(0)[group][1],'\n')
-        for i in range (num_of_column[group]):
+    for group in range(1, num_of_groups):
+        print('\n ********************************************************************************** \n')
+        print(' * Header # ', group, '   ', hdul.info(0)[group][1], '\n')
+        for i in range(num_of_column[group]):
             hdr = hdul[0].header
             cols = hdul[1].columns
             data = hdul[1].data
@@ -51,21 +51,23 @@ def FileHeaderReaderFITS(foldpath, filename):
                 temp_string = hdul[group].data.field(i)[0]
             else:
                 temp_string = 'Data dimensions = ' + str(hdul[group].data.field(i).shape)
-            print (' %2i' % i, ' %15s' % hdul[group].columns.names[i], ' %10s ' % hdul[group].columns.units[i], temp_string)
+            print(' %2i' % i, ' %15s' % hdul[group].columns.names[i],
+                  ' %10s ' % hdul[group].columns.units[i], temp_string)
 
-            #hdul[group].data.field(i)
-            #print (' * %2i' % i, ' %50s: ' % hdul[group].header.comments[i], hdul[group].header[i])
+            # hdul[group].data.field(i)
+            # print (' * %2i' % i, ' %50s: ' % hdul[group].header.comments[i], hdul[group].header[i])
             # print(repr(hdul[group].header)) - representation as it is in file
             # print(list(hdul[group].header.keys())) - prints all keywords in header
 
     hdul.close()
-    print ('\n ********************************************************************************** \n')
+    print('\n ********************************************************************************** \n')
 
 ################################################################################
 
+
 if __name__ == '__main__':
 
-    filename = '20190407_094300_BST.fits'
-    foldpath = 'DATA/'
+    filename = '20210724_015600_BST.fits'
+    foldpath = '../RA_DATA_ARCHIVE/NenuFAR_beamstatistic_file_Jupiter/'
 
-    FileHeaderReaderFITS(foldpath, filename)
+    file_header_reader_fits(foldpath, filename)
