@@ -259,7 +259,7 @@ for type_of_data in typesOfData:
                                       SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
                                       customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
                                       AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
-                                      freqStopTXT, freqList, 0)
+                                      freqStopTXT, freqList, 0)  # See script_DAT_multifile_reader.py for correction!
 
         # Saving TXT file with parameters from file header
         path = path_to_data + 'DAT_Results_' + data_files_name_list[file_no]+'_'+source+'/'
