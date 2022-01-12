@@ -61,7 +61,6 @@ from datetime import timedelta
 
 # My libs
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_files_formats.f_time_convertions import str_date_and_time_to_datetime
 
@@ -78,10 +77,6 @@ start_time = time.time()
 current_time = time.strftime("%H:%M:%S")
 current_date = time.strftime("%d.%m.%Y")
 print('   Today is ', current_date, ' time is ', current_time, '\n')
-
-
-# Search needed files in the directory and subdirectories
-file_name_list = find_files_only_in_current_folder(path_to_data, '.txt', 0)
 
 
 # Find timeline files from TXT files
