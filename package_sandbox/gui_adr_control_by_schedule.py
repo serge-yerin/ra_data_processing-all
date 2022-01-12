@@ -833,7 +833,21 @@ def control_by_schedule():
         # Start record
         pause_update_info_flag = True
         socket_adr.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
-        data = f_read_adr_meassage(socket_adr, 0)
+
+        # data = f_read_adr_meassage(socket_adr, 0)
+        #####################################################################################
+        try:
+            data = f_read_adr_meassage(socket_adr, 0)
+        except:  # Used TimeoutError, but the error was other than that
+            # If the connection was lost
+            print('\n Connection lost... \n')
+            lbl_adr_status.config(text='Lost connect', bg='orange red')
+            message = '\n\nALARM! \n\nGURT Server lost connection with Receiver IP: ' + adr_ip + ' !!!\n\n'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+        #####################################################################################
         pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Recording!',  bg='Deep sky blue')
@@ -865,7 +879,23 @@ def control_by_schedule():
         # Stop record
         pause_update_info_flag = True
         socket_adr.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
-        data = f_read_adr_meassage(socket_adr, 0)
+
+        # data = f_read_adr_meassage(socket_adr, 0)
+
+        #####################################################################################
+        try:
+            data = f_read_adr_meassage(socket_adr, 0)
+        except:  # Used TimeoutError, but the error was other than that
+            # If the connection was lost
+            print('\n Connection lost... \n')
+            lbl_adr_status.config(text='Lost connect', bg='orange red')
+            message = '\n\nALARM! \n\nGURT Server lost connection with Receiver IP: ' + adr_ip + ' !!!\n\n'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+        #####################################################################################
+
         pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Waiting...',  bg='light gray')
