@@ -1,4 +1,6 @@
 # Python3
+import sys
+
 software_version = '2022.01.11'  # ######## NOT FINISHED !!! ############
 software_name = 'DAT multicut data reader'
 # Program intended to read and show data from DAT files (needs Timeline.txt as well) with several cuts in time
@@ -43,9 +45,11 @@ amplitude_re_im = 200000 * 10**(-12)  # Color range of Re and Im dynamic spectra
 freq_start = 0.0
 freq_stop = 10.0
 
-# Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
+# Begin and end time of dynamic spectrum first cut ('yyyy-mm-dd hh:mm:ss')
 date_time_start = '2019-07-19 00:00:00'
 date_time_stop =  '2019-07-23 04:00:00'
+time_step_secs = 60  # step of the cuts in seconds 60 = 1 min, 3600 = 1 h, 86400 = 24 h.
+cuts_number = 2      # number of cuts to make
 
 # Begin and end frequency of TXT files to save (MHz)
 freq_start_txt = 0.0
@@ -55,6 +59,7 @@ freq_stop_txt = 33.0
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 import time
+from datetime import datetime, timedelta
 
 # My functions
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
@@ -100,6 +105,43 @@ time_line, dt_time_line = time_line_file_reader(path_to_data + timeline_file_nam
 print('\n\n                               Start                           End \n')
 print('  File time limits:   ', dt_time_line[0], '   ', dt_time_line[-1], '\n')
 # print('  Chosen time limits: ', dt_dateTimeStart, '        ', dt_dateTimeStop, '\n')
+
+
+date_time_start = '2019-07-19 00:00:00'
+date_time_stop =  '2019-07-23 04:00:00'
+time_step_secs = 60  # step of the cuts in seconds 60 = 1 min, 3600 = 1 h, 86400 = 24 h.
+cuts_number = 2      # number of cuts to make
+
+
+def str_date_and_time_to_datetime(str_date_time):
+    """Converts string notation of date and time to datetime object"""
+    datetime_date_time = datetime(int(str_date_time[0:4]), int(str_date_time[5:7]), int(str_date_time[8:10]),
+                                  int(str_date_time[11:13]), int(str_date_time[14:16]), int(str_date_time[17:19]), 0)
+    return datetime_date_time
+
+
+# Convert strings dates and times to datetime library objects
+dt_start = str_date_and_time_to_datetime(date_time_start)
+dt_stop = str_date_and_time_to_datetime(date_time_stop)
+dt_time_step_secs = timedelta(0, time_step_secs)
+# file_begin_time = str_date_and_time_to_datetime(dt_time_line[0])
+# file_end_time = str_date_and_time_to_datetime(dt_time_line[-1])
+
+# Create lists of cuts begins and ends time
+dt_start_list, dt_stop_list = [], []
+for i in range(cuts_number):
+    dt_start_list.append(dt_start + i * dt_time_step_secs)
+    dt_stop_list.append(dt_stop + i * dt_time_step_secs)
+
+# Check if time of the first cut begin is after the file time begin
+if dt_start_list[0] < dt_time_line[0]:
+    sys.exit('\n  ERROR! First cut start time is before the file begin time! \n')
+# Check if time of the last cut end is before the file time end
+if dt_stop_list[-1] > dt_time_line[-1]:
+    sys.exit('\n  ERROR! First cut start time is before the file begin time! \n')
+
+# Check if the time of next cut begin is after previous cut end
+
 
 input()
 
