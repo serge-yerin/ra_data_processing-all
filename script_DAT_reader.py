@@ -21,8 +21,8 @@ freqList = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 2
 # freqList = [4.0, 5.0, 6.0, 7.0, 8.0, 8.05, 8.1, 8.15, 8.5, 9.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
-SpecFreqRange = 1                # Specify particular frequency range (1) or whole range (0)
+StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
+SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
@@ -37,8 +37,8 @@ AmplitudeReIm = 20 * 10**(-12)   # Colour range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 0.0
-freqStop = 49.0
+freqStart = 20.0
+freqStop = 30.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
 dateTimeStart = '2022-06-01 07:00:00'
@@ -496,7 +496,9 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # *** Normalization and cleaning of dynamic spectra ***
         array = Normalization_dB(array.transpose(), len(freqLine), time_points_num)  # len(dateTimeNew)
-        array = simple_channel_clean(array.transpose(), RFImeanConst)
+        # array = simple_channel_clean(array.transpose(), RFImeanConst)
+        array = simple_channel_clean(array, RFImeanConst)
+        array = array.transpose()
 
         # *** Dynamic spectra of cleaned and normalized signal ***
 
