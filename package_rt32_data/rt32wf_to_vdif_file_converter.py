@@ -227,7 +227,7 @@ def rt32wf_to_vdf_data_converter(filepath):
     vdif_header, adr_header_dict = rt32wf_to_vdf_frame_header(filepath)
     print('\n Header: ', vdif_header)
 
-    vdif_file = open("DATA/test_file_header.vdif", "wb")
+    vdif_file = open("DATA/test_file.vdif", "wb")
     vdif_file.write(vdif_header)
     vdif_file.close()
 
@@ -235,11 +235,15 @@ def rt32wf_to_vdf_data_converter(filepath):
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
     print(' Number of complex points for both channels: ', num_of_complex_points)
 
-    n_fft = 16384
+    # n_fft = 16384
+    n_fft = 32
     n_gates = 8192
 
     with open(filepath) as adr_file:  # Open data file
         adr_file.seek(1024)  # Jump to 1024 byte in the file to skip header
+
+        # The loop of data chunks to read and save to a frame starts here
+
         # Read raw data from file in int8 format
         raw_data = np.fromfile(adr_file, dtype=np.int8, count=n_fft * n_gates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
         print('Shape of data read from file:', raw_data.shape)
@@ -253,26 +257,55 @@ def rt32wf_to_vdf_data_converter(filepath):
         imag_data = raw_data[1: n_fft * n_gates * 2 * 2: 2]
         del raw_data
         print('Shape of real data array                  :', real_data.shape)
-        print('Shape of imag data array                  :', imag_data.shape)
+        print('Shape of imag data array                  :', imag_data.shape, '\n')
 
         # Separate channels of data for real and imag parts:
         real_2ch_data = np.reshape(real_data, (n_gates * n_fft, 2))
         imag_2ch_data = np.reshape(imag_data, (n_gates * n_fft, 2))
         del real_data, imag_data
         print('Shape of real data array                  :', real_2ch_data.shape)
-        print('Shape of imag data array                  :', imag_2ch_data.shape)
+        print('Shape of imag data array                  :', imag_2ch_data.shape, '\n')
         print('Type of imag data array                   :', imag_2ch_data.dtype)
 
-        # rsh_crd = np.reshape(cmplx_data, (n_gates, n_fft, 2))
-        # del cmplx_data
-        # print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
-        # rsh_crd = np.transpose(rsh_crd)
-        # print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
-        #
-        # # Separate data of channels
-        # tt0 = rsh_crd[0, :, :]
-        # tt1 = rsh_crd[1, :, :]
-        # print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
+        '''
+        So now we have an array of real data real_2ch_data of some length with 2 channels
+        and imaginary data in imag_2ch_data of same length with 2 channels
+        '''
+
+        # Forming the word from values
+        def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
+            if 0 > v_int_1 > 256 or 0 > v_int_2 > 256 or 0 > v_int_3 > 256 or 0 > v_int_4 > 256:
+                raise ValueError('\n\n      Error! Invalid value!  \n\n')
+            byte_4 = v_int_4 << 24
+            byte_3 = v_int_3 << 16
+            byte_2 = v_int_2 << 8
+            word = byte_4 | byte_3 | byte_2 | v_int_1
+            word_bytearray = word_to_bytearray(word)
+            return word_bytearray
+
+        # Make data bytearray of the extracted data
+        data_bytearray_thrd_1 = bytearray([])
+        data_bytearray_thrd_2 = bytearray([])
+
+        # The two identical loops should be separated into separate cpu threads
+        for i in range(real_2ch_data.shape[0] // 2):
+            word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
+                                                 real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
+            data_bytearray_thrd_1 += word_bytearray
+
+        for i in range(real_2ch_data.shape[0] // 2):
+            word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     1], imag_2ch_data[2 * i,     1],
+                                                 real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
+            data_bytearray_thrd_2 += word_bytearray
+
+        print('Length of data frame body is: ', len(data_bytearray_thrd_1), ' bytes')
+
+        '''
+        Change thread_id and number in current header bytearrays 
+        Pack data bytearrays with header bytearrays to obtain 2 frames
+        Save the bytearrays to file
+        end loop and repeat
+        '''
 
     return
 
