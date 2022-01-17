@@ -5,7 +5,7 @@ Software_name = 'RT-32 Zolochiv waveform reader'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-directory = '../RA_DATA_ARCHIVE/'
+directory = '../RA_DATA_ARCHIVE/RT-32_Zolochiv_waveform_first_sample/'
 filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 filepath = directory + filename
 result_path = ''
