@@ -9,20 +9,20 @@ Software_version = '2019.05.08'
 common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'C050620_084900.jds_Data_chA.dat'
+filename = common_path + 'A210623_021959.adr_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
-data_types = ['chA', 'chB']
+data_types = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 # freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
-freqList = [9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
-# freqList = [4.0,5.0,6.0,7.0,8.0,8.05,8.1,8.15,8.5,9.0]
+freqList = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+# freqList = [4.0, 5.0, 6.0, 7.0, 8.0, 8.05, 8.1, 8.15, 8.5, 9.0]
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
-SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
+StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
+SpecFreqRange = 1                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
@@ -37,18 +37,18 @@ AmplitudeReIm = 20 * 10**(-12)   # Colour range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 20.0
-freqStop = 30.0
+freqStart = 0.0
+freqStop = 49.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2020-06-05 09:35:30'
-dateTimeStop =  '2020-06-05 09:38:30'
+dateTimeStart = '2022-06-01 07:00:00'
+dateTimeStop =  '2022-06-01 19:00:00'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
 freqStopTXT = 33.0
 
-save_to_txt_file = True         # Save short part of dynamic spectrum to txt file
+save_to_txt_file = False         # Save short part of dynamic spectrum to txt file
 
 # ###############################################################################
 # *******************************************************************************
@@ -195,18 +195,17 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
     if df_filename[-4:] == '.adr':
 
-        [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-                CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
-                NAvr, time_res, fmin, fmax, df, frequency, fft_size, SLine,
-                Width, BlockSize] = FileHeaderReaderADR(filename, 0, 1)
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
+            ReceiverMode, Mode, sumDifMode, NAvr, time_res, fmin, fmax, df, frequency, fft_size, SLine, Width,
+            BlockSize] = FileHeaderReaderADR(filename, 0, 1)
 
         freq_points_num = len(frequency)
 
     if df_filename[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
-        [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-                CLCfrq, df_creation_timeUTC, spectra_in_file, ReceiverMode, Mode, Navr, time_res, fmin, fmax,
-                df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filename, 0, 1)
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
+            spectra_in_file, ReceiverMode, Mode, Navr, time_res, fmin, fmax, df, frequency, freq_points_num,
+            dataBlockSize] = FileHeaderReaderJDS(filename, 0, 1)
 
         sumDifMode = ''
 
@@ -261,7 +260,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         B = []
         for i in range(len(timeline)):
             dt_diff_start = dt_timeline[i] - dt_dateTimeStart
-            dt_diff_stop  = dt_timeline[i] - dt_dateTimeStop
+            dt_diff_stop = dt_timeline[i] - dt_dateTimeStop
             A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0]*60 + divmod(dt_diff_start.total_seconds(), 60)[1]))
             B.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0]*60 + divmod(dt_diff_stop.total_seconds(), 60)[1]))
 
@@ -316,8 +315,10 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
             data2 = np.fromfile(file2, dtype=np.float64, count=nx * averageConst)
 
         if data_types[j] == 'A+B' or data_types[j] == 'A-B':
-            if data_types[j] == 'A+B': data = data1 + data2
-            if data_types[j] == 'A-B': data = data1 - data2
+            if data_types[j] == 'A+B':
+                data = data1 + data2
+            if data_types[j] == 'A-B':
+                data = data1 - data2
         else:
             data = data1
 
@@ -418,7 +419,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
             index = np.argmin(newFreq) + 1
             tempArr1 = np.arange(0, len(dateTimeNew), 1)
 
-            if ChannelSavePNG == 1 or data_types[j] == 'CRe' or data_types[j] == 'CIm':
+            if ChannelSavePNG == 1:  # or data_types[j] == 'CRe' or data_types[j] == 'CIm':
                 if data_types[j] == 'CRe' or data_types[j] == 'CIm':
                     Vmin = 0 - AmplitudeReIm
                     Vmax = 0 + AmplitudeReIm
