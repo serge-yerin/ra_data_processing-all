@@ -1,6 +1,6 @@
 # Python3
 Software_version = '2021.08.28'
-Software_name = 'RT-32 Zolochiv waveform reader'
+Software_name = 'RT-32 Zolochiv waveform reader and converter to vdif'
 # Script intended to read, show and analyze data from MARK5 receiver
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
@@ -235,36 +235,35 @@ def rt32wf_to_vdf_data_converter(filepath):
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
     print(' Number of complex points for both channels: ', num_of_complex_points)
 
-    nFFT = 16384
-    nGates = 8192
+    n_fft = 16384
+    n_gates = 8192
 
     with open(filepath) as adr_file:  # Open data file
         adr_file.seek(1024)  # Jump to 1024 byte in the file to skip header
         # Read raw data from file in int8 format
-        raw_data = np.fromfile(adr_file, dtype=np.int8, count=nFFT * nGates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
+        raw_data = np.fromfile(adr_file, dtype=np.int8, count=n_fft * n_gates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
         print('Shape of data read from file:', raw_data.shape)
 
         # Preparing empty matrix for complex data
-        # cmplx_data = np.empty(nFFT * nGates * 2, dtype=np.complex8)
+        # cmplx_data = np.empty(n_fft * n_gates * 2, dtype=np.complex8)
         # print('Shape of prepared complex data array:', cmplx_data.shape)
 
         # Separating real and imaginary data from the raw data
-        real_data = raw_data[0: nFFT * nGates * 2 * 2: 2]
-        imag_data = raw_data[1: nFFT * nGates * 2 * 2: 2]
+        real_data = raw_data[0: n_fft * n_gates * 2 * 2: 2]
+        imag_data = raw_data[1: n_fft * n_gates * 2 * 2: 2]
         del raw_data
         print('Shape of real data array                  :', real_data.shape)
         print('Shape of imag data array                  :', imag_data.shape)
 
         # Separate channels of data for real and imag parts:
-        real_2ch_data = np.reshape(real_data, (nGates * nFFT, 2))
-        imag_2ch_data = np.reshape(imag_data, (nGates * nFFT, 2))
+        real_2ch_data = np.reshape(real_data, (n_gates * n_fft, 2))
+        imag_2ch_data = np.reshape(imag_data, (n_gates * n_fft, 2))
         del real_data, imag_data
         print('Shape of real data array                  :', real_2ch_data.shape)
         print('Shape of imag data array                  :', imag_2ch_data.shape)
         print('Type of imag data array                   :', imag_2ch_data.dtype)
 
-
-        # rsh_crd = np.reshape(cmplx_data, (nGates, nFFT, 2))
+        # rsh_crd = np.reshape(cmplx_data, (n_gates, n_fft, 2))
         # del cmplx_data
         # print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
         # rsh_crd = np.transpose(rsh_crd)
@@ -274,9 +273,6 @@ def rt32wf_to_vdf_data_converter(filepath):
         # tt0 = rsh_crd[0, :, :]
         # tt1 = rsh_crd[1, :, :]
         # print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
-
-
-
 
     return
 
