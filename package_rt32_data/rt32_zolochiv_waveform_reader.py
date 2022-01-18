@@ -199,7 +199,7 @@ def rpr_wf_header_reader_dict(filepath):
         print(' Norm. coefficient 1-CH:      ', param_dict["Norm coeff 1"])  # Normalization coefficient 1-CH (1 ... 65535)
         print(' Norm. coefficient 2-CH       ', param_dict["Norm coeff 2"])  # Normalization coefficient 2-CH (1 ... 65535)
         print(' Delay:                       ', param_dict["Channel delay"], ' ps')  # Delay in pico-seconds (-1000000000 ... 1000000000)
-        print(' Options:                     ', df_opt_bit_opt)
+        print(' Options:                     ', df_opt_bit_opt, '\n\n')
 
         # print('Fheader tag 1:', fheader_tag[0:32])
         # print('Fheader tag 2:', fheader_tag[32:64])
