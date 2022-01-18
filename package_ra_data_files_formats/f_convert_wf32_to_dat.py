@@ -396,6 +396,23 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
             wf_data = np.fromfile(file, dtype='f4', count=no_of_spectra_in_bunch * no_of_points_for_fft_spectr)
             wf_data = np.reshape(wf_data, [no_of_points_for_fft_spectr, no_of_spectra_in_bunch], order='F')
 
+            #
+            #
+            #
+            #
+            #
+
+            # window = np.hamming(no_of_points_for_fft_spectr)
+            # for i in range(no_of_spectra_in_bunch):
+            #     wf_data[:, i] = wf_data[:, i] * window[:]
+            # del window
+
+            #
+            #
+            #
+            #
+            #
+
             # preparing matrices for spectra
             spectra = np.zeros_like(wf_data)
 

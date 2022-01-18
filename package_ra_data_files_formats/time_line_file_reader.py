@@ -1,32 +1,31 @@
 
 from datetime import datetime
 
+
 def time_line_file_reader(time_line_file_name):
-    '''
-    Reading timeline file and store data in text and datetime data format
-    '''
+    """
+    Reading timeline file and store data in lists of text and datetime data formats
+    """
     # Reading text timeline data from file
     tl_file = open(time_line_file_name, 'r')
-    timeline = []
+    time_line_f = []
     for line in tl_file:
-        timeline.append(str(line))
+        time_line_f.append(str(line))
     tl_file.close()
 
     # Converting text to ".datetime" data format
-    dt_timeline = []
-    for i in range(len(timeline)):
+    dt_time_line_f = []
+    for i in range(len(time_line_f)):
         # Check is the uS field is empty. If so it means it is equal to '000000'
-        uSecond = timeline[i][20:26]
-        if len(uSecond) < 2: uSecond = '000000'
+        u_second = time_line_f[i][20:26]
+        if len(u_second) < 2:
+            u_second = '000000'
 
-        dt_timeline.append(
-            datetime(int(timeline[i][0:4]),   int(timeline[i][5:7]),   int(timeline[i][8:10]), int(timeline[i][11:13]),
-                     int(timeline[i][14:16]), int(timeline[i][17:19]), int(uSecond)))
+        dt_time_line_f.append(
+            datetime(int(time_line_f[i][0:4]),   int(time_line_f[i][5:7]),   int(time_line_f[i][8:10]), int(time_line_f[i][11:13]),
+                     int(time_line_f[i][14:16]), int(time_line_f[i][17:19]), int(u_second)))
 
-    return timeline, dt_timeline
-
-
-
+    return time_line_f, dt_time_line_f
 
 
 if __name__ == '__main__':

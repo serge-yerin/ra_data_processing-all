@@ -8,8 +8,7 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = '/media/data/DATA/To_process/2021.05.31_GURT_Sun'
-# path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
+path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -28,7 +27,7 @@ DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpectrumFileSaveSwitch = 0    # Save 1 immediate spectrum to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 1             # Number of immediate spectrum to save to TXT file
+ImmediateSpNo = 0             # Number of immediate spectrum to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)

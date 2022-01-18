@@ -39,29 +39,29 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 The GUI program to control ADR receiver according to schedule
 Works only on Linux OS because uses ssh connection between receiver and server for data copying  
 """
-software_version = '2021.06.06'
+software_version = '2021.12.16'
 
 # *******************************************************************************
 #                     R U N   S T A T E   V A R I A B L E S                     *
 # *******************************************************************************
-adr_ip = '192.168.1.172'
-adr_port = 38386                    # Port of the receiver to connect (always 38386)
-relay_host = '192.168.1.170'
-relay_port = 6722
-time_server_ip = '192.168.1.150'
-default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
+adr_ip = '192.168.1.171'            # Default ADR IP address
+adr_port = 38386                    # Port of the receiver to connect (always 38386, do not change)
+relay_host = '192.168.1.170'        # Default relay IP address
+relay_port = 6722                   # Port of the relay to connect (always 6722, do not change)
+time_server_ip = '192.168.1.1'      # Time server IP address, previously used 192.168.1.150, but now we use router
 dir_data_on_server = '/media/data/DATA/To_process/'  # data folder on server, please do not change!
-logo_path = 'media_data/gurt_logo.png'
-telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
-x_space = (5, 5)
-y_space = (5, 5)
+logo_path = 'media_data/gurt_logo.png'  # Pth to GURT logo
+telegram_chat_id = '927534685'      # Telegram chat ID to send messages  - '927534685' - YeS
+x_space = (5, 5)                    # Horizontal space between elements in GUI
+y_space = (5, 5)                    # Vertical space between elements in GUI
 y_space_adr = 1
-colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue', 'antique white']
 block_flag = True
 block_selecting_new_schedule_flag = False
 adr_connection_flag = False
 pause_update_info_flag = False
 schedule = []
+
+# colors = ['chartreuse2', 'SpringGreen2', 'yellow2', 'orange red', 'SlateBlue1', 'Deep sky blue', 'antique white']
 
 # PROCESSING PARAMETERS
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -239,16 +239,16 @@ def get_adr_params_and_set_indication(socket_adr):
     elif parameters_dict["operation_mode_num"] == 3: lbl_adr_mode_val.config(text='Spectra A')
     elif parameters_dict["operation_mode_num"] == 4: lbl_adr_mode_val.config(text='Spectra B')
     elif parameters_dict["operation_mode_num"] == 5: lbl_adr_mode_val.config(text='Spectra A & B')
-    elif parameters_dict["operation_mode_num"] == 6: lbl_adr_mode_val.config(text='Correlation')
+    elif parameters_dict["operation_mode_num"] == 6: lbl_adr_mode_val.config(text='Cross spectra A&B')
     else: parameters_dict["operation_mode_str"] = lbl_adr_mode_val.config(text='Unknown mode')
 
     tmp = format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ',') + '  Hz'
     lbl_adr_fadc_val.config(text=tmp)
 
     if parameters_dict["external_clock"] == 'OFF':
-        lbl_adr_sadc_val.config(text="External", bg='yellow')
+        lbl_adr_sadc_val.config(text="Internal", bg='yellow')
     elif parameters_dict["external_clock"] == 'ON':
-        lbl_adr_sadc_val.config(text="Internal", bg='chartreuse2')
+        lbl_adr_sadc_val.config(text="External", bg='chartreuse2')
 
     tmp = format(parameters_dict["number_of_channels"], ',').replace(',', ' ').replace('.', ',')
     lbl_adr_chnl_val.config(text=tmp)
@@ -280,8 +280,12 @@ def get_adr_params_and_set_indication(socket_adr):
 def start_and_keep_adr_connection():
     global socket_adr, adr_ip, pause_update_info_flag
     adr_ip = ent_adr_ip.get()
-    socket_adr, input_parameters_str = f_connect_to_adr_receiver(adr_ip, adr_port)
     ent_adr_ip.config(state=DISABLED)
+    if adr_ip[-3:] == '171':
+        default_parameters_file = 'Param_full_band_0.1s_16384_corr.txt'
+    else:
+        default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
+    socket_adr, input_parameters_str = f_connect_to_adr_receiver(adr_ip, adr_port)
     time.sleep(0.2)
     # Check if the receiver is initialized, if it is not - initialize it
     socket_adr.send(b"set prc/srv/ctl/adr 3 1\0")
@@ -306,33 +310,71 @@ def start_and_keep_adr_connection():
     if error_msg == '':
         lbl_recd_status.config(text='Setting ADR parameters...', bg='yellow')
         f_set_adr_parameters(socket_adr, parameters_dict, 0, 0.5)
-        lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
+        # lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
     get_adr_params_and_set_indication(socket_adr)
 
+    # We read the clock frequency and apply it:
+    lbl_recd_status.config(text='Applying clock frequency...', bg='yellow')
+    time.sleep(10)
+    parameters_dict = f_get_adr_parameters(socket_adr, 0)
+    print(str(parameters_dict["clock_frequency"]))
+    # 'set prc/dsp/ctl/mdo 5 160002070'
+    socket_adr.send(("set prc/dsp/ctl/mdo 5 " + str(parameters_dict["clock_frequency"]) + "\0").encode())
+    data = f_read_adr_meassage(socket_adr, 1)
+    time.sleep(0.5)
+    get_adr_params_and_set_indication(socket_adr)
+    lbl_recd_status.config(text='Waiting', font='none 12', bg='light gray')
+
+    # Parameters for loose connection check
+    old_dsp_time = '00:00:00'
+    info_update_counter = 0
+    connection_try_counter = 0
+    disconnected_message_sent = False
+    time_stopped_message_sent = False
+
     while True:
-        time.sleep(1)
+        time.sleep(1)  # Repeat each 1 second
         if pause_update_info_flag:
             pass
         else:
-            # Keeping connection active
+            # Keeping connection active by sending status requests
             socket_adr.send('get prc/srv/ctl/adr 0 \0'.encode())
-
             try:
                 data = f_read_adr_meassage(socket_adr, 0)
-            except TimeoutError:
-                print('\n\n Timeout Error while reading adr message!!! \n\n')
+            except:  # Used TimeoutError, but the error was other than that
+                # If the connection was lost
+                print('\n Connection lost... \n')
                 # Try to reconnect or indicate that ADR is not connected
+                if connection_try_counter < 3:
+                    connection_try_counter += 1
+                else:
+                    if not disconnected_message_sent:
+                        lbl_adr_status.config(text='Lost connect', bg='orange red')
+                        message = '\n\nALARM! \n\nGURT Server lost connection with Receiver IP: ' + adr_ip + ' !!!\n\n'
+                        try:
+                            test = telegram_bot_sendtext(telegram_chat_id, message)
+                        except:
+                            pass
+                        disconnected_message_sent = True
             else:
-                pass
+                # If the connection was restored after some time return to initial state
+                if disconnected_message_sent:
+                    lbl_adr_status.config(text='Connected', bg='chartreuse2')
+                    disconnected_message_sent = False
+                    message = 'GURT Server restored connection with Receiver IP: ' + adr_ip + \
+                              ', but you should rerun it!'
+                    try:
+                        test = telegram_bot_sendtext(telegram_chat_id, message)
+                    except:
+                        pass
             finally:
                 pass
-
-            # data = f_read_adr_meassage(socket_adr, 0)
 
             # Show DSP and PC time
             tmp = find_between(data, 'DSP Time: ', '\nPC1 Time:')  # Current time of DSP
             tmp = datetime.fromtimestamp(int(tmp)).strftime('%H:%M:%S')
             lbl_adr_dspt_val.config(text=tmp)
+            new_dsp_time = tmp
 
             txt_val = find_between(data, 'PC1 Time: ', '\nPC2 Time:')  # Current time of PC1
             tmp = datetime.fromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
@@ -343,6 +385,28 @@ def start_and_keep_adr_connection():
             tmp = datetime.fromtimestamp(int(txt_val.split(':', 1)[0])).strftime('%H:%M:%S')
             tmp = tmp + '.' + txt_val.split(':', 1)[1]
             lbl_adr_pc2t_val.config(text=tmp)
+
+            # NEW Test code starts here ********************************************************************************
+
+            # Check if the DSP time runs (each 5 seconds)
+            info_update_counter += 1
+            if info_update_counter > 5:
+                if new_dsp_time == old_dsp_time and not time_stopped_message_sent:
+
+                    print('Here!', new_dsp_time, old_dsp_time)
+
+                    lbl_adr_status.config(text='Time stopped!', bg='orange red')
+                    message = '!!!\n\nALARM! \n\nGURT receiver IP: ' + adr_ip + ' time stopped!!!\n' + \
+                              'The receiver needs reboot!\n\n!!!'
+                    try:
+                        test = telegram_bot_sendtext(telegram_chat_id, message)
+                    except:
+                        pass
+                    time_stopped_message_sent = True
+                info_update_counter = 0
+                old_dsp_time = new_dsp_time
+
+            # NEW Test code ends here **********************************************************************************
 
             tmp = float(find_between(data, 'FileSize: ', '\nFileTime:'))  # Current file size in bytes
             tmp = '{:.1f} Mb'.format(tmp)
@@ -407,7 +471,7 @@ def read_schedule_txt_file(schedule_txt_file):
 
 def check_correctness_of_schedule(schedule):
     """
-    Check time correctness (later then now, start is before stop): storing them in datetime format in one list
+    Check time correctness (later than now, start is before stop): storing them in datetime format in one list
     """
     time_line = []
     schedule_comment_text = ''
@@ -769,7 +833,21 @@ def control_by_schedule():
         # Start record
         pause_update_info_flag = True
         socket_adr.send('set prc/srv/ctl/srd 0 1\0'.encode())    # start data recording
-        data = f_read_adr_meassage(socket_adr, 0)
+
+        # data = f_read_adr_meassage(socket_adr, 0)
+        #####################################################################################
+        try:
+            data = f_read_adr_meassage(socket_adr, 0)
+        except:  # Used TimeoutError, but the error was other than that
+            # If the connection was lost
+            print('\n Connection lost... \n')
+            lbl_adr_status.config(text='Lost connect', bg='orange red')
+            message = '\n\nALARM! \n\nGURT Server lost connection with Receiver IP: ' + adr_ip + ' !!!\n\n'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+        #####################################################################################
         pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Recording!',  bg='Deep sky blue')
@@ -801,7 +879,23 @@ def control_by_schedule():
         # Stop record
         pause_update_info_flag = True
         socket_adr.send('set prc/srv/ctl/srd 0 0\0'.encode())    # stop data recording
-        data = f_read_adr_meassage(socket_adr, 0)
+
+        # data = f_read_adr_meassage(socket_adr, 0)
+
+        #####################################################################################
+        try:
+            data = f_read_adr_meassage(socket_adr, 0)
+        except:  # Used TimeoutError, but the error was other than that
+            # If the connection was lost
+            print('\n Connection lost... \n')
+            lbl_adr_status.config(text='Lost connect', bg='orange red')
+            message = '\n\nALARM! \n\nGURT Server lost connection with Receiver IP: ' + adr_ip + ' !!!\n\n'
+            try:
+                test = telegram_bot_sendtext(telegram_chat_id, message)
+            except:
+                pass
+        #####################################################################################
+
         pause_update_info_flag = False
         if data.startswith('SUCCESS'):
             lbl_recd_status.config(text='Waiting...',  bg='light gray')
@@ -857,6 +951,10 @@ def control_by_schedule():
         # If it was the last observation, set the default parameters of the receiver
         if obs_no+1 == len(schedule):
             # Apply default receiver parameters set in schedule (parameters file)
+            if adr_ip[-3:] == '171':
+                default_parameters_file = 'Param_full_band_0.1s_16384_corr.txt'
+            else:
+                default_parameters_file = 'Param_full_band_0.1s_16384_corr_int-clc.txt'
             parameters_file = 'service_data/' + default_parameters_file
             parameters_dict = f_read_adr_parameters_from_txt_file(parameters_file)
             parameters_dict, error_msg = check_adr_parameters_correctness(parameters_dict)
@@ -885,9 +983,10 @@ def stopnow_control_by_schedule_button():
     data = f_read_adr_meassage(socket_adr, 0)
     pause_update_info_flag = False
     if data.startswith('SUCCESS'):
-        lbl_recd_status.config(text='Waiting...', bg='light gray')
+        lbl_recd_status.config(text='Stopped observations!', bg='orange')
+        ent_adr_ip.config(state=NORMAL)
     else:
-        lbl_recd_status.config(text='Failed to stop record!', bg='orange')
+        lbl_recd_status.config(text='Failed to stop record!', bg='orange red')
 
 
 # *******************************************************************************

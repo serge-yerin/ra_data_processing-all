@@ -11,13 +11,13 @@ from pexpect import pxssh
 
 def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, print_or_not):
 
-    '''
+    """
     Function initializes ADR receiver if it was just turned on
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         print_or_not        - to print the parameters to console (1) or not (0)
     Output parameters:
-    '''
+    """
 
     # Copy data from receiver to server with SSH login on receiver and using rsync
     print('\n * Copying recorded data to server')
@@ -38,9 +38,9 @@ def f_copy_data_from_adr(receiver_ip, data_directory_name, dir_data_on_server, p
         print(str(s))
     else:
         print('\n   SSH login successful, copying data to server...\n')
-        command = ('rsync -r ' + '/data/' + data_directory_name + '/ ' + this_pc_user +'@' +
+        command = ('rsync -r ' + '/data/' + data_directory_name + '/ ' + this_pc_user + '@' +
                    this_pc_ip + ':' + dir_data_on_server + data_directory_name + '/')
-        #print(command)
+        # print(command)
         s.sendline(command)
         s.prompt()  # match the prompt
         if print_or_not > 0:

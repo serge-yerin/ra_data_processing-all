@@ -24,6 +24,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
                                       colormap):
     """
     Function to find and cut the selected pulsar period (by its number) from the DAT files
+    will be deprecated, use cut_needed_pulsar_period_from_dat_to_dat instead
     """
     
     software_version = '2021.01.25'
@@ -126,7 +127,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
                   str(np.round(df/1000, 3)) + ' kHz and '+str(np.round(time_resolution*1000, 3))+' ms.',
                   fontsize=5, fontweight='bold')
     ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
-               extent=[0, len(profile), frequency[0] + 16.5, frequency[-1] + 16.5])   # <----------- added line
+               extent=[0, len(profile), frequency[0] + 16.5, frequency[-1] + 16.5])   #
     ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
     text = ax2.get_xticks().tolist()
@@ -156,6 +157,151 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
     del file_header
 
     return result_path, filename + ' - Extracted pulse.txt', filename + ' - Extracted pulse.png'
+
+
+def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name, period_number, profile_pic_min,
+                                      profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
+                                      colormap):
+    """
+    Function to find and cut the selected pulsar period (by its number) from the DAT files
+    """
+
+    software_version = '2021.08.07'
+
+    current_time = time.strftime("%H:%M:%S")
+    current_date = time.strftime("%d.%m.%Y")
+
+    # Creating a folder where all pictures and results will be stored (if it doesn't exist)
+    result_path = "RESULTS_pulsar_extracted_pulse_" + filename
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+
+    # Taking pulsar period from catalogue
+    pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
+
+    # DAT file to be analyzed:
+    filepath = common_path + filename
+
+    # Timeline file to be analyzed:
+    timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
+
+    # Opening DAT datafile
+    file = open(filepath, 'rb')
+
+    # Data file header read
+    df_filesize = os.stat(filepath).st_size  # Size of file
+    df_filepath = file.read(32).decode('utf-8').rstrip('\x00')  # Initial data file name
+    file.close()
+
+    if df_filepath[-4:] == '.adr':
+        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
+         CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
+         NAvr, time_resolution, fmin, fmax, df, frequency, FFTsize, SLine,
+         Width, BlockSize] = FileHeaderReaderADR(filepath, 0, 0)
+
+        freq_points_num = len(frequency)
+
+    if df_filepath[-4:] == '.jds':  # If data obtained from DSPZ receiver
+
+        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
+         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+         df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 0)
+
+    # ************************************************************************************
+    #                             R E A D I N G   D A T A                                *
+    # ************************************************************************************
+
+    # Time line file reading
+    timeline, dt_timeline = time_line_file_reader(timeline_filepath)
+
+    # Calculation of the dimensions of arrays to read taking into account the pulsar period
+    spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))  # int(df_filesize - 1024)/(2*4*freq_points_num)
+    spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution), 0))
+    spectra_per_period = int(np.round((p_bar / time_resolution), 0))
+    num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
+
+    print('\n   Pulsar name:                             ', pulsar_name, '')
+    print('   Pulsar period:                           ', p_bar, 's.')
+    print('   Time resolution:                         ', time_resolution, 's.')
+    print('   Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
+    print('   Number of spectra in file:               ', spectra_in_file, ' ')
+    print('   Number of', periods_per_fig, 'periods blocks in file:      ', num_of_blocks, '\n')
+
+    # Data reading and making figures
+    print('\n   Data reading and making figure...')
+
+    data_file = open(filepath, 'rb')
+
+    # Jumping to 1024+number of spectra to skip bytes from file beginning
+    data_file.seek(1024 + (period_number - 1) * spectra_per_period * len(frequency) * 8, os.SEEK_SET)
+
+    # Reading and preparing block of data (3 periods)
+    data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
+    data_file.close()
+
+    data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
+
+    # Read data file header from initial file
+    with open(filepath, 'rb') as file:
+        file_header = file.read(1024)
+
+    # Create binary file with the header and pulsar one or two periods data
+    dat_file_name = 'Single_pulse_' + filename
+    file_data = open(result_path + '/' + dat_file_name, 'wb')
+    file_data.write(file_header)
+    del file_header
+    # Prepare data to save to the file
+    temp = data.transpose().copy(order='C')
+    file_data.write(np.float64(temp))
+    del temp
+    file_data.close()
+
+    # Time line
+    fig_time_scale = timeline[(period_number - 1) *
+                              spectra_per_period: (period_number - 1 + spectra_to_read) * spectra_per_period]
+
+    # Prepared code to save timeline to a file, but as the timeline is wrong comented them temporarily
+    # # Creating and filling a new timeline TXT file for results
+    # new_tl_file_name = dat_file_name.split('_Data_', 1)[0] + '_Timeline.txt'
+    # new_tl_file = open(result_path + '/' + new_tl_file_name, 'w')
+    # # Saving time data to new file
+    # for j in range(len(fig_time_scale)):
+    #     new_tl_file.write((fig_time_scale[j][:]) + '')
+    # new_tl_file.close()
+
+    # Logging data for figure
+    data = 10 * np.log10(data)
+
+    # Normalizing data
+    data = data - np.mean(data)
+
+    # Making result picture
+    fig = plt.figure(figsize=(9.2, 4.5))
+    rc('font', size=5, weight='bold')
+    ax2 = fig.add_subplot(111)
+    ax2.set_title('File: ' + filename + '  Description: ' + df_description + '  Resolution: ' +
+                  str(np.round(df / 1000, 3)) + ' kHz and ' + str(np.round(time_resolution * 1000, 3)) + ' ms.',
+                  fontsize=5, fontweight='bold')
+    ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
+               extent=[0, data.shape[1], frequency[0] + 16.5, frequency[-1] + 16.5])  # len(profile)
+    ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
+    ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
+    text = ax2.get_xticks().tolist()
+    for i in range(len(text) - 1):
+        k = int(text[i])
+        text[i] = fig_time_scale[k][11:23]
+    ax2.set_xticklabels(text, fontsize=5, fontweight='bold')
+    fig.subplots_adjust(hspace=0.05, top=0.91)
+    fig.suptitle('Extracted single pulse of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
+                 ', Period: ' + str(p_bar) + ' s.)', fontsize=7, fontweight='bold')
+    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time, fontsize=3,
+             transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+             fontsize=3, transform=plt.gcf().transFigure)
+    pylab.savefig(result_path + '/' + 'Single_pulse_' + filename[:-4] + '.png', bbox_inches='tight', dpi=customDPI)
+    plt.close('all')
+
+    return result_path, 'Single_pulse_' + filename, filename + 'Single_pulse_' + filename[:-4] + '.png'
 
 
 '''

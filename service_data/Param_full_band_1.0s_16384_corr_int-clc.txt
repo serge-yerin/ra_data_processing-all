@@ -1,9 +1,9 @@
 Parameter          Value          Possible values
 ADR_mode,          6,             0-wfA / 1-wfB / 2-wfAB / 3-spA / 4-spB / 5-spAB / 6-corr(AB)
-FFT_size,          8192,          2048 / 4096 / 8192 / 16384 / 32768
-Averaged_spectra,  19090,         32 ... 65535 (16 ... 32768)  #
+FFT_size,          16384,         2048 / 4096 / 8192 / 16384 / 32768
+Averaged_spectra,  9545,         32 ... 65535 (16 ... 32768)  # was 19090
 Start_freq_line,   0,             0 ... (SFFT-1024)/1024
-Width_freq_lines,  4,             1 ... (SFFT-SLINE*1024)/1024 (?)
+Width_freq_lines,  8,             1 ... (SFFT-SLINE*1024)/1024 (?)
 CLC_source,        0,             0-internal / 1-external
 Sum_diff_mode,     0,             0-OFF / 1 - ON
 Dif_delay,         0,             delay in picoseconds

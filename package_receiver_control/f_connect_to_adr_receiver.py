@@ -6,11 +6,13 @@ import socket
 import time
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 
+
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
+
 def f_connect_to_adr_receiver(host, port, control, delay):
-    '''
+    """
     Function connects to the ADR receiver via specified socket
     Input parameters:
         host                - IP address to connect
@@ -20,18 +22,18 @@ def f_connect_to_adr_receiver(host, port, control, delay):
     Output parameters:
         serversocket        - handle of socket to send and receive messages from server
         input_parameters_s  - long string with all receiver parameters at the moment of connection
-    '''
+    """
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.connect((host, port))
     serversocket.send('ADRSCTRL'.encode())
     register_cc_msg = bytearray([108,0,0,0])
     register_cc_msg.extend(b'YeS\0                                                            ')  # Name 64 bytes
-    register_cc_msg.extend(b'adrs\0                           ')                          # Password 32 bytes
-    register_cc_msg.extend([0, 0, 0, control])                                                         # Priv 4 bytes
-    register_cc_msg.extend([0, 0, 0, control])                                                      # CTRL 4 bytes
+    register_cc_msg.extend(b'adrs\0                           ')                                  # Password 32 bytes
+    register_cc_msg.extend([0, 0, 0, control])                                                    # Priv 4 bytes
+    register_cc_msg.extend([0, 0, 0, control])                                                    # CTRL 4 bytes
     register_cc_msg = bytes(register_cc_msg)
-    #print('\n Length: ', len(register_cc_msg))
-    #print('\n Sent message: ', register_cc_msg)
+    # print('\n Length: ', len(register_cc_msg))
+    # print('\n Sent message: ', register_cc_msg)
     serversocket.send(register_cc_msg)
 
     data = f_read_adr_meassage(serversocket, 0)

@@ -265,6 +265,7 @@ def OneDynSpectraPlotPhD(Data, Vmin, Vmax, Suptitle, CBarLabel, no_of_spectra, T
     im0 = axarr.imshow(np.flipud(Data), aspect='auto', vmin=Vmin, vmax=Vmax,
                        extent=[0, no_of_spectra, frequency[0], frequency[-1]], cmap=colormap)
     rc('font', size=14, weight='bold')
+    # plt.rcParams["font.family"] = "Times New Roman"  # !!! NEW !!!
     axarr.set_ylabel('Частота, МГц', fontweight='bold', fontsize=14)
     #fig.suptitle(Suptitle, fontsize = 10, fontweight = 'bold', x = 0.46, y = 0.96)
     ticks_loc = axarr.get_yticks().tolist()                               # <---- Added to suppress warning

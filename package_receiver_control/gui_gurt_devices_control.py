@@ -38,13 +38,15 @@ gurt_lan_log_file_name = 'service_data/gurt_lan_connection_log.txt'
 telegram_chat_id = '927534685'  # Telegram chat ID to send messages  - '927534685' - YeS
 token_file_name = 'service_data/bot.txt'
 
-hosts = ['8.8.8.8', '192.168.1.150', '192.168.1.171', '192.168.1.172', '192.168.1.11', '192.168.1.12',
-         '192.168.1.170', '192.168.1.161']
-# hosts = ['8.8.8.8', '172.16.1.100', '172.16.10.1', '172.16.1.1', '172.16.10.1', '172.16.1.1',
-#          '172.16.1.169', '172.16.10.1']
-device_names = ['Internet connection', 'GURT server', 'ADR 01', 'ADR 02', 'Beam control block 01',
-                'Beam control block 02', 'Relay block 01', 'Relay block 02']
-
+devices = {0: {'Name': 'Internet',        'IP': '8.8.8.8',       'MAC': ''},
+           1: {'Name': 'GURT server',     'IP': '192.168.1.150', 'MAC': '74.d0.2b.28.5f.c8'},
+           2: {'Name': 'ADR 01',          'IP': '192.168.1.171', 'MAC': '74:d0:2b:27:c2:af'},
+           3: {'Name': 'ADR 02',          'IP': '192.168.1.172', 'MAC': '74:d0:2b:c7:87:20'},
+           4: {'Name': 'Beam block 01',   'IP': '192.168.1.11',  'MAC': ''},
+           5: {'Name': 'Beam block 02',   'IP': '192.168.1.12',  'MAC': ''},
+           6: {'Name': 'Relay block 01',  'IP': '192.168.1.170', 'MAC': ''},
+           7: {'Name': 'Relay block 02',  'IP': '192.168.1.161', 'MAC': ''},
+           8: {'Name': 'IP camera 01',    'IP': '192.168.1.64',  'MAC': ''}}
 
 # *******************************************************************************
 #                                F U N C T I O N S                              *
@@ -87,9 +89,8 @@ def check_if_hosts_online():
     labels = [lbl_internet_online_clr, lbl_gurt_server_online_clr,
               lbl_adr01_online_clr, lbl_adr02_online_clr,
               lbl_ctrl_block_01_online_clr, lbl_ctrl_block_02_online_clr,
-              lbl_relay_01_online_clr, lbl_relay_02_online_clr]
-    previous_states = [False, False, False, False, False, False, False, False]
-    lbl_start.config(text='Checking...', bg='yellow')
+              lbl_relay_01_online_clr, lbl_relay_02_online_clr, lbl_ipcam_01_online_clr]
+    previous_states = [False, False, False, False, False, False, False, False, False]
 
     # Set the IP addresses in memory to entries in Settings tab and freeze them
     ent_internet_ip_val.delete(0, 'end')
@@ -100,15 +101,17 @@ def check_if_hosts_online():
     ent_beam_02_val.delete(0, 'end')
     ent_relay_01_val.delete(0, 'end')
     ent_relay_02_val.delete(0, 'end')
+    ent_ipcam_01_val.delete(0, 'end')
 
-    ent_internet_ip_val.insert(0, hosts[0])
-    ent_gurt_server_val.insert(0, hosts[1])
-    ent_adr_01_val.insert(0, hosts[2])
-    ent_adr_02_val.insert(0, hosts[3])
-    ent_beam_01_val.insert(0, hosts[4])
-    ent_beam_02_val.insert(0, hosts[5])
-    ent_relay_01_val.insert(0, hosts[6])
-    ent_relay_02_val.insert(0, hosts[7])
+    ent_internet_ip_val.insert(0, devices[0]['IP'])  # hosts[0]
+    ent_gurt_server_val.insert(0, devices[1]['IP'])
+    ent_adr_01_val.insert(0, devices[2]['IP'])
+    ent_adr_02_val.insert(0, devices[3]['IP'])
+    ent_beam_01_val.insert(0, devices[4]['IP'])
+    ent_beam_02_val.insert(0, devices[5]['IP'])
+    ent_relay_01_val.insert(0, devices[6]['IP'])
+    ent_relay_02_val.insert(0, devices[7]['IP'])
+    ent_ipcam_01_val.insert(0, devices[8]['IP'])
 
     ent_internet_ip_val.config(state=DISABLED)
     ent_gurt_server_val.config(state=DISABLED)
@@ -118,19 +121,24 @@ def check_if_hosts_online():
     ent_beam_02_val.config(state=DISABLED)
     ent_relay_01_val.config(state=DISABLED)
     ent_relay_02_val.config(state=DISABLED)
+    ent_ipcam_01_val.config(state=DISABLED)
 
     lbl_check_interval_txt.config(text='Checking each 60 s.')
     first_check = True
     while True:
-        for item in range(len(hosts)):
-            answer = ping(hosts[item])
+        if first_check:
+            lbl_start.config(text='Checking...', bg='yellow')
+        else:
+            lbl_start.config(text='Pinging...', bg='Deep sky blue')
+        for item in range(len(labels)):  # hosts
+            answer = ping(devices[item]['IP'])
             if answer:
                 if answer == previous_states[item]:
                     labels[item].config(text='Online', bg='chartreuse2')
                 else:
                     labels[item].config(text='Just ON', bg='SpringGreen2')
                     t = strftime(" %Y-%m-%d %H:%M Loc")
-                    message = t + ': ' + device_names[item] + ' (IP: ' + hosts[item] + ') connected'
+                    message = t + ': ' + devices[item]['Name'] + ' (IP: ' + devices[item]['IP'] + ') connected'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
                     gurt_lan_log_file.close()
@@ -143,7 +151,7 @@ def check_if_hosts_online():
                 else:
                     labels[item].config(text='Just OFF', bg='orange red')
                     t = strftime(" %Y-%m-%d %H:%M Loc")
-                    message = t + ': ' + device_names[item] + ' (IP: ' + hosts[item] + ') disconnected'
+                    message = t + ': ' + devices[item]['Name'] + ' (IP: ' + devices[item]['IP'] + ') disconnected'
                     gurt_lan_log_file = open(gurt_lan_log_file_name, "a")
                     gurt_lan_log_file.write(message + '\n')
                     gurt_lan_log_file.close()
@@ -152,9 +160,8 @@ def check_if_hosts_online():
                         test = telegram_bot_token_send_text(telegram_chat_id, bot_token, message)
 
             previous_states[item] = answer
+        lbl_start.config(text='Working', bg='chartreuse2')
         # If the program has just started operation
-        if first_check:
-            lbl_start.config(text='Working', bg='chartreuse2')
         first_check = False
         time.sleep(60)
 
@@ -173,36 +180,44 @@ def start_check_thread():
     check_thread.start()
 
 
-def server_on_block_control():
-    if server_on_block_flag:
-        server_on_unblock()
+def wake_on_lan_block_control():
+    if wake_on_lan_block_flag:
+        wake_on_lan_unblock()
     else:
-        server_on_block()
+        wake_on_lan_block()
 
 
-def server_on_unblock():
-    global server_on_block_flag
-    server_on_block_flag = False
+def wake_on_lan_unblock():
+    global wake_on_lan_block_flag
+    wake_on_lan_block_flag = False
     btn_unblock_server_on.config(text='BLOCK')
     btn_server_on.config(fg='black')
+    btn_adr_02_on.config(fg='black')
 
 
-def server_on_block():
-    global server_on_block_flag
-    server_on_block_flag = True
+def wake_on_lan_block():
+    global wake_on_lan_block_flag
+    wake_on_lan_block_flag = True
     btn_unblock_server_on.config(text='UNBLOCK')
     btn_server_on.config(fg='gray')
+    btn_adr_02_on.config(fg='gray')
 
 
 def turn_on_server():
-    if server_on_block_flag:
+    if wake_on_lan_block_flag:
         pass
     else:
-        send_magic_packet('74.d0.2b.28.5f.c8')
+        send_magic_packet(devices[1]['MAC'])  # send_magic_packet('74.d0.2b.28.5f.c8')
+
+
+def turn_on_adr_02():
+    if wake_on_lan_block_flag:
+        pass
+    else:
+        send_magic_packet(devices[3]['MAC'])
 
 
 # ################# RELAY #####################
-
 
 def read_relay_output():
     message = bytearray([])
@@ -390,14 +405,15 @@ def off_pc_1():
 
 
 def apply_ip_addresses():
-    hosts[0] = ent_internet_ip_val.get()  # Read the IP address from the entry
-    hosts[1] = ent_gurt_server_val.get()  # Read the IP address from the entry
-    hosts[2] = ent_adr_01_val.get()  # Read the IP address from the entry
-    hosts[3] = ent_adr_02_val.get()  # Read the IP address from the entry
-    hosts[4] = ent_beam_01_val.get()  # Read the IP address from the entry
-    hosts[5] = ent_beam_02_val.get()  # Read the IP address from the entry
-    hosts[6] = ent_relay_01_val.get()  # Read the IP address from the entry
-    hosts[7] = ent_relay_02_val.get()  # Read the IP address from the entry
+    devices[0]['IP'] = ent_internet_ip_val.get()  # Read the IP address from the entry   # hosts[0]
+    devices[1]['IP'] = ent_gurt_server_val.get()  # Read the IP address from the entry
+    devices[2]['IP'] = ent_adr_01_val.get()  # Read the IP address from the entry
+    devices[3]['IP'] = ent_adr_02_val.get()  # Read the IP address from the entry
+    devices[4]['IP'] = ent_beam_01_val.get()  # Read the IP address from the entry
+    devices[5]['IP'] = ent_beam_02_val.get()  # Read the IP address from the entry
+    devices[6]['IP'] = ent_relay_01_val.get()  # Read the IP address from the entry
+    devices[7]['IP'] = ent_relay_02_val.get()  # Read the IP address from the entry
+    devices[8]['IP'] = ent_ipcam_01_val.get()  # Read the IP address from the entry
 
 
 # *******************************************************************************
@@ -410,8 +426,8 @@ bot_token = token_file.readline()[:-1]
 token_file.close()
 
 # Define a global variable to store relay control block flag
-global server_on_block_flag
-server_on_block_flag = True
+global wake_on_lan_block_flag
+wake_on_lan_block_flag = True
 
 t = strftime(" %Y-%m-%d %H:%M Loc")
 message = t + ': GURT online status board software started.'
@@ -449,30 +465,32 @@ btn_start.focus_set()
 lbl_start = Label(frame_online_status, text='Stopped', font='none 12', width=12, bg='gray')
 lbl_check_interval_txt = Label(frame_online_status, text='   ', font='none 9', width=20)
 
-lbl_internet_online_txt = Label(frame_online_status, text='Internet', font='none 12', width=12)
+lbl_internet_online_txt = Label(frame_online_status, text=devices[0]['Name'], font='none 12', width=12)  # text='Internet'
 lbl_internet_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_gurt_server_online_txt = Label(frame_online_status, text='GURT server', font='none 12', width=12)
+lbl_gurt_server_online_txt = Label(frame_online_status, text=devices[1]['Name'], font='none 12', width=12)
 lbl_gurt_server_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_adr01_online_txt = Label(frame_online_status, text='ADR 01', font='none 12', width=12)
+lbl_adr01_online_txt = Label(frame_online_status, text=devices[2]['Name'], font='none 12', width=12)
 lbl_adr01_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_adr02_online_txt = Label(frame_online_status, text='ADR 02', font='none 12', width=12)
+lbl_adr02_online_txt = Label(frame_online_status, text=devices[3]['Name'], font='none 12', width=12)
 lbl_adr02_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_ctrl_block_01_online_txt = Label(frame_online_status, text='Beam control 1', font='none 12', width=12)
+lbl_ctrl_block_01_online_txt = Label(frame_online_status, text=devices[4]['Name'], font='none 12', width=12)
 lbl_ctrl_block_01_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_ctrl_block_02_online_txt = Label(frame_online_status, text='Beam control 2', font='none 12', width=12)
+lbl_ctrl_block_02_online_txt = Label(frame_online_status, text=devices[5]['Name'], font='none 12', width=12)
 lbl_ctrl_block_02_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_relay_01_online_txt = Label(frame_online_status, text='Relay block 01', font='none 12', width=12)
+lbl_relay_01_online_txt = Label(frame_online_status, text=devices[6]['Name'], font='none 12', width=12)
 lbl_relay_01_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
-lbl_relay_02_online_txt = Label(frame_online_status, text='Relay block 02', font='none 12', width=12)
+lbl_relay_02_online_txt = Label(frame_online_status, text=devices[7]['Name'], font='none 12', width=12)
 lbl_relay_02_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
+lbl_ipcam_01_online_txt = Label(frame_online_status, text=devices[8]['Name'], font='none 12', width=12)
+lbl_ipcam_01_online_clr = Label(frame_online_status, text='Unknown', font='none 12', width=10, bg='gray77')
 
 frame_tg_notifications = LabelFrame(frame_online_status)
 
@@ -483,13 +501,15 @@ btn_send_tg_messages = Checkbutton(frame_tg_notifications, text="", variable=sen
                                    selectcolor="white")
 lbl_send_tg_messages = Label(frame_tg_notifications, text='Send\nTelegram\nnotifications', font='none 12', width=12)
 
-frame_on_server = LabelFrame(tab_main, text="GURT server turning on by Wake on LAN")
+frame_on_server = LabelFrame(tab_main, text="GURT devices turning on by Wake on LAN")
 
 btn_unblock_server_on = Button(frame_on_server, text='UNBLOCK', font='none 9 bold',
-                               width=12, command=server_on_block_control)
+                               width=12, command=wake_on_lan_block_control)
 btn_unblock_server_on.focus_set()
 btn_server_on = Button(frame_on_server, text='Turn on GURT server', fg='gray', width=22, command=turn_on_server)
 lbl_server_on = Label(frame_on_server, text='Works only if server power supply is ON!', font='none 9', width=32)
+btn_adr_02_on = Button(frame_on_server, text='Turn on ADR 02', fg='gray', width=22, command=turn_on_adr_02)
+
 lbl_blank_server_txt = Label(frame_on_server, text=' ', font='none 12', width=3)
 
 
@@ -560,8 +580,12 @@ lbl_relay_01_online_clr.grid(row=5, column=3, stick='w', padx=x_space, pady=y_sp
 lbl_relay_02_online_txt.grid(row=6, column=2, stick='w', padx=x_space, pady=y_space)
 lbl_relay_02_online_clr.grid(row=6, column=3, stick='w', padx=x_space, pady=y_space)
 
+lbl_ipcam_01_online_txt.grid(row=7, column=0, stick='w', padx=x_space, pady=y_space)
+lbl_ipcam_01_online_clr.grid(row=7, column=1, stick='w', padx=x_space, pady=y_space)
+
 
 frame_tg_notifications.grid(row=3, column=4, rowspan=4, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
+
 
 btn_send_tg_messages.grid(row=3, column=4, rowspan=2, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
 lbl_send_tg_messages.grid(row=5, column=4, rowspan=2, columnspan=2, stick='nswe', padx=x_space, pady=y_space)
@@ -569,10 +593,12 @@ lbl_send_tg_messages.grid(row=5, column=4, rowspan=2, columnspan=2, stick='nswe'
 
 frame_on_server.grid(row=7, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
 
-btn_unblock_server_on.grid(row=7, column=0, stick='w', padx=x_space, pady=y_space)
-btn_server_on.grid(row=7, column=1, columnspan=2, stick='w', padx=x_space, pady=y_space)
-lbl_server_on.grid(row=7, column=3, columnspan=3, stick='w', padx=x_space, pady=y_space)
-lbl_blank_server_txt.grid(row=7, column=6, stick='w', padx=6, pady=y_space)
+btn_unblock_server_on.grid(row=0, column=0, stick='w', padx=x_space, pady=y_space)  # row=7
+btn_server_on.grid(row=0, column=1, columnspan=2, stick='w', padx=x_space, pady=y_space)  # row=7
+lbl_server_on.grid(row=0, column=3, columnspan=3, stick='w', padx=x_space, pady=y_space)  # row=7
+lbl_blank_server_txt.grid(row=0, column=6, stick='w', padx=6, pady=y_space)  # row=7
+
+btn_adr_02_on.grid(row=1, column=1, columnspan=2, stick='w', padx=x_space, pady=y_space)  # row=7
 
 frame_relay_control_01.grid(row=8, column=0, rowspan=1, columnspan=6, stick='w', padx=10, pady=10)
 
@@ -602,70 +628,88 @@ btn_pc_of_1.grid(row=11, column=5, stick='w', padx=x_space, pady=y_space)
 #                        S E T T I N G S   T A B                                *
 # *******************************************************************************
 
-frame_ip_addresses_set = LabelFrame(tab_settings, text="IP addresses of devices to check")
+frame_ip_addresses_set = LabelFrame(tab_settings, text="IP and MAC addresses of devices to check")
 frame_ip_addresses_set.grid(row=0, column=0, rowspan=5, columnspan=4, stick='wn', padx=10, pady=10)
 
-lbl_internet_ip_txt = Label(frame_ip_addresses_set, text=device_names[0], font='none 12', width=24)
+lbl_internet_ip_txt = Label(frame_ip_addresses_set, text=devices[0]['Name'], font='none 12', width=24)
 ent_internet_ip_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_internet_ip_val.insert(0, hosts[0])
+ent_internet_ip_val.insert(0, devices[0]['IP'])
 
 lbl_internet_ip_txt.grid(row=0, column=0, stick='w', padx=x_space, pady=y_space)
 ent_internet_ip_val.grid(row=0, column=1, stick='w', padx=x_space, pady=y_space)
 
-lbl_gurt_server_txt = Label(frame_ip_addresses_set, text=device_names[1], font='none 12', width=24)
+lbl_gurt_server_txt = Label(frame_ip_addresses_set, text=devices[1]['Name'], font='none 12', width=24)
 ent_gurt_server_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_gurt_server_val.insert(0, hosts[1])
+ent_gurt_server_mac = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_gurt_server_val.insert(0, devices[1]['IP'])
+ent_gurt_server_mac.insert(0, devices[1]['MAC'])
+ent_gurt_server_mac.config(state=DISABLED)
 
 lbl_gurt_server_txt.grid(row=1, column=0, stick='w', padx=x_space, pady=y_space)
 ent_gurt_server_val.grid(row=1, column=1, stick='w', padx=x_space, pady=y_space)
+ent_gurt_server_mac.grid(row=1, column=2, stick='w', padx=x_space, pady=y_space)
 
-lbl_adr_01_txt = Label(frame_ip_addresses_set, text=device_names[2], font='none 12', width=24)
+lbl_adr_01_txt = Label(frame_ip_addresses_set, text=devices[2]['Name'], font='none 12', width=24)
 ent_adr_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_adr_01_val.insert(0, hosts[2])
+ent_adr_01_mac = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_adr_01_val.insert(0, devices[2]['IP'])
+ent_adr_01_mac.insert(0, devices[2]['MAC'])
+ent_adr_01_mac.config(state=DISABLED)
 
 lbl_adr_01_txt.grid(row=2, column=0, stick='w', padx=x_space, pady=y_space)
 ent_adr_01_val.grid(row=2, column=1, stick='w', padx=x_space, pady=y_space)
+ent_adr_01_mac.grid(row=2, column=2, stick='w', padx=x_space, pady=y_space)
 
-lbl_adr_02_txt = Label(frame_ip_addresses_set, text=device_names[3], font='none 12', width=24)
+lbl_adr_02_txt = Label(frame_ip_addresses_set, text=devices[3]['Name'], font='none 12', width=24)
 ent_adr_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_adr_02_val.insert(0, hosts[3])
+ent_adr_02_mac = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_adr_02_val.insert(0, devices[3]['IP'])
+ent_adr_02_mac.insert(0, devices[3]['MAC'])
+ent_adr_02_mac.config(state=DISABLED)
 
 lbl_adr_02_txt.grid(row=3, column=0, stick='w', padx=x_space, pady=y_space)
 ent_adr_02_val.grid(row=3, column=1, stick='w', padx=x_space, pady=y_space)
+ent_adr_02_mac.grid(row=3, column=2, stick='w', padx=x_space, pady=y_space)
 
-lbl_beam_01_txt = Label(frame_ip_addresses_set, text=device_names[4], font='none 12', width=24)
+lbl_beam_01_txt = Label(frame_ip_addresses_set, text=devices[4]['Name'], font='none 12', width=24)
 ent_beam_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_beam_01_val.insert(0, hosts[4])
+ent_beam_01_val.insert(0, devices[4]['IP'])
 
 lbl_beam_01_txt.grid(row=4, column=0, stick='w', padx=x_space, pady=y_space)
 ent_beam_01_val.grid(row=4, column=1, stick='w', padx=x_space, pady=y_space)
 
-lbl_beam_02_txt = Label(frame_ip_addresses_set, text=device_names[5], font='none 12', width=24)
+lbl_beam_02_txt = Label(frame_ip_addresses_set, text=devices[5]['Name'], font='none 12', width=24)
 ent_beam_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_beam_02_val.insert(0, hosts[5])
+ent_beam_02_val.insert(0, devices[5]['IP'])
 
 lbl_beam_02_txt.grid(row=5, column=0, stick='w', padx=x_space, pady=y_space)
 ent_beam_02_val.grid(row=5, column=1, stick='w', padx=x_space, pady=y_space)
 
-lbl_relay_01_txt = Label(frame_ip_addresses_set, text=device_names[6], font='none 12', width=24)
+lbl_relay_01_txt = Label(frame_ip_addresses_set, text=devices[6]['Name'], font='none 12', width=24)
 ent_relay_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_relay_01_val.insert(0, hosts[6])
+ent_relay_01_val.insert(0, devices[6]['IP'])
 
 lbl_relay_01_txt.grid(row=6, column=0, stick='w', padx=x_space, pady=y_space)
 ent_relay_01_val.grid(row=6, column=1, stick='w', padx=x_space, pady=y_space)
 
-lbl_relay_02_txt = Label(frame_ip_addresses_set, text=device_names[7], font='none 12', width=24)
+lbl_relay_02_txt = Label(frame_ip_addresses_set, text=devices[7]['Name'], font='none 12', width=24)
 ent_relay_02_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
-ent_relay_02_val.insert(0, hosts[7])
+ent_relay_02_val.insert(0, devices[7]['IP'])
 
 lbl_relay_02_txt.grid(row=7, column=0, stick='w', padx=x_space, pady=y_space)
 ent_relay_02_val.grid(row=7, column=1, stick='w', padx=x_space, pady=y_space)
 
+lbl_ipcam_01_txt = Label(frame_ip_addresses_set, text=devices[8]['Name'], font='none 12', width=24)
+ent_ipcam_01_val = Entry(frame_ip_addresses_set, font='none 12', width=16)
+ent_ipcam_01_val.insert(0, devices[8]['IP'])
+
+lbl_ipcam_01_txt.grid(row=8, column=0, stick='w', padx=x_space, pady=y_space)
+ent_ipcam_01_val.grid(row=8, column=1, stick='w', padx=x_space, pady=y_space)
+
 btn_read_ip_addresses = Button(frame_ip_addresses_set, text='Apply IP addresses', width=16, command=apply_ip_addresses)
 btn_read_ip_addresses.focus_set()
 
-btn_read_ip_addresses.grid(row=8, column=1, stick='w', padx=x_space, pady=y_space)
-
+btn_read_ip_addresses.grid(row=9, column=1, stick='w', padx=x_space, pady=y_space)
 
 
 window.mainloop()

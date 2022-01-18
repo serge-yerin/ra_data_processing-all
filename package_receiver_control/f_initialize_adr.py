@@ -9,18 +9,20 @@ from os import path
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_receiver_control.f_connect_to_adr_receiver import f_connect_to_adr_receiver
 
+
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
+
 def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
-    '''
+    """
     Function initializes ADR receiver if it was just turned on
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         print_or_not        - to print the parameters to console (1) or not (0)
     Output parameters:
 
-    '''
+    """
     # Be sure variables are without spaces! Use underscore instead
 
     observatory_name = 'GURT_Volokhiv_Yar_(Kharkiv_region)_Ukraine'
@@ -79,7 +81,6 @@ def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
     serversocket.send((b"set prc/srv/ctl/adr 7 1\0"))  # start DSP
     data = f_read_adr_meassage(serversocket, print_or_not)
 
-
     # Set system name (receiver name):
     serversocket.send(('set prc/srv/ctl/sys ' + receiver_name + '\0').encode())
     data = f_read_adr_meassage(serversocket, print_or_not)
@@ -97,7 +98,6 @@ def f_initialize_adr(serversocket, receiver_ip, print_or_not, pause = 0.1):
     time.sleep(pause)
 
     return
-
 
 
 ################################################################################

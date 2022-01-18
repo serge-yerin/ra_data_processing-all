@@ -382,7 +382,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         TwoOrOneValuePlot(1, frequency, array[:,[1]], [],
                     'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
                     YaxName, ' ', Suptitle, Title,
-                    newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] + ' Immediate Spectrum.png',
+                    newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] + ' Immediate Spectrum full.png',
                     current_date, current_time, Software_version)
 
         # *** Decide to use only list of frequencies or all frequencies in range
@@ -448,6 +448,24 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             freq_line = frequency[ifmin:ifmax]
         else:
             freq_line = frequency
+
+        #####################################################################################
+        if SpecFreqRange == 1:
+            # *** Immediate spectrum in narrow frequency range ***
+
+            Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
+            Title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' + str(
+                round(df / 1000, 3)) +
+                     ' kHz ' + sumDifMode + 'Processing: ' + reducing_type + str(averageConst) +
+                     ' spectra (' + str(round(averageConst * time_resolution, 3)) + ' sec.)')
+
+            TwoOrOneValuePlot(1, freq_line, array[:, [1]], [],
+                              'Spectrum', ' ', freq_line[0], freq_line[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
+                              YaxName, ' ', Suptitle, Title,
+                              newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_' + typesOfData[
+                                  j] + ' Immediate Spectrum narrow range.png',
+                              current_date, current_time, Software_version)
+        #####################################################################################
 
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
         Vmin = np.min(array)

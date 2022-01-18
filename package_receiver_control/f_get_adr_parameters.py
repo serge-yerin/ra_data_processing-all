@@ -6,27 +6,29 @@
 from package_receiver_control.f_read_adr_meassage import f_read_adr_meassage
 from package_common_modules.text_manipulations import find_between
 
+
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
+
 def f_get_adr_parameters(serversocket, print_or_not):
-    '''
+    """
     Function requests ADR receiver parameters via specified socket and prints them
     Input parameters:
         serversocket        - handle of socket to send and receive messages from server
         print_or_not        - to print the parameters to console (1) or not (0)
     Output parameters:
         parameters_dict     - dictionary with current parameters of ADR receiver
-    '''
+    """
     parameters_dict = {}
 
     serversocket.send((b'get prc/srv/ctl/pth\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
-    parameters_dict["save_data_path"] = find_between(data,'SUCCESS\n','\n')
+    parameters_dict["save_data_path"] = find_between(data, 'SUCCESS\n', '\n')
 
     serversocket.send((b'get prc/srv/ctl/sys\0'))  # read directory where data are stored
     data =  f_read_adr_meassage(serversocket, 0)
-    parameters_dict["receiver_name"] = find_between(data,'SUCCESS\n','\n')
+    parameters_dict["receiver_name"] = find_between(data, 'SUCCESS\n', '\n')
 
     serversocket.send((b'get prc/srv/ctl/plc\0'))  # read directory where data are stored
     data = f_read_adr_meassage(serversocket, 0)
@@ -69,12 +71,15 @@ def f_get_adr_parameters(serversocket, print_or_not):
     parameters_dict["time_of_file"] = int(find_between(data, 'restriction  (MB)\n', ' - Time restriction'))
 
     # Calculation of frequency and time parameters
-    parameters_dict["time_resolution"] = parameters_dict["spectra_averaging"] * (parameters_dict["FFT_size_samples"] / float(parameters_dict["clock_frequency"]))
-    parameters_dict["frequency_resolution"] = float(parameters_dict["clock_frequency"]) / parameters_dict["FFT_size_samples"]
+    parameters_dict["time_resolution"] = parameters_dict["spectra_averaging"] * \
+        (parameters_dict["FFT_size_samples"] / float(parameters_dict["clock_frequency"]))
+    parameters_dict["frequency_resolution"] = \
+        float(parameters_dict["clock_frequency"]) / parameters_dict["FFT_size_samples"]
     parameters_dict["number_of_channels"] = int(parameters_dict["width_line_freq"] * 1024)
-    parameters_dict["lowest_frequency"] = parameters_dict["start_line_freq"] * 1024 * parameters_dict["frequency_resolution"]
-    parameters_dict["highest_frequency"] = (parameters_dict["lowest_frequency"] + parameters_dict["number_of_channels"] *
-                                        parameters_dict["frequency_resolution"])
+    parameters_dict["lowest_frequency"] = \
+        parameters_dict["start_line_freq"] * 1024 * parameters_dict["frequency_resolution"]
+    parameters_dict["highest_frequency"] = (parameters_dict["lowest_frequency"] +
+        parameters_dict["number_of_channels"] * parameters_dict["frequency_resolution"])
 
     # Printing the parameters to console
     if print_or_not > 0:
@@ -95,7 +100,8 @@ def f_get_adr_parameters(serversocket, print_or_not):
         else:
             print('   External 160 MHz clock:       ', parameters_dict["external_clock"])
 
-        print('   Sampling frequency:           ', format(parameters_dict["clock_frequency"], ',').replace(',', ' ').replace('.', ','), ' Hz')
+        print('   Sampling frequency:           ', format(parameters_dict["clock_frequency"],
+                                                          ',').replace(',', ' ').replace('.', ','), ' Hz')
         print('   FFT samples number:           ', parameters_dict["FFT_size_samples"])
         print('   Number of frequency channels: ', parameters_dict["number_of_channels"])
         if parameters_dict["sum_diff_mode"] == 'ON':
@@ -112,6 +118,7 @@ def f_get_adr_parameters(serversocket, print_or_not):
 
 ################################################################################
 
+
 if __name__ == '__main__':
 
     host = '192.168.1.171'
@@ -119,6 +126,7 @@ if __name__ == '__main__':
     control = 1
     delay = 5
 
+    serversocket = None
     parameters_dict = f_get_adr_parameters(serversocket, 1)
 
     '''
@@ -167,8 +175,4 @@ F_ADC: 160000002
 FS_FREE: 1.35e+04
 FS_PERC: 41.6
 '''
-
-
-
-
-    # get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group
+# get prc/dsp/ctl/mdo                     - get values for all sub-parameters from [mdo] group

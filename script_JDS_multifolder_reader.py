@@ -24,8 +24,8 @@ customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
-longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
+longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
+longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
@@ -61,7 +61,7 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 # *******************************************************************************
 
 print('\n\n\n\n\n\n   **************************************************************')
-print('   *    ', Software_name,'  v.',Software_version,'     *      (c) YeS 2019')
+print('   *    ', Software_name, '  v.', Software_version, '     *      (c) YeS 2019')
 print('   ************************************************************** \n\n')
 
 startTime = time.time()
@@ -78,11 +78,11 @@ path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'DATA/'
 file_path_list, file_name_list = find_all_files_in_folder_and_subfolders(path_to_data, '.jds', 0)
 
 # Making all slashes in paths of the same type
-for i in range (len(file_path_list)):
+for i in range(len(file_path_list)):
     file_path_list[i] = file_path_list[i].replace('\\', '/')
 
 # Taking only paths without file names
-for i in range (len(file_path_list)):
+for i in range(len(file_path_list)):
     file_path_list[i] = file_path_list[i][: -len(file_name_list[i])]
 
 # Take only unique paths
@@ -99,7 +99,7 @@ for i in range(len(list_of_folder_names)):
 num_of_folders = len(list_of_folder_names)
 same_or_not = np.zeros(num_of_folders)
 equal_or_not = np.zeros(num_of_folders)
-for folder_no in range (num_of_folders):
+for folder_no in range(num_of_folders):
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.jds', 0)
     print('\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no],
           '\n **********************************************************')
@@ -111,7 +111,8 @@ for folder_no in range (num_of_folders):
     same_or_not[folder_no] = check_if_all_files_of_same_size(list_of_folder_names[folder_no], file_name_list_current, 1)
 
     # Check if all files in this folder have the same parameters in headers
-    equal_or_not[folder_no] = check_if_JDS_files_of_equal_parameters(list_of_folder_names[folder_no], file_name_list_current)
+    equal_or_not[folder_no] = check_if_JDS_files_of_equal_parameters(list_of_folder_names[folder_no],
+                                                                     file_name_list_current)
 
 if int(np.sum((equal_or_not[:])) == num_of_folders) and (int(np.sum(same_or_not[:])) == num_of_folders):
     print('\n\n\n        :-)  All folders seem to be ready for reading and processing!  :-) \n\n\n')
@@ -134,12 +135,12 @@ print('   **************************************************************')
 
 
 # In loop take a folder, make a result folder and process the data
-for folder_no in range (num_of_folders):
+for folder_no in range(num_of_folders):
 
     # Find all files in folder once more:
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.jds', 0)
 
-    print ('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no])
+    print('\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no])
 
     # Making a name of folder for storing the result figures and txt files
     # result_path = 'JDS_Results_'+list_of_folder_names[folder_no].split('/')[-2]
@@ -149,17 +150,18 @@ for folder_no in range (num_of_folders):
     else:
         result_path = list_of_folder_names[folder_no] + 'JDS_Results_' + result_folder_name
 
-    for file in range (len(file_name_list_current)):
+    for file in range(len(file_name_list_current)):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
 
     # Run ADR reader for the current folder
-    done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path,
-                    MaxNsp, spSkip, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-                    VminCorrMag, VmaxCorrMag, colormap, customDPI,
-                    CorrelationProcess, longFileSaveAch,
-                    longFileSaveBch, longFileSaveCRI, longFileSaveCMP,
-                    DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
-                    CorrSpecSaveCleaned, SpecterFileSaveSwitch, ImmediateSpNo)
+    done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, MaxNsp, spSkip,
+                                                                RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                                VminCorrMag, VmaxCorrMag, colormap, customDPI,
+                                                                CorrelationProcess, longFileSaveAch, longFileSaveBch,
+                                                                longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
+                                                                DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                                CorrSpecSaveCleaned, SpecterFileSaveSwitch,
+                                                                ImmediateSpNo)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
@@ -179,6 +181,6 @@ for folder_no in range (num_of_folders):
 
 
 endTime = time.time()    # Time of calculations
-print('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
-                                                round((endTime - startTime)/60, 2), 'min. ) \n')
+print('\n\n\n  The program execution lasted for ',
+      round((endTime - startTime), 2), 'seconds (', round((endTime - startTime)/60, 2), 'min. ) \n')
 print('    *** Program ', Software_name, ' has finished! *** \n\n\n')

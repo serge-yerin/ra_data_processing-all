@@ -80,8 +80,9 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         print(' Dispersion measure:                          ', DM, ' pc / cm3 ')
 
         # Calculation of number of blocks and number of spectra in the file
-        no_of_spectra_in_bunch = max_shift
-        no_of_bunches_per_file = int((df_filesize - 1024) / (no_of_spectra_in_bunch * no_of_points_for_fft_dedisp * 4))
+        no_of_spectra_in_bunch = max_shift.copy()
+        no_of_bunches_per_file = int(np.ceil((df_filesize - 1024)
+                                             / (no_of_spectra_in_bunch * no_of_points_for_fft_dedisp * 4)))
 
         # Real time resolution of spectra
         fine_clock_freq = (int(clock_freq / 1000000.0) * 1000000.0)
@@ -101,13 +102,21 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
-        bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file - 1,
+        # bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file - 1,
+        bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file,
                              suffix='%(percent)d%%')
         bar.start()
 
-        for bunch in range(no_of_bunches_per_file - 1):
+        # for bunch in range(no_of_bunches_per_file - 1):
+        for bunch in range(no_of_bunches_per_file):
 
-            # bar.next()
+            # Trying to read all the file, not only integer number of bunches
+            if bunch >= no_of_bunches_per_file - 1:
+                no_of_spectra_in_bunch = int(((df_filesize - 1024) - bunch * max_shift * no_of_points_for_fft_dedisp * 4) /
+                                             (no_of_points_for_fft_dedisp * 4))
+                # print('\n  Bunch No ', str(bunch+1), ' of ', no_of_bunches_per_file, ' bunches')
+                # print('\n  Number of spectra in the last bunch is: ', no_of_spectra_in_bunch)
+                # print('\n  Maximal shift is:                       ', max_shift)
 
             # Read time from timeline file for the bunch
             time_scale_bunch = []
@@ -131,7 +140,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             wf_data = np.reshape(wf_data, [no_of_points_for_fft_dedisp, no_of_spectra_in_bunch], order='F')
 
             # preparing matrices for spectra
-            spectra = np.zeros((no_of_points_for_fft_dedisp, max_shift), dtype='complex64')
+            spectra = np.zeros((no_of_points_for_fft_dedisp, no_of_spectra_in_bunch), dtype='complex64')
 
             # Calculation of spectra
             for i in range(no_of_spectra_in_bunch):
@@ -174,7 +183,13 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
             #  Dispersion delay removing
             data_space = np.zeros((freq_points_num, 2 * max_shift), dtype='complex64')
-            data_space[:, max_shift:] = spectra[:, :]
+
+            # if it is the last bunch - use only availble data
+            if bunch >= no_of_bunches_per_file - 1:
+                data_space[:, max_shift:max_shift + no_of_spectra_in_bunch] = spectra[:, :]
+            else:
+                data_space[:, max_shift:] = spectra[:, :]
+
             data_space = pulsar_DM_compensation_with_indices_changes(data_space, shift_vector)
             del spectra
 
@@ -182,16 +197,19 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             buffer_array += data_space
 
             # Making and filling the array with fully ready data for plotting and saving to a file
-            array_compensated_DM = buffer_array[:, 0: max_shift]
+            if bunch >= no_of_bunches_per_file - 1:
+                array_compensated_dm = buffer_array[:, 0: no_of_spectra_in_bunch]
+            else:
+                array_compensated_dm = buffer_array[:, 0: max_shift]
 
             if bunch > 0:
 
-                # Saving time data to new file
+                # Saving time data to a new file
                 for i in range(len(time_scale_bunch)):
                     new_tl_file.write((time_scale_bunch[i][:]) + '')
 
                 # Saving data with compensated DM
-                spectra = array_compensated_DM.copy()
+                spectra = array_compensated_dm  # .copy()
 
                 '''
                 # making figures
