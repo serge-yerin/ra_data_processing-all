@@ -74,6 +74,60 @@ def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
     return word_bytearray
 
 
+def change_thread_id_in_header(a_vdif_header, thread_id):
+    """
+    The function changes the thread_id in bytearray header to specified number
+    a_vdif_header - the bytearray header to change the thread_id
+    thread_id - integer number of the thread_in from 0 to 1023!
+    at the output we have the header with changed thread_id
+    """
+
+    # current thread id in header:
+    data_2_bytes = int.from_bytes(a_vdif_header[12:14], byteorder='big', signed=False)  # [12:16]
+    # print(' Read bytes:', data_2_bytes)
+    mask_1 = int('0000001111111111', 2)  # mask = int('00000011111111110000000000000000', 2)
+    mask_2 = int('1111110000000000', 2)
+    # t_id = (mask_1 & data_2_bytes)  # t_id = (mask & data_2_bytes) >> 16
+    # print(' Tread:', t_id)
+    part_without_changes = (mask_2 & data_2_bytes)
+    word_2_bytes = part_without_changes | thread_id
+    # print('2 bytes: ', word_2_bytes)
+    # Convert 2 byte number to separate bytes and save to header bytearray
+    ones_byte = int('11111111', 2)
+    byte_0 = ones_byte & word_2_bytes
+    byte_1 = ones_byte & word_2_bytes >> 8
+    a_vdif_header[12:14] = bytearray([byte_1, byte_0])
+
+    # # Code to check the thread_id in header
+    # t_id = int.from_bytes(a_vdif_header[12:14], byteorder='big', signed=False)
+    # print(' Read bytes:', t_id)
+    # mask_1 = int('0000001111111111', 2)
+    # t_id = (mask_1 & t_id)
+    # print(' Tread:', t_id)
+
+    return a_vdif_header
+
+
+def change_data_frame_no_in_header(a_vdif_header, a_data_frame_no):
+    """
+    The function changes the data frame number within second in bytearray header to specified number
+    a_vdif_header - the bytearray header to change the thread_id
+    a_data_frame_no - integer number of the data frame within second
+    at the output we have the header with changed a_data_frame_no
+    """
+    return a_vdif_header
+
+
+def change_secs_from_ref_epoch_in_header(a_vdif_header, a_sec_from_ref_epoch):
+    """
+    The function changes the second from reference epoch number in bytearray header to specified number
+    a_vdif_header - the bytearray header to change the thread_id
+    a_data_frame_no - integer number of the second from reference epoch number
+    at the output we have the header with changed second from reference epoch number
+    """
+    return a_vdif_header
+
+
 def rt32wf_to_vdf_frame_header(filepath):
     """
     The function forms a vdif data frame header
@@ -327,15 +381,18 @@ def rt32wf_to_vdf_data_converter(filepath):
             vdif_header_1 = vdif_header.copy()
             vdif_header_2 = vdif_header.copy()
 
-            # thread_id is changes only for the second thread header
-            vdif_header_2
+            # thread_id changes only for the second thread header
+            vdif_header_2 = change_thread_id_in_header(vdif_header_2, 1)
 
-            # current thread id in header:
-            t_id = int.from_bytes(vdif_header_2[12:16], byteorder='big', signed=False)
-            print(' Tread:', t_id)  # ???
-            mask = int('00000011111111110000000000000000', 2)
-            t_id = (mask & t_id) >> 16
-            print(' Tread:', t_id)
+            # data_frame_no change in thread headers of both channels/threads
+            data_frame_no = 1  # Temporary!!!
+            vdif_header_1 = change_data_frame_no_in_header(vdif_header_1, data_frame_no)
+            vdif_header_2 = change_data_frame_no_in_header(vdif_header_2, data_frame_no)
+
+            # secs_from_ref_epoch change in thread headers of both channels/threads
+            secs_from_ref_epoch = 1  # Temporary!!!
+            vdif_header_1 = change_secs_from_ref_epoch_in_header(vdif_header_1, secs_from_ref_epoch)
+            vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, secs_from_ref_epoch)
 
             # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
             data_bytearray = vdif_header_1 + data_bytearray_thrd_1 + vdif_header_2 + data_bytearray_thrd_2
