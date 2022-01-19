@@ -83,15 +83,13 @@ def change_thread_id_in_header(a_vdif_header, thread_id):
     """
 
     # current thread id in header:
-    data_2_bytes = int.from_bytes(a_vdif_header[12:14], byteorder='big', signed=False)  # [12:16]
-    # print(' Read bytes:', data_2_bytes)
-    mask_1 = int('0000001111111111', 2)  # mask = int('00000011111111110000000000000000', 2)
+    data_2_bytes = int.from_bytes(a_vdif_header[12:14], byteorder='big', signed=False)
+    # mask_1 = int('0000001111111111', 2)
     mask_2 = int('1111110000000000', 2)
     # t_id = (mask_1 & data_2_bytes)  # t_id = (mask & data_2_bytes) >> 16
     # print(' Tread:', t_id)
     part_without_changes = (mask_2 & data_2_bytes)
     word_2_bytes = part_without_changes | thread_id
-    # print('2 bytes: ', word_2_bytes)
     # Convert 2 byte number to separate bytes and save to header bytearray
     ones_byte = int('11111111', 2)
     byte_0 = ones_byte & word_2_bytes
@@ -112,9 +110,25 @@ def change_data_frame_no_in_header(a_vdif_header, a_data_frame_no):
     """
     The function changes the data frame number within second in bytearray header to specified number
     a_vdif_header - the bytearray header to change the thread_id
-    a_data_frame_no - integer number of the data frame within second
+    a_data_frame_no - integer number of the data frame within second less then 8388607
     at the output we have the header with changed a_data_frame_no
     """
+
+    # current data frame number within second in header:
+    data_4_bytes = int.from_bytes(a_vdif_header[4:8], byteorder='big', signed=False)
+    # mask_1 = int('00000000111111111111111111111111', 2)
+    mask_2 = int('11111111000000000000000000000000', 2)
+    # current_frame_no = (mask_1 & data_4_bytes)
+    # print(' Current frame number within second:', current_frame_no)
+    part_without_changes = (mask_2 & data_4_bytes)
+    word_4_bytes = part_without_changes | a_data_frame_no
+    a_vdif_header[4:8] = word_to_bytearray(word_4_bytes)
+
+    # # Code to check the data frame number within second in header
+    # data_4_bytes = int.from_bytes(a_vdif_header[4:8], byteorder='big', signed=False)
+    # current_frame_no = (mask_1 & data_4_bytes)
+    # print(' Current frame number: ', current_frame_no)
+
     return a_vdif_header
 
 
@@ -125,6 +139,22 @@ def change_secs_from_ref_epoch_in_header(a_vdif_header, a_sec_from_ref_epoch):
     a_data_frame_no - integer number of the second from reference epoch number
     at the output we have the header with changed second from reference epoch number
     """
+
+    # current second from reference epoch number in header:
+    data_4_bytes = int.from_bytes(a_vdif_header[0:4], byteorder='big', signed=False)
+    # mask_1 = int('00111111111111111111111111111111', 2)
+    mask_2 = int('11000000000000000000000000000000', 2)
+    # current_sec_from_ref = (mask_1 & data_4_bytes)
+    # print(' Current second from reference epoch: ', current_sec_from_ref)
+    part_without_changes = (mask_2 & data_4_bytes)
+    word_4_bytes = part_without_changes | a_sec_from_ref_epoch
+    a_vdif_header[0:4] = word_to_bytearray(word_4_bytes)
+
+    # # Code to check the second from reference epoch number in header
+    # data_4_bytes = int.from_bytes(a_vdif_header[0:4], byteorder='big', signed=False)
+    # current_sec_from_ref = (mask_1 & data_4_bytes)
+    # print(' Current second from reference epoch number: ', current_sec_from_ref)
+
     return a_vdif_header
 
 
