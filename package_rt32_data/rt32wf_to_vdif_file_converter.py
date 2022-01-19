@@ -58,6 +58,22 @@ def big_to_little_endian(data_bytearray):
     return data_bytearray
 
 
+# Forming the word from values
+def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
+    """
+    The function takes 4 uint8 or int8 values and form a 32 bit word
+    (actually can be changed by appropriate array operations)
+    """
+    if 0 > v_int_1 > 256 or 0 > v_int_2 > 256 or 0 > v_int_3 > 256 or 0 > v_int_4 > 256:
+        raise ValueError('\n\n      Error! Invalid value!  \n\n')
+    byte_4 = v_int_4 << 24
+    byte_3 = v_int_3 << 16
+    byte_2 = v_int_2 << 8
+    word = byte_4 | byte_3 | byte_2 | v_int_1
+    word_bytearray = word_to_bytearray(word)
+    return word_bytearray
+
+
 def rt32wf_to_vdf_frame_header(filepath):
     """
     The function forms a vdif data frame header
@@ -184,7 +200,7 @@ def rt32wf_to_vdf_frame_header(filepath):
     bits_per_sample = 7  # 8 bits actually
 
     # Word 3 Bits 25-16: Thread ID (0 to 1023)
-    thread_id = 0  # Seems to be the only thread, so 0.
+    thread_id = 0  # There will be 2 threads for 2 channels of the data, but by default we put here thread_id = 0
 
     # Word 3 Bits 15-0: Station ID; see Note 8 (standard globally assigned 2-character ASCII ID)
     station_id = 380  # Dummy number! Ask the right one!!!
@@ -213,8 +229,8 @@ def rt32wf_to_vdf_frame_header(filepath):
 
     header_bytearray += bytearray([0] * 16)
 
-    # Encoding the bytearray to little endian format
-    header_bytearray = big_to_little_endian(header_bytearray)
+    # # Encoding the bytearray to little endian format -> use single encoding of all data before writing to file
+    # header_bytearray = big_to_little_endian(header_bytearray)
 
     return header_bytearray, file_header_param_dict
 
@@ -227,9 +243,8 @@ def rt32wf_to_vdf_data_converter(filepath):
     print(' Header: ', vdif_header)
     print(' Header length: ', len(vdif_header), ' bytes \n')
 
+    # Open destination vdif file to save the results
     vdif_file = open("DATA/test_file.vdif", "wb")
-    # vdif_file.write(vdif_header)
-    # vdif_file.close()
 
     # Calculate the number of complex data point in the file
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
@@ -242,88 +257,96 @@ def rt32wf_to_vdf_data_converter(filepath):
     with open(filepath) as adr_file:  # Open data file
         adr_file.seek(1024)  # Jump to 1024 byte in the file to skip header
 
+        # Has to be changed by the number of bunches in the file
+        bunch_num = 2
         # The loop of data chunks to read and save to a frame starts here
+        for bunch in range(bunch_num):
+            print('\n * Bunch # ', bunch+1, ' of ', bunch_num, '\n')
 
-        # Read raw data from file in int8 format
-        raw_data = np.fromfile(adr_file, dtype=np.int8, count=n_fft * n_gates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
-        print(' Shape of data read from file:                ', raw_data.shape)
+            # Read raw data from file in int8 format
+            raw_data = np.fromfile(adr_file, dtype=np.int8, count=n_fft * n_gates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
+            print(' Shape of data read from file:                ', raw_data.shape)
 
-        # Separating real and imaginary data from the raw data
-        real_data = raw_data[0: n_fft * n_gates * 2 * 2: 2]
-        imag_data = raw_data[1: n_fft * n_gates * 2 * 2: 2]
-        del raw_data
-        print(' Shape of real data array:                    ', real_data.shape)
-        print(' Shape of imag data array:                    ', imag_data.shape, '\n')
+            # Separating real and imaginary data from the raw data
+            real_data = raw_data[0: n_fft * n_gates * 2 * 2: 2]
+            imag_data = raw_data[1: n_fft * n_gates * 2 * 2: 2]
+            del raw_data
+            print(' Shape of real data array:                    ', real_data.shape)
+            print(' Shape of imag data array:                    ', imag_data.shape, '\n')
 
-        # Separate channels of data for real and imag parts:
-        real_2ch_data = np.reshape(real_data, (n_gates * n_fft, 2))
-        imag_2ch_data = np.reshape(imag_data, (n_gates * n_fft, 2))
-        del real_data, imag_data
-        print(' Shape of real data array:                    ', real_2ch_data.shape)
-        print(' Shape of imag data array:                    ', imag_2ch_data.shape, '\n')
-        print(' Type of imag data array:                     ', imag_2ch_data.dtype, '\n')
+            # Separate channels of data for real and imag parts:
+            real_2ch_data = np.reshape(real_data, (n_gates * n_fft, 2))
+            imag_2ch_data = np.reshape(imag_data, (n_gates * n_fft, 2))
+            del real_data, imag_data
+            print(' Shape of real data array:                    ', real_2ch_data.shape)
+            print(' Shape of imag data array:                    ', imag_2ch_data.shape, '\n')
+            print(' Type of imag data array:                     ', imag_2ch_data.dtype, '\n')
 
-        '''
-        So now we have an array of real data real_2ch_data of some length with 2 channels
-        and imaginary data in imag_2ch_data of same length with 2 channels
-        '''
+            '''
+            So now we have an array of real data real_2ch_data of some length with 2 channels
+            and imaginary data in imag_2ch_data of same length with 2 channels
+            '''
 
-        # Converting int8 to uint8
-        print(' Range of Real data in int8 format:           ', np.min(real_2ch_data), np.max(real_2ch_data))
-        real_2ch_data = np.array(real_2ch_data + 128, dtype=np.uint8)
-        imag_2ch_data = np.array(imag_2ch_data + 128, dtype=np.uint8)
-        print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data), '\n')
+            # Converting int8 to uint8
+            print(' Range of Real data in int8 format:           ', np.min(real_2ch_data), np.max(real_2ch_data))
+            real_2ch_data = np.array(real_2ch_data + 128, dtype=np.uint8)
+            imag_2ch_data = np.array(imag_2ch_data + 128, dtype=np.uint8)
+            print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data), '\n')
 
-        # Forming the word from values
-        def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
-            if 0 > v_int_1 > 256 or 0 > v_int_2 > 256 or 0 > v_int_3 > 256 or 0 > v_int_4 > 256:
-                raise ValueError('\n\n      Error! Invalid value!  \n\n')
-            byte_4 = v_int_4 << 24
-            byte_3 = v_int_3 << 16
-            byte_2 = v_int_2 << 8
-            word = byte_4 | byte_3 | byte_2 | v_int_1
-            word_bytearray = word_to_bytearray(word)
-            return word_bytearray
+            # Make data bytearray of the extracted data
+            data_bytearray_thrd_1 = bytearray([])
+            data_bytearray_thrd_2 = bytearray([])
 
-        # Make data bytearray of the extracted data
-        data_bytearray_thrd_1 = bytearray([])
-        data_bytearray_thrd_2 = bytearray([])
+            # The two identical loops should be separated into separate cpu threads
+            for i in range(real_2ch_data.shape[0] // 2):
+                word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
+                                                     real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
+                data_bytearray_thrd_1 += word_bytearray
 
-        # The two identical loops should be separated into separate cpu threads
-        for i in range(real_2ch_data.shape[0] // 2):
-            word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
-                                                 real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
-            data_bytearray_thrd_1 += word_bytearray
+            for i in range(real_2ch_data.shape[0] // 2):
+                word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     1], imag_2ch_data[2 * i,     1],
+                                                     real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
+                data_bytearray_thrd_2 += word_bytearray
 
-        for i in range(real_2ch_data.shape[0] // 2):
-            word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     1], imag_2ch_data[2 * i,     1],
-                                                 real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
-            data_bytearray_thrd_2 += word_bytearray
+            print(' Length of data frame body is:                ', len(data_bytearray_thrd_1), ' bytes')
+            print(' Length of full data frame is:                ', len(data_bytearray_thrd_1) + 32, ' bytes')
+            print(' Length of full data frame is:                ', (len(data_bytearray_thrd_1) + 32) / 8,
+                  ' of 8 bytes chunks')
 
-        print(' Length of data frame body is:                ', len(data_bytearray_thrd_1), ' bytes')
-        print(' Length of full data frame is:                ', len(data_bytearray_thrd_1) + 32, ' bytes')
-        print(' Length of full data frame is:                ', (len(data_bytearray_thrd_1) + 32) / 8,
-              ' of 8 bytes chunks')
+            # # Encoding the bytearray to little endian format -> use single encoding of all data before writing to file
+            # data_bytearray_thrd_1 = big_to_little_endian(data_bytearray_thrd_1)
+            # data_bytearray_thrd_2 = big_to_little_endian(data_bytearray_thrd_2)
 
-        # Encoding the bytearray to little endian format
-        data_bytearray_thrd_1 = big_to_little_endian(data_bytearray_thrd_1)
-        data_bytearray_thrd_2 = big_to_little_endian(data_bytearray_thrd_2)
+            '''
+            Form the correct frame header with correct values of:
+            - thread_id for both threads
+            - seconds from reference epoch - to count accordingly to   
+            - frame no within second 
+            '''
 
-        '''
-        Change thread_id and number in current header bytearrays 
-        Pack data bytearrays with header bytearrays to obtain 2 frames
-        Save the bytearrays to file
-        end loop and repeat
-        '''
+            vdif_header_1 = vdif_header.copy()
+            vdif_header_2 = vdif_header.copy()
 
-        # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
-        data_bytearray = vdif_header + data_bytearray_thrd_1 + vdif_header + data_bytearray_thrd_2
-        vdif_file.write(data_bytearray)
+            # thread_id is changes only for the second thread header
+            vdif_header_2
+
+            # current thread id in header:
+            t_id = int.from_bytes(vdif_header_2[12:16], byteorder='big', signed=False)
+            print(' Tread:', t_id)  # ???
+            mask = int('00000011111111110000000000000000', 2)
+            t_id = (mask & t_id) >> 16
+            print(' Tread:', t_id)
+
+            # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
+            data_bytearray = vdif_header_1 + data_bytearray_thrd_1 + vdif_header_2 + data_bytearray_thrd_2
+
+            # Encoding the whole bytearray to little endian format
+            data_bytearray = big_to_little_endian(data_bytearray)
+
+            vdif_file.write(data_bytearray)
 
     # Closing the result file
     vdif_file.close()
-
-
 
     return
 
