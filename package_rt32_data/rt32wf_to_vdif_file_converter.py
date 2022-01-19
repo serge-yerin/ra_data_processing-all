@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2021.08.28'
+Software_version = '2022.01.19'
 Software_name = 'RT-32 Zolochiv waveform reader and converter to vdif'
 # Script intended to read, show and analyze data from MARK5 receiver
 # *******************************************************************************
@@ -169,7 +169,7 @@ def rt32wf_to_vdf_frame_header(filepath):
     header_bytearray = bytearray([])
     # ------------------------------------------------------------------------------------------------------------------
     # Word 0 Bits 31-30
-    b31 = 0  # Invalid data
+    b31 = 0  # Invalid data marker (valid - 0, invalid - 1)
     b30 = 0  # Standard 32-byte VDIF Data Frame header
 
     # Word 0 Bits 29-0 Seconds from reference epoch
@@ -310,7 +310,6 @@ def rt32wf_to_vdf_frame_header(filepath):
     # Words 4-7
     # Extended User Data: Format and interpretation of extended user data is indicated by the value of
     # Extended Data Version (EDV) in Word 4 Bits 31-24; see Note 9
-
     header_bytearray += bytearray([0] * 16)
 
     # # Encoding the bytearray to little endian format -> use single encoding of all data before writing to file
@@ -343,6 +342,15 @@ def rt32wf_to_vdf_data_converter(filepath):
 
         # Has to be changed by the number of bunches in the file
         bunch_num = 2
+
+        # We have 16 000 000 real and the same amount of imag points per second
+        '''
+        Here we have to wait for the end of current second and start forming frames with the start of a new second
+        In the second there is not an even number of frames, how we deal with this?
+        In a loop we count number of points and correct seconds from reference epoch in header accordingly
+        In a loop we count number of frames and save it into headers   
+        '''
+
         # The loop of data chunks to read and save to a frame starts here
         for bunch in range(bunch_num):
             print('\n * Bunch # ', bunch+1, ' of ', bunch_num, '\n')
