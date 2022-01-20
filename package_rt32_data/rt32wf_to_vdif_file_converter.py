@@ -179,7 +179,6 @@ def rt32wf_to_vdf_frame_header(filepath):
     # We take the date from initial file name, which is odd but solves a lot of problems without changing of file header
     reference_epoch = '2020.01.01 00:00:00'
 
-    # print(file_header_param_dict["File creation utc time"])
     # print(file_header_param_dict["File creation local time"])
 
     dt_reference_epoch = datetime(int(reference_epoch[0:4]),
@@ -332,7 +331,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
     print(' Seconds from reference epoch: ', adr_header_dict["Seconds from reference epoch"], ' sec. \n')
 
     # Open destination vdif file to save the results
-    vdif_file = open("DATA/test_file.vdif", "wb")
+    vdif_file = open("DATA/" + adr_header_dict["Initial file name"][:-4] + ".vdif", "wb")
 
     # Calculate the number of complex data point in the file
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
@@ -341,11 +340,6 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
     samples_per_frame = 1000000  # To have exactly 16 frames per second at 16 MHz sampling rate
 
     with open(filepath) as adr_file:  # Open data file
-
-        '''
-        In a loop we count number of points and correct seconds from reference epoch in header accordingly
-        In a loop we count number of frames and save it into headers
-        '''
 
         # Skip data till the next second start
 
@@ -360,8 +354,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
         adr_file.seek(1024 + samples_to_skip * 4)  # Jump to 1024 byte in the file to skip header + samples to skip
 
         # Calculate number of bunches in file to read
-        full_file_size = adr_header_dict["File size in bytes"]
-        bunch_num = (full_file_size - (1024 + samples_to_skip * 4)) // (samples_per_frame * 4)
+        bunch_num = (adr_header_dict["File size in bytes"] - (1024 + samples_to_skip * 4)) // (samples_per_frame * 4)
 
         print(' Number of bunches in file: ', bunch_num, '\n\n')
 
@@ -377,10 +370,9 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
                 frame_counter = 0
                 second_counter += 1
                 # if verbose:
-                print(' Frame counter:', frame_counter, ', second from epoch', second_counter)
+                print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
 
             # Read raw data from file in int8 format
-            # raw_data = np.fromfile(adr_file, dtype=np.int8, count=n_fft * n_gates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
             raw_data = np.fromfile(adr_file, dtype=np.int8, count=samples_per_frame * 2 * 2)  # 2 ch (Re + Im) of 1 byte
             if verbose:
                 print(' Shape of data read from file:                ', raw_data.shape)
@@ -403,7 +395,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
                 print(' Type of imag data array:                     ', imag_2ch_data.dtype, '\n')
 
             '''
-            So now we have an array of real data real_2ch_data of some length with 2 channels
+            now we have an array of real data real_2ch_data of some length with 2 channels
             and imaginary data in imag_2ch_data of same length with 2 channels
             '''
 
@@ -413,13 +405,14 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             real_2ch_data = np.array(real_2ch_data + 128, dtype=np.uint8)
             imag_2ch_data = np.array(imag_2ch_data + 128, dtype=np.uint8)
             if verbose:
-                print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data), '\n')
+                print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data),
+                      '\n')
 
             # Make data bytearray of the extracted data
             data_bytearray_thrd_1 = bytearray([])
             data_bytearray_thrd_2 = bytearray([])
 
-            # The two identical loops should be separated into separate cpu threads
+            # The two identical loops (and further operations) should be separated into separate cpu threads
             for i in range(real_2ch_data.shape[0] // 2):
                 word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
                                                      real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
@@ -436,17 +429,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
                 print(' Length of full data frame is:                ', (len(data_bytearray_thrd_1) + 32) / 8,
                       ' of 8 bytes chunks')
 
-            # # Encoding the bytearray to little endian format -> use single encoding of all data before writing to file
-            # data_bytearray_thrd_1 = big_to_little_endian(data_bytearray_thrd_1)
-            # data_bytearray_thrd_2 = big_to_little_endian(data_bytearray_thrd_2)
-
-            '''
-            Form the correct frame header with correct values of:
-            - thread_id for both threads
-            - seconds from reference epoch - to count accordingly to   
-            - frame no within second 
-            '''
-
+            # Make two copies of basic headers for changing them according to current numbers
             vdif_header_1 = vdif_header.copy()
             vdif_header_2 = vdif_header.copy()
 
