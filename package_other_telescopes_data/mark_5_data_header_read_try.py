@@ -2,22 +2,22 @@
 Software_version = '2020.05.01'
 Software_name = 'MARK5 reader'
 # Script intended to read, show and analyze data from MARK5 receiver
-#*******************************************************************************
-#                             P A R A M E T E R S                              *
-#*******************************************************************************
+# *******************************************************************************
+#                              P A R A M E T E R S                              *
+# *******************************************************************************
 directory = 'DATA/'
 filename = 'pul_b0329+54_ir_no0004.m5a '
 no_of_samples_to_average = 512000  # 64000
 points_in_bunch = 1280
-y_min_sum = 6180000   #6170000
-y_max_sum = 6195000   #6185000
+y_min_sum = 6180000   # 6170000
+y_max_sum = 6195000   # 6185000
 y_min_chan = 766000   # 765000
 y_max_chan = 783000   # 781000
 save_aver_data = 1
 save_figures = 1
-#*******************************************************************************
-#                    I M P O R T    L I B R A R I E S                          *
-#*******************************************************************************
+# *******************************************************************************
+#                     I M P O R T    L I B R A R I E S                          *
+# *******************************************************************************
 # Common functions
 import sys
 import numpy as np
@@ -37,9 +37,9 @@ if __package__ is None:
 
 
 def mark_5_data_header_read(file):
-    '''
+    """
     First try to read Mark 5 data header
-    '''
+    """
 
     A = np.uint32(int('00111111111111111111111111111111', 2))
     B = np.uint32(int('10000000000000000000000000000000', 2))
@@ -98,21 +98,25 @@ def mark_5_data_header_read(file):
     print('   Station ID:                         ', station_id, ' ')
     print('   Extended data version:              ', extended_data_version, ' ')
 
-    if epoch_no == 39: epoch_start = '2019-06-01 00:00:00'
-    if epoch_no == 40: epoch_start = '2020-01-01 00:00:00'
-    if epoch_no == 41: epoch_start = '2020-06-01 00:00:00'
+    if epoch_no == 39:
+        epoch_start = '2019-06-01 00:00:00'
+    if epoch_no == 40:
+        epoch_start = '2020-01-01 00:00:00'
+    if epoch_no == 41:
+        epoch_start = '2020-06-01 00:00:00'
 
     dt_epoch_start = datetime(int(epoch_start[0:4]), int(epoch_start[5:7]), int(epoch_start[8:10]),
-                                  int(epoch_start[11:13]), int(epoch_start[14:16]),
-                                  int(epoch_start[17:19]), 0)
+                              int(epoch_start[11:13]), int(epoch_start[14:16]), int(epoch_start[17:19]), 0)
 
-    dt_file_start = dt_epoch_start + timedelta(seconds = int(seconds_from_epoch_begin))
+    dt_file_start = dt_epoch_start + timedelta(seconds=int(seconds_from_epoch_begin))
 
     print('   Date and time of first data frame:  ', dt_file_start)
 
     return data_frame_length, num_of_channels, bits_per_sample, dt_file_start
 
+
 ################################################################################
+
 
 if __name__ == '__main__':
 
@@ -125,14 +129,14 @@ if __name__ == '__main__':
     currentDate = time.strftime("%d.%m.%Y")
     print('   Today is ', currentDate, ' time is ', currentTime, '\n')
 
-    # *** Creating a folder where all pictures and results will be stored (if it doen't exist) ***
+    # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
     result_path = 'RESULTS_MARK5_Reader'
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
     filepath = directory + filename
 
-    file_size = (os.stat(filepath).st_size)  # Size of file
+    file_size = os.stat(filepath).st_size  # Size of file
     print('\n   File size:                    ', round(file_size / 1024 / 1024, 3), ' Mb (', file_size, ' bytes )')
 
     with open(filepath, 'rb') as file:
@@ -160,22 +164,19 @@ if __name__ == '__main__':
         no_of_bunches = int(no_of_bunches)
         print('   Bunches in file (integer):          ', no_of_bunches, '\n')
 
-
         # making long DAT file to store average data
         if save_aver_data > 0:
             file.seek(0)  # Jumping to the file beginning
             file_header = file.read(32)
-            dat_file_name = filename.replace('.','_') + '.dat'
+            dat_file_name = filename.replace('.', '_') + '.dat'
             dat_file = open(dat_file_name, 'wb')
             dat_file.write(file_header)
             dat_file.close()
 
-        #raw_data = np.fromfile(file, dtype='i2', count=int(data_bytes_length/2))
-        #unpacked_data = np.zeros((int(num_of_channels), int(4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
+        # raw_data = np.fromfile(file, dtype='i2', count=int(data_bytes_length/2))
+        # unpacked_data = np.zeros((int(num_of_channels), int(4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
 
         file.seek(0)  # Jumping to the file beginning
-
-
 
         no_of_bunches = no_of_bunches
 
@@ -184,15 +185,18 @@ if __name__ == '__main__':
             print('   Bunch ' + str(bunch+1)+' of '+str(no_of_bunches) + '   started at: ' + currentTime)
             profile = []
             channel_profiles = []
-            for i in range (points_in_bunch):  #
+            for i in range(points_in_bunch):
 
-                raw_data = np.fromfile(file, dtype='i2', count=int((data_frame_length * 8 / 2) * no_of_frames_to_average))
+                raw_data = np.fromfile(file, dtype='i2',
+                                       count=int((data_frame_length * 8 / 2) * no_of_frames_to_average))
                 raw_data = np.reshape(raw_data, [int(data_frame_length * 8 / 2), no_of_frames_to_average], order='F')
-                raw_data = raw_data[16: , :]
-                raw_data = np.reshape(raw_data, [int((data_frame_length * 8 / 2)-16) * no_of_frames_to_average], order='F')
+                raw_data = raw_data[16:, :]
+                raw_data = np.reshape(raw_data, [int((data_frame_length * 8 / 2)-16) * no_of_frames_to_average],
+                                      order='F')
 
-
-                unpacked_data = np.zeros((int(num_of_channels), int(no_of_frames_to_average * 4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
+                unpacked_data = np.zeros((int(num_of_channels),
+                                          int(no_of_frames_to_average * 4 * data_bytes_length / num_of_channels)),
+                                         dtype=np.uint8)
 
                 unpacked_data[0, :] = raw_data[:] & 3
                 unpacked_data[1, :] = np.right_shift(raw_data[:] & 12, 2)
@@ -203,11 +207,11 @@ if __name__ == '__main__':
                 unpacked_data[6, :] = np.right_shift(raw_data[:] & 12288, 12)
                 unpacked_data[7, :] = np.right_shift(raw_data[:] & 49152, 14)
 
-                channel_profiles.append(np.sum(unpacked_data, axis = 1))
+                channel_profiles.append(np.sum(unpacked_data, axis=1))
                 profile.append(np.sum(unpacked_data))
 
             channel_profiles = np.array(channel_profiles)
-            profile = np.array(profile, dtype = np.uint32)
+            profile = np.array(profile, dtype=np.uint32)
 
             # Store averaged data to long DAT file
             if save_aver_data > 0:
@@ -218,7 +222,8 @@ if __name__ == '__main__':
 
             if save_figures > 0:
                 # PLOTS
-                Title = 'File: ' + filename + ', recorded on ' + str(dt_file_start) +', samples averaged: ' + str(no_of_samples_to_average)
+                Title = 'File: ' + filename + ', recorded on ' + str(dt_file_start) + \
+                        ', samples averaged: ' + str(no_of_samples_to_average)
                 # Sum of channels
                 rc('font', size=8, weight='bold')
                 fig = plt.figure(1, figsize=(12.0, 5.0))
@@ -233,10 +238,10 @@ if __name__ == '__main__':
                 ax1.set_xlabel('Averaged samples, #', fontsize=10, fontweight='bold')
                 fig.text(0.78, -0.07, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=5,
                          transform=plt.gcf().transFigure)
-                fig.text(0.1, -0.07, 'Software version: ' + Software_version + ' yerin.serge@gmail.com, IRA NASU', fontsize=5,
-                         transform=plt.gcf().transFigure)
-                pylab.savefig(result_path + '/MARK5_sum_of_channels_fig.'+str(bunch+1)+' of '+str(no_of_bunches)+'.png',
-                              bbox_inches='tight', dpi=300)
+                fig.text(0.1, -0.07, 'Software version: ' + Software_version + ' yerin.serge@gmail.com, IRA NASU',
+                         fontsize=5, transform=plt.gcf().transFigure)
+                pylab.savefig(result_path + '/MARK5_sum_of_channels_fig.' + str(bunch+1) + ' of ' +
+                              str(no_of_bunches) + '.png', bbox_inches='tight', dpi=300)
                 plt.close('all')
 
                 # Each of channels
@@ -244,7 +249,7 @@ if __name__ == '__main__':
                 ax1 = fig.add_subplot(111)
                 fig.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
                 for i in range(num_of_channels):
-                    ax1.plot(channel_profiles[:, i], label='Channel '+str(i+1))
+                    ax1.plot(channel_profiles[:, i], label='Channel ' + str(i+1))
                 ax1.set_xlim([0, points_in_bunch])
                 ax1.set_ylim([y_min_chan, y_max_chan])
                 ax1.set_title(Title, fontsize=10, fontweight='bold', y=1.025)
@@ -259,16 +264,14 @@ if __name__ == '__main__':
                               bbox_inches='tight', dpi=300)
                 plt.close('all')
 
-
         # Reading frame header
-        #data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
+        # data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
 
 endTime = time.time()    # Time of calculations
 
-print ('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
-                                                round((endTime - startTime)/60, 2), 'min. ) \n')
-print ('\n          *** ', Software_name, ' has finished! *** \n\n\n')
-
+print('\n\n  The program execution lasted for ',
+      round((endTime - startTime), 2), 'seconds (', round((endTime - startTime)/60, 2), 'min. ) \n')
+print('\n          *** ', Software_name, ' has finished! *** \n\n\n')
 
 
 '''
