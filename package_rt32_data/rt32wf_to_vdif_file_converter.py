@@ -9,6 +9,8 @@ directory = '../RA_DATA_ARCHIVE/RT-32_Zolochiv_waveform_first_sample/'
 filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 filepath = directory + filename
 result_path = ''
+# Add minus sign ro Imag part for particular data to invert spectrum !!!
+# Add "zo" to station ID and file name
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -290,6 +292,7 @@ def rt32wf_to_vdf_frame_header(filepath):
     thread_id = 0  # There will be 2 threads for 2 channels of the data, but by default we put here thread_id = 0
 
     # Word 3 Bits 15-0: Station ID; see Note 8 (standard globally assigned 2-character ASCII ID)
+    # !!! zo !!!
     station_id = 380  # Dummy number! Ask the right one!!!
 
     # Forming the word from values
