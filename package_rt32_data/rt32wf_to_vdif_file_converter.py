@@ -365,11 +365,19 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
 
         print(' Number of bunches in file: ', bunch_num, '\n\n')
 
-        # adr_header_dict["Seconds from reference epoch"] --- ???
+        # The next second after the one shown in file header
+        second_counter = adr_header_dict["Seconds from reference epoch"] + 1
+        frame_counter = 0
 
         # The loop of data chunks to read and save to a frame starts here
         for bunch in range(bunch_num):
             print(' * Bunch # ', bunch+1, ' of ', bunch_num, ' started at ', time.strftime("%H:%M:%S"), ' ')
+
+            if frame_counter >= 16:
+                frame_counter = 0
+                second_counter += 1
+                # if verbose:
+                print(' Frame counter:', frame_counter, ', second from epoch', second_counter)
 
             # Read raw data from file in int8 format
             # raw_data = np.fromfile(adr_file, dtype=np.int8, count=n_fft * n_gates * 2 * 2)  # 2 ch (Re + Im) of 1 byte
@@ -446,14 +454,12 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             vdif_header_2 = change_thread_id_in_header(vdif_header_2, 1)
 
             # data_frame_no change in thread headers of both channels/threads
-            data_frame_no = 1  # Temporary!!!
-            vdif_header_1 = change_data_frame_no_in_header(vdif_header_1, data_frame_no)
-            vdif_header_2 = change_data_frame_no_in_header(vdif_header_2, data_frame_no)
+            vdif_header_1 = change_data_frame_no_in_header(vdif_header_1, frame_counter)
+            vdif_header_2 = change_data_frame_no_in_header(vdif_header_2, frame_counter)
 
             # secs_from_ref_epoch change in thread headers of both channels/threads
-            secs_from_ref_epoch = 1  # Temporary!!!
-            vdif_header_1 = change_secs_from_ref_epoch_in_header(vdif_header_1, secs_from_ref_epoch)
-            vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, secs_from_ref_epoch)
+            vdif_header_1 = change_secs_from_ref_epoch_in_header(vdif_header_1, second_counter)
+            vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, second_counter)
 
             # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
             data_bytearray = vdif_header_1 + data_bytearray_thrd_1 + vdif_header_2 + data_bytearray_thrd_2
@@ -461,7 +467,11 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             # Encoding the whole bytearray to little endian format
             data_bytearray = big_to_little_endian(data_bytearray)
 
+            # Write data of 2 frames to a file
             vdif_file.write(data_bytearray)
+
+            # Increment counter
+            frame_counter += 1
 
     # Closing the result file
     vdif_file.close()
