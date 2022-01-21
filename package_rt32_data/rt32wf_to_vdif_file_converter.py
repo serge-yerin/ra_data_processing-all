@@ -291,9 +291,8 @@ def rt32wf_to_vdf_frame_header(filepath):
     # Word 3 Bits 25-16: Thread ID (0 to 1023)
     thread_id = 0  # There will be 2 threads for 2 channels of the data, but by default we put here thread_id = 0
 
-    # Word 3 Bits 15-0: Station ID; see Note 8 (standard globally assigned 2-character ASCII ID)
-    # !!! zo !!!
-    station_id = 380  # Dummy number! Ask the right one!!!
+    # Word 3 Bits 15-0: Station ID; see Note 8 (standard globally assigned 2-character ASCII ID) - 'zo' for Zolochiv
+    station_id = int.from_bytes('zo'.encode(), 'big')  # 31343 = 'zo' in ASCII
 
     # Forming the word from values
     if data_type_bit > 1:
@@ -333,8 +332,19 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
     print(' Header length: ', len(vdif_header), ' bytes \n')
     print(' Seconds from reference epoch: ', adr_header_dict["Seconds from reference epoch"], ' sec. \n')
 
+    '''
+         the file(s) should be named according to this pattern:
+                <experiment>_<station>_<scan>
+        So for your station, participating in the 2nd C-band NME in 2021, the file names would look like this:
+                n21c2_zo_no0001
+        assuming "Zo" will be the two-letter station code assigned to Zolochiv.
+        The scan numbers correspond to the scan labels in the VEX file that your station 
+        participates in and records data for.
+    '''
+
     # Open destination vdif file to save the results
-    vdif_file = open("DATA/" + adr_header_dict["Initial file name"][:-4] + ".vdif", "wb")
+    # vdif_file = open("DATA/" + adr_header_dict["Initial file name"][:-4] + ".vdif", "wb")
+    vdif_file = open("n21c2_zo_no0001.vdif", "wb")
 
     # Calculate the number of complex data point in the file
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte

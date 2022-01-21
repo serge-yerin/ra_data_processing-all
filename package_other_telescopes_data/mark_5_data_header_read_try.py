@@ -5,8 +5,8 @@ Software_name = 'MARK5 reader'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-directory = 'DATA/'
-filename = 'pul_b0329+54_ir_no0004.m5a '
+directory = '../RA_DATA_ARCHIVE/RT-32_Irbene_pulsar_data/'
+filename = 'pulsar_ir_no40_m5a.dat'  # 'pul_b0329+54_ir_no0004.m5a'
 no_of_samples_to_average = 512000  # 64000
 points_in_bunch = 1280
 y_min_sum = 6180000   # 6170000
@@ -76,6 +76,8 @@ def mark_5_data_header_read(file):
     bits_per_sample = 1 + np.uint32(np.right_shift(np.bitwise_and(word_3, H), 26))
     thread_id = np.uint32(np.right_shift(np.bitwise_and(word_3, I), 16))
     station_id = np.uint32(np.right_shift(np.bitwise_and(word_3, J), 0))
+    station_id_str = int(station_id)
+    station_id_str = station_id_str.to_bytes((station_id_str.bit_length() + 7) // 8, 'big').decode()
 
     # Word 4
     word_4 = np.uint32(int.from_bytes(file_header[16:20], byteorder='little', signed=False))
@@ -96,6 +98,7 @@ def mark_5_data_header_read(file):
     print('   Bits per sample:                    ', bits_per_sample, ' bits')
     print('   Thread ID:                          ', thread_id, ' ')
     print('   Station ID:                         ', station_id, ' ')
+    print('   Station ID string:                  ', station_id_str, ' ')
     print('   Extended data version:              ', extended_data_version, ' ')
 
     if epoch_no == 39:
