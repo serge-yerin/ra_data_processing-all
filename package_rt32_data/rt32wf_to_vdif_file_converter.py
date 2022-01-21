@@ -9,25 +9,19 @@ directory = '../RA_DATA_ARCHIVE/RT-32_Zolochiv_waveform_first_sample/'
 filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 filepath = directory + filename
 result_path = ''
-# Add minus sign ro Imag part for particular data to invert spectrum !!!
-# Add "zo" to station ID and file name
+spectra_inversion = False  # Set True if the data were obtained with inverse spectrum
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 # Common functions
 import sys
+import time
+import datetime
 import numpy as np
 from os import path
-import time
-# import matplotlib.pyplot as plt
-from matplotlib import pylab as plt
-import os
-import matplotlib
-import datetime
-from datetime import datetime, timedelta
-from dateutil.relativedelta import *
-matplotlib.use('TkAgg')
+from datetime import datetime
+# from dateutil.relativedelta import *
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -178,11 +172,10 @@ def rt32wf_to_vdf_frame_header(filepath):
     # Word 0 Bits 29-0 Seconds from reference epoch
     # For now we will use the time of file creation but in general we need to use actual time of each sample
     # There is a problem because UTC file time does not have a date, and the date from local time can vary vs. UTC
-    # We take the date from initial file name, which is odd but solves a lot of problems without changing of file header
-    reference_epoch = '2020.01.01 00:00:00'
+    # We take the date from initial file name, which is odd but solves a lot of problems without changing file header
+    reference_epoch = '2020.01.01 00:00:00'  # Epoch # 40
 
-    # print(file_header_param_dict["File creation local time"])
-
+    # Datetime object of the reference epoch
     dt_reference_epoch = datetime(int(reference_epoch[0:4]),
                                   int(reference_epoch[5:7]),
                                   int(reference_epoch[8:10]),
@@ -223,22 +216,22 @@ def rt32wf_to_vdf_frame_header(filepath):
     # Word 1 Bits 29-24 - Reference Epoch for second count
 
     epoch_no = 40
-    first_epoch = '2000.01.01 00:00:00'
-    dt_first_epoch = datetime(int(first_epoch[0:4]),
-                              int(first_epoch[5:7]),
-                              int(first_epoch[8:10]),
-                              int(first_epoch[11:13]),
-                              int(first_epoch[14:16]),
-                              int(first_epoch[17:19]), 0)
-
-    epoch_duration = relativedelta(months=+6)
-    dt_reference_epoch = dt_first_epoch + epoch_no * epoch_duration
+    # first_epoch = '2000.01.01 00:00:00'
+    # dt_first_epoch = datetime(int(first_epoch[0:4]),
+    #                           int(first_epoch[5:7]),
+    #                           int(first_epoch[8:10]),
+    #                           int(first_epoch[11:13]),
+    #                           int(first_epoch[14:16]),
+    #                           int(first_epoch[17:19]), 0)
+    #
+    # epoch_duration = relativedelta(months=+6)
+    # dt_reference_epoch = dt_first_epoch + epoch_no * epoch_duration
 
     # epoch_no = (dt_reference_epoch - dt_first_epoch) / epoch_duration  --- impossible to divide
     # print(' Reference epoch No:                     ', epoch_no)
 
     # Word 1 Bits 23-0 - Data Frame # within second, starting at zero; must be integral number of Data Frames per second
-    frame_no = 0  # Temporary value!!!
+    frame_no = 0  # Temporary value, will be changed for each frame while frame forming
 
     # Forming the word from values
     if epoch_no > 63:
@@ -255,7 +248,7 @@ def rt32wf_to_vdf_frame_header(filepath):
     # ------------------------------------------------------------------------------------------------------------------
 
     # Word 2 Bits 31-29: VDIF version number; see Note 3
-    vdif_version = 0  # Temporary value!!!
+    vdif_version = 0  # Temporary value, do not know if it is correct...
 
     # Word 2 Bits 28-24: log2(#channels in Data Array); #chans must be power of 2; see Note 4
     channel_no = 1  # We have 2 channels so the log2(2) = 1
@@ -317,9 +310,6 @@ def rt32wf_to_vdf_frame_header(filepath):
     # Extended Data Version (EDV) in Word 4 Bits 31-24; see Note 9
     header_bytearray += bytearray([0] * 16)
 
-    # # Encoding the bytearray to little endian format -> use single encoding of all data before writing to file
-    # header_bytearray = big_to_little_endian(header_bytearray)
-
     return header_bytearray, file_header_param_dict
 
 
@@ -354,8 +344,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
 
     with open(filepath) as adr_file:  # Open data file
 
-        # Skip data till the next second start
-
+        # Skip data till the next second starts
         f_time = adr_header_dict["dt File creation time UT"]
         us_to_skip = 1000000 - int(f_time.microsecond)
         print(' We have to skip: ', us_to_skip, ' us')
@@ -379,10 +368,10 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
         for bunch in range(bunch_num):
             print(' * Bunch # ', bunch+1, ' of ', bunch_num, ' started at ', time.strftime("%H:%M:%S"), ' ')
 
+            # We have 16 frames per second, so each 16 frames we set counter of frames/second to 0 and add a second
             if frame_counter >= 16:
                 frame_counter = 0
                 second_counter += 1
-                # if verbose:
                 print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
 
             # Read raw data from file in int8 format
@@ -407,6 +396,10 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
                 print(' Shape of imag data array:                    ', imag_2ch_data.shape, '\n')
                 print(' Type of imag data array:                     ', imag_2ch_data.dtype, '\n')
 
+            # If we have inverse spectrum - add minus sign to imaginary (sinus) part of the waveform
+            if spectra_inversion:
+                imag_2ch_data = - imag_2ch_data
+
             '''
             now we have an array of real data real_2ch_data of some length with 2 channels
             and imaginary data in imag_2ch_data of same length with 2 channels
@@ -426,6 +419,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             data_bytearray_thrd_2 = bytearray([])
 
             # The two identical loops (and further operations) should be separated into separate cpu threads
+            # or better replaced by making bytes directly of uint8 arrays for this particular case of 8 bits data.
             for i in range(real_2ch_data.shape[0] // 2):
                 word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
                                                      real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
