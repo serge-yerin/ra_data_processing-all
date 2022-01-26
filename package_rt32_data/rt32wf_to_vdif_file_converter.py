@@ -7,6 +7,7 @@ Software_name = 'RT-32 Zolochiv waveform reader and converter to vdif'
 # *******************************************************************************
 directory = '../RA_DATA_ARCHIVE/RT-32_Zolochiv_waveform_first_sample/'
 filename = 'A210612_075610_rt32_waveform_first_sample.adr'
+result_file_name = "n21c2_zo_no0001.vdif"
 filepath = directory + filename
 result_path = ''
 spectra_inversion = False  # Set True if the data were obtained with inverse spectrum
@@ -15,6 +16,7 @@ spectra_inversion = False  # Set True if the data were obtained with inverse spe
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
 # Common functions
+import os
 import sys
 import time
 import datetime
@@ -27,7 +29,100 @@ from datetime import datetime
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_rt32_data.rt32_zolochiv_waveform_reader import rpr_wf_header_reader_dict
+# from package_rt32_data.rt32_zolochiv_waveform_reader import rpr_wf_header_reader_dict
+
+
+def rpr_wf_header_reader_dict(filepath):
+    """
+    !!! COPY from package_rt32_data.rt32_zolochiv_waveform_reader import rpr_wf_header_reader_dict
+    Zolochiv Ukraine RPR receiver waveform data header reader (not finished, just POC)
+    """
+
+    param_dict = {}
+
+    with open(filepath, "rb") as file:
+        param_dict["File size in bytes"] = os.stat(filepath).st_size  # Size of file
+
+        fheader_tag = file.read(640)
+        param_dict["Initial file name"] = fheader_tag[0:32].decode('utf-8').rstrip('\x00')  # original name of the file
+        param_dict["File creation local time"] = fheader_tag[32:58].decode('utf-8').rstrip('\x00')  # file creation local time
+        # !!! In the real file bytes between 58 and 64 do not decode with utf-8 but has some info
+        tmp = fheader_tag[58:64]
+        # tmp = int.from_bytes(fheader_tag[58:64], byteorder='big', signed=True)
+
+        param_dict["File creation utc time"] = fheader_tag[64:96].decode('utf-8').rstrip('\x00')
+        param_dict["System name"] = fheader_tag[96:128].decode('utf-8').rstrip('\x00')
+        param_dict["Observation place"] = fheader_tag[128:256].decode('utf-8').rstrip('\x00')
+        param_dict["Observation description"] = fheader_tag[256:512].decode('utf-8').rstrip('\x00')
+
+        # fheader_tag[512:640]  # uint32 processing and service parameters only for compatibility with old formats
+
+        print('\n File to analyse:             ', filepath)
+        print(' File size:                   ', round(param_dict["File size in bytes"] / 1024 / 1024, 3), ' Mb (',
+              param_dict["File size in bytes"], ' bytes )')
+        print(' Initial file name:           ', param_dict["Initial file name"])
+        print(' Initial file local time:     ', str(param_dict["File creation local time"])[:-1])
+        # print(' Unrecognized data from bytes 58:64: ', tmp)
+        print(' Initial file GMT time:       ', param_dict["File creation utc time"])
+        print(' Receiver name:               ', param_dict["System name"])  # operator (can be used as name of the system)
+        print(' Observation place:           ', param_dict["Observation place"])  # description of the measurements place
+        print(' Observation description:     ', param_dict["Observation description"])  # additional measurements description
+
+        adrs_param_tag = file.read(28)
+        param_dict["ADR mode"] = int.from_bytes(adrs_param_tag[0:4], byteorder='big', signed=True)
+        param_dict["FFT size"] = int.from_bytes(adrs_param_tag[4:8], byteorder='big', signed=True)
+        param_dict["Average constant"] = int.from_bytes(adrs_param_tag[8:12], byteorder='big', signed=True)
+        param_dict["FFT start line"] = int.from_bytes(adrs_param_tag[12:16], byteorder='big', signed=True)
+        param_dict["FFT width"] = int.from_bytes(adrs_param_tag[16:20], byteorder='big', signed=True)
+        param_dict["Block size"] = int.from_bytes(adrs_param_tag[20:24], byteorder='big', signed=True)
+        param_dict["ADC frequency, Hz"] = int.from_bytes(adrs_param_tag[20:24], byteorder='big', signed=True)
+
+        print('\n Receiver mode:               ', param_dict["ADR mode"])  # ADRS_MODE (0..2)WVF, (3..5)SPC, 6-CRL
+        print(' FFT size:                    ', param_dict["FFT size"])  # 2048 ... 32768
+        print(' Number of averaged spectra:  ', param_dict["Average constant"])  # 16 ... 1000
+        print(' FFT start line:              ', param_dict["FFT start line"])  # 0 ... 7, SLine*1024 first line for spectrum output
+        print(' FFT width:                   ', param_dict["FFT width"])  # 2048 ... 32768
+        print(' Data block size:             ', param_dict["Block size"])  # bytes, data block size calculated from data processing/output parameters
+        print(' Measured ADC frequency:      ', param_dict["ADC frequency, Hz"], ' Hz')  # ADC frequency reported by Astro-Digital-Receiver
+
+        adrs_opt_tag = file.read(36)
+        param_dict["Opt size"] = int.from_bytes(adrs_opt_tag[0:4], byteorder='big', signed=True)
+        param_dict["Start/stop switch"] = int.from_bytes(adrs_opt_tag[4:8], byteorder='big', signed=True)
+        param_dict["Start second"] = int.from_bytes(adrs_opt_tag[8:12], byteorder='big', signed=True)
+        param_dict["Stop second"] = int.from_bytes(adrs_opt_tag[12:16], byteorder='big', signed=True)
+        param_dict["Test mode"] = int.from_bytes(adrs_opt_tag[16:20], byteorder='big', signed=True)
+        param_dict["Norm coeff 1"] = int.from_bytes(adrs_opt_tag[20:24], byteorder='big', signed=True)
+        param_dict["Norm coeff 2"] = int.from_bytes(adrs_opt_tag[24:28], byteorder='big', signed=True)
+        param_dict["Channel delay"] = int.from_bytes(adrs_opt_tag[28:32], byteorder='big', signed=True)
+        df_opt_bit_opt = int.from_bytes(adrs_opt_tag[32:36], byteorder='big', signed=True)
+
+        '''
+        ADRS options (data block size and format do not depends on)
+        uint32_t  Opt;		// bit 0 - StartBySec: no(0)/yes(1)
+                            // bit 1 - CLC: internal(0)/external(1)
+                            // bit 2 - FFT Window: Hanning(0)/rectangle(1)
+                            // bit 3 - DC removing: No(0)/Yes(1)
+                            // bit 4 - averaging(0)/decimation(1)
+                            // bit 5 - CH1: On(0)/Off(1)
+                            // bit 6 - CH2: On(0)/Off(1)
+        '''
+
+        print('\n Size:                        ', param_dict["Opt size"])
+        print(' Start / Stop:                ', param_dict["Start/stop switch"])  # StartStop 0/1	(-1 - ignore)
+        print(' Start second:                ', param_dict["Start second"])  # abs.time.sec - processing starts
+        print(' Stop second:                 ', param_dict["Stop second"])  # abs.time.sec - processing stops
+        print(' Test mode:                   ', param_dict["Test mode"])  # Test Mode: 0, 1, 2...
+        print(' Norm. coefficient 1-CH:      ', param_dict["Norm coeff 1"])  # Normalization coefficient 1-CH (1 ... 65535)
+        print(' Norm. coefficient 2-CH       ', param_dict["Norm coeff 2"])  # Normalization coefficient 2-CH (1 ... 65535)
+        print(' Delay:                       ', param_dict["Channel delay"], ' ps')  # Delay in pico-seconds (-1000000000 ... 1000000000)
+        print(' Options:                     ', df_opt_bit_opt, '\n\n')
+
+        # print('Fheader tag 1:', fheader_tag[0:32])
+        # print('Fheader tag 2:', fheader_tag[32:64])
+        # print('F param tag:', adrs_param_tag)
+        # print('F opt tag:', adrs_opt_tag)
+
+    return param_dict
 
 
 def word_to_bytearray(word):
@@ -334,7 +429,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
 
     # Open destination vdif file to save the results
     # vdif_file = open("DATA/" + adr_header_dict["Initial file name"][:-4] + ".vdif", "wb")
-    vdif_file = open("n21c2_zo_no0001.vdif", "wb")
+    vdif_file = open(result_file_name, "wb")
 
     # Calculate the number of complex data point in the file
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
@@ -372,7 +467,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             if frame_counter >= 16:
                 frame_counter = 0
                 second_counter += 1
-                print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
+                # print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
 
             # Read raw data from file in int8 format
             raw_data = np.fromfile(adr_file, dtype=np.int8, count=samples_per_frame * 2 * 2)  # 2 ch (Re + Im) of 1 byte
@@ -414,27 +509,45 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
                 print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data),
                       '\n')
 
-            # Make data bytearray of the extracted data
-            data_bytearray_thrd_1 = bytearray([])
-            data_bytearray_thrd_2 = bytearray([])
+            # # Make data bytearray of the extracted data
+            # data_bytearray_thrd_1 = bytearray([])
+            # data_bytearray_thrd_2 = bytearray([])
+            #
+            # # The two identical loops (and further operations) should be separated into separate cpu threads
+            # # or better replaced by making bytes directly of uint8 arrays for this particular case of 8 bits data.
+            # for i in range(real_2ch_data.shape[0] // 2):
+            #     word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
+            #                                          real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
+            #     data_bytearray_thrd_1 += word_bytearray
+            #
+            # for i in range(real_2ch_data.shape[0] // 2):
+            #     word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     1], imag_2ch_data[2 * i,     1],
+            #                                          real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
+            #     data_bytearray_thrd_2 += word_bytearray
 
-            # The two identical loops (and further operations) should be separated into separate cpu threads
-            # or better replaced by making bytes directly of uint8 arrays for this particular case of 8 bits data.
-            for i in range(real_2ch_data.shape[0] // 2):
-                word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
-                                                     real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
-                data_bytearray_thrd_1 += word_bytearray
+            # Preparing arrays to fill with data correctly
+            data_0 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
+            data_1 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
 
-            for i in range(real_2ch_data.shape[0] // 2):
-                word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     1], imag_2ch_data[2 * i,     1],
-                                                     real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
-                data_bytearray_thrd_2 += word_bytearray
+            # Forming the 32-bit words (it's better to check order of data_0 first index, but it works like first try)
+            data_0[3::4] = real_2ch_data[0::2, 0]
+            data_0[2::4] = imag_2ch_data[0::2, 0]
+            data_0[1::4] = real_2ch_data[1::2, 0]
+            data_0[0::4] = imag_2ch_data[1::2, 0]
+            data_1[3::4] = real_2ch_data[0::2, 1]
+            data_1[2::4] = imag_2ch_data[0::2, 1]
+            data_1[1::4] = real_2ch_data[1::2, 1]
+            data_1[0::4] = imag_2ch_data[1::2, 1]
 
-            if verbose:
-                print(' Length of data frame body is:                ', len(data_bytearray_thrd_1), ' bytes')
-                print(' Length of full data frame is:                ', len(data_bytearray_thrd_1) + 32, ' bytes')
-                print(' Length of full data frame is:                ', (len(data_bytearray_thrd_1) + 32) / 8,
-                      ' of 8 bytes chunks')
+            # Converting to bytes
+            data_0_bytes = data_0.tobytes(order='F')  # order='C'
+            data_1_bytes = data_1.tobytes(order='F')  # order='C'
+
+            # if verbose:
+            #     print(' Length of data frame body is:                ', len(data_bytearray_thrd_1), ' bytes')
+            #     print(' Length of full data frame is:                ', len(data_bytearray_thrd_1) + 32, ' bytes')
+            #     print(' Length of full data frame is:                ', (len(data_bytearray_thrd_1) + 32) / 8,
+            #           ' of 8 bytes chunks')
 
             # Make two copies of basic headers for changing them according to current numbers
             vdif_header_1 = vdif_header.copy()
@@ -452,7 +565,8 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, second_counter)
 
             # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
-            data_bytearray = vdif_header_1 + data_bytearray_thrd_1 + vdif_header_2 + data_bytearray_thrd_2
+            # data_bytearray = vdif_header_1 + data_bytearray_thrd_1 + vdif_header_2 + data_bytearray_thrd_2
+            data_bytearray = vdif_header_1 + data_0_bytes + vdif_header_2 + data_1_bytes
 
             # Encoding the whole bytearray to little endian format
             data_bytearray = big_to_little_endian(data_bytearray)
