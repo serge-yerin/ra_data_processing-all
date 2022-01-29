@@ -1,6 +1,6 @@
 # Python3
-Software_version = '2020.01.11'
-Software_name = 'ADR multifolder data files reader'
+software_version = '2020.01.11'
+software_name = 'ADR multifolder data files reader'
 # Script intended to read, show and analyze data from ADR, to save
 # data to long DAT files and analyze them
 import os
@@ -8,7 +8,7 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = '/media/gurt/GURT_2021.01/To_process'  # 'h:/To_process/'
+path_to_data = '../RA_DATA_ARCHIVE/ADR_GURT_typical_Sun_data_J_burst/'  # 'h:/To_process/'
 
 print_or_not = 0              # Print progress of data processing and figures making (1) or not (0)
 MaxNim = 1024                 # Number of data chunks for one figure
@@ -19,7 +19,7 @@ VminNorm = 0                  # Lower limit of figure dynamic range for normaliz
 VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
-customDPI = 200               # Resolution of images of dynamic spectra
+custom_dpi = 200               # Resolution of images of dynamic spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
@@ -36,7 +36,7 @@ VmaxMan = -10                    # Manual upper limit of immediate spectrum figu
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
 VmaxNormMan = 12                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 AmplitudeReIm = 1 * 10**(-12)    # Color range of Re and Im dynamic spectra
-                                 # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
+                                 # 10 * 10**(-12) is typical value for CasA for interferometer of 2 GURT subarrays
 
 # ###############################################################################
 # *******************************************************************************
@@ -59,14 +59,14 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 
-print('\n\n\n\n\n\n\n\n   **************************************************************')
-print('   *    ', Software_name, '  v.', Software_version, '     *      (c) YeS 2019')
+print('\n\n\n\n\n   **************************************************************')
+print('   *    ', software_name, '  v.', software_version, '     *      (c) YeS 2019')
 print('   ************************************************************** \n\n')
 
-startTime = time.time()
-currentTime = time.strftime("%H:%M:%S")
-currentDate = time.strftime("%d.%m.%Y")
-print('  Today is ', currentDate, ' time is ', currentTime, '\n')
+start_time = time.time()
+current_time = time.strftime("%H:%M:%S")
+current_date = time.strftime("%d.%m.%Y")
+print('  Today is ', current_date, ' time is ', current_time, '\n')
 
 # Path to intermediate data files (DAT)
 path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
@@ -99,7 +99,7 @@ same_or_not = np.zeros(num_of_folders)
 equal_or_not = np.zeros(num_of_folders)
 for folder_no in range(num_of_folders):
     file_name_list_current = find_files_only_in_current_folder(list_of_folder_names[folder_no], '.adr', 0)
-    print('\n\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no],
+    print('\n\n\n * Folder ', folder_no+1, ' of ', num_of_folders, ', path: ', list_of_folder_names[folder_no],
           '\n **********************************************************')
     for i in range(len(file_name_list_current)):
         print('         ',  i+1, ') ', file_name_list_current[i])
@@ -109,14 +109,17 @@ for folder_no in range(num_of_folders):
     same_or_not[folder_no] = check_if_all_files_of_same_size(list_of_folder_names[folder_no], file_name_list_current, 1)
 
     # Check if all files in this folder have the same parameters in headers
-    equal_or_not[folder_no] = check_if_ADR_files_of_equal_parameters(list_of_folder_names[folder_no], file_name_list_current)
+    equal_or_not[folder_no] = check_if_ADR_files_of_equal_parameters(list_of_folder_names[folder_no],
+                                                                     file_name_list_current)
 
 if int(np.sum((equal_or_not[:])) == num_of_folders) and (int(np.sum(same_or_not[:])) == num_of_folders):
-    print('\n\n\n   :-) All folder seem to be ready for reading! :-) \n\n\n')
+    print('\n\n   :-) All folder seem to be ready for reading! :-) \n')
 else:
-    print('\n\n\n ************************************************************************************* \n *                                                                                   *')
+    print('\n\n\n ************************************************************************************* \n ',
+          '*                                                                                   *')
     print(' *   Seems files in folders are different check the errors and restart the script!   *')
-    print(' *                                                                                   *  \n ************************************************************************************* \n\n\n')
+    print(' *                                                                                   *  \n ',
+          '************************************************************************************* \n\n\n')
 
     decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
     if decision != 1:
@@ -149,10 +152,12 @@ for folder_no in range(num_of_folders):
 
     # Run ADR reader for the current folder
     done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
-                    RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-                    VminCorrMag, VmaxCorrMag, customDPI, colormap, CorrelationProcess, 0, 1, 1, 1, 1, 0,
-                    DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)
+                                                                RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                                VminCorrMag, VmaxCorrMag, custom_dpi, colormap,
+                                                                CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                                DynSpecSaveInitial, DynSpecSaveCleaned,
+                                                                CorrSpecSaveInitial, CorrSpecSaveCleaned,
+                                                                SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 
@@ -165,10 +170,10 @@ for folder_no in range(num_of_folders):
     # Run DAT reader for the results of current folder
     done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
                                   averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
-                                  RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
+                                  RFImeanConst, custom_dpi, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
 
 endTime = time.time()    # Time of calculations
-print('\n\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
-                                                   round((endTime - startTime)/60, 2), 'min. ) \n')
-print('    *** Program ', Software_name, ' has finished! *** \n\n\n')
+print('\n\n\n  The program execution lasted for ',
+      round((endTime - start_time), 2), 'seconds (', round((endTime - start_time)/60, 2), 'min. ) \n')
+print('    *** Program ', software_name, ' has finished! *** \n\n\n')
