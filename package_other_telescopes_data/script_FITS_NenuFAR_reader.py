@@ -3,8 +3,8 @@ Software_version = '2021.12.25'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-foldpath = '../RA_DATA_ARCHIVE/NenuFAR_beamstatistic_file_Jupiter/'
-filename = '20210724_015600_BST.fits'
+foldpath = '../RA_DATA_ARCHIVE/NenuFAR_beamstatistic_files/'
+filename = '20210724_015600_BST_Jupiter.fits'
 
 VminNorm = 0                # Min value on normalized spectra plot
 VmaxNorm = 10               # Max value on normalized spectra plot
@@ -18,10 +18,16 @@ single_plot_for_digital_beams = True
 #                               L I B R A R I E S                               *
 # *******************************************************************************
 import os
-import numpy as np
+import sys
 import time
+import numpy as np
+from os import path
 from astropy.io import fits
 from astropy.time import Time
+
+# To change system path to main directory of the project:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_plot_formats.plot_formats import TwoDynSpectraPlot, TwoOrOneValuePlot  # OneImmedSpecterPlot, plot2D
