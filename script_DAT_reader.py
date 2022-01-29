@@ -1,18 +1,19 @@
 # Python3
-Software_version = '2019.05.08'
+Software_version = '2022.01.29'
 # Program intended to read and show data from DAT files
 
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
+common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A210623_021959.adr_Data_chA.dat'
+# filename = common_path + 'A210623_021959.adr_Data_chA.dat'
+filename = common_path + 'A200605_084324.adr_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
-# data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
+# data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
 data_types = ['chA']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
@@ -20,29 +21,31 @@ data_types = ['chA']
 freqList = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
 # freqList = [4.0, 5.0, 6.0, 7.0, 8.0, 8.05, 8.1, 8.15, 8.5, 9.0]
 
-averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 0              # Read the whole file (0) or specified time limits (1)
-SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
+aver_or_min = 0                  # Use average value (0) per data block or minimum value (1)
+start_stop_switch = 0            # Read the whole file (0) or specified time limits (1)
+spec_freq_range = 0              # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
-VmaxNormMan = 15                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+VmaxNormMan = 25                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
+diff_v_min = -2                  # Lower limit of colormap in differential mode
+diff_v_max = 2                   # Higher limit of colormap in differential mode
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
-customDPI = 300                  # Resolution of images of dynamic spectra
+custom_dpi = 300                  # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
 ChannelSaveTXT = 0               # Save intensities at specified frequencies to TXT file
 ChannelSavePNG = 0               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 20 * 10**(-12)   # Colour range of Re and Im dynamic spectra
-                                 # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
+                                 # 10 * 10**(-12) is typical value for CasA for interferometer of 2 GURT subarrays
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 20.0
-freqStop = 30.0
+freqStart = 10.0
+freqStop = 70.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2022-06-01 07:00:00'
-dateTimeStop =  '2022-06-01 19:00:00'
+date_time_start = '2020-06-05 09:33:00'
+date_time_stop =  '2020-06-05 09:40:00'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
@@ -61,21 +64,24 @@ import time
 from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib import pylab, rc
+import warnings
+warnings.filterwarnings("ignore")
 
 # My functions
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
-from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  OneValueWithTimePlot
+from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  \
+    OneValueWithTimePlot
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
-# ###############################################################################
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
-print('\n\n\n\n\n\n\n\n   ****************************************************')
+
+print('\n\n\n   ****************************************************')
 print('   * DAT time data files processing  v.', Software_version, '   *      (c) YeS 2018')
-print('   **************************************************** \n\n\n')
+print('   **************************************************** \n')
 
 start_time = time.time()
 current_time = time.strftime("%H:%M:%S")
@@ -88,9 +94,6 @@ timeLineFileName = common_path + filename[-31:-13] + '_Timeline.txt'
 for j in range(len(data_types)):  # Main loop by types of data to analyze
 
     # Current name of DAT file to be analyzed dependent on data type:
-    temp = list(filename)
-    temp[-7:-4] = data_types[j]
-    filename = "".join(temp)
 
     if data_types[j] == 'A+B' or data_types[j] == 'A-B':
         temp = list(filename)
@@ -100,9 +103,24 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         filename02 = "".join(temp)
         filename = filename01
 
+    elif data_types[j] == 'chAdt':
+        temp = list(filename)
+        temp[-7:-4] = 'chA'
+        filename = "".join(temp)
+
+    elif data_types[j] == 'chBdt':
+        temp = list(filename)
+        temp[-7:-4] = 'chB'
+        filename = "".join(temp)
+
+    else:
+        temp = list(filename)
+        temp[-7:-4] = data_types[j]
+        filename = "".join(temp)
+
     # Print the type of data to be analyzed
-    print('\n\n   Processing data type: ', data_types[j])
-    print('\n   Processing file: ', filename, ' \n')
+    print('\n\n\n * Processing data type: ', data_types[j])
+    print('\n Processing file: ', filename, ' ')
 
     # *************************************************************
     #          WHAT TO PLOT AND CORRESPONDING PARAMETERS          *
@@ -118,9 +136,9 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
     Vmax = VmaxMan
     VminNorm = VminNormMan
     VmaxNorm = VmaxNormMan
-    if averOrMin == 0: 
+    if aver_or_min == 0: 
         reducing_type = 'Averaging '
-    if averOrMin == 1: 
+    if aver_or_min == 1: 
         reducing_type = 'Least of '
 
     if data_types[j] == 'chA':
@@ -134,6 +152,22 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         fileNameAdd = ''
         fileNameAddNorm = '001_'
         fileNameAddSpectr = '008_'
+
+    if data_types[j] == 'chAdt':
+        nameAdd = ' channel A difference'
+        fileNameAdd = '_dt'
+        fileNameAddNorm = '001_'
+        fileNameAddSpectr = '008_'
+        VminNorm = -1
+        VmaxNorm = 1
+
+    if data_types[j] == 'chBdt':
+        nameAdd = ' channel B difference'
+        fileNameAdd = '_dt'
+        fileNameAddNorm = '001_'
+        fileNameAddSpectr = '008_'
+        VminNorm = -1
+        VmaxNorm = 1
 
     if data_types[j] == 'C_m':
         nameAdd = ' correlation module'
@@ -220,7 +254,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         timeline.append(str(line))
     TLfile.close()
 
-    if StartStopSwitch == 1:  # If we read only specified time limits of files
+    if start_stop_switch == 1:  # If we read only specified time limits of files
 
         # Converting text to ".datetime" format
         dt_timeline = []
@@ -235,22 +269,22 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                                         int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]),
                                         int(uSecond)))
 
-        dt_dateTimeStart = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]),
-                                    int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]), 0)
-        dt_dateTimeStop = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]),
-                                   int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
+        dt_date_time_start = datetime(int(date_time_start[0:4]), int(date_time_start[5:7]), int(date_time_start[8:10]),
+                                    int(date_time_start[11:13]), int(date_time_start[14:16]), int(date_time_start[17:19]), 0)
+        dt_date_time_stop = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]), int(date_time_stop[8:10]),
+                                   int(date_time_stop[11:13]), int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
         # Showing the time limits of file and time limits of chosen part
-        print('\n\n                               Start                         End \n')
-        print('  File time limits:   ', dt_timeline[0], ' ', dt_timeline[len(timeline)-1], '\n')
-        print('  Chosen time limits: ', dt_dateTimeStart, '        ', dt_dateTimeStop, '\n')
+        print('\n                              Start                         End \n')
+        print(' File time limits:   ', dt_timeline[0], ' ', dt_timeline[len(timeline)-1], ' ')
+        print(' Chosen time limits: ', dt_date_time_start, '        ', dt_date_time_stop, '\n')
 
         # Verifying that chosen time limits are inside file and are correct
-        if (dt_timeline[len(timeline)-1] >= dt_dateTimeStart > dt_timeline[0]) and \
-           (dt_timeline[len(timeline)-1] > dt_dateTimeStop >= dt_timeline[0]) and \
-           (dt_dateTimeStop > dt_dateTimeStart):
+        if (dt_timeline[len(timeline)-1] >= dt_date_time_start > dt_timeline[0]) and \
+           (dt_timeline[len(timeline)-1] > dt_date_time_stop >= dt_timeline[0]) and \
+           (dt_date_time_stop > dt_date_time_start):
 
-            print('  Time is chosen correctly! \n\n')
+            print(' Time is chosen correctly! \n')
         else:
             print('  ERROR! Time is chosen out of file limits!!! \n\n')
             sys.exit('         Program stopped')
@@ -259,31 +293,32 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         A = []
         B = []
         for i in range(len(timeline)):
-            dt_diff_start = dt_timeline[i] - dt_dateTimeStart
-            dt_diff_stop = dt_timeline[i] - dt_dateTimeStop
-            A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0]*60 + divmod(dt_diff_start.total_seconds(), 60)[1]))
-            B.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0]*60 + divmod(dt_diff_stop.total_seconds(), 60)[1]))
+            dt_diff_start = dt_timeline[i] - dt_date_time_start
+            dt_diff_stop = dt_timeline[i] - dt_date_time_stop
+            A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0] * 60 +
+                         divmod(dt_diff_start.total_seconds(), 60)[1]))
+            B.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0] * 60 +
+                         divmod(dt_diff_stop.total_seconds(), 60)[1]))
 
         istart = A.index(min(A))
         istop = B.index(min(B))
-        print('\n Start specter number is:          ', istart)
-        print('\n Stop specter number is:           ', istop)
-        print('\n Total number of spectra to read:  ', istop - istart)
+        print(' Start specter number is:                      ', istart)
+        print(' Stop specter number is:                       ', istop)
+        print(' Total number of spectra to read:              ', istop - istart)
 
     # Calculation of the dimensions of arrays to read
 
     nx = len(frequency)                  # the first dimension of the array
-    if StartStopSwitch == 1:             # If we read only specified time limits of files
+    if start_stop_switch == 1:             # If we read only specified time limits of files
         ny = int(istop - istart)         # the second dimension of the array: number of spectra to read
     else:
         ny = int((df_filesize-1024) / (nx*8))  # the second dimension of the array: file size - 1024 bytes
         istart = 0
         istop = len(timeline)
 
-    print(' ')
-    print(' Number of frequency channels:     ', nx, '\n')
-    print(' Number of spectra:                ', ny, '\n')
-    print(' Recommended spectra number for averaging is: ', int(ny/1024))
+    print('\n Number of frequency channels:                 ', nx, '')
+    print(' Number of spectra:                            ', ny, '')
+    print(' Recommended spectra number for averaging is:  ', int(ny/1024))
     # averageConst = raw_input('\n Enter number of spectra to be averaged:       ')
 
     # if (len(averageConst) < 1 or int(averageConst) < 1):
@@ -296,7 +331,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
     # *** Data reading and averaging ***
 
-    print('\n\n\n  *** Data reading and averaging *** \n\n')
+    print('\n Data reading and averaging... \n')
 
     file1 = open(filename, 'rb')
     if data_types[j] == 'A+B' or data_types[j] == 'A-B':
@@ -330,12 +365,14 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         dataApp = np.empty((nx, 1), float)
 
-        if data_types[j] == 'chA' or data_types[j] == 'chB'  or data_types[j] == 'A+B':
+        # We read and arrange data in different ways according to their types
+        if data_types[j] == 'chA' or data_types[j] == 'chB' or data_types[j] == 'A+B'\
+                or data_types[j] == 'chAdt' or data_types[j] == 'chBdt':
             # If analyzing intensity - average and log data
-            if averOrMin == 0:
+            if aver_or_min == 0:
                 with np.errstate(invalid='ignore'):
                     dataApp[:, 0] = 10 * np.log10(data.mean(axis=1)[:])
-            elif averOrMin == 1:
+            elif aver_or_min == 1:
                 with np.errstate(invalid='ignore'):
                     dataApp[:, 0] = 10 * np.log10(np.amin(data, axis=1)[:])
             else:
@@ -367,21 +404,19 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
     if data_types[j] == 'A+B' or data_types[j] == 'A-B':
         file2.close()
 
-    print('\n Array shape is now             ', array.shape)
+    print(' Array shape is now                            ', array.shape)
     time_points_num = array.shape[1]
-    print(time_points_num)
 
     # *** Cutting timeline to time limits ***
     dateTimeNew = timeline[istart:istop:averageConst]
-    # del dateTimeNew[numOfBlocks:]
-    print('\n TimeLine length is now:        ', len(dateTimeNew))
+    print(' TimeLine length is now:                       ', len(dateTimeNew))
 
 
 # *******************************************************************************
 #                                 F I G U R E S                                 *
 # *******************************************************************************
 
-    print('\n\n\n  *** Building images *** \n\n')
+    print('\n Building images... ')
 
     # Exact string timescales to show on plots
     TimeScaleFig = np.empty_like(dateTimeNew)
@@ -393,17 +428,19 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         Vmin = 0 - AmplitudeReIm
         Vmax = 0 + AmplitudeReIm
 
-    # *** Immediate spectrum ***
+    # We do not need immediate spectra for differential mode
+    if data_types[j] != 'chAdt' and data_types[j] != 'chBdt':
 
-    Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
-    Title = ('Initial parameters: dt = ' + str(round(time_res, 3)) + ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz ' +
-             sumDifMode + 'Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
-             str(round(averageConst * time_res, 3)) + ' sec.)')
+        # *** Immediate spectrum ***
+        Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
+        Title = ('Initial parameters: dt = ' + str(round(time_res, 3)) + ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz ' +
+                 sumDifMode + 'Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
+                 str(round(averageConst * time_res, 3)) + ' sec.)')
 
-    TwoOrOneValuePlot(1, frequency, array[:, [1]], [], 'Spectrum', ' ', frequency[0], frequency[-1],
-                      Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz', YaxName, ' ', Suptitle, Title,
-                      'DAT_Results/' + fileNameAddSpectr + df_filename[0:14] + '_' + data_types[j] +
-                      ' Immediate Spectrum.png', current_date, current_time, Software_version)
+        TwoOrOneValuePlot(1, frequency, array[:, [1]], [], 'Spectrum', ' ', frequency[0], frequency[-1],
+                          Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz', YaxName, ' ', Suptitle, Title,
+                          'DAT_Results/' + fileNameAddSpectr + df_filename[0:14] + '_' + data_types[j] +
+                          ' Immediate Spectrum.png', current_date, current_time, Software_version)
 
     # *** Decide to use only list of frequencies or all frequencies in range
     if ListOrAllFreq == 0:
@@ -454,10 +491,10 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                 SingleChannelData.close()
 
     # *** Cutting the array inside frequency range specified by user ***
-    if SpecFreqRange == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
+    if spec_freq_range == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
             (frequency[0] <= freqStop <= frequency[freq_points_num-1]) and (freqStart < freqStop):
 
-        print('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
+        print('\n You have chosen the frequency range:          ', freqStart, '-', freqStop, 'MHz')
         A = []
         B = []
         for i in range(len(frequency)):
@@ -466,32 +503,36 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         ifmin = A.index(min(A))
         ifmax = B.index(min(B))
         array = array[ifmin:ifmax, :]
-        print('\n New data array shape is: ', array.shape)
+        print(' New data array shape is:                      ', array.shape)
         freqLine = frequency[ifmin:ifmax]
     else:
         freqLine = frequency
 
-    # Limits of figures for common case or for Re/Im parts to show the interferometric picture
-    Vmin = np.min(array)
-    Vmax = np.max(array)
-    if data_types[j] == 'CRe' or data_types[j] == 'CIm':
-        Vmin = 0 - AmplitudeReIm
-        Vmax = 0 + AmplitudeReIm
+    # We do not need to plot non-normalized (initial) data for differential mode
+    if data_types[j] != 'chAdt' and data_types[j] != 'chBdt':
 
-    # *** Dynamic spectrum of initial signal***
+        # Limits of figures for common case or for Re/Im parts to show the interferometric picture
+        Vmin = np.min(array)
+        Vmax = np.max(array)
+        if data_types[j] == 'CRe' or data_types[j] == 'CIm':
+            Vmin = 0 - AmplitudeReIm
+            Vmax = 0 + AmplitudeReIm
 
-    Suptitle = ('Dynamic spectrum starting from file ' + str(df_filename[0:18]) +
-                ' ' + nameAdd + '\n Initial parameters: dt = ' + str(round(time_res, 3)) +
-                ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sumDifMode +
-                ' Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
-                str(round(averageConst*time_res, 3)) + ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
-                ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
-    fig_file_name = ('DAT_Results/' + fileNameAdd + df_filename[0:14] + '_'+data_types[j] + ' Dynamic spectrum.png')
+        # *** Dynamic spectrum of initial signal***
 
-    OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freqLine,
-                      len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
-                      current_date, current_time, Software_version, customDPI)
+        Suptitle = ('Dynamic spectrum starting from file ' + str(df_filename[0:18]) +
+                    ' ' + nameAdd + '\n Initial parameters: dt = ' + str(round(time_res, 3)) +
+                    ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sumDifMode +
+                    ' Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
+                    str(round(averageConst*time_res, 3)) + ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
+                    ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
+        fig_file_name = ('DAT_Results/' + fileNameAdd + df_filename[0:14] + '_'+data_types[j] + ' Dynamic spectrum.png')
 
+        OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freqLine,
+                          len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
+                          current_date, current_time, Software_version, custom_dpi)
+
+    # Some types of data we can normalize, clean and sometimes differentiate
     if data_types[j] != 'C_p' and data_types[j] != 'CRe' and data_types[j] != 'CIm':
 
         # *** Normalization and cleaning of dynamic spectra ***
@@ -499,6 +540,16 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         # array = simple_channel_clean(array.transpose(), RFImeanConst)
         array = simple_channel_clean(array, RFImeanConst)
         array = array.transpose()
+
+        colormap_cur = colormap
+
+        # If we make differential picture, differentiate the data
+        if data_types[j] == 'chAdt' or data_types[j] == 'chBdt':
+            for i in range(array.shape[1] - 1):
+                array[:, i] = array[:, i + 1] - array[:, i]
+            array[:, -1] = 0  # Make the last column of data zeros as they were not differentiated properly
+            # configure colormap
+            colormap_cur = 'Greys_r'
 
         # *** Dynamic spectra of cleaned and normalized signal ***
 
@@ -512,25 +563,25 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                          ' Dynamic spectrum cleaned and normalized' + '.png')
 
         OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, 
-                          freqLine, len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', 
-                          fig_file_name, current_date, current_time, Software_version, customDPI)
+                          freqLine, len(freqLine), colormap_cur, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
+                          fig_file_name, current_date, current_time, Software_version, custom_dpi)
 
         # Save selected part of the dynamic spectrum to txt file
 
-        if save_to_txt_file and StartStopSwitch > 0:
+        if save_to_txt_file and start_stop_switch > 0:
 
             # Saving dynamic spectra
             txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
-                            dateTimeStart[11:].replace(':', '-') + ' - ' + dateTimeStop[11:].replace(':', '-') + '.txt'
+                            date_time_start[11:].replace(':', '-') + ' - ' + date_time_stop[11:].replace(':', '-') + '.txt'
             txt_file = open(txt_file_name, "w")
             for step in range(len(freqLine)):
                 txt_file.write(''.join(format(array[step, i], "12.5f") for i in range(time_points_num)) + ' \n')
             txt_file.close()
 
             # Saving time axis
-            timeline_txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
-                                     dateTimeStart[11:].replace(':', '-') + ' - ' + \
-                                     dateTimeStop[11:].replace(':', '-') + '_timeline.txt'
+            timeline_txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' +  \
+                                         date_time_start[11:].replace(':', '-') + ' - ' + \
+                                         date_time_stop[11:].replace(':', '-') + '_timeline.txt'
             txt_file = open(timeline_txt_file_name, "w")
             for i in range(len(dateTimeNew)):
                 txt_file.write(dateTimeNew[i])
@@ -545,7 +596,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                          ' Dynamic spectrum cleaned and normalized_PhD'+'.png')
         OneDynSpectraPlotPhD(array, 0, 20, Suptitle, 'Інтенсивність, дБ', len(dateTimeNew), TimeScaleFigNew, freqLine,
                              len(freqLine), 'jet', 'Час UTC', fig_file_name, current_date, current_time,
-                             Software_version, customDPI)
+                             Software_version, custom_dpi)
         '''
         # *** TEMPLATE FOR JOURNALS Dynamic spectra of cleaned and normalized signal ***
         '''
@@ -578,15 +629,15 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         plt.xlabel('UTC time, HH:MM:SS', fontsize=12, fontweight='bold')
         #plt.text(0.72, 0.04,'Processed '+current_date+ ' at '+current_time, fontsize=6, transform=plt.gcf().transFigure)
         pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14] + '_'+data_types[j] +
-                      ' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi=customDPI)
+                      ' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi=custom_dpi)
         #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+data_types[j]+
-        # ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
+        # ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = custom_dpi)
                                                                              #filename[-7:-4:]
         plt.close('all')
         '''
-
+    print('\n Processing of data type ', data_types[j], ' finished!')
 
 endTime = time.time()
-print('\n\n\n  The program execution lasted for ',
+print('\n\n  The program execution lasted for ',
       round((endTime - start_time), 2), 'seconds (', round((endTime - start_time)/60, 2), 'min. ) \n')
-print('\n           *** Program DAT_reader has finished! *** \n\n\n')
+print('           *** Program DAT_reader has finished! *** \n\n\n')
