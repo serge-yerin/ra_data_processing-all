@@ -240,11 +240,13 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             # Finding the closest spectra to the chosen time limits
             A = []
             B = []
-            for i in range (len(timeline)):
+            for i in range(len(timeline)):
                 dt_diff_start = dt_timeline[i] - dt_dateTimeStart
                 dt_diff_stop  = dt_timeline[i] - dt_dateTimeStop
-                A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0]*60 + divmod(dt_diff_start.total_seconds(), 60)[1]))
-                B.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0]*60 + divmod(dt_diff_stop.total_seconds(), 60)[1]))
+                A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0]*60 +
+                             divmod(dt_diff_start.total_seconds(), 60)[1]))
+                B.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0]*60 +
+                             divmod(dt_diff_stop.total_seconds(), 60)[1]))
 
             istart = A.index(min(A))
             istop = B.index(min(B))
@@ -265,7 +267,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         if print_or_not == 1:
             print('\n Number of frequency channels:     ', nx, '\n')
             print(' Number of spectra:                ', ny, '\n')
-            print(' Recomended spectra number for averaging is:  ', int(ny/1024))
+            print(' Recommended spectra number for averaging is: ', int(ny/1024))
         # averageConst = raw_input('\n Enter number of spectra to be averaged:       ')
 
         # if (len(averageConst) < 1 or int(averageConst) < 1):
@@ -273,7 +275,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         # else:
         #    averageConst = int(averageConst)
         averageConst = int(ny/1024)
-        if int(averageConst) < 1: averageConst = 1
+        if int(averageConst) < 1:
+            averageConst = 1
 
         # Data reading and averaging 
         if print_or_not == 1: 
@@ -291,9 +294,9 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         numOfBlocks = int(ny/averageConst)
         for block in range(numOfBlocks):
 
-            data1 = np.fromfile(file1, dtype=np.float64, count = nx * averageConst)
+            data1 = np.fromfile(file1, dtype=np.float64, count=nx * averageConst)
             if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B': 
-                data2 = np.fromfile(file2, dtype=np.float64, count = nx * averageConst)
+                data2 = np.fromfile(file2, dtype=np.float64, count=nx * averageConst)
 
             if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B':
                 if typesOfData[j] == 'A+B': 
@@ -311,7 +314,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
             dataApp = np.empty((nx, 1), float)
 
-            if typesOfData[j] == 'chA' or typesOfData[j] == 'chB' or typesOfData[j] == 'A+B' or typesOfData[j] == 'wfA+B':
+            if typesOfData[j] == 'chA' or typesOfData[j] == 'chB' or \
+                    typesOfData[j] == 'A+B' or typesOfData[j] == 'wfA+B':
                 # If analyzing intensity - average and log data
                 if averOrMin == 0:
                     with np.errstate(invalid='ignore'):
@@ -331,7 +335,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                 array = np.append(array, dataApp, axis=1)
                 array[np.isnan(array)] = -120
 
-            if typesOfData[j] == 'C_p'  or typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
+            if typesOfData[j] == 'C_p' or typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
                 # If analyzing phase of Re/Im we do not log data, only averaging
                 dataApp[:, 0] = (data.mean(axis=1)[:])
                 array = np.append(array, dataApp, axis=1)
@@ -340,7 +344,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             if typesOfData[j] == 'C_m':
                 dataApp[:,0] = (data.mean(axis=1)[:])
                 array = np.append(array, dataApp, axis=1)
-                #array[np.isinf(array)] = -120
+                # array[np.isinf(array)] = -120
 
             del dataApp, data
         file1.close()
@@ -379,11 +383,10 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                  ' kHz ' + sumDifMode + 'Processing: ' + reducing_type + str(averageConst) +
                  ' spectra (' + str(round(averageConst * time_resolution, 3)) + ' sec.)')
 
-        TwoOrOneValuePlot(1, frequency, array[:,[1]], [],
-                    'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
-                    YaxName, ' ', Suptitle, Title,
-                    newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] + ' Immediate Spectrum full.png',
-                    current_date, current_time, Software_version)
+        TwoOrOneValuePlot(1, frequency, array[:,[1]], [], 'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax,
+                          Vmin, Vmax, 'Frequency, MHz', YaxName, ' ', Suptitle, Title,
+                          newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] +
+                          ' Immediate Spectrum full.png', current_date, current_time, Software_version)
 
         # *** Decide to use only list of frequencies or all frequencies in range
         if ListOrAllFreq == 0:
@@ -397,7 +400,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                 newFreq = np.array(frequency)
                 newFreq = np.absolute(newFreq - freq_list[fc])
                 index = np.argmin(newFreq)+1
-                #tempArr1 = np.arange(0, len(dateTimeNew), 1)
+                # tempArr1 = np.arange(0, len(dateTimeNew), 1)
 
                 if ChannelSavePNG == 1 or typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
                     if typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
@@ -416,7 +419,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                              ' spectra (' + str(round(averageConst*time_resolution, 3)) + ' sec.)')
 
                     file_name = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j] + df_filename[-4:] +
-                                ' variation at ' + str(round(frequency[index], 3)) + ' MHz.png')
+                                 ' variation at ' + str(round(frequency[index], 3)) + ' MHz.png')
 
                     OneValueWithTimePlot(timeline, array[[index],:].transpose(), label, 0, len(dateTimeNew),
                                          Vmin, Vmax, 0, 0, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
@@ -504,7 +507,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                         ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
                         ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
             fig_file_name = (newpath + '/' + fileNameAddNorm + df_filename[0:14] + '_'+typesOfData[j] +
-                            ' Dynamic spectrum cleanned and normalized' + '.png')
+                             ' Dynamic spectrum cleaned and normalized' + '.png')
 
             OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig,
                              freq_line, len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
@@ -513,7 +516,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             '''
             # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
             plt.figure(2, figsize=(16.0, 7.0))
-            ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freq_line[0],freq_line[len(freq_line)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
+            ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freq_line[0],
+                             freq_line[len(freq_line)-1]], vmin=VminNorm, vmax=VmaxNorm, cmap=colormap) #
             plt.ylabel('Frequency, MHz', fontsize=12, fontweight='bold')
             #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+nameAdd+
             #            '\n Initial parameters: dt = '+str(round(time_resolution,3))+
