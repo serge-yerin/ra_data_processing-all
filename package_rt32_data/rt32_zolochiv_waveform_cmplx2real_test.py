@@ -100,7 +100,8 @@ def rpr_wf_data_reader(filepath):
                                np.cos(2 * np.pi * i + np.angle(tt0_new[i]))  # tt0_new[i].imag / tt0_new[i].real)
             real_data[2 * i + 1] = real_data[2 * i]
 
-        real_data = np.reshape(real_data, (nFFT, 2 * nGates))
+        # real_data = np.reshape(real_data, (nFFT, 2 * nGates))
+        real_data = np.reshape(real_data, (2 * nFFT, nGates))
         # Calculation of integrated spectra
         fft_new = np.fft.fft(np.transpose(real_data))
         # **************************************************************************************************************
@@ -108,6 +109,7 @@ def rpr_wf_data_reader(filepath):
         # Calculation of integrated spectra
         fft_tt0 = np.fft.fft(np.transpose(tt0))
         print('Shape of fft_tt0:', fft_tt0.shape)
+        print('Shape of fft_new:', fft_new.shape)
         #
         # Remove current leak to the zero harmonic
         fft_tt0[:, 0] = (np.abs(fft_tt0[:, 1]) + np.abs(fft_tt0[:, nFFT - 1])) / 2
@@ -121,7 +123,8 @@ def rpr_wf_data_reader(filepath):
         # integr_spectra_1 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt1)), axis=0) + 0.01)
         integr_spectra_0 = 20 * np.log10(np.sum(np.abs(fft_tt0), axis=0) + 0.01)
         integr_spectra_1 = 20 * np.log10(np.sum(np.abs(fft_tt1), axis=0) + 0.01)
-        integr_spectra_new = 20 * np.log10(np.sum(np.abs(fft_new), axis=0) + 0.01)
+        # integr_spectra_new = 20 * np.log10(np.sum(np.abs(fft_new), axis=0) + 0.01)
+        integr_spectra_new = 20 * np.log10(np.sum(np.abs(fft_new[:, nFFT:]), axis=0) + 10.01)
         plt.figure()
         plt.plot(integr_spectra_0, linewidth='0.50')
         plt.plot(integr_spectra_1, linewidth='0.50')
