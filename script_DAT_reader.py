@@ -9,7 +9,6 @@ Software_version = '2022.01.29'
 common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Directory of DAT file to be analyzed:
-# filename = common_path + 'A210623_021959.adr_Data_chA.dat'
 filename = common_path + 'A200605_084324.adr_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
