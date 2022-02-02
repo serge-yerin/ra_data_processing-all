@@ -111,18 +111,22 @@ def rpr_wf_data_reader(filepath):
 
 
 def test_int8_to_2bit_words_conversion():
-    # test_array = np.array((0, 2, 4, 8, 16, 32), dtype=np.int8)
-    test_array = np.array((int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)), dtype=np.uint8)
+    test_array = np.array(([int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)],
+                           [int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)]),
+                          dtype=np.uint8)
     a0, a1, a2, a3 = int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)
-    t0, t1, t2, t3 = test_array[0] & a0, test_array[1] & a1, test_array[2] & a2, test_array[3] & a3
+    t0, t1, t2, t3 = test_array[:, 0] & a0, test_array[:, 1] & a1, test_array[:, 2] & a2, test_array[:, 3] & a3
     print(t0, t1, t2, t3)
     result = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
+    print(result, bin(result[0]))
 
-    # result = bin(test_array[1])
-    # print(result)
-    # result = bin(test_array[1] << 6)
-    print(result, bin(result))
-    # print(int(result, 2))
+    test_array = np.array((1, 2, 3, 4, 5, 6))
+    print(test_array)
+    test_array = np.reshape(test_array, (2, 3))
+    print(test_array)
+    print(test_array[1, 2])
+    test_array = np.reshape(test_array, (1, 6))
+    print(test_array)
 
     return
 
