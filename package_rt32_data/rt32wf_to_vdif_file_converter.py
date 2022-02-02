@@ -349,7 +349,8 @@ def rt32wf_to_vdf_frame_header(filepath):
     channel_no = 1  # We have 2 channels so the log2(2) = 1
 
     # Word 2 Bits 23-0: Data Frame length (including header) in units of 8 bytes with a maximum length of 2^27 bytes
-    data_frame_length = 262148  # 262148 for n_fft = 128 and n_gates = 8192 data frames are of ~ 2MB
+    # data_frame_length = 262148  # 262148 for n_fft = 128 and n_gates = 8192 data frames are of ~ 2MB
+    data_frame_length = 250004  # 250004 for samples_per_frame = 1 000 000 data frames are of ~ 2MB
 
     # Forming the word from values
     if vdif_version > 7:
@@ -565,8 +566,8 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, second_counter)
 
             # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
-            # data_bytearray = vdif_header_1 + data_bytearray_thrd_1 + vdif_header_2 + data_bytearray_thrd_2
             data_bytearray = vdif_header_1 + data_0_bytes + vdif_header_2 + data_1_bytes
+            # print(' Length of one full frame: ', len(data_bytearray)/2, ' bytes')
 
             # Encoding the whole bytearray to little endian format
             data_bytearray = big_to_little_endian(data_bytearray)
