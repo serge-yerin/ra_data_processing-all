@@ -34,7 +34,7 @@ def rpr_wf_data_reader(filepath):
     """
 
     fft_length = 16384
-    spectra_num = 16  # 8192  4096  # 2048  # 256
+    spectra_num = 8  # 8192  4096  # 2048  # 256
 
     with open(filepath) as f:  # Open data file
         f.seek(1024)  # Jump to 1024 byte in the file to skip the header
@@ -70,10 +70,13 @@ def rpr_wf_data_reader(filepath):
         tt0_len = tt0_new.shape[0]
         real_data = np.zeros(2 * tt0_len, dtype=np.int8)
 
-        for i in range(tt0_len):
+        for i in range(tt0_len-1):
             real_data[2 * i] = np.sqrt(tt0_new[i].real ** 2 + tt0_new[i].imag ** 2) * \
-                               np.cos(2 * np.pi * 2*i + np.angle(tt0_new[i]))
-            real_data[2 * i + 1] = - real_data[2 * i]
+                               np.cos(2 * np.pi * 1*i + np.angle(tt0_new[i]))
+
+            real_data[2 * i + 1] = ((np.sqrt(tt0_new[i].real ** 2 + tt0_new[i].imag ** 2) +
+                                    np.sqrt(tt0_new[i+1].real ** 2 + tt0_new[i+1].imag ** 2)) *
+                                    np.cos(2 * np.pi * 1*i - (np.pi / 2) + np.angle(tt0_new[i]))) / 2
 
         print(real_data[0:50])
         print(real_data[-51:-1])
@@ -107,7 +110,25 @@ def rpr_wf_data_reader(filepath):
         plt.close('all')
 
 
+def test_int8_to_2bit_words_conversion():
+    # test_array = np.array((0, 2, 4, 8, 16, 32), dtype=np.int8)
+    test_array = np.array((int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)), dtype=np.uint8)
+    a0, a1, a2, a3 = int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)
+    t0, t1, t2, t3 = test_array[0] & a0, test_array[1] & a1, test_array[2] & a2, test_array[3] & a3
+    print(t0, t1, t2, t3)
+    result = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
+
+    # result = bin(test_array[1])
+    # print(result)
+    # result = bin(test_array[1] << 6)
+    print(result, bin(result))
+    # print(int(result, 2))
+
+    return
+
+
 if __name__ == '__main__':
-    rpr_wf_data_reader(filepath)
+    # rpr_wf_data_reader(filepath)
+    test_int8_to_2bit_words_conversion()
 
 
