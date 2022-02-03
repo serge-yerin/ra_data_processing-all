@@ -2,15 +2,15 @@
 Software_version = '2020.05.01'
 Software_name = 'MARK5 reader'
 # Script intended to read, show and analyze data from MARK5 receiver
-#*******************************************************************************
-#                             P A R A M E T E R S                              *
-#*******************************************************************************
-directory = 'DATA/'
-filename = 'pul_b1133+16_ir_no0048.m5a'
+# *******************************************************************************
+#                              P A R A M E T E R S                              *
+# *******************************************************************************
+directory = '../RA_DATA_ARCHIVE/RT-32_Irbene_pulsar_data/'
+filename = 'pulsar_ir_no40_m5a.dat'  # 'pul_b1133+16_ir_no0048.m5a'
 
-#*******************************************************************************
-#                    I M P O R T    L I B R A R I E S                          *
-#*******************************************************************************
+# *******************************************************************************
+#                     I M P O R T    L I B R A R I E S                          *
+# *******************************************************************************
 # Common functions
 import sys
 import numpy as np
@@ -22,13 +22,12 @@ from matplotlib import rc
 import pylab
 import os
 
-
-
 # To change system path to main directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-def mark_5_data_header_read(file):
+
+def mark_5_data_header_read(a_file):
 
     A = np.uint32(int('00111111111111111111111111111111', 2))
     B = np.uint32(int('10000000000000000000000000000000', 2))
@@ -43,7 +42,7 @@ def mark_5_data_header_read(file):
     K = np.uint32(int('11111111000000000000000000000000', 2))
 
     # *** Data file header read ***
-    file_header = file.read(32)
+    file_header = a_file.read(32)
     # Word 0
     word_0 = np.uint32(int.from_bytes(file_header[0:4], byteorder='little', signed=False))
     seconds_from_epoch_begin = np.uint32(np.bitwise_and(word_0, A))
@@ -87,15 +86,17 @@ def mark_5_data_header_read(file):
     print('   Station ID:                         ', station_id, ' ')
     print('   Extended data version:              ', extended_data_version, ' ')
 
-    if epoch_no == 39: epoch_start = '2019-06-01 00:00:00'
-    if epoch_no == 40: epoch_start = '2020-01-01 00:00:00'
-    if epoch_no == 41: epoch_start = '2020-06-01 00:00:00'
+    if epoch_no == 39:
+        epoch_start = '2019-06-01 00:00:00'
+    if epoch_no == 40:
+        epoch_start = '2020-01-01 00:00:00'
+    if epoch_no == 41:
+        epoch_start = '2020-06-01 00:00:00'
 
     dt_epoch_start = datetime(int(epoch_start[0:4]), int(epoch_start[5:7]), int(epoch_start[8:10]),
-                                  int(epoch_start[11:13]), int(epoch_start[14:16]),
-                                  int(epoch_start[17:19]), 0)
+                              int(epoch_start[11:13]), int(epoch_start[14:16]), int(epoch_start[17:19]), 0)
 
-    dt_file_start = dt_epoch_start + timedelta(seconds = int(seconds_from_epoch_begin))
+    dt_file_start = dt_epoch_start + timedelta(seconds=int(seconds_from_epoch_begin))
 
     print('   Date and time of first data frame:  ', dt_file_start)
 
@@ -104,16 +105,15 @@ def mark_5_data_header_read(file):
 
 ################################################################################
 
+
 if __name__ == '__main__':
 
     filepath = directory + filename
 
-    file_size = (os.stat(filepath).st_size)  # Size of file
+    file_size = os.stat(filepath).st_size  # Size of file
     print('\n   File size:                    ', round(file_size / 1024 / 1024, 3), ' Mb (', file_size, ' bytes )')
 
-
     with open(filepath, 'rb') as file:
-
 
         print('\n *  First data frame header info:')
         data_frame_length, num_of_channels, bits_per_sample, dt_file_start = mark_5_data_header_read(file)
@@ -127,15 +127,16 @@ if __name__ == '__main__':
         print('   Samples in frame:                   ', samples_in_frame)
         print('   Samples in file:                    ', samples_in_frame * frames_in_file)
 
-
         file.seek(0)  # Jumping to the file beginning
         no_of_frames_to_average = 2
         raw_data = np.fromfile(file, dtype='i2', count=int((data_frame_length * 8 / 2) * no_of_frames_to_average))
         raw_data = np.reshape(raw_data, [int(data_frame_length * 8 / 2), no_of_frames_to_average], order='F')
-        raw_data = raw_data[16: , :]
+        raw_data = raw_data[16:, :]
         raw_data = np.reshape(raw_data, [int((data_frame_length * 8 / 2)-16) * no_of_frames_to_average], order='F')
 
-        unpacked_data = np.zeros((int(num_of_channels), int(no_of_frames_to_average * 4 * data_bytes_length / num_of_channels)), dtype=np.uint8)
+        unpacked_data = np.zeros((int(num_of_channels),
+                                  int(no_of_frames_to_average * 4 * data_bytes_length / num_of_channels)),
+                                 dtype=np.uint8)
 
         unpacked_data[0, :] = raw_data[:] & 3
         unpacked_data[1, :] = np.right_shift(raw_data[:] & 12, 2)
@@ -182,7 +183,6 @@ if __name__ == '__main__':
         ax4.set_title('Channel 4', fontsize=8, fontweight='bold', y=1.025)
         ax4.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
         ax4.set_xlabel('Samples, #', fontsize=6, fontweight='bold')
-
 
         ax5 = fig.add_subplot(245)
         ax5.plot(unpacked_data[4, 0:100])
