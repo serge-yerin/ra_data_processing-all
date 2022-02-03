@@ -65,7 +65,7 @@ def rpr_wf_data_reader(filepath):
 
         # **************************************************************************************************************
         tt0_new = tt0.copy()
-        tt0_new = np.squeeze(np.reshape(tt0_new, (spectra_num * fft_length, 1)))
+        tt0_new = np.squeeze(np.reshape(tt0_new, (1, spectra_num * fft_length), order='C'))
 
         tt0_len = tt0_new.shape[0]
         real_data = np.zeros(2 * tt0_len, dtype=np.int8)
@@ -75,8 +75,8 @@ def rpr_wf_data_reader(filepath):
                                np.cos(2 * np.pi * 1*i + np.angle(tt0_new[i]))
 
             real_data[2 * i + 1] = ((np.sqrt(tt0_new[i].real ** 2 + tt0_new[i].imag ** 2) +
-                                    np.sqrt(tt0_new[i+1].real ** 2 + tt0_new[i+1].imag ** 2)) *
-                                    np.cos(2 * np.pi * 1*i - (np.pi / 2) + np.angle(tt0_new[i]))) / 2
+                                     np.sqrt(tt0_new[i+1].real ** 2 + tt0_new[i+1].imag ** 2)) *
+                                     np.cos(2 * np.pi * 1*i - (np.pi / 2) + np.angle(tt0_new[i]))) / 2
 
         print(real_data[0:50])
         print(real_data[-51:-1])
@@ -99,11 +99,11 @@ def rpr_wf_data_reader(filepath):
         fft_tt1[:, 0] = (np.abs(fft_tt1[:, 1]) + np.abs(fft_tt1[:, fft_length - 1])) / 2
 
         # Calculate and show integrated spectra
-        # integr_spectra_0 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt0[:, :])), axis=0) + 0.01)
+        integr_spectra_0 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt0[:, :])), axis=0) + 0.01)
         integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :fft_length])), axis=0) + 0.01) - 7
         # integr_spectra_n = 20 * np.log10(np.sum(np.abs((fft_new[:, :])), axis=0) + 0.01) - 7  #
         plt.figure()
-        # plt.plot(integr_spectra_0, linewidth='0.50')
+        plt.plot(integr_spectra_0, linewidth='0.50')
         # plt.plot(integr_spectra_1, linewidth='0.50')
         plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
         plt.show()
@@ -111,28 +111,58 @@ def rpr_wf_data_reader(filepath):
 
 
 def test_int8_to_2bit_words_conversion():
-    test_array = np.array(([int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)],
-                           [int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)]),
+    # test_array = np.array(([int('11000000', 2), int('10000000', 2), int('11000000', 2), int('11000000', 2)],
+    #                        [int('11000000', 2), int('11000000', 2), int('00000000', 2), int('11000000', 2)],
+    #                        [int('11000000', 2), int('11000000', 2), int('11000000', 2), int('01000000', 2)]),
+    #                       dtype=np.uint8)
+
+    test_array = np.array(([192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192],
+                           [192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192],
+                           [192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192]),
                           dtype=np.uint8)
+    # Separation of the 2 bits to group them into 32-bit word
     a0, a1, a2, a3 = int('11000000', 2), int('11000000', 2), int('11000000', 2), int('11000000', 2)
     t0, t1, t2, t3 = test_array[:, 0] & a0, test_array[:, 1] & a1, test_array[:, 2] & a2, test_array[:, 3] & a3
     print(t0, t1, t2, t3)
-    result = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
-    print(result, bin(result[0]))
+    byte_0 = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
+    t0, t1, t2, t3 = test_array[:, 4] & a0, test_array[:, 5] & a1, test_array[:, 6] & a2, test_array[:, 7] & a3
+    byte_1 = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
+    t0, t1, t2, t3 = test_array[:, 8] & a0, test_array[:, 9] & a1, test_array[:, 10] & a2, test_array[:, 11] & a3
+    byte_2 = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
+    t0, t1, t2, t3 = test_array[:, 12] & a0, test_array[:, 13] & a1, test_array[:, 14] & a2, test_array[:, 15] & a3
+    byte_3 = t0 | t1 >> 2 | t2 >> 4 | t3 >> 6
 
-    test_array = np.array((1, 2, 3, 4, 5, 6))
-    print(test_array)
-    test_array = np.reshape(test_array, (2, 3))
-    print(test_array)
-    print(test_array[1, 2])
-    test_array = np.reshape(test_array, (1, 6))
-    print(test_array)
+    print(byte_0)
+    # for i in range(len(byte_0)):
+    #     print(bin(byte_0[i]))
+
+    # word_32_bit = byte_0 | byte_1 | byte_2 | byte_3
+    byte_0 = np.uint32(byte_0)
+    byte_1 = np.uint32(byte_1)
+    byte_2 = np.uint32(byte_2)
+    byte_3 = np.uint32(byte_3)
+
+    word_32_bit = (byte_0 << 24) | (byte_1 << 16) | (byte_2 << 8) | byte_3
+
+    print(word_32_bit)
+    print(bin(word_32_bit[0]))
+    # print(byte_0)
+    # print(byte_0 << 2)
+    # print(bin(word_32_bit))
+
+    # test_array = np.array((1, 2, 3, 4, 5, 6))
+    # print(test_array)
+    # test_array = np.reshape(test_array, (2, 3))
+    # print(test_array)
+    # print(test_array[1, 2])
+    # test_array = np.reshape(test_array, (1, 6))
+    # print(test_array)
 
     return
 
 
 if __name__ == '__main__':
-    # rpr_wf_data_reader(filepath)
-    test_int8_to_2bit_words_conversion()
+    rpr_wf_data_reader(filepath)
+    # test_int8_to_2bit_words_conversion()
 
 
