@@ -65,21 +65,14 @@ def rpr_wf_data_reader(filepath):
 
         # **************************************************************************************************************
         tt0_new = tt0.copy()
-        tt0_new = np.squeeze(np.reshape(tt0_new, (1, spectra_num * fft_length), order='C'))
+        tt0_new = np.squeeze(np.reshape(tt0_new, (spectra_num * fft_length, 1)))
 
         tt0_len = tt0_new.shape[0]
         real_data = np.zeros(2 * tt0_len, dtype=np.int8)
 
-        for i in range(tt0_len-1):
-            real_data[2 * i] = np.sqrt(tt0_new[i].real ** 2 + tt0_new[i].imag ** 2) * \
-                               np.cos(2 * np.pi * 1*i + np.angle(tt0_new[i]))
-
-            real_data[2 * i + 1] = ((np.sqrt(tt0_new[i].real ** 2 + tt0_new[i].imag ** 2) +
-                                     np.sqrt(tt0_new[i+1].real ** 2 + tt0_new[i+1].imag ** 2)) *
-                                     np.cos(2 * np.pi * 1*i - (np.pi / 2) + np.angle(tt0_new[i]))) / 2
-
-        print(real_data[0:50])
-        print(real_data[-51:-1])
+        for i in range(tt0_len-2):
+            real_data[2 * i] = tt0_new[i].imag
+            real_data[2 * i + 1] = (tt0_new[i+1].imag + tt0_new[i+2].imag) / 2
 
         # real_data = np.reshape(real_data, (fft_length, 2 * spectra_num))
         real_data = np.reshape(real_data, (2 * fft_length, spectra_num))
@@ -100,7 +93,7 @@ def rpr_wf_data_reader(filepath):
 
         # Calculate and show integrated spectra
         integr_spectra_0 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt0[:, :])), axis=0) + 0.01)
-        integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :fft_length])), axis=0) + 0.01) - 7
+        integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :])), axis=0) + 0.01) - 7
         # integr_spectra_n = 20 * np.log10(np.sum(np.abs((fft_new[:, :])), axis=0) + 0.01) - 7  #
         plt.figure()
         plt.plot(integr_spectra_0, linewidth='0.50')
@@ -162,7 +155,7 @@ def test_int8_to_2bit_words_conversion():
 
 
 if __name__ == '__main__':
-    rpr_wf_data_reader(filepath)
-    # test_int8_to_2bit_words_conversion()
+    # rpr_wf_data_reader(filepath)
+    test_int8_to_2bit_words_conversion()
 
 
