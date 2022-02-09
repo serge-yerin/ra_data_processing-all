@@ -28,6 +28,25 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 
+def show_amplitude_spectra(array):
+    # integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :])), axis=0) + 0.01)
+    integr_spectra_n = 20 * np.log10(np.sum(np.abs((array[:, :])), axis=0) + 0.01)
+    plt.figure()
+    plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
+    plt.show()
+    plt.close('all')
+    return
+
+
+def show_phase_spectra(array):
+    integr_spectra_phase = np.angle(np.sum(array, axis=0))
+    plt.figure()
+    plt.plot(integr_spectra_phase, linewidth='0.50', color='C3', alpha=0.7)
+    plt.show()
+    plt.close('all')
+    return
+
+
 def rpr_wf_data_reader(filepath):
     """
     RT-32 Zolochiv Ukraine RPR receiver waveform data reader (not finished, just POC)
@@ -40,11 +59,9 @@ def rpr_wf_data_reader(filepath):
         f.seek(1024)  # Jump to 1024 byte in the file to skip the header
         # Read raw data from file in int8 format
         rdd = np.fromfile(f, dtype=np.int8, count=fft_length * spectra_num * 2 * 2)
-        print('Shape of data read from file:', rdd.shape)
 
         # Preparing empty matrix for complex data
         crd = np.empty(fft_length * spectra_num * 2, dtype=np.complex64)
-        print('Shape of prepared complex data array:', crd.shape)
 
         # Separating real and imaginary data from the raw data
         crd.real = rdd[0: fft_length * spectra_num * 2 * 2: 2]
@@ -54,53 +71,127 @@ def rpr_wf_data_reader(filepath):
         # Reshaping complex data to separate data of channels
         rsh_crd = np.reshape(crd, (spectra_num, fft_length, 2))
         del crd
-        print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
         rsh_crd = np.transpose(rsh_crd)
-        print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
 
         # Separate data of channels
         tt0 = rsh_crd[0, :, :]
-        tt1 = rsh_crd[1, :, :]
-        print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
+        # print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
 
         # **************************************************************************************************************
         tt0_new = tt0.copy()
-        tt0_new = np.squeeze(np.reshape(tt0_new, (spectra_num * fft_length, 1)))
+        print('Processed waveform data: ', tt0_new.shape, tt0_new.dtype)
 
-        tt0_len = tt0_new.shape[0]
-        real_data = np.zeros(2 * tt0_len, dtype=np.int8)
+        # Calculation of spectra
+        fft_new = np.fft.fft(np.transpose(tt0_new))
+        print('Shape of fft_new:', fft_new.shape, fft_new.dtype)
 
-        for i in range(tt0_len-2):
-            real_data[2 * i] = tt0_new[i].imag
-            real_data[2 * i + 1] = (tt0_new[i+1].imag + tt0_new[i+2].imag) / 2
+        # show_amplitude_spectra(fft_new)
+        # show_phase_spectra(fft_new)
 
-        # real_data = np.reshape(real_data, (fft_length, 2 * spectra_num))
-        real_data = np.reshape(real_data, (2 * fft_length, spectra_num))
+        # second_spectra_half = fft_new.copy()
+        # second_spectra_half = np.fliplr(second_spectra_half)
+        # second_spectra_half = np.conjugate(second_spectra_half)
+        # spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
 
-        # Calculation of integrated spectra
-        fft_new = np.fft.fft(np.transpose(real_data))
-        print('Shape of fft_new:', fft_new.shape)
+        second_spectra_half = fft_new.copy()
+        second_spectra_half = np.conjugate(second_spectra_half)
+        second_spectra_half = np.fliplr(second_spectra_half)
+        second_spectra_half = np.roll(second_spectra_half, -1)
+        second_spectra_half[:, -1] = 0
+        spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
+
+
+        # fft_new[:, 0] = np.real(fft_new[:, 0])
+        # fft_new[:, -1] = 0
+        # second_spectra_half = fft_new.copy()
+        # second_spectra_half = np.fliplr(second_spectra_half)
+        # second_spectra_half = np.conjugate(second_spectra_half)
+        #
+        # second_spectra_half = fft_new.copy()
+        # second_spectra_half = np.fliplr(second_spectra_half)
+        # second_spectra_half = np.conjugate(second_spectra_half)
+        # spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
+
+        # fft_new[-1] = 0
+        # second_spectra_half[:, 0] = 0
+        # # print(second_spectra_half[0, 0], second_spectra_half[0, -2], second_spectra_half[0, -1])
+        # second_spectra_half = np.roll(second_spectra_half, 1)
+        # # print(second_spectra_half[0, 0], second_spectra_half[0, -2], second_spectra_half[0, -1])
+        # second_spectra_half = np.fliplr(second_spectra_half)
+        # second_spectra_half = np.conjugate(second_spectra_half)
+        # spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
+
+        # show_amplitude_spectra(spectra)
+        # show_phase_spectra(spectra)
+
+        # Making IFFT
+        wf_data = np.real(np.fft.ifft(spectra))
+        print('Inverse FFT result:', wf_data.shape, wf_data.dtype)
+
+        # # Reshaping the waveform to single dimension (real)
+        # wf_data = np.reshape(wf_data, [2 * fft_length * spectra_num, 1], order='F')
+        # wf_data = np.squeeze(wf_data)
+        #
+        # print('Processed waveform data: ', wf_data.shape, wf_data.dtype)
+        # print(np.max(wf_data), np.min(wf_data), np.mean(wf_data))
+        # # print(wf_data[:18])
+
+        # Calculation of spectra
+        fft_new = np.fft.fft(wf_data)
+        print('Shape of fft_new:', fft_new.shape, fft_new.dtype)
+
+        # Cut the spectra of real waveform and double the magnitude
+        fft_new = 1.41 * fft_new[:, fft_length:]
+        # fft_new = 1.41 * fft_new[:, :fft_length]
+        fft_new = np.fft.fftshift(fft_new)
+        print('Shape of fft_new:', fft_new.shape, fft_new.dtype)
+
+        # **************************************************************************************************************
+        # tt0_new = np.squeeze(np.reshape(tt0_new, (spectra_num * fft_length, 1)))
+        #
+        # tt0_len = tt0_new.shape[0]
+        # real_data = np.zeros(2 * tt0_len, dtype=np.int8)
+        #
+        # for i in range(tt0_len-2):
+        #     real_data[2 * i] = tt0_new[i].imag
+        #     real_data[2 * i + 1] = (tt0_new[i+1].imag + tt0_new[i+2].imag) / 2
+        #
+        # # real_data = np.reshape(real_data, (fft_length, 2 * spectra_num))
+        # real_data = np.reshape(real_data, (2 * fft_length, spectra_num))
+        #
+        # # Calculation of integrated spectra
+        # fft_new = np.fft.fft(np.transpose(real_data))
+        # print('Shape of fft_new:', fft_new.shape)
         # **************************************************************************************************************
 
         # Calculation of integrated spectra
         fft_tt0 = np.fft.fft(np.transpose(tt0))
-        fft_tt1 = np.fft.fft(np.transpose(tt1))
-        print('Shape of fft_tt0:', fft_tt0.shape)
+        print('Shape of fft_tt0:', fft_tt0.shape, fft_new.dtype)
+
+        print(fft_tt0[:, 0])
 
         # Remove current leak to the zero harmonic
         fft_tt0[:, 0] = (np.abs(fft_tt0[:, 1]) + np.abs(fft_tt0[:, fft_length - 1])) / 2
-        fft_tt1[:, 0] = (np.abs(fft_tt1[:, 1]) + np.abs(fft_tt1[:, fft_length - 1])) / 2
+
+        fft_tt0 = np.fft.fftshift(fft_tt0[:, :])
+
+        # show_amplitude_spectra(fft_tt0)
+        show_phase_spectra(fft_tt0)
 
         # Calculate and show integrated spectra
-        integr_spectra_0 = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_tt0[:, :])), axis=0) + 0.01)
-        integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :])), axis=0) + 0.01) - 7
-        # integr_spectra_n = 20 * np.log10(np.sum(np.abs((fft_new[:, :])), axis=0) + 0.01) - 7  #
+        integr_spectra_0 = 20 * np.log10(np.sum(np.abs(fft_tt0), axis=0) + 0.01)
+        integr_spectra_n = 20 * np.log10(np.sum(np.abs(fft_new), axis=0) + 0.01)
+
         plt.figure()
         plt.plot(integr_spectra_0, linewidth='0.50')
-        # plt.plot(integr_spectra_1, linewidth='0.50')
         plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
         plt.show()
         plt.close('all')
+
+        # plt.figure()
+        # plt.plot(integr_spectra_0 - integr_spectra_n, linewidth='0.50')
+        # plt.show()
+        # plt.close('all')
 
 
 def test_int8_to_2bit_words_conversion():
@@ -155,7 +246,7 @@ def test_int8_to_2bit_words_conversion():
 
 
 if __name__ == '__main__':
-    # rpr_wf_data_reader(filepath)
-    test_int8_to_2bit_words_conversion()
+    rpr_wf_data_reader(filepath)
+    # test_int8_to_2bit_words_conversion()
 
 
