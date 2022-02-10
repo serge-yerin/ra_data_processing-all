@@ -93,39 +93,69 @@ def rpr_wf_data_reader(filepath):
         # second_spectra_half = np.conjugate(second_spectra_half)
         # spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
 
-        second_spectra_half = fft_new.copy()
-        second_spectra_half = np.conjugate(second_spectra_half)
-        second_spectra_half = np.fliplr(second_spectra_half)
-        second_spectra_half = np.roll(second_spectra_half, -1)
-        second_spectra_half[:, -1] = 0
-        spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
-
-
-        # fft_new[:, 0] = np.real(fft_new[:, 0])
-        # fft_new[:, -1] = 0
         # second_spectra_half = fft_new.copy()
-        # second_spectra_half = np.fliplr(second_spectra_half)
-        # second_spectra_half = np.conjugate(second_spectra_half)
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
         #
-        # second_spectra_half = fft_new.copy()
-        # second_spectra_half = np.fliplr(second_spectra_half)
         # second_spectra_half = np.conjugate(second_spectra_half)
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
+        #
+        # second_spectra_half = np.fliplr(second_spectra_half)
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
+        #
+        # second_spectra_half = np.roll(second_spectra_half, -1, axis=1)
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:], ' \n')
+        #
+        # second_spectra_half[:, -1] = 0
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
+        #
         # spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
+        # print(spectra[0, :2], spectra[0, -2:])
 
-        # fft_new[-1] = 0
-        # second_spectra_half[:, 0] = 0
-        # # print(second_spectra_half[0, 0], second_spectra_half[0, -2], second_spectra_half[0, -1])
-        # second_spectra_half = np.roll(second_spectra_half, 1)
-        # # print(second_spectra_half[0, 0], second_spectra_half[0, -2], second_spectra_half[0, -1])
-        # second_spectra_half = np.fliplr(second_spectra_half)
-        # second_spectra_half = np.conjugate(second_spectra_half)
-        # spectra = np.concatenate((second_spectra_half, fft_new), axis=1)
+        second_spectra_half = fft_new.copy()
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
+
+        second_spectra_half = np.conjugate(second_spectra_half)
+        print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
+
+        second_spectra_half = np.fliplr(second_spectra_half)
+        print(second_spectra_half[0, :2], second_spectra_half[0, -2:])
+
+        # second_spectra_half[:, -1] = 0
+        fft_new[:, 0] = 0
+        second_spectra_half = np.roll(second_spectra_half, 1, axis=1)
+        # print(second_spectra_half[0, :2], second_spectra_half[0, -2:], ' \n')
+
+        spectra = np.concatenate((fft_new, second_spectra_half), axis=1)
+        print(spectra[0, :2], spectra[0, -2:])
+
+
+        # array_0 = [1, -2, 3, -4, 5, -6, 7, -8]
+        # sp = np.fft.fft(array_0)
+        # array_1 = np.fft.ifft(sp)
+        # print('\n\n', array_0)
+        # print(array_1)
+        # print(sp)
+        # sp_sh = np.fft.fftshift(sp)
+        # print(sp_sh)
+        # sp_sh_inv = np.fft.ifftshift(sp_sh)
+        # print(sp_sh_inv)
+        # array_3 = np.fft.ifft(sp_sh)
+        # print(array_3)
+        #
+        # sp_om = np.roll(sp, -1)
+        # print('\n\n', sp)
+        # print(sp_om)
+        # array_om = np.fft.ifft(sp_om)
+        # print(array_om)
 
         # show_amplitude_spectra(spectra)
         # show_phase_spectra(spectra)
 
         # Making IFFT
-        wf_data = np.real(np.fft.ifft(spectra))
+        wf_data = (np.fft.ifft(spectra))
+        print(np.max(np.imag(wf_data)), np.min(np.imag(wf_data)))
+
+        wf_data = np.real(wf_data)
         print('Inverse FFT result:', wf_data.shape, wf_data.dtype)
 
         # # Reshaping the waveform to single dimension (real)
@@ -141,9 +171,11 @@ def rpr_wf_data_reader(filepath):
         print('Shape of fft_new:', fft_new.shape, fft_new.dtype)
 
         # Cut the spectra of real waveform and double the magnitude
-        fft_new = 1.41 * fft_new[:, fft_length:]
-        # fft_new = 1.41 * fft_new[:, :fft_length]
+        fft_new = 1.0 * fft_new[:, fft_length:]
         fft_new = np.fft.fftshift(fft_new)
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        fft_new = fft_new[:, ::-1]
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         print('Shape of fft_new:', fft_new.shape, fft_new.dtype)
 
         # **************************************************************************************************************
@@ -168,7 +200,7 @@ def rpr_wf_data_reader(filepath):
         fft_tt0 = np.fft.fft(np.transpose(tt0))
         print('Shape of fft_tt0:', fft_tt0.shape, fft_new.dtype)
 
-        print(fft_tt0[:, 0])
+        # print(fft_tt0[:, 0])
 
         # Remove current leak to the zero harmonic
         fft_tt0[:, 0] = (np.abs(fft_tt0[:, 1]) + np.abs(fft_tt0[:, fft_length - 1])) / 2
@@ -176,7 +208,7 @@ def rpr_wf_data_reader(filepath):
         fft_tt0 = np.fft.fftshift(fft_tt0[:, :])
 
         # show_amplitude_spectra(fft_tt0)
-        show_phase_spectra(fft_tt0)
+        # show_phase_spectra(fft_tt0)
 
         # Calculate and show integrated spectra
         integr_spectra_0 = 20 * np.log10(np.sum(np.abs(fft_tt0), axis=0) + 0.01)
