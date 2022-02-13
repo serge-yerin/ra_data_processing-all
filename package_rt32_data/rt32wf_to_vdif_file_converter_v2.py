@@ -151,19 +151,19 @@ def big_to_little_endian(data_bytearray):
 
 
 # Forming the word from values
-def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
-    """
-    The function takes 4 uint8 or int8 values and form a 32 bit word
-    (actually can be changed by appropriate array operations)
-    """
-    if 0 > v_int_1 > 256 or 0 > v_int_2 > 256 or 0 > v_int_3 > 256 or 0 > v_int_4 > 256:
-        raise ValueError('\n\n      Error! Invalid value!  \n\n')
-    byte_4 = v_int_4 << 24
-    byte_3 = v_int_3 << 16
-    byte_2 = v_int_2 << 8
-    word = byte_4 | byte_3 | byte_2 | v_int_1
-    word_bytearray = word_to_bytearray(word)
-    return word_bytearray
+# def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
+#     """
+#     The function takes 4 uint8 or int8 values and form a 32 bit word
+#     (actually can be changed by appropriate array operations)
+#     """
+#     if 0 > v_int_1 > 256 or 0 > v_int_2 > 256 or 0 > v_int_3 > 256 or 0 > v_int_4 > 256:
+#         raise ValueError('\n\n      Error! Invalid value!  \n\n')
+#     byte_4 = v_int_4 << 24
+#     byte_3 = v_int_3 << 16
+#     byte_2 = v_int_2 << 8
+#     word = byte_4 | byte_3 | byte_2 | v_int_1
+#     word_bytearray = word_to_bytearray(word)
+#     return word_bytearray
 
 
 def change_thread_id_in_header(a_vdif_header, thread_id):
@@ -349,8 +349,8 @@ def rt32wf_to_vdf_frame_header(filepath):
     channel_no = 1  # We have 2 channels so the log2(2) = 1
 
     # Word 2 Bits 23-0: Data Frame length (including header) in units of 8 bytes with a maximum length of 2^27 bytes
-    # data_frame_length = 262148  # 262148 for n_fft = 128 and n_gates = 8192 data frames are of ~ 2MB
     data_frame_length = 250004  # 250004 for samples_per_frame = 1 000 000 data frames are of ~ 2MB
+    # !!!!
 
     # Forming the word from values
     if vdif_version > 7:
@@ -368,14 +368,14 @@ def rt32wf_to_vdf_frame_header(filepath):
     # ------------------------------------------------------------------------------------------------------------------
 
     # Word 3 Bit 31 - Data type
-    data_type_bit = 1  # We have complex, if real, data_type_bit = 0
+    data_type_bit = 0  # We have real, if complex, data_type_bit = 1
     # Each complex sample consists of two sample components, designated ‘I’ (In-phase) and ‘Q’ (Quadrature),
     # each containing the same number of bits
 
     # Word 3 Bits 30-26:  # bits/sample-1 (32 bits/sample max); see Note 7
     # If the data type is ‘complex’, this parameter is set according to the #bits in each complex-sample component
     # (i.e. half the total # bits per complex sample).
-    bits_per_sample = 7  # 8 bits actually
+    bits_per_sample = 1  # 2 bits per sample actually
 
     # Word 3 Bits 25-16: Thread ID (0 to 1023)
     thread_id = 0  # There will be 2 threads for 2 channels of the data, but by default we put here thread_id = 0
@@ -409,7 +409,7 @@ def rt32wf_to_vdf_frame_header(filepath):
     return header_bytearray, file_header_param_dict
 
 
-def rt32wf_to_vdf_data_converter(filepath, verbose):
+def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
     """
     Function takes the header and RPR (.adr) data and creates the VDIF file
     """
@@ -475,13 +475,32 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             if verbose:
                 print(' Shape of data read from file:                ', raw_data.shape)
 
+            # Preparing empty matrix for complex data
+            cmplx_data = np.empty(fft_length * spectra_num * 2, dtype=np.complex64)
+
             # Separating real and imaginary data from the raw data
-            real_data = raw_data[0: samples_per_frame * 2 * 2: 2]
-            imag_data = raw_data[1: samples_per_frame * 2 * 2: 2]
+            cmplx_data.real = raw_data[0: samples_per_frame * 2 * 2: 2]
+            cmplx_data.imag = raw_data[1: samples_per_frame * 2 * 2: 2]
             del raw_data
             if verbose:
-                print(' Shape of real data array:                    ', real_data.shape)
-                print(' Shape of imag data array:                    ', imag_data.shape, '\n')
+                print(' Shape of complex data array:                    ', cmplx_data.shape)
+
+            # # Reshaping complex data to separate data of channels
+            # rsh_crd = np.reshape(crd, (nGates, nFFT, 2))
+            # del crd
+            # print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
+            # rsh_crd = np.transpose(rsh_crd)
+            # print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
+            #
+            # # Separate data of channels
+            # tt0 = rsh_crd[0, :, :]
+            # tt1 = rsh_crd[1, :, :]
+            # print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
+
+            input()
+
+
+
 
             # Separate channels of data for real and imag parts:
             real_2ch_data = np.reshape(real_data, (samples_per_frame, 2))
@@ -492,23 +511,19 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
                 print(' Shape of imag data array:                    ', imag_2ch_data.shape, '\n')
                 print(' Type of imag data array:                     ', imag_2ch_data.dtype, '\n')
 
-            # If we have inverse spectrum - add minus sign to imaginary (sinus) part of the waveform
-            if spectra_inversion:
-                imag_2ch_data = - imag_2ch_data
-
             '''
             now we have an array of real data real_2ch_data of some length with 2 channels
             and imaginary data in imag_2ch_data of same length with 2 channels
             '''
 
-            # Converting int8 to uint8
-            if verbose:
-                print(' Range of Real data in int8 format:           ', np.min(real_2ch_data), np.max(real_2ch_data))
-            real_2ch_data = np.array(real_2ch_data + 128, dtype=np.uint8)
-            imag_2ch_data = np.array(imag_2ch_data + 128, dtype=np.uint8)
-            if verbose:
-                print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data),
-                      '\n')
+            # # Converting int8 to uint8
+            # if verbose:
+            #     print(' Range of Real data in int8 format:           ', np.min(real_2ch_data), np.max(real_2ch_data))
+            # real_2ch_data = np.array(real_2ch_data + 128, dtype=np.uint8)
+            # imag_2ch_data = np.array(imag_2ch_data + 128, dtype=np.uint8)
+            # if verbose:
+            #     print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data),
+            #           '\n')
 
             # # Make data bytearray of the extracted data
             # data_bytearray_thrd_1 = bytearray([])
@@ -526,29 +541,25 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             #                                          real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
             #     data_bytearray_thrd_2 += word_bytearray
 
-            # Preparing arrays to fill with data correctly
-            data_0 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
-            data_1 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
+            # # Preparing arrays to fill with data correctly
+            # data_0 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
+            # data_1 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
+            #
+            # # Forming the 32-bit words (it's better to check order of data_0 first index, but it works like first try)
+            # data_0[3::4] = real_2ch_data[0::2, 0]
+            # data_0[2::4] = imag_2ch_data[0::2, 0]
+            # data_0[1::4] = real_2ch_data[1::2, 0]
+            # data_0[0::4] = imag_2ch_data[1::2, 0]
+            # data_1[3::4] = real_2ch_data[0::2, 1]
+            # data_1[2::4] = imag_2ch_data[0::2, 1]
+            # data_1[1::4] = real_2ch_data[1::2, 1]
+            # data_1[0::4] = imag_2ch_data[1::2, 1]
 
-            # Forming the 32-bit words (it's better to check order of data_0 first index, but it works like first try)
-            data_0[3::4] = real_2ch_data[0::2, 0]
-            data_0[2::4] = imag_2ch_data[0::2, 0]
-            data_0[1::4] = real_2ch_data[1::2, 0]
-            data_0[0::4] = imag_2ch_data[1::2, 0]
-            data_1[3::4] = real_2ch_data[0::2, 1]
-            data_1[2::4] = imag_2ch_data[0::2, 1]
-            data_1[1::4] = real_2ch_data[1::2, 1]
-            data_1[0::4] = imag_2ch_data[1::2, 1]
+            # # Converting to bytes
+            # data_0_bytes = data_0.tobytes(order='F')  # order='C'
+            # data_1_bytes = data_1.tobytes(order='F')  # order='C'
 
-            # Converting to bytes
-            data_0_bytes = data_0.tobytes(order='F')  # order='C'
-            data_1_bytes = data_1.tobytes(order='F')  # order='C'
 
-            # if verbose:
-            #     print(' Length of data frame body is:                ', len(data_bytearray_thrd_1), ' bytes')
-            #     print(' Length of full data frame is:                ', len(data_bytearray_thrd_1) + 32, ' bytes')
-            #     print(' Length of full data frame is:                ', (len(data_bytearray_thrd_1) + 32) / 8,
-            #           ' of 8 bytes chunks')
 
             # Make two copies of basic headers for changing them according to current numbers
             vdif_header_1 = vdif_header.copy()
@@ -586,5 +597,5 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
 
 if __name__ == '__main__':
     # rt32wf_to_vdf_frame_header(filepath)
-    rt32wf_to_vdf_data_converter(filepath, False)
+    rt32wf_to_vdf_data_converter(filepath, True, 16384, 2048)
 
