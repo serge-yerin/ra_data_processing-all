@@ -100,7 +100,13 @@ def rpr_wf_data_reader(filepath):
 
         # We take only real part of the obtained waveform
         wf_data = np.real(wf_data)
+        # wf_data = np.array(wf_data, dtype=np.int16)
+
+        wf_data = np.clip(wf_data, -128, 127)
+        wf_data = np.array(wf_data, dtype=np.int8)
+
         print('Inverse FFT result:', wf_data.shape, wf_data.dtype)
+        print(np.max(wf_data), np.min(wf_data), np.mean(wf_data))
 
         # # Reshaping the waveform to single dimension (real)
         # wf_data_tmp = np.reshape(wf_data, [2 * fft_length * spectra_num, 1], order='F')
