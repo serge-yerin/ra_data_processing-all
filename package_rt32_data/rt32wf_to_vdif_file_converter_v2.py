@@ -471,7 +471,7 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
                 # print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
 
             # Read raw data from file in int8 format
-            raw_data = np.fromfile(adr_file, dtype=np.int8, count=samples_per_frame * 2 * 2)  # 2 ch (Re + Im) of 1 byte
+            raw_data = np.fromfile(adr_file, dtype=np.int8, count=fft_length * spectra_num * 2 * 2)  # 2 ch (Re + Im) of 1 byte
             if verbose:
                 print(' Shape of data read from file:                ', raw_data.shape)
 
@@ -479,28 +479,81 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
             cmplx_data = np.empty(fft_length * spectra_num * 2, dtype=np.complex64)
 
             # Separating real and imaginary data from the raw data
-            cmplx_data.real = raw_data[0: samples_per_frame * 2 * 2: 2]
-            cmplx_data.imag = raw_data[1: samples_per_frame * 2 * 2: 2]
+            cmplx_data.real = raw_data[0: fft_length * spectra_num * 2 * 2: 2]
+            cmplx_data.imag = raw_data[1: fft_length * spectra_num * 2 * 2: 2]
             del raw_data
             if verbose:
                 print(' Shape of complex data array:                    ', cmplx_data.shape)
 
             # # Reshaping complex data to separate data of channels
-            # rsh_crd = np.reshape(crd, (nGates, nFFT, 2))
-            # del crd
+            cmplx_data = np.reshape(cmplx_data, (fft_length * spectra_num, 2))
             # print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
-            # rsh_crd = np.transpose(rsh_crd)
+            cmplx_data = np.transpose(cmplx_data)
             # print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
-            #
-            # # Separate data of channels
-            # tt0 = rsh_crd[0, :, :]
-            # tt1 = rsh_crd[1, :, :]
-            # print('Shapes of separated channels (tt0, tt1):', tt0.shape, tt1.shape)
+
+            # Separate data of channels
+            cmplx_ch_0 = cmplx_data[0, :]
+            cmplx_ch_1 = cmplx_data[1, :]
+            print(' Shapes of separated channels (tt0, tt1):', cmplx_ch_0.shape, cmplx_ch_0.dtype,
+                  cmplx_ch_1.shape, cmplx_ch_1.dtype)
+
+            def show_amplitude_spectra(array):
+                from matplotlib import pylab as plt
+                import os
+                import matplotlib
+                matplotlib.use('TkAgg')
+                # integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :])), axis=0) + 0.01)
+                integr_spectra_n = 20 * np.log10(np.sum(np.abs((array[:, :])), axis=0) + 0.01)
+                plt.figure()
+                plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
+                plt.show()
+                plt.close('all')
+                return
+
+            def complex_wf_to_real_wf(cmplx_wf):
+
+                print(cmplx_wf[0], cmplx_wf[1], cmplx_wf[2], cmplx_wf[3])
+                cmplx_wf = np.reshape(cmplx_wf, (spectra_num, fft_length))
+                print('Initial (complex) waveform data: ', cmplx_wf.shape, cmplx_wf.dtype)
+                print(cmplx_wf[0, 0], cmplx_wf[0, 1], cmplx_wf[0, 2], cmplx_wf[0, 3])
+
+                # Calculation of spectra
+                cmplx_wf_sp = np.fft.fft(cmplx_wf)
+                print('Shape of fft_new:', cmplx_wf_sp.shape, cmplx_wf_sp.dtype)
+
+                # show_amplitude_spectra(cmplx_wf_sp)
+
+                # Preparing the array of zeros to concatenate with the spectra
+                second_spectra_half = np.zeros_like(cmplx_wf_sp)
+
+                # Concatenating second half of spectra with zeros
+                real_wf_sp = np.concatenate((2 * cmplx_wf_sp, second_spectra_half), axis=1)
+
+                # show_amplitude_spectra(real_wf_sp)
+
+                # Making Inverse FFT
+                real_wf_data = (np.fft.ifft(real_wf_sp))
+                print(np.max(np.imag(real_wf_data)), np.min(np.imag(real_wf_data)))
+
+                # We take only real part of the obtained waveform
+                real_wf_data = np.real(real_wf_data)
+                print('Inverse FFT result:', real_wf_data.shape, real_wf_data.dtype)
+                real_wf_data = np.clip(real_wf_data, -128, 127)
+                real_wf_data = np.array(real_wf_data, dtype=np.int8)
+
+
+                # Reshaping the waveform to single dimension (real)
+                real_wf_data = np.reshape(real_wf_data, [2 * fft_length * spectra_num, 1], order='F')
+                real_wf_data = np.squeeze(real_wf_data)
+                print('Processed waveform data: ', real_wf_data.shape, real_wf_data.dtype)
+                print(np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
+                print(real_wf_data[:18])
+
+                return real_wf_data
+
+            real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0)
 
             input()
-
-
-
 
             # Separate channels of data for real and imag parts:
             real_2ch_data = np.reshape(real_data, (samples_per_frame, 2))
