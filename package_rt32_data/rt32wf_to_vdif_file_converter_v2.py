@@ -541,6 +541,9 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
                 real_wf_data = np.clip(real_wf_data, -128, 127)
                 real_wf_data = np.array(real_wf_data, dtype=np.int8)
 
+                #########################################
+                # Do not forget we need to scale from 0...256 to 0...3 correctly !
+                #########################################
 
                 # Reshaping the waveform to single dimension (real)
                 real_wf_data = np.reshape(real_wf_data, [2 * fft_length * spectra_num, 1], order='F')
