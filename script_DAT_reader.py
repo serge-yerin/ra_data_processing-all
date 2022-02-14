@@ -13,7 +13,7 @@ filename = common_path + 'A200605_084324.adr_Data_chA.dat'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA']
+data_types = ['chA', 'chAdt']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 # freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
