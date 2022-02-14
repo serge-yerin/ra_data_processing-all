@@ -499,10 +499,8 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
 
             def show_amplitude_spectra(array):
                 from matplotlib import pylab as plt
-                import os
                 import matplotlib
                 matplotlib.use('TkAgg')
-                # integr_spectra_n = 20 * np.log10(np.sum(np.abs(np.fft.fftshift(fft_new[:, :])), axis=0) + 0.01)
                 integr_spectra_n = 20 * np.log10(np.sum(np.abs((array[:, :])), axis=0) + 0.01)
                 plt.figure()
                 plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
@@ -514,12 +512,12 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
 
                 print(cmplx_wf[0], cmplx_wf[1], cmplx_wf[2], cmplx_wf[3])
                 cmplx_wf = np.reshape(cmplx_wf, (spectra_num, fft_length))
-                print('Initial (complex) waveform data: ', cmplx_wf.shape, cmplx_wf.dtype)
                 print(cmplx_wf[0, 0], cmplx_wf[0, 1], cmplx_wf[0, 2], cmplx_wf[0, 3])
+                print('Initial (complex) waveform data: ', cmplx_wf.shape, cmplx_wf.dtype)
 
                 # Calculation of spectra
                 cmplx_wf_sp = np.fft.fft(cmplx_wf)
-                print('Shape of fft_new:', cmplx_wf_sp.shape, cmplx_wf_sp.dtype)
+                print('Shape of spectra:                ', cmplx_wf_sp.shape, cmplx_wf_sp.dtype)
 
                 # show_amplitude_spectra(cmplx_wf_sp)
 
@@ -533,28 +531,41 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
 
                 # Making Inverse FFT
                 real_wf_data = (np.fft.ifft(real_wf_sp))
-                print(np.max(np.imag(real_wf_data)), np.min(np.imag(real_wf_data)))
+                print('Range of inverse FFT imag data:  ', np.max(np.imag(real_wf_data)), np.min(np.imag(real_wf_data)))
 
                 # We take only real part of the obtained waveform
                 real_wf_data = np.real(real_wf_data)
-                print('Inverse FFT result:', real_wf_data.shape, real_wf_data.dtype)
-                real_wf_data = np.clip(real_wf_data, -128, 127)
-                real_wf_data = np.array(real_wf_data, dtype=np.int8)
+                print('Range of inverse FFT real data:  ', np.max(real_wf_data), np.min(real_wf_data))
+                print('Inverse FFT result:              ', real_wf_data.shape, real_wf_data.dtype)
+
+                # Reshaping the waveform to single dimension (real)
+                real_wf_data = np.reshape(real_wf_data, (2 * fft_length * spectra_num, 1), order='F')
+                real_wf_data = np.squeeze(real_wf_data)
+
+                print('Processed real waveform data:    ', real_wf_data.shape, real_wf_data.dtype)
+                print('Range of real data processed:    ', np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
+                print('\n', real_wf_data[:18], '\n')
 
                 #########################################
                 # Do not forget we need to scale from 0...256 to 0...3 correctly !
                 #########################################
 
-                # Reshaping the waveform to single dimension (real)
-                real_wf_data = np.reshape(real_wf_data, [2 * fft_length * spectra_num, 1], order='F')
-                real_wf_data = np.squeeze(real_wf_data)
-                print('Processed waveform data: ', real_wf_data.shape, real_wf_data.dtype)
-                print(np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
-                print(real_wf_data[:18])
-
                 return real_wf_data
 
             real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0)
+
+            def convert_real_to_2bit_waveform(real_waveform):
+                # We clip data to int8 range, add 128 to uint8 range,
+                real_waveform = np.clip(real_waveform, -128, 127)  # !!! Seems the wrong values are here !!!
+                print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
+                real_waveform = real_waveform + 128
+                print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
+                real_waveform = real_waveform // 64
+                print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
+                wf_2bit = np.array(real_waveform, dtype=np.uint8)
+                return wf_2bit
+
+            real_2_bit_wf_ch_0 = convert_real_to_2bit_waveform(real_wf_ch_0)
 
             input()
 
@@ -653,5 +664,5 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
 
 if __name__ == '__main__':
     # rt32wf_to_vdf_frame_header(filepath)
-    rt32wf_to_vdf_data_converter(filepath, True, 16384, 2048)
+    rt32wf_to_vdf_data_converter(filepath, True, 16384, 4096)
 
