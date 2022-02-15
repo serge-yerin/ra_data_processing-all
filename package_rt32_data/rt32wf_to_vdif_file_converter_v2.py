@@ -554,7 +554,12 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
 
             real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0)
 
-            def convert_real_to_2bit_waveform(real_waveform):
+            def convert_real_to_4_level_waveform(real_waveform):
+                """
+                Converts real waveform of any (?) resolution to 4-level (2-bit) representation in uint8 format
+                real_waveform - input 1-dimensional numpy array of waveform samples
+                wf_2bit - result 4-level (2-bit) waveform of uint8 format
+                """
                 # We clip data to int8 range, add 128 to uint8 range,
                 real_waveform = np.clip(real_waveform, -128, 127)  # !!! Seems the wrong values are here !!!
                 print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
@@ -565,48 +570,47 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
                 wf_2bit = np.array(real_waveform, dtype=np.uint8)
                 return wf_2bit
 
-            real_2_bit_wf_ch_0 = convert_real_to_2bit_waveform(real_wf_ch_0)
+            def convert_4_level_waveform_to_32bit_words(real_4_level_wf):
+                """
+                Converts 4 level real waveform data to 32 bit words needed for VDIF file format
+                real_4_level_wf - numpy array of waveform data reduced to values in range [0...3] in uint8 format
+                word_32_bit_array - numpy array of 32-bit words (uint32 format) of 16 2-bit waveform samples placed one
+                                    after another
+                """
+                real_4_level_wf = np.array(real_4_level_wf, dtype=np.uint8)
+                if any(real_4_level_wf) > 3:
+                    print('Error!!!')
+                array = np.reshape(real_4_level_wf, (fft_length * spectra_num // 8, 16))
+                byte_0 = array[:,  0] << 6 | array[:,  1] << 4 | array[:,  2] << 2 | array[:,  3]
+                byte_1 = array[:,  4] << 6 | array[:,  5] << 4 | array[:,  6] << 2 | array[:,  7]
+                byte_2 = array[:,  8] << 6 | array[:,  9] << 4 | array[:, 10] << 2 | array[:, 11]
+                byte_3 = array[:, 12] << 6 | array[:, 13] << 4 | array[:, 14] << 2 | array[:, 15]
+
+                byte_0 = np.uint32(byte_0)
+                byte_1 = np.uint32(byte_1)
+                byte_2 = np.uint32(byte_2)
+                byte_3 = np.uint32(byte_3)
+
+                word_32_bit_array = (byte_0 << 24) | (byte_1 << 16) | (byte_2 << 8) | byte_3
+
+                return word_32_bit_array
+
+            # Reduce real waveform of any accuracy to 4 levels [0...3] (2-bits but in uint8 format)
+            real_2_bit_wf_ch_0 = convert_real_to_4_level_waveform(real_wf_ch_0)
+
+            # Pack 4-level real waveform to 32-bit words of 16 2-bit samples
+            real_2_bit_wf_ch_0 = convert_4_level_waveform_to_32bit_words(real_2_bit_wf_ch_0)
+
+
+            print(real_2_bit_wf_ch_0[0])
+            print(real_2_bit_wf_ch_0.shape, real_2_bit_wf_ch_0.dtype)
 
             input()
-
-            # Separate channels of data for real and imag parts:
-            real_2ch_data = np.reshape(real_data, (samples_per_frame, 2))
-            imag_2ch_data = np.reshape(imag_data, (samples_per_frame, 2))
-            del real_data, imag_data
-            if verbose:
-                print(' Shape of real data array:                    ', real_2ch_data.shape)
-                print(' Shape of imag data array:                    ', imag_2ch_data.shape, '\n')
-                print(' Type of imag data array:                     ', imag_2ch_data.dtype, '\n')
-
-            '''
-            now we have an array of real data real_2ch_data of some length with 2 channels
-            and imaginary data in imag_2ch_data of same length with 2 channels
-            '''
-
-            # # Converting int8 to uint8
-            # if verbose:
-            #     print(' Range of Real data in int8 format:           ', np.min(real_2ch_data), np.max(real_2ch_data))
-            # real_2ch_data = np.array(real_2ch_data + 128, dtype=np.uint8)
-            # imag_2ch_data = np.array(imag_2ch_data + 128, dtype=np.uint8)
-            # if verbose:
-            #     print(' Range of Real data in uint8 format:          ', np.min(real_2ch_data), np.max(real_2ch_data),
-            #           '\n')
 
             # # Make data bytearray of the extracted data
             # data_bytearray_thrd_1 = bytearray([])
             # data_bytearray_thrd_2 = bytearray([])
             #
-            # # The two identical loops (and further operations) should be separated into separate cpu threads
-            # # or better replaced by making bytes directly of uint8 arrays for this particular case of 8 bits data.
-            # for i in range(real_2ch_data.shape[0] // 2):
-            #     word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     0], imag_2ch_data[2 * i,     0],
-            #                                          real_2ch_data[2 * i + 1, 0], imag_2ch_data[2 * i + 1, 0])
-            #     data_bytearray_thrd_1 += word_bytearray
-            #
-            # for i in range(real_2ch_data.shape[0] // 2):
-            #     word_bytearray = int8_to_32_bit_word(real_2ch_data[2 * i,     1], imag_2ch_data[2 * i,     1],
-            #                                          real_2ch_data[2 * i + 1, 1], imag_2ch_data[2 * i + 1, 1])
-            #     data_bytearray_thrd_2 += word_bytearray
 
             # # Preparing arrays to fill with data correctly
             # data_0 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
@@ -625,8 +629,6 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
             # # Converting to bytes
             # data_0_bytes = data_0.tobytes(order='F')  # order='C'
             # data_1_bytes = data_1.tobytes(order='F')  # order='C'
-
-
 
             # Make two copies of basic headers for changing them according to current numbers
             vdif_header_1 = vdif_header.copy()
