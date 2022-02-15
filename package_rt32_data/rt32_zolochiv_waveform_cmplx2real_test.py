@@ -199,8 +199,33 @@ def test_int8_to_2bit_words_conversion():
     return
 
 
+def test_int8_to_2bit_words_v2():
+    test_array = np.array(([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+                           [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+                           [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]),
+                          dtype=np.uint8)
+
+    byte_0 = test_array[:, 0] << 6 | test_array[:, 1] << 4 | test_array[:, 2] << 2 | test_array[:, 3]
+    byte_1 = test_array[:, 4] << 6 | test_array[:, 5] << 4 | test_array[:, 6] << 2 | test_array[:, 7]
+    byte_2 = test_array[:, 8] << 6 | test_array[:, 9] << 4 | test_array[:, 10] << 2 | test_array[:, 11]
+    byte_3 = test_array[:, 12] << 6 | test_array[:, 13] << 4 | test_array[:, 14] << 2 | test_array[:, 15]
+
+    print(byte_0)
+
+    byte_0 = np.uint32(byte_0)
+    byte_1 = np.uint32(byte_1)
+    byte_2 = np.uint32(byte_2)
+    byte_3 = np.uint32(byte_3)
+
+    word_32_bit_array = (byte_0 << 24) | (byte_1 << 16) | (byte_2 << 8) | byte_3
+
+    print(word_32_bit_array)
+    return
+
+
 if __name__ == '__main__':
-    rpr_wf_data_reader(filepath)
+    # rpr_wf_data_reader(filepath)
     # test_int8_to_2bit_words_conversion()
+    test_int8_to_2bit_words_v2()
 
 
