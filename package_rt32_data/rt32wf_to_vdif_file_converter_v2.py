@@ -150,22 +150,6 @@ def big_to_little_endian(data_bytearray):
     return data_bytearray
 
 
-# Forming the word from values
-# def int8_to_32_bit_word(v_int_1, v_int_2, v_int_3, v_int_4):
-#     """
-#     The function takes 4 uint8 or int8 values and form a 32 bit word
-#     (actually can be changed by appropriate array operations)
-#     """
-#     if 0 > v_int_1 > 256 or 0 > v_int_2 > 256 or 0 > v_int_3 > 256 or 0 > v_int_4 > 256:
-#         raise ValueError('\n\n      Error! Invalid value!  \n\n')
-#     byte_4 = v_int_4 << 24
-#     byte_3 = v_int_3 << 16
-#     byte_2 = v_int_2 << 8
-#     word = byte_4 | byte_3 | byte_2 | v_int_1
-#     word_bytearray = word_to_bytearray(word)
-#     return word_bytearray
-
-
 def change_thread_id_in_header(a_vdif_header, thread_id):
     """
     The function changes the thread_id in bytearray header to specified number
@@ -409,10 +393,124 @@ def rt32wf_to_vdf_frame_header(filepath):
     return header_bytearray, file_header_param_dict
 
 
-def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
+def show_amplitude_spectra(array):
+    from matplotlib import pylab as plt
+    import matplotlib
+    matplotlib.use('TkAgg')
+    integr_spectra_n = 20 * np.log10(np.sum(np.abs((array[:, :])), axis=0) + 0.01)
+    plt.figure()
+    plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
+    plt.show()
+    plt.close('all')
+    return
+
+
+def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length):
+    """
+    Converts complex waveform data to real waveform with doubled clock frequency
+    cmplx_wf - input numpy array of complex waveform data
+    real_wf_data - output array of real data and doubled length
+    """
+
+    # print(cmplx_wf[0], cmplx_wf[1], cmplx_wf[2], cmplx_wf[3])
+    cmplx_wf = np.reshape(cmplx_wf, (spectra_num, fft_length))
+    # print(cmplx_wf[0, 0], cmplx_wf[0, 1], cmplx_wf[0, 2], cmplx_wf[0, 3])
+    # print('Initial (complex) waveform data: ', cmplx_wf.shape, cmplx_wf.dtype)
+
+    # Calculation of spectra
+    cmplx_wf_sp = np.fft.fft(cmplx_wf)
+    # print('Shape of spectra:                ', cmplx_wf_sp.shape, cmplx_wf_sp.dtype)
+
+    # show_amplitude_spectra(cmplx_wf_sp)
+
+    # Preparing the array of zeros to concatenate with the spectra
+    second_spectra_half = np.zeros_like(cmplx_wf_sp)
+
+    # Concatenating second half of spectra with zeros
+    real_wf_sp = np.concatenate((2 * cmplx_wf_sp, second_spectra_half), axis=1)
+
+    # show_amplitude_spectra(real_wf_sp)
+
+    # Making Inverse FFT
+    real_wf_data = np.fft.ifft(real_wf_sp)
+    # print('Range of inverse FFT imag data:  ', np.max(np.imag(real_wf_data)), np.min(np.imag(real_wf_data)))
+
+    # We take only real part of the obtained waveform
+    real_wf_data = np.real(real_wf_data)
+    # print('Range of inverse FFT real data:  ', np.max(real_wf_data), np.min(real_wf_data))
+    # print('Inverse FFT result:              ', real_wf_data.shape, real_wf_data.dtype)
+
+    # Reshaping the waveform to single dimension (real)
+    real_wf_data = np.reshape(real_wf_data, (2 * fft_length * spectra_num, 1), order='F')
+    real_wf_data = np.squeeze(real_wf_data)
+
+    # print('Processed real waveform data:    ', real_wf_data.shape, real_wf_data.dtype)
+    # print('Range of real data processed:    ', np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
+    # print('\n', real_wf_data[:18], '\n')
+
+    return real_wf_data
+
+
+def convert_real_to_4_level_waveform(real_waveform):
+    """
+    Converts real waveform of any (?) resolution to 4-level (2-bit) representation in uint8 format
+    real_waveform - input 1-dimensional numpy array of waveform samples
+    wf_2bit - result 4-level (2-bit) waveform of uint8 format
+    """
+    # We clip data to int8 range, add 128 to uint8 range,
+    real_waveform = np.clip(real_waveform, -128, 127)  # !!! Seems the wrong values are here !!!
+
+    ##################################################################################
+    # Do not forget we need to scale from 0...256 to 0...3 correctly !
+    ##################################################################################
+
+    # print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
+    real_waveform = real_waveform + 128
+    # print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
+    real_waveform = real_waveform // 64
+    # print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
+    wf_2bit = np.array(real_waveform, dtype=np.uint8)
+    return wf_2bit
+
+
+def convert_4_level_waveform_to_32bit_words(real_4_level_wf, spectra_num, fft_length):
+    """
+    Converts 4 level real waveform data to 32 bit words needed for VDIF file format
+    real_4_level_wf - numpy array of waveform data reduced to values in range [0...3] in uint8 format
+    word_32_bit_array - numpy array of 32-bit words (uint32 format) of 16 2-bit waveform samples placed one
+                        after another
+    """
+    real_4_level_wf = np.array(real_4_level_wf, dtype=np.uint8)
+    if any(real_4_level_wf) > 3:
+        raise ValueError(' Incorrect value!!! (>3)')
+    array = np.reshape(real_4_level_wf, (fft_length * spectra_num // 8, 16))
+    byte_0 = array[:, 0] << 6 | array[:, 1] << 4 | array[:, 2] << 2 | array[:, 3]
+    byte_1 = array[:, 4] << 6 | array[:, 5] << 4 | array[:, 6] << 2 | array[:, 7]
+    byte_2 = array[:, 8] << 6 | array[:, 9] << 4 | array[:, 10] << 2 | array[:, 11]
+    byte_3 = array[:, 12] << 6 | array[:, 13] << 4 | array[:, 14] << 2 | array[:, 15]
+
+    byte_0 = np.uint32(byte_0)
+    byte_1 = np.uint32(byte_1)
+    byte_2 = np.uint32(byte_2)
+    byte_3 = np.uint32(byte_3)
+
+    word_32_bit_array = (byte_0 << 24) | (byte_1 << 16) | (byte_2 << 8) | byte_3
+
+    return word_32_bit_array
+
+
+def rt32wf_to_vdf_data_converter(filepath, verbose):
     """
     Function takes the header and RPR (.adr) data and creates the VDIF file
     """
+    fft_length = 16384
+    spectra_num = 4096
+
+    '''
+    before calling frame header creation, calculate the number of samples in frame and the frame size to send to header
+    automatically!
+    '''
+
     vdif_header, adr_header_dict = rt32wf_to_vdf_frame_header(filepath)
     print(' Header: ', vdif_header)
     print(' Header length: ', len(vdif_header), ' bytes \n')
@@ -452,7 +550,9 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
         adr_file.seek(1024 + samples_to_skip * 4)  # Jump to 1024 byte in the file to skip header + samples to skip
 
         # Calculate number of bunches in file to read
-        bunch_num = (adr_header_dict["File size in bytes"] - (1024 + samples_to_skip * 4)) // (samples_per_frame * 4)
+        # bunch_num = (adr_header_dict["File size in bytes"] - (1024 + samples_to_skip * 4)) // (samples_per_frame * 4)
+        bunch_num = (adr_header_dict["File size in bytes"] -
+                     (1024 + samples_to_skip * 4)) // (fft_length * spectra_num * 4)
 
         print(' Number of bunches in file: ', bunch_num, '\n\n')
 
@@ -460,20 +560,18 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
         second_counter = adr_header_dict["Seconds from reference epoch"] + 1
         frame_counter = 0
 
+        # # Make data buffer array to store processed data for frame forming
+        data_buffer_0 = np.empty(shape=(0,), dtype=np.uint32)
+        data_buffer_1 = np.empty(shape=(0,), dtype=np.uint32)
+
         # The loop of data chunks to read and save to a frame starts here
         for bunch in range(bunch_num):
             print(' * Bunch # ', bunch+1, ' of ', bunch_num, ' started at ', time.strftime("%H:%M:%S"), ' ')
 
-            # We have 16 frames per second, so each 16 frames we set counter of frames/second to 0 and add a second
-            if frame_counter >= 16:
-                frame_counter = 0
-                second_counter += 1
-                # print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
-
             # Read raw data from file in int8 format
             raw_data = np.fromfile(adr_file, dtype=np.int8, count=fft_length * spectra_num * 2 * 2)  # 2 ch (Re + Im) of 1 byte
-            if verbose:
-                print(' Shape of data read from file:                ', raw_data.shape)
+            # if verbose:
+            #     print(' Shape of data read from file:                ', raw_data.shape)
 
             # Preparing empty matrix for complex data
             cmplx_data = np.empty(fft_length * spectra_num * 2, dtype=np.complex64)
@@ -482,181 +580,91 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
             cmplx_data.real = raw_data[0: fft_length * spectra_num * 2 * 2: 2]
             cmplx_data.imag = raw_data[1: fft_length * spectra_num * 2 * 2: 2]
             del raw_data
-            if verbose:
-                print(' Shape of complex data array:                    ', cmplx_data.shape)
+            # if verbose:
+            #     print(' Shape of complex data array:                    ', cmplx_data.shape)
 
-            # # Reshaping complex data to separate data of channels
+            # Reshaping complex data to separate data of channels
             cmplx_data = np.reshape(cmplx_data, (fft_length * spectra_num, 2))
-            # print('Shape of reshaped complex data array (rsh_crd) before transpose:', rsh_crd.shape)
             cmplx_data = np.transpose(cmplx_data)
-            # print('Shape of reshaped complex data array (rsh_crd) after transpose:', rsh_crd.shape)
 
             # Separate data of channels
             cmplx_ch_0 = cmplx_data[0, :]
             cmplx_ch_1 = cmplx_data[1, :]
-            print(' Shapes of separated channels (tt0, tt1):', cmplx_ch_0.shape, cmplx_ch_0.dtype,
-                  cmplx_ch_1.shape, cmplx_ch_1.dtype)
+            # print(' Shapes of separated channels (tt0, tt1):', cmplx_ch_0.shape, cmplx_ch_0.dtype,
+            #       cmplx_ch_1.shape, cmplx_ch_1.dtype)
 
-            def show_amplitude_spectra(array):
-                from matplotlib import pylab as plt
-                import matplotlib
-                matplotlib.use('TkAgg')
-                integr_spectra_n = 20 * np.log10(np.sum(np.abs((array[:, :])), axis=0) + 0.01)
-                plt.figure()
-                plt.plot(integr_spectra_n, linewidth='0.50', color='C3', alpha=0.7)
-                plt.show()
-                plt.close('all')
-                return
-
-            def complex_wf_to_real_wf(cmplx_wf):
-
-                print(cmplx_wf[0], cmplx_wf[1], cmplx_wf[2], cmplx_wf[3])
-                cmplx_wf = np.reshape(cmplx_wf, (spectra_num, fft_length))
-                print(cmplx_wf[0, 0], cmplx_wf[0, 1], cmplx_wf[0, 2], cmplx_wf[0, 3])
-                print('Initial (complex) waveform data: ', cmplx_wf.shape, cmplx_wf.dtype)
-
-                # Calculation of spectra
-                cmplx_wf_sp = np.fft.fft(cmplx_wf)
-                print('Shape of spectra:                ', cmplx_wf_sp.shape, cmplx_wf_sp.dtype)
-
-                # show_amplitude_spectra(cmplx_wf_sp)
-
-                # Preparing the array of zeros to concatenate with the spectra
-                second_spectra_half = np.zeros_like(cmplx_wf_sp)
-
-                # Concatenating second half of spectra with zeros
-                real_wf_sp = np.concatenate((2 * cmplx_wf_sp, second_spectra_half), axis=1)
-
-                # show_amplitude_spectra(real_wf_sp)
-
-                # Making Inverse FFT
-                real_wf_data = (np.fft.ifft(real_wf_sp))
-                print('Range of inverse FFT imag data:  ', np.max(np.imag(real_wf_data)), np.min(np.imag(real_wf_data)))
-
-                # We take only real part of the obtained waveform
-                real_wf_data = np.real(real_wf_data)
-                print('Range of inverse FFT real data:  ', np.max(real_wf_data), np.min(real_wf_data))
-                print('Inverse FFT result:              ', real_wf_data.shape, real_wf_data.dtype)
-
-                # Reshaping the waveform to single dimension (real)
-                real_wf_data = np.reshape(real_wf_data, (2 * fft_length * spectra_num, 1), order='F')
-                real_wf_data = np.squeeze(real_wf_data)
-
-                print('Processed real waveform data:    ', real_wf_data.shape, real_wf_data.dtype)
-                print('Range of real data processed:    ', np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
-                print('\n', real_wf_data[:18], '\n')
-
-                #########################################
-                # Do not forget we need to scale from 0...256 to 0...3 correctly !
-                #########################################
-
-                return real_wf_data
-
-            real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0)
-
-            def convert_real_to_4_level_waveform(real_waveform):
-                """
-                Converts real waveform of any (?) resolution to 4-level (2-bit) representation in uint8 format
-                real_waveform - input 1-dimensional numpy array of waveform samples
-                wf_2bit - result 4-level (2-bit) waveform of uint8 format
-                """
-                # We clip data to int8 range, add 128 to uint8 range,
-                real_waveform = np.clip(real_waveform, -128, 127)  # !!! Seems the wrong values are here !!!
-                print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
-                real_waveform = real_waveform + 128
-                print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
-                real_waveform = real_waveform // 64
-                print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
-                wf_2bit = np.array(real_waveform, dtype=np.uint8)
-                return wf_2bit
-
-            def convert_4_level_waveform_to_32bit_words(real_4_level_wf):
-                """
-                Converts 4 level real waveform data to 32 bit words needed for VDIF file format
-                real_4_level_wf - numpy array of waveform data reduced to values in range [0...3] in uint8 format
-                word_32_bit_array - numpy array of 32-bit words (uint32 format) of 16 2-bit waveform samples placed one
-                                    after another
-                """
-                real_4_level_wf = np.array(real_4_level_wf, dtype=np.uint8)
-                if any(real_4_level_wf) > 3:
-                    print('Error!!!')
-                array = np.reshape(real_4_level_wf, (fft_length * spectra_num // 8, 16))
-                byte_0 = array[:,  0] << 6 | array[:,  1] << 4 | array[:,  2] << 2 | array[:,  3]
-                byte_1 = array[:,  4] << 6 | array[:,  5] << 4 | array[:,  6] << 2 | array[:,  7]
-                byte_2 = array[:,  8] << 6 | array[:,  9] << 4 | array[:, 10] << 2 | array[:, 11]
-                byte_3 = array[:, 12] << 6 | array[:, 13] << 4 | array[:, 14] << 2 | array[:, 15]
-
-                byte_0 = np.uint32(byte_0)
-                byte_1 = np.uint32(byte_1)
-                byte_2 = np.uint32(byte_2)
-                byte_3 = np.uint32(byte_3)
-
-                word_32_bit_array = (byte_0 << 24) | (byte_1 << 16) | (byte_2 << 8) | byte_3
-
-                return word_32_bit_array
+            # Convert waveform from complex representation to real one with doubled clock frequency
+            real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0, spectra_num, fft_length)
+            real_wf_ch_1 = complex_wf_to_real_wf(cmplx_ch_1, spectra_num, fft_length)
+            del cmplx_ch_0, cmplx_ch_1
 
             # Reduce real waveform of any accuracy to 4 levels [0...3] (2-bits but in uint8 format)
             real_2_bit_wf_ch_0 = convert_real_to_4_level_waveform(real_wf_ch_0)
+            real_2_bit_wf_ch_1 = convert_real_to_4_level_waveform(real_wf_ch_1)
+            del real_wf_ch_0, real_wf_ch_1
 
             # Pack 4-level real waveform to 32-bit words of 16 2-bit samples
-            real_2_bit_wf_ch_0 = convert_4_level_waveform_to_32bit_words(real_2_bit_wf_ch_0)
+            real_2_bit_wf_ch_0 = convert_4_level_waveform_to_32bit_words(real_2_bit_wf_ch_0, spectra_num, fft_length)
+            real_2_bit_wf_ch_1 = convert_4_level_waveform_to_32bit_words(real_2_bit_wf_ch_1, spectra_num, fft_length)
 
+            # Add data to buffer
+            data_buffer_0 = np.concatenate([data_buffer_0, real_2_bit_wf_ch_0])
+            data_buffer_1 = np.concatenate([data_buffer_1, real_2_bit_wf_ch_1])
 
-            print(real_2_bit_wf_ch_0[0])
-            print(real_2_bit_wf_ch_0.shape, real_2_bit_wf_ch_0.dtype)
+            # print(real_2_bit_wf_ch_0[0])
+            # print(real_2_bit_wf_ch_0.shape, real_2_bit_wf_ch_0.dtype)
+            # print(data_buffer_0.shape, data_buffer_0.dtype)
 
-            input()
+            # Loop by frames to write into the file
+            words_in_frame = samples_per_frame // 16
+            while data_buffer_0.shape[0] >= words_in_frame:
+                # print(' Frame counter:', frame_counter)
 
-            # # Make data bytearray of the extracted data
-            # data_bytearray_thrd_1 = bytearray([])
-            # data_bytearray_thrd_2 = bytearray([])
-            #
+                # We have 16 frames per second, so each 16 frames we set counter of frames/second to 0 and add a second
+                if frame_counter >= 16:
+                    frame_counter = 0
+                    second_counter += 1
+                    print(' Frame counter:', frame_counter, ', second from epoch:', second_counter, '\n')
 
-            # # Preparing arrays to fill with data correctly
-            # data_0 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
-            # data_1 = np.zeros((2 * real_2ch_data.shape[0]), dtype=np.uint8)
-            #
-            # # Forming the 32-bit words (it's better to check order of data_0 first index, but it works like first try)
-            # data_0[3::4] = real_2ch_data[0::2, 0]
-            # data_0[2::4] = imag_2ch_data[0::2, 0]
-            # data_0[1::4] = real_2ch_data[1::2, 0]
-            # data_0[0::4] = imag_2ch_data[1::2, 0]
-            # data_1[3::4] = real_2ch_data[0::2, 1]
-            # data_1[2::4] = imag_2ch_data[0::2, 1]
-            # data_1[1::4] = real_2ch_data[1::2, 1]
-            # data_1[0::4] = imag_2ch_data[1::2, 1]
+                # separate the first data from buffer to separate array
+                data_0 = data_buffer_0[:words_in_frame].copy()
+                data_1 = data_buffer_1[:words_in_frame].copy()
 
-            # # Converting to bytes
-            # data_0_bytes = data_0.tobytes(order='F')  # order='C'
-            # data_1_bytes = data_1.tobytes(order='F')  # order='C'
+                # Cut these data from the buffer
+                data_buffer_0 = data_buffer_0[words_in_frame:]
+                data_buffer_1 = data_buffer_1[words_in_frame:]
 
-            # Make two copies of basic headers for changing them according to current numbers
-            vdif_header_1 = vdif_header.copy()
-            vdif_header_2 = vdif_header.copy()
+                # Converting to bytes
+                data_0_bytes = data_0.tobytes(order='F')  # order='C'
+                data_1_bytes = data_1.tobytes(order='F')  # order='C'
 
-            # thread_id changes only for the second thread header
-            vdif_header_2 = change_thread_id_in_header(vdif_header_2, 1)
+                # Make two copies of basic headers for changing them according to current numbers
+                vdif_header_1 = vdif_header.copy()
+                vdif_header_2 = vdif_header.copy()
 
-            # data_frame_no change in thread headers of both channels/threads
-            vdif_header_1 = change_data_frame_no_in_header(vdif_header_1, frame_counter)
-            vdif_header_2 = change_data_frame_no_in_header(vdif_header_2, frame_counter)
+                # thread_id changes only for the second thread header
+                vdif_header_2 = change_thread_id_in_header(vdif_header_2, 1)
 
-            # secs_from_ref_epoch change in thread headers of both channels/threads
-            vdif_header_1 = change_secs_from_ref_epoch_in_header(vdif_header_1, second_counter)
-            vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, second_counter)
+                # data_frame_no change in thread headers of both channels/threads
+                vdif_header_1 = change_data_frame_no_in_header(vdif_header_1, frame_counter)
+                vdif_header_2 = change_data_frame_no_in_header(vdif_header_2, frame_counter)
 
-            # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
-            data_bytearray = vdif_header_1 + data_0_bytes + vdif_header_2 + data_1_bytes
-            # print(' Length of one full frame: ', len(data_bytearray)/2, ' bytes')
+                # secs_from_ref_epoch change in thread headers of both channels/threads
+                vdif_header_1 = change_secs_from_ref_epoch_in_header(vdif_header_1, second_counter)
+                vdif_header_2 = change_secs_from_ref_epoch_in_header(vdif_header_2, second_counter)
 
-            # Encoding the whole bytearray to little endian format
-            data_bytearray = big_to_little_endian(data_bytearray)
+                # Adding frame headers and frame data for 2 threads in single bytearray and write to the file
+                data_bytearray = vdif_header_1 + data_0_bytes + vdif_header_2 + data_1_bytes
+                # print(' Length of one full frame: ', len(data_bytearray)/2, ' bytes')
 
-            # Write data of 2 frames to a file
-            vdif_file.write(data_bytearray)
+                # Encoding the whole bytearray to little endian format
+                data_bytearray = big_to_little_endian(data_bytearray)
 
-            # Increment counter
-            frame_counter += 1
+                # Write data of 2 frames to a file
+                vdif_file.write(data_bytearray)
+
+                # Increment counter
+                frame_counter += 1
 
     # Closing the result file
     vdif_file.close()
@@ -666,5 +674,5 @@ def rt32wf_to_vdf_data_converter(filepath, verbose, fft_length, spectra_num):
 
 if __name__ == '__main__':
     # rt32wf_to_vdf_frame_header(filepath)
-    rt32wf_to_vdf_data_converter(filepath, True, 16384, 4096)
+    rt32wf_to_vdf_data_converter(filepath, True)
 
