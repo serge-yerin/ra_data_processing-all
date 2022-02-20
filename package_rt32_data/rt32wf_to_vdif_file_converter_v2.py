@@ -330,10 +330,10 @@ def rt32wf_to_vdf_frame_header(filepath, samples_per_frame):
     vdif_version = 0  # Temporary value, do not know if it is correct...
 
     # Word 2 Bits 28-24: log2(#channels in Data Array); #chans must be power of 2; see Note 4
-    channel_no = 1  # We have 2 channels so the log2(2) = 1
+    # channel_no = 1  # We have 2 channels so the log2(2) = 1
+    channel_no = 0  # We have 1 channel so the log2(1) = 0
 
     # Word 2 Bits 23-0: Data Frame length (including header) in units of 8 bytes with a maximum length of 2^27 bytes
-    # data_frame_length = 250004  # 250004 for samples_per_frame = 1 000 000 data frames are of ~ 2MB
     data_frame_length = (samples_per_frame // 4 // 8) + 4  # 4 samples/byte, 8-bytes units, 4 - 8-byes units of header
     print(' VDIF data frame length: ', data_frame_length, ' of 8-bytes units')
 
