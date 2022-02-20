@@ -234,7 +234,7 @@ def change_secs_from_ref_epoch_in_header(a_vdif_header, a_sec_from_ref_epoch):
     return a_vdif_header
 
 
-def rt32wf_to_vdf_frame_header(filepath):
+def rt32wf_to_vdf_frame_header(filepath, samples_per_frame):
     """
     The function forms a vdif data frame header
     """
@@ -333,8 +333,9 @@ def rt32wf_to_vdf_frame_header(filepath):
     channel_no = 1  # We have 2 channels so the log2(2) = 1
 
     # Word 2 Bits 23-0: Data Frame length (including header) in units of 8 bytes with a maximum length of 2^27 bytes
-    data_frame_length = 250004  # 250004 for samples_per_frame = 1 000 000 data frames are of ~ 2MB
-    # !!!!
+    # data_frame_length = 250004  # 250004 for samples_per_frame = 1 000 000 data frames are of ~ 2MB
+    data_frame_length = (samples_per_frame // 4 // 8) + 4  # 4 samples/byte, 8-bytes units, 4 - 8-byes units of header
+    print(' VDIF data frame length: ', data_frame_length, ' of 8-bytes units')
 
     # Forming the word from values
     if vdif_version > 7:
@@ -416,6 +417,7 @@ def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length):
     cmplx_wf = np.reshape(cmplx_wf, (spectra_num, fft_length))
     # print(cmplx_wf[0, 0], cmplx_wf[0, 1], cmplx_wf[0, 2], cmplx_wf[0, 3])
     # print('Initial (complex) waveform data: ', cmplx_wf.shape, cmplx_wf.dtype)
+    # print('Max, min, average: ', np.max(cmplx_wf), np.min(cmplx_wf), np.mean(cmplx_wf))
 
     # Calculation of spectra
     cmplx_wf_sp = np.fft.fft(cmplx_wf)
@@ -434,11 +436,13 @@ def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length):
     # Making Inverse FFT
     real_wf_data = np.fft.ifft(real_wf_sp)
     # print('Range of inverse FFT imag data:  ', np.max(np.imag(real_wf_data)), np.min(np.imag(real_wf_data)))
+    # print('Max, min, average: ', np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
 
     # We take only real part of the obtained waveform
     real_wf_data = np.real(real_wf_data)
     # print('Range of inverse FFT real data:  ', np.max(real_wf_data), np.min(real_wf_data))
     # print('Inverse FFT result:              ', real_wf_data.shape, real_wf_data.dtype)
+    # print('Max, min, average: ', np.max(real_wf_data), np.min(real_wf_data), np.mean(real_wf_data))
 
     # Reshaping the waveform to single dimension (real)
     real_wf_data = np.reshape(real_wf_data, (2 * fft_length * spectra_num, 1), order='F')
@@ -457,13 +461,14 @@ def convert_real_to_4_level_waveform(real_waveform):
     real_waveform - input 1-dimensional numpy array of waveform samples
     wf_2bit - result 4-level (2-bit) waveform of uint8 format
     """
+
+    ####################################################################################################################
+    # Do not forget we need to scale from xmin...xmax to 0...3 correctly ! 305 needs proving
+    ####################################################################################################################
+    real_waveform = (real_waveform / 305) * 128
+
     # We clip data to int8 range, add 128 to uint8 range,
     real_waveform = np.clip(real_waveform, -128, 127)  # !!! Seems the wrong values are here !!!
-
-    ##################################################################################
-    # Do not forget we need to scale from 0...256 to 0...3 correctly !
-    ##################################################################################
-
     # print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
     real_waveform = real_waveform + 128
     # print(' Data range:                     ', np.max(real_waveform), np.min(real_waveform), np.mean(real_waveform))
@@ -503,15 +508,16 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
     """
     Function takes the header and RPR (.adr) data and creates the VDIF file
     """
-    fft_length = 16384
-    spectra_num = 4096
+    fft_length = 16384  # Length of samples vector for fft
+    spectra_num = 4096  # Number of fft_length samples in bunch
+    samples_per_frame = 1000000  # To have exactly 16 frames per second at 16 MHz sampling rate
 
     '''
     before calling frame header creation, calculate the number of samples in frame and the frame size to send to header
     automatically!
     '''
 
-    vdif_header, adr_header_dict = rt32wf_to_vdf_frame_header(filepath)
+    vdif_header, adr_header_dict = rt32wf_to_vdf_frame_header(filepath, samples_per_frame)
     print(' Header: ', vdif_header)
     print(' Header length: ', len(vdif_header), ' bytes \n')
     print(' Seconds from reference epoch: ', adr_header_dict["Seconds from reference epoch"], ' sec. \n')
@@ -534,8 +540,6 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
     num_of_complex_points = (adr_header_dict["File size in bytes"] - 1024) / (2 * 2)  # 2 ch (Re + Im) of 1 byte
     print(' Number of complex points for both channels:  ', num_of_complex_points)
 
-    samples_per_frame = 1000000  # To have exactly 16 frames per second at 16 MHz sampling rate
-
     with open(filepath) as adr_file:  # Open data file
 
         # Skip data till the next second starts
@@ -546,7 +550,6 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
         print(' We have to skip: ', samples_to_skip, ' samples')
 
         # Skip data before the round second tick (we can use data reading or just jump to correct place in the file)
-        # raw_data = np.fromfile(adr_file, dtype=np.int8, count=samples_per_frame * 2 * 2)
         adr_file.seek(1024 + samples_to_skip * 4)  # Jump to 1024 byte in the file to skip header + samples to skip
 
         # Calculate number of bunches in file to read
