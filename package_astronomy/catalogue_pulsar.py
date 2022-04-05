@@ -1,6 +1,4 @@
-'''
-'''
-################################################################################
+
 
 def catalogue_pulsar(pulsar_name):
     pulsar_name = pulsar_name.upper()
@@ -125,17 +123,21 @@ def catalogue_pulsar(pulsar_name):
     elif 'J2307+2225' in pulsar_name: pulsar_ra = '23h07m41.288s';  pulsar_dec = '+22d25m50.12s';  pulsar_DM = 0;        p_bar = 0.535828895432
     elif 'B2310+42'   in pulsar_name: pulsar_ra = '23h13m8.598s';   pulsar_dec = '+42d53m12.99s';  pulsar_DM = 0;        p_bar = 0.3494336821331
     elif 'B2315+21'   in pulsar_name: pulsar_ra = '23h17m57.82s';   pulsar_dec = '+21d49m48.03s';  pulsar_DM = 0;        p_bar = 1.444653102317
+    elif 'J2325-0530' in pulsar_name: pulsar_ra = '23h25m15.3s';    pulsar_dec = '-05d30m39s';     pulsar_DM = 14.966;   p_bar = 0.868735115025
+    elif 'J2336-01'   in pulsar_name: pulsar_ra = '23h36m36s';      pulsar_dec = '-01d51m00s';     pulsar_DM = 19.60;    p_bar = 1.0298
     elif 'J2346-0609' in pulsar_name: pulsar_ra = '23h46m50.454s';  pulsar_dec = '-06d09m59.5s';   pulsar_DM = 0;        p_bar = 1.181463382967
+    elif 'J2347+02'   in pulsar_name: pulsar_ra = '23h47m00s';      pulsar_dec = '+02d00m00s';     pulsar_DM = 15.0;     p_bar = 1.38347
 
     else: print('   !!! Source not found !!!')
 
     return pulsar_ra, pulsar_dec, pulsar_DM, p_bar
 
+
 ################################################################################
 ################################################################################
+
 
 if __name__ == '__main__':
-
 
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar('j0006+1834')
 
