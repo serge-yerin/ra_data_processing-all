@@ -1,5 +1,7 @@
+# TODO: make a sum of channels A & B (or may be not)
+
 # Python3
-Software_version = '2022.04.05'
+Software_version = '2022.04.08'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -57,7 +59,6 @@ from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 # ###############################################################################
 
-
 print('\n\n  * Making dynamic spectra of the initial data... ')
 
 # Find all files in folder once more:
@@ -109,15 +110,43 @@ ok = DAT_file_reader('', DAT_file_name, typesOfData, '', result_folder_name, 0, 
 print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
 for i in range(len(typesOfData)):
+    # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
+    if typesOfData[i] == 'C_m':
+        amp_min = -0.05
+        amp_max = 0.15
+    else:
+        amp_min = -0.15
+        amp_max = 0.55
+
     dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + typesOfData[i] + '.dat',
-                                                                pulsar_name, 512, -0.15, 0.55, 0, 0, 0, 1, 10, 2.8, 0,
-                                                                0.0, 16.5, 1, 1, 300, 'Greys')
+                                                                pulsar_name, 512, amp_min, amp_max, 0, 0, 0, 1, 10,
+                                                                2.8, 0, 0.0, 16.5, 1, 1, 300, 'Greys')
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
+#
+#
+# dedispersed_data_file_list = ['J2325-0530_DM_14.966_P250322_082507.jds_Data_C_m.dat']
+#
+#
+
 print('\n\n  *  Making figures of 3 pulsar periods... \n\n')
+
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name,
-                                      0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys', save_strongest, threshold)
+    # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
+    if '_Data_C_m' in dedispersed_data_file_name:
+        amp_min = -0.01
+        amp_max = 0.02
+        dyn_sp_min = -0.02
+        dyn_sp_max = 0.3
+
+    else:
+        amp_min = -0.15
+        amp_max = 0.55
+        dyn_sp_min = -0.2
+        dyn_sp_max = 3
+
+    pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name, 0, amp_min, amp_max,
+                                      dyn_sp_min, dyn_sp_max, 3, 500, 'Greys', save_strongest, threshold)
 
 #
 #
