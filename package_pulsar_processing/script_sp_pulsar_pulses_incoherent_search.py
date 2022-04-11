@@ -13,21 +13,24 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 # *******************************************************************************
 # Directory of files to be analyzed:
 directory = 'DATA/'
+# 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
+pulsar_name = 'B0809+74'
 
-pulsar_name = 'J2325-0530'  # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' #
+# Types of data to get (full possible set in the comment below - copy to code necessary)
+# data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
+data_types = ['C_m']
 
-process_channel_b = False       # Process channel B or save time
-save_strongest = True           # Save strongest images to additional separate folder?
-threshold = 0.25                # Threshold of the strongest pulses (or RFIs)
+save_strongest = True         # Save strongest images to additional separate folder?
+threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 10                 # Upper limit of figure dynamic range for normalized spectra
+VmaxNorm = 6                  # Upper limit of figure dynamic range for normalized spectra
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
-colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
@@ -59,6 +62,7 @@ from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 # ###############################################################################
 
+# '''
 print('\n\n  * Making dynamic spectra of the initial data... ')
 
 # Find all files in folder once more:
@@ -87,11 +91,11 @@ done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_curre
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
 typesOfData = []
-if 'chA' in DAT_file_list:
+if 'chA' in DAT_file_list and 'chA' in data_types:
     typesOfData.append('chA')
-if 'chB' in DAT_file_list:
+if 'chB' in DAT_file_list and 'chB' in data_types:
     typesOfData.append('chB')
-if 'C_m' in DAT_file_list:
+if 'C_m' in DAT_file_list and 'C_m' in data_types:
     typesOfData.append('C_m')
 
 print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', typesOfData, '\n')
@@ -100,10 +104,11 @@ result_folder_name = directory.split('/')[-2] + '_initial'
 
 ok = DAT_file_reader('', DAT_file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
                      300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
-
+# '''
 #
 #
-# results_files_list = ['E080219_200543.jds_Data_chA.dat']
+# DAT_file_name = 'E300117_180000.jds'
+# typesOfData = ['chA', 'chB']
 #
 #
 
