@@ -1,3 +1,5 @@
+# TODO:  https://www.geeksforgeeks.org/how-to-resample-numpy-array-representing-an-image/
+
 Software_version = '2022.04.11'
 Software_name = 'Pulsar dynamic spectra folding'
 # Program intended to read and show pulsar data from DAT files (with compensated DM delay)
@@ -19,6 +21,7 @@ spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
 periods_per_fig = 3
+integrated_pulses = 60
 
 customDPI = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
@@ -34,7 +37,6 @@ import pylab
 import matplotlib.pyplot as plt
 from os import path
 from matplotlib import rc
-from matplotlib.gridspec import GridSpec
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.ticker as mticker   # <---- Added to suppress warning
@@ -62,11 +64,6 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
 
-    # Creating a folder where all pictures and results will be stored (if it doesn't exist)
-    result_path = "RESULTS_pulsar_n_periods_pics_" + filename
-    if not os.path.exists(result_path):
-        os.makedirs(result_path)
-
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
@@ -86,18 +83,17 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     if df_filepath[-4:] == '.adr':
 
-        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
-                CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
-                NAvr, time_resolution, fmin, fmax, df, frequency, FFTsize, SLine,
+        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
+                ReceiverMode, Mode, sumDifMode,  NAvr, time_resolution, fmin, fmax, df, frequency, FFTsize, SLine,
                 Width, BlockSize] = FileHeaderReaderADR(filepath, 0, 0)
 
         freq_points_num = len(frequency)
 
     if df_filepath[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
-        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq,
-         df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 1)
+        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
+                SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
+                dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 1)
 
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
@@ -125,8 +121,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     data_cumulative = np.zeros([len(frequency), spectra_to_read])
 
-    # for block in range(num_of_blocks+1):   # Main loop by blocks of data
-    for block in range(50):   # Main loop by blocks of data
+    for block in range(integrated_pulses):   # Main loop by blocks of data
 
         # Reading the last block which is less than n periods
         if block == num_of_blocks:
@@ -135,7 +130,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
         # Reading and preparing block of data (n periods)
         data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-        data = 10*np.log10(data)
+        data = 10 * np.log10(data)
         if normalize_response > 0:
             Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
 
@@ -146,12 +141,10 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     profile = profile - np.mean(profile)
     data = data_cumulative - np.mean(data_cumulative)
 
-    # Time line
-    fig_time_scale = timeline[0 * spectra_to_read: (block+1) * spectra_to_read]
-
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))
     rc('font', size=5, weight='bold')
+
     ax1 = fig.add_subplot(211)
     ax1.plot(profile, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60',
              label='Pulses integrated time profile')
@@ -163,27 +156,31 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
                   fontsize=5, fontweight='bold')
 
     # Grid lines parameters
-    ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     major_ticks_top = np.linspace(0, len(profile), periods_per_fig+1)
     minor_ticks_top = np.linspace(0, len(profile), (4 * periods_per_fig+1))
-    ax1.set_xticks(major_ticks_top)
-    ax1.set_xticks(minor_ticks_top, minor=True)
-    ax1.grid(visible=True, which='major', color='gray', linewidth='0.50', linestyle='-')  # both
-    ax1.grid(visible=True, which='minor', color='silver', linewidth='0.50', linestyle='--')
+    ax1.set_xticks([])
+    ax1.yaxis.grid(visible=True, which='major', color='silver', linewidth='0.30', linestyle='--')  # Major y
+    ax1.yaxis.grid(visible=True, which='minor', color='silver', linewidth='0.30', linestyle='--')  # Minor all
+
+    ax1up = ax1.twiny()
+    ax1up.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+    ax1up.set_xticks(major_ticks_top)
+    ax1up.set_xticks(minor_ticks_top, minor=True)
+
+    ax1up.xaxis.grid(visible=True, which='major', color='gray', linewidth='0.50', linestyle='-')  # Major x
+    ax1up.xaxis.grid(visible=True, which='minor', color='silver', linewidth='0.30', linestyle='--')  # Minor all
 
     ax2 = fig.add_subplot(212)
     ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
-               extent=[0, len(profile), frequency[0], frequency[-1]])
-    ax2.set_xlabel('Time UTC (at the lowest frequency), HH:MM:SS.ms', fontsize=6, fontweight='bold')
+               extent=[0, periods_per_fig, frequency[0], frequency[-1]])
+    ax2.set_xlabel('Pulsar period phase', fontsize=6, fontweight='bold')
     ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
-    text = ax2.get_xticks().tolist()
-    for i in range(len(text)-1):
-        k = int(text[i])
-        text[i] = fig_time_scale[k][11:23]
-    ticks_loc = ax2.get_xticks().tolist()                           # <---- Added to suppress warning
-    ax2.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))    # <---- Added to suppress warning
-    ax2.set_xticklabels(text, fontsize=5, fontweight='bold')
-    fig.subplots_adjust(hspace=0.05, top=0.91)
+
+    major_ticks_bottom = np.linspace(0, periods_per_fig, 4 * periods_per_fig+1)
+    ax2.set_xticks(major_ticks_bottom)
+
+    fig.subplots_adjust(hspace=0.05, top=0.86)  # 91
+
     fig.suptitle('Folded average pulses of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
                  ', Period: ' + str(p_bar) + ' s.), ' + str(block + 1) + ' integrated pulses ',
                  fontsize=7, fontweight='bold')
@@ -191,7 +188,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(result_path + '/' + filename + ' fig. ' + str(block+1) + ' - Combined picture.png',
+    pylab.savefig(filename + ' - folded pulses.png',
                   bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
