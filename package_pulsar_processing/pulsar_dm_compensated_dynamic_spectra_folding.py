@@ -15,14 +15,16 @@ filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
 normalize_response = 0            # Normalize (1) or not (0) the frequency response
-profile_pic_min = -0.5            # Minimum limit of profile picture
-profile_pic_max = 1.50            # Maximum limit of profile picture
+profile_pic_min = -0.1            # Minimum limit of profile picture
+profile_pic_max = 1.20            # Maximum limit of profile picture
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
-periods_per_fig = 3
-integrated_pulses = 60
+periods_per_fig = 1
+integrated_pulses = 30  # 230 / 3
+roll_count = 8000
 
+scale_factor = 100
 customDPI = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
@@ -71,7 +73,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     filepath = common_path + filename
 
     # Timeline file to be analyzed:
-    timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
+    # timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
     file = open(filepath, 'rb')
@@ -100,46 +102,94 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     # ************************************************************************************
 
     # Time line file reading
-    timeline, dt_timeline = time_line_file_reader(timeline_filepath)
+    # timeline, dt_timeline = time_line_file_reader(timeline_filepath)
 
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
-    spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))  # int(df_filesize - 1024)/(2*4*freq_points_num)
-    spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution), 0))
-    num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
-
-    print('   Pulsar period:                           ', p_bar, 's.')
-    print('   Time resolution:                         ', time_resolution, 's.')
-    print('   Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
-    print('   Number of spectra in file:               ', spectra_in_file, ' ')
-    print('   Number of', periods_per_fig, 'periods blocks in file:      ', num_of_blocks, '\n')
-
-    # Data reading and making figures
-    print('\n\n  *** Data reading and making figures *** \n\n')
+    spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
 
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    data_cumulative = np.zeros([len(frequency), spectra_to_read])
+    # Make a buffer for initial time resolution
+    # Make a buffer for enhanced time resolution
 
-    for block in range(integrated_pulses):   # Main loop by blocks of data
+    # Read some number of spectra
+    # Enhance resolution
+    # Find how many full pulsar periods it covers
+    # Integrate the integer number of periods and delete this data from buffer
+    # Repeat
 
-        # Reading the last block which is less than n periods
-        if block == num_of_blocks:
-            spectra_to_read = spectra_in_file - num_of_blocks * spectra_to_read
+    interp_spectra_in_period = int(np.round((periods_per_fig * p_bar / (time_resolution / scale_factor)), 0))
 
-        # Reading and preparing block of data (n periods)
-        data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
-        data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-        data = 10 * np.log10(data)
+    data_interp = np.zeros([len(frequency), 0])
+    integrated_spectra = np.zeros([len(frequency), interp_spectra_in_period])
+    spectra_to_read = 500
+
+    for bunch in range(50):
+
+        data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
+        data_raw = np.reshape(data_raw, [len(frequency), spectra_to_read], order='F')
+        data_raw = 10 * np.log10(data_raw)
         if normalize_response > 0:
-            Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
+            Normalization_dB(data_raw.transpose(), len(frequency), spectra_to_read)
 
-        data_cumulative += data
+        # Append the new interpolated (np.kron) data to buffer
+        data_interp = np.append(data_interp, np.kron(data_raw, np.ones((1, scale_factor))), axis=1)
+
+        periods_in_bunch = data_interp.shape[1] // interp_spectra_in_period
+
+        for i in range(periods_in_bunch):
+            integrated_spectra = integrated_spectra + \
+                                 data_interp[:, i * interp_spectra_in_period: (i+1) * interp_spectra_in_period]
+
+        data_interp = data_interp[:, interp_spectra_in_period * periods_in_bunch:]
+
+    block = 3
 
     # Preparing single averaged data profile for figure
-    profile = data_cumulative.mean(axis=0)[:]
+    integrated_spectra = np.roll(integrated_spectra, roll_count, axis=1)
+    profile = integrated_spectra.mean(axis=0)[:]
     profile = profile - np.mean(profile)
-    data = data_cumulative - np.mean(data_cumulative)
+    profile = profile / np.max(profile)
+    data = integrated_spectra - np.mean(integrated_spectra)
+
+
+    # spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution), 0))
+    # num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
+    #
+    # print('   Pulsar period:                           ', p_bar, 's.')
+    # print('   Time resolution:                         ', time_resolution, 's.')
+    # print('   Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
+    # print('   Number of spectra in file:               ', spectra_in_file, ' ')
+    # print('   Number of', periods_per_fig, 'periods blocks in file:      ', num_of_blocks, '\n')
+    #
+    # # Data reading and making figures
+    # print('\n\n  *** Data reading and making figures *** \n\n')
+    #
+    # data_file = open(filepath, 'rb')
+    # data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
+    #
+    # data_cumulative = np.zeros([len(frequency), spectra_to_read])
+    #
+    # for block in range(integrated_pulses):   # Main loop by blocks of data
+    #
+    #     # Reading the last block which is less than n periods
+    #     if block == num_of_blocks:
+    #         spectra_to_read = spectra_in_file - num_of_blocks * spectra_to_read
+    #
+    #     # Reading and preparing block of data (n periods)
+    #     data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
+    #     data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
+    #     data = 10 * np.log10(data)
+    #     if normalize_response > 0:
+    #         Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
+    #
+    #     data_cumulative += data
+    #
+    # # Preparing single averaged data profile for figure
+    # profile = data_cumulative.mean(axis=0)[:]
+    # profile = profile - np.mean(profile)
+    # data = data_cumulative - np.mean(data_cumulative)
 
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))
