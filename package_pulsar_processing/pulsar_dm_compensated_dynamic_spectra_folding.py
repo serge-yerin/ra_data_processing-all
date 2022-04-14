@@ -15,16 +15,17 @@ filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
 normalize_response = 0            # Normalize (1) or not (0) the frequency response
-profile_pic_min = -0.1            # Minimum limit of profile picture
+profile_pic_min = -0.25           # Minimum limit of profile picture
 profile_pic_max = 1.20            # Maximum limit of profile picture
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
-periods_per_fig = 1
-integrated_pulses = 30  # 230 / 3
+periods_per_fig = 2
+# integrated_pulses = 30  # 230 / 3
 roll_count = 8000
+bunches = 16
 
-scale_factor = 100
+scale_factor = 200
 customDPI = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
@@ -121,30 +122,34 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     interp_spectra_in_period = int(np.round((periods_per_fig * p_bar / (time_resolution / scale_factor)), 0))
 
-    data_interp = np.zeros([len(frequency), 0])
-    integrated_spectra = np.zeros([len(frequency), interp_spectra_in_period])
+    data_interp = np.zeros([len(frequency), 0], dtype=np.float32)
+    integrated_spectra = np.zeros([len(frequency), interp_spectra_in_period], dtype=np.float32)
     spectra_to_read = 500
+    pulse_counter = 0
 
-    for bunch in range(50):
+    for bunch in range(bunches):
+        print(' Bunch # ', bunch)
 
         data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
         data_raw = np.reshape(data_raw, [len(frequency), spectra_to_read], order='F')
-        data_raw = 10 * np.log10(data_raw)
+        data_raw = 10 * np.log10(data_raw, dtype=np.float32)
         if normalize_response > 0:
             Normalization_dB(data_raw.transpose(), len(frequency), spectra_to_read)
 
         # Append the new interpolated (np.kron) data to buffer
         data_interp = np.append(data_interp, np.kron(data_raw, np.ones((1, scale_factor))), axis=1)
+        del data_raw
 
         periods_in_bunch = data_interp.shape[1] // interp_spectra_in_period
 
         for i in range(periods_in_bunch):
             integrated_spectra = integrated_spectra + \
                                  data_interp[:, i * interp_spectra_in_period: (i+1) * interp_spectra_in_period]
+            pulse_counter += 1
 
         data_interp = data_interp[:, interp_spectra_in_period * periods_in_bunch:]
 
-    block = 3
+    print(' Total number of integrated pulses: ', pulse_counter)
 
     # Preparing single averaged data profile for figure
     integrated_spectra = np.roll(integrated_spectra, roll_count, axis=1)
@@ -152,7 +157,6 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     profile = profile - np.mean(profile)
     profile = profile / np.max(profile)
     data = integrated_spectra - np.mean(integrated_spectra)
-
 
     # spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution), 0))
     # num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
@@ -232,7 +236,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     fig.subplots_adjust(hspace=0.05, top=0.86)  # 91
 
     fig.suptitle('Folded average pulses of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
-                 ', Period: ' + str(p_bar) + ' s.), ' + str(block + 1) + ' integrated pulses ',
+                 ', Period: ' + str(p_bar) + ' s.), ' + str(pulse_counter) + ' integrated pulses ',
                  fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
              fontsize=3, transform=plt.gcf().transFigure)
