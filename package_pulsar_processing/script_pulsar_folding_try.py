@@ -60,7 +60,7 @@ if __package__ is None:
 from package_ra_data_processing.spectra_normalization import Normalization_lin
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
+from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_plot_formats.plot_formats import plot1D, plot2Da
 
@@ -237,7 +237,7 @@ plt.close('all')
 plot2Da(buffer_array, newpath+'/fig. 1 - averaged data.png', frequency_list, -3, 2, colormap, 'averaged data', customDPI)
 
 
-shift_vector = pulsar_DM_shift_calculation_aver_pulse(len(frequency_list), fmin, fmax, df / pow(10,6), TimeRes, DM, pulsar_period)
+shift_vector = pulsar_dm_shift_calculation_aver_pulse(len(frequency_list), fmin, fmax, df / pow(10,6), TimeRes, DM, pulsar_period)
 
 # Dispersion compensation
 buffer_array = pulsar_DM_compensation_with_indices_changes(buffer_array, shift_vector)
