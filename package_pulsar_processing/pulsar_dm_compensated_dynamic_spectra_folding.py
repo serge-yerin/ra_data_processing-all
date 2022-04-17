@@ -1,6 +1,9 @@
-# TODO:  https://www.geeksforgeeks.org/how-to-resample-numpy-array-representing-an-image/
+# TODO: Calculate the full number of periods per file
+# TODO: Make if's for the case the bunch is less then period
+# TODO: Save integrated dynamic spectra to a file to be able to roll the pulse to any position quickly
+# TODO: Be sure we do not go beyond one spectra count by adding int number of counts!
 
-Software_version = '2022.04.11'
+Software_version = '2022.04.17'
 Software_name = 'Pulsar dynamic spectra folding'
 # Program intended to read and show pulsar data from DAT files (with compensated DM delay)
 
@@ -20,10 +23,10 @@ profile_pic_max = 1.20            # Maximum limit of profile picture
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
-periods_per_fig = 2
-# integrated_pulses = 30  # 230 / 3
-roll_count = 8000
-bunches = 16
+periods_per_fig = 1
+# roll_count = 8000
+roll_count = 0
+spectra_to_read = 500
 
 scale_factor = 200
 customDPI = 500                   # Resolution of images of dynamic spectra
@@ -107,34 +110,31 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
     spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
+    bunches_in_file = spectra_in_file // spectra_to_read
+    if spectra_in_file % spectra_to_read:
+        bunches_in_file += 1
 
+    # Open data file with removed dispersion delay (.dat)
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    # Make a buffer for initial time resolution
-    # Make a buffer for enhanced time resolution
-
-    # Read some number of spectra
-    # Enhance resolution
-    # Find how many full pulsar periods it covers
-    # Integrate the integer number of periods and delete this data from buffer
-    # Repeat
-
     interp_spectra_in_period = int(np.round((periods_per_fig * p_bar / (time_resolution / scale_factor)), 0))
 
+    # Interpolated data buffer
     data_interp = np.zeros([len(frequency), 0], dtype=np.float32)
+    # Array for result integrated pulse
     integrated_spectra = np.zeros([len(frequency), interp_spectra_in_period], dtype=np.float32)
-    spectra_to_read = 500
+
     pulse_counter = 0
 
-    for bunch in range(bunches):
-        print(' Bunch # ', bunch)
+    for bunch in range(bunches_in_file):
+        print(' Bunch # ', bunch+1, ' of ', bunches_in_file)
 
         data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
         data_raw = np.reshape(data_raw, [len(frequency), spectra_to_read], order='F')
         data_raw = 10 * np.log10(data_raw, dtype=np.float32)
-        if normalize_response > 0:
-            Normalization_dB(data_raw.transpose(), len(frequency), spectra_to_read)
+        # if normalize_response > 0:
+        #     Normalization_dB(data_raw.transpose(), len(frequency), spectra_to_read)
 
         # Append the new interpolated (np.kron) data to buffer
         data_interp = np.append(data_interp, np.kron(data_raw, np.ones((1, scale_factor))), axis=1)
@@ -233,7 +233,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     major_ticks_bottom = np.linspace(0, periods_per_fig, 4 * periods_per_fig+1)
     ax2.set_xticks(major_ticks_bottom)
 
-    fig.subplots_adjust(hspace=0.05, top=0.86)  # 91
+    fig.subplots_adjust(hspace=0.05, top=0.86)
 
     fig.suptitle('Folded average pulses of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
                  ', Period: ' + str(p_bar) + ' s.), ' + str(pulse_counter) + ' integrated pulses ',
@@ -248,7 +248,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     data_file.close()
 
-    return
+    return 0
 
 
 # *******************************************************************************
