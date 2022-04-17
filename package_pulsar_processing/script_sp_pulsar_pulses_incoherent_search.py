@@ -1,7 +1,7 @@
 # TODO: make a sum of channels A & B (or may be not)
 
 # Python3
-Software_version = '2022.04.08'
+Software_version = '2022.04.17'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -18,7 +18,7 @@ pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['C_m']
+data_types = ['chA', 'chB', 'C_m']
 
 save_strongest = True         # Save strongest images to additional separate folder?
 threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
@@ -104,11 +104,11 @@ result_folder_name = directory.split('/')[-2] + '_initial'
 
 ok = DAT_file_reader('', DAT_file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
                      300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
-# '''
+
 #
 #
-# DAT_file_name = 'E300117_180000.jds'
-# typesOfData = ['chA', 'chB']
+# DAT_file_name = 'P130422_115005.jds'  # P130422_115005.jds_Data_chB.dat
+# typesOfData = ['chB', 'C_m']
 #
 #
 
@@ -127,10 +127,11 @@ for i in range(len(typesOfData)):
                                                                 pulsar_name, 512, amp_min, amp_max, 0, 0, 0, 1, 10,
                                                                 2.8, 0, 0.0, 16.5, 1, 1, 300, 'Greys')
     dedispersed_data_file_list.append(dedispersed_data_file_name)
-
+# '''
 #
 #
-# dedispersed_data_file_list = ['J2325-0530_DM_14.966_P250322_082507.jds_Data_C_m.dat']
+# dedispersed_data_file_list = ['B0809+74_DM_5.755_P130422_115005.jds_Data_chB.dat']
+# typesOfData = ['chB']
 #
 #
 
@@ -161,7 +162,7 @@ for dedispersed_data_file_name in dedispersed_data_file_list:
 
 result_folder_name = directory.split('/')[-2] + '_dedispersed'
 
-print('\n\n  * Making dynamic spectra of the dedispersed data... \n\n')
+print('\n\n  * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
 ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10,
                      0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
