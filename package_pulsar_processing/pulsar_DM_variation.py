@@ -3,7 +3,7 @@
 
 import numpy as np
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
-from package_pulsar_processing.pulsar_DM_shift_calculation_aver_pulse import pulsar_DM_shift_calculation_aver_pulse
+from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
 
 def pulsar_DM_variation(array, no_of_DM_steps, FFTsize, fmin, fmax, df, TimeRes, pulsarPeriod, samplesPerPeriod, DM, noise_mean, noise_std, begin_index, end_index, DM_var_step, roll_number, save_intermediate_data, customDPI):
     '''
@@ -26,7 +26,7 @@ def pulsar_DM_variation(array, no_of_DM_steps, FFTsize, fmin, fmax, df, TimeRes,
         matrix[:,:] = array[:,:]
 
         # DM compensation
-        shiftPar = pulsar_DM_shift_calculation_aver_pulse(FFTsize, fmin, fmax, df, TimeRes, DM_vector[step], pulsarPeriod)
+        shiftPar = pulsar_dm_shift_calculation_aver_pulse(FFTsize, fmin, fmax, df, TimeRes, DM_vector[step], pulsarPeriod)
         matrix = pulsar_DM_compensation_with_indices_changes (matrix, shiftPar)
 
         for i in range (FFTsize):
