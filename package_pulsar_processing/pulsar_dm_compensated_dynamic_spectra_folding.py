@@ -29,7 +29,7 @@ roll_count = 0
 spectra_to_read = 500
 
 scale_factor = 200
-customDPI = 500                   # Resolution of images of dynamic spectra
+custom_dpi = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
 # *******************************************************************************
@@ -59,13 +59,29 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 
 # ###############################################################################
+
+
+def save_integrated_pulse_to_file(array, file_header, pulsar_period, samples_per_period, file_name):
+    """
+    Saving .smd file with integrated pulsar pulse in a format by V. V. Zakharenko (IDL)
+    """
+    integrated_pulse_file = open(file_name, 'wb')
+    array = np.array(array, dtype=np.float32)
+    integrated_pulse_file.write(np.float64(pulsar_period))
+    integrated_pulse_file.write(np.int32(samples_per_period))
+    integrated_pulse_file.write(np.transpose(array).copy(order='C'))
+    integrated_pulse_file.write(file_header)
+    integrated_pulse_file.close()
+    return 0
+
+
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
 # *******************************************************************************
 
 
 def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response, profile_pic_min, profile_pic_max,
-                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI, colormap):
+                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -73,7 +89,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
-    # DAT file to be analyzed:
+    # DAT datafile to be analyzed:
     filepath = common_path + filename
 
     # Timeline file to be analyzed:
@@ -110,15 +126,19 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
     spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
-    bunches_in_file = spectra_in_file // spectra_to_read
+    # bunches_in_file = spectra_in_file // spectra_to_read
+
+    bunches_in_file = 6
+
     if spectra_in_file % spectra_to_read:
         bunches_in_file += 1
 
     # Open data file with removed dispersion delay (.dat)
     data_file = open(filepath, 'rb')
+    file_header = data_file.read(1024)
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    interp_spectra_in_period = int(np.round((periods_per_fig * p_bar / (time_resolution / scale_factor)), 0))
+    interp_spectra_in_period = int(np.round((int(periods_per_fig) * p_bar * 0.5 / (time_resolution / scale_factor)), 0))
 
     # Interpolated data buffer
     data_interp = np.zeros([len(frequency), 0], dtype=np.float32)
@@ -145,11 +165,12 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
         for i in range(periods_in_bunch):
             integrated_spectra = integrated_spectra + \
                                  data_interp[:, i * interp_spectra_in_period: (i+1) * interp_spectra_in_period]
-            pulse_counter += 1
+
+        pulse_counter += periods_in_bunch
 
         data_interp = data_interp[:, interp_spectra_in_period * periods_in_bunch:]
 
-    print(' Total number of integrated pulses: ', pulse_counter)
+    print(' Total number of integrated pulses (not correct!!!): ', pulse_counter)
 
     # Preparing single averaged data profile for figure
     integrated_spectra = np.roll(integrated_spectra, roll_count, axis=1)
@@ -158,42 +179,8 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     profile = profile / np.max(profile)
     data = integrated_spectra - np.mean(integrated_spectra)
 
-    # spectra_to_read = int(np.round((periods_per_fig * p_bar / time_resolution), 0))
-    # num_of_blocks = int(np.floor(spectra_in_file / spectra_to_read))
-    #
-    # print('   Pulsar period:                           ', p_bar, 's.')
-    # print('   Time resolution:                         ', time_resolution, 's.')
-    # print('   Number of spectra to read in', periods_per_fig, 'periods:  ', spectra_to_read, ' ')
-    # print('   Number of spectra in file:               ', spectra_in_file, ' ')
-    # print('   Number of', periods_per_fig, 'periods blocks in file:      ', num_of_blocks, '\n')
-    #
-    # # Data reading and making figures
-    # print('\n\n  *** Data reading and making figures *** \n\n')
-    #
-    # data_file = open(filepath, 'rb')
-    # data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
-    #
-    # data_cumulative = np.zeros([len(frequency), spectra_to_read])
-    #
-    # for block in range(integrated_pulses):   # Main loop by blocks of data
-    #
-    #     # Reading the last block which is less than n periods
-    #     if block == num_of_blocks:
-    #         spectra_to_read = spectra_in_file - num_of_blocks * spectra_to_read
-    #
-    #     # Reading and preparing block of data (n periods)
-    #     data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
-    #     data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-    #     data = 10 * np.log10(data)
-    #     if normalize_response > 0:
-    #         Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
-    #
-    #     data_cumulative += data
-    #
-    # # Preparing single averaged data profile for figure
-    # profile = data_cumulative.mean(axis=0)[:]
-    # profile = profile - np.mean(profile)
-    # data = data_cumulative - np.mean(data_cumulative)
+    # Saving data to file
+    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], 'DSPZ_' + filename + ' - folded pulses.smp')
 
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))
@@ -243,7 +230,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
     pylab.savefig(filename + ' - folded pulses.png',
-                  bbox_inches='tight', dpi=customDPI)
+                  bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
     data_file.close()
@@ -259,4 +246,4 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 if __name__ == '__main__':
 
     pulsar_period_folding(common_path, filename, pulsar_name, normalize_response, profile_pic_min, profile_pic_max,
-                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI, colormap)
+                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap)
