@@ -7,8 +7,8 @@ software_name = 'Pulsar averaged pulse SMD analyzer'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-# folder_path = ''
 folder_path = '../RA_DATA_ARCHIVE/SMD_pulsar_pulses_files/'
+# folder_path = ''
 
 filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
 # filename = 'DSPZ_B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat - folded pulses.smp'
@@ -105,8 +105,8 @@ def plot_average_profiles(array, data_type, filename, frequency_list, colormap, 
     plt.plot(integr_profile_1)
     plt.xlabel('Frequency points', fontsize=8, fontweight='bold')
     plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
-    plt.xticks(fontsize = 6, fontweight='bold')
-    plt.yticks(fontsize = 6, fontweight='bold')
+    plt.xticks(fontsize=6, fontweight='bold')
+    plt.yticks(fontsize=6, fontweight='bold')
     pylab.savefig(result_path + '/02.' + n + ' - ' + data_type + ' data integrated over time and over frequency.png',
                   bbox_inches='tight', dpi=250)
     plt.close('all')
@@ -333,7 +333,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
                             df_system_name):
 
     fig_number = '0' if type == 'first' else '1'
-    DM_type = 'initial' if type == 'first' else 'optimal'
+    dm_type = 'initial' if type == 'first' else 'optimal'
 
     #  Calculation of shift in pixels to compensate dispersion
     shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
@@ -341,12 +341,12 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     #  Saving shift parameter for dispersion delay compensation vs. frequency to file and plot
     if save_intermediate_data == 1:
 
-        shift_param_txt = open(result_path+'/Shift parameter (' + DM_type + ').txt', "w")
+        shift_param_txt = open(result_path+'/Shift parameter (' + dm_type + ').txt', "w")
         for i in range(freq_num):
             shift_param_txt.write(str(fmin + df * i)+'   '+str(shift_param[i])+' \n' )
         shift_param_txt.close()
 
-        plot1D(shift_param, result_path + '/' + fig_number + '3.1 - Shift parameter (' + DM_type + ' DM).png',
+        plot1D(shift_param, result_path + '/' + fig_number + '3.1 - Shift parameter (' + dm_type + ' DM).png',
                'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', custom_dpi)
 
     #  Compensation of dispersion delay
@@ -425,16 +425,16 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     # **************************************************************************
     if type == 'final':
         # Profile of maximal SNR for each DM value
-        max_profile_var_DM = np.max(profiles_varDM, axis=1)
+        max_profile_var_dm = np.max(profiles_varDM, axis=1)
 
         # Index of the optimal DM value in vector
-        max_x = np.argmax(max_profile_var_DM)
+        max_x = np.argmax(max_profile_var_dm)
 
         # Indexes of optimal DM value with error interval
-        indexes = np.where(max_profile_var_DM >= np.max(max_profile_var_DM) * 0.95)
+        indexes = np.where(max_profile_var_dm >= np.max(max_profile_var_dm) * 0.95)
         x_index_min = indexes[0][0] - 1 if indexes[0][0] > 0 else indexes[0][0]  # Min index
         x_index_max = indexes[0][len(indexes[0])-1] + 1 if \
-            indexes[0][len(indexes[0])-1] < len(max_profile_var_DM)-1 else indexes[0][len(indexes[0])-1]  # Max index
+            indexes[0][len(indexes[0])-1] < len(max_profile_var_dm)-1 else indexes[0][len(indexes[0])-1]  # Max index
         diff_max = np.abs(x_index_max - max_x)  # Index error to upper limit
         diff_min = np.abs(x_index_min - max_x)  # Index error to lower limit
         index_error = np.max([diff_max, diff_min])
@@ -445,11 +445,11 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
         rc('font', size=7, weight='bold')
         fig = plt.figure(1, figsize=(10.0, 6.0))
         ax1 = fig.add_subplot(111)
-        ax1.plot(DM_vector - DM, max_profile_var_DM, label='Max of SNR profile vs. DM')
+        ax1.plot(DM_vector - DM, max_profile_var_dm, label='Max of SNR profile vs. DM')
         ax1.axvline(x=DM_vector[max_x] - DM, color='C4', linestyle='-', linewidth=1.0)
         ax1.axvline(x=DM_vector[x_index_min] - DM, color='C1', linestyle='-', linewidth=1.0)
         ax1.axvline(x=DM_vector[x_index_max] - DM, color='C1', linestyle='-', linewidth=1.0)
-        ax1.axhline(y=max_profile_var_DM[max_x] * 0.95,
+        ax1.axhline(y=max_profile_var_dm[max_x] * 0.95,
                     label='Max error = ' + str(np.round(DM_error, 4)) + r' $\mathrm{pc \cdot cm^{-3}}$',
                     color='r', linestyle='-', linewidth=0.5)
         ax1.legend(loc='upper right')
@@ -460,7 +460,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
         ax2.set_xlim(ax1.get_xlim())
         text = ax2.get_xticks().tolist()
         for i in range(len(text)-1):
-            k = np.float(text[i])
+            k = float(text[i])
             text[i] = k + DM
         ax2.set_xticklabels(np.round(text, 4))
         fig.subplots_adjust(top=0.90)
@@ -482,31 +482,31 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
     # **************************************************************************
 
-    nowTime = time.time()
-    print('\n  DM variation took ', round((nowTime - previous_time), 2), 'seconds (',
-                                    round((nowTime - previous_time)/60, 2), 'min. )')
-    previous_time = nowTime
+    now_time = time.time()
+    print('\n  DM variation took ', round((now_time - previous_time), 2), 'seconds (',
+                                    round((now_time - previous_time)/60, 2), 'min. )')
+    previous_time = now_time
 
     # Preparing indexes for showing the maximal SNR value and its coordinates
-    DM_steps_real, time_points = profiles_varDM.shape
+    dm_steps_real, time_points = profiles_varDM.shape
     phase_vector = np.linspace(0, 1, num=time_points)
-    optimal_DM_indexes = np.unravel_index(np.argmax(profiles_varDM, axis=None), profiles_varDM.shape)
-    optimal_DM_index = optimal_DM_indexes[0]
-    optimal_pulse_phase = optimal_DM_indexes[1]
-    MAXpointX = phase_vector[optimal_pulse_phase]
-    MAXpointY = - (DM_vector[optimal_DM_index] - DM)
-    DMoptimal = round(DM_vector[optimal_DM_index], 5)
+    optimal_dm_indexes = np.unravel_index(np.argmax(profiles_varDM, axis=None), profiles_varDM.shape)
+    optimal_dm_index = optimal_dm_indexes[0]
+    optimal_pulse_phase = optimal_dm_indexes[1]
+    max_point_x = phase_vector[optimal_pulse_phase]
+    max_point_y = - (DM_vector[optimal_dm_index] - DM)
+    dm_optimal = round(DM_vector[optimal_dm_index], 5)
 
     print('\n\n ')
     print('    Initial DM (from file) =               ', DM, ' pc / cm3')
-    print('    Optimal DM =                           ', DMoptimal, ' pc / cm3  \n')
+    print('    Optimal DM =                           ', dm_optimal, ' pc / cm3  \n')
     print('    SNR for current DM =                   ', round(snr_init_max, 3))
     # print('    SNR averaged in time for initial DM  = ', round(SNRinitDMtimeAver, 3), ' \n')
 
     # Saving integrated profiles with DM variation calculation to TXT file
     if save_intermediate_data == 1 and type == 'final':
-        dm_var_txt = open(result_path + '/Average profile vs DM 2D (' + DM_type + ' DM).txt', "w")
-        for step in range(DM_steps_real-1):
+        dm_var_txt = open(result_path + '/Average profile vs DM 2D (' + dm_type + ' DM).txt', "w")
+        for step in range(dm_steps_real-1):
             dm_var_txt.write(''.join(format(DM_vector[step], "8.5f")) +
                              '   '.join(format(profiles_varDM[step, k], "12.5f") for k in range(time_points)) + ' \n')
         dm_var_txt.close()
@@ -530,22 +530,22 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     ax2.set_ylabel('DM', rotation=0, fontsize=7, fontweight='bold')
     ax2.set_ylim(ax1.get_ylim())
     text = ax2.get_yticks().tolist()
-    for i in range(len(text)-1):
-        k = np.float(text[i])
-        text[i] = DM + k
+    for t in range(len(text)-1):
+        k = float(text[t])
+        text[t] = DM + k
     ax2.set_yticklabels(np.round(text, 4))
     fig.colorbar(im1, ax=ax1, pad=0.1)
-    fig.text(0.76, 0.89, 'Current SNR \n    '+str(round(snr_init_max, 3)),
+    fig.text(0.76, 0.89, 'Current SNR \n    ' + str(round(snr_init_max, 3)),
              fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
-    fig.text(0.75, 0.05, '    Current DM  \n' + str(round(DM, 4))+r' $\mathrm{pc \cdot cm^{-3}}$',
+    fig.text(0.75, 0.05, '    Current DM  \n' + str(round(DM, 4)) + r' $\mathrm{pc \cdot cm^{-3}}$',
              fontsize=7, fontweight='bold', transform=plt.gcf().transFigure)
     pylab.savefig(result_path + '/' + fig_number + '8 - SNR vs DM.png', bbox_inches='tight', dpi=custom_dpi)
 
-    endTime = time.time()    # Stop timer of calculations because next figure will popup and wait for response of user
+    end_time = time.time()    # Stop timer of calculations because next figure will popup and wait for response of user
 
     ax1.axhline(y=0, color='r', linestyle='-', linewidth=0.4)
     ax1.axvline(x=0.5 + (0.5/samples_per_period), color='r', linestyle='-', linewidth=0.4)
-    ax1.plot(MAXpointX, - MAXpointY, marker='o', markersize=1.5, color='chartreuse')
+    ax1.plot(max_point_x, - max_point_y, marker='o', markersize=1.5, color='chartreuse')
     pylab.savefig(result_path + '/' + fig_number + '7 - SNR vs DM.png', bbox_inches='tight', dpi=custom_dpi)
     if type == 'first':
         plt.show()
@@ -635,9 +635,9 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
         plt.show()
         plt.close('all')
 
-    print('\n\n  In band calculations and DM variation lasted for ', round((endTime - startTime),3), 'seconds (',
-                                                                     round((endTime - startTime)/60, 2), 'min. ) \n\n')
-    return DMoptimal
+    print('\n\n  In band calculations and DM variation lasted for ', round((end_time - startTime),3), 'seconds (',
+                                                                     round((end_time - startTime)/60, 2), 'min. ) \n\n')
+    return dm_optimal
 
 
 # ###############################################################################
@@ -797,8 +797,6 @@ if cleaning_switch == 1:
     del mask
 
 fmin = 16.5
-
-print(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
 
 #  Calculation of shift in pixels to compensate dispersion
 shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
