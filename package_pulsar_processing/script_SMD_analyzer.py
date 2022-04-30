@@ -7,13 +7,13 @@ software_name = 'Pulsar averaged pulse SMD analyzer'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-folder_path = '../RA_DATA_ARCHIVE/SMD_pulsar_pulses_files/'
-# folder_path = ''
+# folder_path = '../RA_DATA_ARCHIVE/SMD_pulsar_pulses_files/'
+folder_path = ''
 
-filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
-# filename = 'DSPZ_B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat - folded pulses.smp'
-pulsar_name = 'PSRJ0250+5854'
-# pulsar_name = 'B0809+74'
+# filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
+filename = 'DSPZ_B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat - folded pulses.smp'
+# pulsar_name = 'J0250+5854'
+pulsar_name = 'B0809+74'
 
 auto_opt_DM_search = 0           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
 no_of_DM_steps = 181             # Number of DM steps to plot 361
@@ -710,7 +710,7 @@ if filename[0:3] == 'ADR':
     record_date_time = str(record_date_time_dt)
     telescope = 'GURT'
 
-if filename[0:3] == 'DSP':
+elif filename[0:3] == 'DSP':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile,
      ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency_list,
      FFTsize, BlockSize] = FileHeaderReaderJDS(filepath, smd_filesize - 1024, 1)
@@ -721,6 +721,8 @@ if filename[0:3] == 'DSP':
                                    int(df_creation_timeUTC[17:19]), 0)
     record_date_time = str(record_date_time_dt)
 
+else:
+    sys.exit('\n\n  Unidentified initial format! Program stopped.')
 
 df = df / pow(10, 6)
 freq_num = len(frequency_list)
