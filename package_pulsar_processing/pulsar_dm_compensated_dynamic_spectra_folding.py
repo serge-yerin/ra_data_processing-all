@@ -23,12 +23,11 @@ profile_pic_max = 1.20            # Maximum limit of profile picture
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
-periods_per_fig = 1
-# roll_count = 8000
-roll_count = 0
+periods_per_fig = 2
+roll_count = 0  # 8000
 spectra_to_read = 500
 
-scale_factor = 200
+scale_factor = 100
 custom_dpi = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
@@ -87,7 +86,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     current_date = time.strftime("%d.%m.%Y")
 
     # Taking pulsar period from catalogue
-    pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
+    pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     # DAT datafile to be analyzed:
     filepath = common_path + filename
@@ -99,7 +98,6 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     file = open(filepath, 'rb')
 
     # Data file header read
-    df_filesize = os.stat(filepath).st_size                         # Size of file
     df_filepath = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
     file.close()
 
@@ -111,11 +109,13 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
         freq_points_num = len(frequency)
 
-    if df_filepath[-4:] == '.jds':     # If data obtained from DSPZ receiver
+    elif df_filepath[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
                 SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
                 dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 1)
+    else:
+        sys.exit(' Error! File type is unknown')
 
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
@@ -126,26 +126,42 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
     spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
+    print('Spectra in file:', spectra_in_file)
     # bunches_in_file = spectra_in_file // spectra_to_read
+    bunches_in_file = 16
 
-    bunches_in_file = 6
-
-    if spectra_in_file % spectra_to_read:
-        bunches_in_file += 1
+    # if spectra_in_file % spectra_to_read:
+    #     bunches_in_file += 1
 
     # Open data file with removed dispersion delay (.dat)
     data_file = open(filepath, 'rb')
     file_header = data_file.read(1024)
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    interp_spectra_in_period = int(np.round((int(periods_per_fig) * p_bar * 0.5 / (time_resolution / scale_factor)), 0))
+    # Time resolution of interpolated data (must be a half of dt in file, but is works only with doubled)
+    interp_time_resolution = 2 * time_resolution / scale_factor
+
+    interp_spectra_in_profile = int(periods_per_fig * p_bar / interp_time_resolution) + 1
+    # Keep in mind that 2 arises here because the time resolution is valid for each second sample, and other samples
+    # are obtained with overlap of wf samples to calculate fft
+
+    # Calculation of remainder of the pulsar period when divided by interpolated time resolution
+    remainder_of_n_periods = (interp_time_resolution * interp_spectra_in_profile) - (periods_per_fig * p_bar)
+    if remainder_of_n_periods < 0:
+        sys.exit('Error! Remainder is less then zero! ')
+
+    print('Spectra in profile: ', interp_spectra_in_profile)
+    print('Remainder on n periods (1 profile): ', remainder_of_n_periods)
+    print('Interpolated time resolution: ', interp_time_resolution, '\n')
 
     # Interpolated data buffer
     data_interp = np.zeros([len(frequency), 0], dtype=np.float32)
     # Array for result integrated pulse
-    integrated_spectra = np.zeros([len(frequency), interp_spectra_in_period], dtype=np.float32)
+    integrated_spectra = np.zeros([len(frequency), interp_spectra_in_profile], dtype=np.float32)
 
-    pulse_counter = 0
+    # Counters:
+    pulse_counter = 0  # Absolute profiles counter
+    current_time_remainder = 0.0  # Counts time float lag between precise period and time resolution
 
     for bunch in range(bunches_in_file):
         print(' Bunch # ', bunch+1, ' of ', bunches_in_file)
@@ -160,17 +176,27 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
         data_interp = np.append(data_interp, np.kron(data_raw, np.ones((1, scale_factor))), axis=1)
         del data_raw
 
-        periods_in_bunch = data_interp.shape[1] // interp_spectra_in_period
+        profiles_in_bunch = data_interp.shape[1] // interp_spectra_in_profile
 
-        for i in range(periods_in_bunch):
+        for i in range(profiles_in_bunch):
+            # If cumulative time reminder exceeds time resolution we skip one spectrum to align time scales
+            if current_time_remainder > interp_time_resolution:
+                print(' In IF Reminder and resolution: ', current_time_remainder, interp_time_resolution)
+                current_time_remainder = current_time_remainder - interp_time_resolution
+                data_interp = data_interp[:, 1:]
+
+            # Calculate current reminder
+            current_time_remainder += remainder_of_n_periods
+            print(bunch, ' - ', i, ' - Reminder: ', current_time_remainder)
+
             integrated_spectra = integrated_spectra + \
-                                 data_interp[:, i * interp_spectra_in_period: (i+1) * interp_spectra_in_period]
+                                 data_interp[:, i * interp_spectra_in_profile: (i+1) * interp_spectra_in_profile]
 
-        pulse_counter += periods_in_bunch
+        pulse_counter += profiles_in_bunch
 
-        data_interp = data_interp[:, interp_spectra_in_period * periods_in_bunch:]
+        data_interp = data_interp[:, interp_spectra_in_profile * profiles_in_bunch:]
 
-    print(' Total number of integrated pulses (not correct!!!): ', pulse_counter)
+    print(' Total number of integrated pulses (may be not correct!!!): ', pulse_counter)
 
     # Preparing single averaged data profile for figure
     integrated_spectra = np.roll(integrated_spectra, roll_count, axis=1)
@@ -180,7 +206,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     data = integrated_spectra - np.mean(integrated_spectra)
 
     # Saving data to file
-    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], 'DSPZ_' + filename + ' - folded pulses.smp')
+    # save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], 'DSPZ_' + filename + ' - folded pulses.smp')
 
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))
@@ -221,16 +247,14 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     ax2.set_xticks(major_ticks_bottom)
 
     fig.subplots_adjust(hspace=0.05, top=0.86)
-
-    fig.suptitle('Folded average pulses of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
-                 ', Period: ' + str(p_bar) + ' s.), ' + str(pulse_counter) + ' integrated pulses ',
-                 fontsize=7, fontweight='bold')
+    fig.suptitle('Folded average pulses of ' + pulsar_name + ' (DM: ' + str(pulsar_dm) +
+                 r' $\mathrm{pc \cdot cm^{-3}}$' + ', Period: ' + str(p_bar) + ' s.), ' +
+                 str(pulse_counter) + ' integrated pulses ', fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(filename + ' - folded pulses.png',
-                  bbox_inches='tight', dpi=custom_dpi)
+    pylab.savefig(filename + ' - folded pulses.png', bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
     data_file.close()
