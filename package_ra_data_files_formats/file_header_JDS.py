@@ -1,5 +1,4 @@
-'''
-'''
+
 import struct
 import os
 import numpy as np
@@ -144,7 +143,6 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         if Mode == 2:
             print(' Mode:                           Correlation A & B')
 
-
         print(' Sampling ADC frequency:        ', CLCfrq/10**6, ' MHz')
         if ExtSyn == 0:
             print(' Synchronization:                Internal')
@@ -244,11 +242,9 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
            SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, Wb, dataBlockSize
 
 
-
-
 if __name__ == '__main__':
 
-    filename = 'E040620_201501.jds_Data_chA.dat' #'DATA/A191022_070249-001.jds'
+    filename = '../RA_DATA_ARCHIVE/DSP_waveform_66_MHz_B0950p08/E220213_201439.jds'
 
     print('\n\n Parameters of the file: ')
 
