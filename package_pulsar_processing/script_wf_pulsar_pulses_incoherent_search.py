@@ -32,7 +32,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from script_JDS_WF_reader import jds_wf_simple_reader
-from package_pulsar_processing.script_pulsar_single_pulses import pulsar_incoherent_dedispersion
+from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 # ###############################################################################
