@@ -33,7 +33,7 @@ if __package__ is None:
 
 from script_JDS_WF_reader import jds_wf_simple_reader
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 # ###############################################################################
 
@@ -72,7 +72,7 @@ for i in range(len(results_files_list)):
 
 print('\n\n  *  Making figures of 3 pulsar periods... \n\n')
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name,
+    pulsar_period_dm_compensated_pics('', dedispersed_data_file_name, pulsar_name,
                                       0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys', save_strongest, threshold)
 
 #

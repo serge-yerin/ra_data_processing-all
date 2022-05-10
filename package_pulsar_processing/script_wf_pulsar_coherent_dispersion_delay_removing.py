@@ -45,7 +45,7 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 # from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
 from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
@@ -205,7 +205,7 @@ if __name__ == '__main__':
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
         print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
 
-        pulsar_period_DM_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500,
+        pulsar_period_dm_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500,
                                           'Greys', False, 0.25)
 
         #

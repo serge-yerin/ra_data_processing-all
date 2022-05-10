@@ -59,7 +59,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_DM_compensated_pics
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
@@ -157,7 +157,7 @@ if save_n_period_pics:
             dyn_sp_min = -0.2
             dyn_sp_max = 3
 
-        pulsar_period_DM_compensated_pics('', dedispersed_data_file_name, pulsar_name, 0, amp_min, amp_max,
+        pulsar_period_dm_compensated_pics('', dedispersed_data_file_name, pulsar_name, 0, amp_min, amp_max,
                                           dyn_sp_min, dyn_sp_max, 3, 500, 'Greys', save_strongest, threshold)
 
 #
