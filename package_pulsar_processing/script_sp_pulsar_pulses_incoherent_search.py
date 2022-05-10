@@ -1,6 +1,7 @@
 # TODO: make a sum of channels A & B (or may be not)
 # TODO: integrate average pulse to the end of the pipeline
 # TODO: save all results to the single folder
+# TODO: add cleaning
 
 # Python3
 software_version = '2022.05.10'
