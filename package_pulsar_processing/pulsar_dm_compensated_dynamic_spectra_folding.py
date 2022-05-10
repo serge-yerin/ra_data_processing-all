@@ -3,7 +3,7 @@
 # TODO: Save integrated dynamic spectra to a file to be able to roll the pulse to any position quickly
 # TODO: Be sure we do not go beyond one spectra count by adding int number of counts!
 
-Software_version = '2022.04.17'
+Software_version = '2022.05.10'
 Software_name = 'Pulsar dynamic spectra folding'
 # Program intended to read and show pulsar data from DAT files (with compensated DM delay)
 
@@ -24,10 +24,10 @@ spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
 periods_per_fig = 2
-roll_count = 0  # 8000
+roll_count = 800  # 8000
 spectra_to_read = 500
 
-scale_factor = 100
+scale_factor = 10
 custom_dpi = 500                   # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
@@ -127,19 +127,16 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
     spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
     print('Spectra in file:', spectra_in_file)
-    # bunches_in_file = spectra_in_file // spectra_to_read
-    bunches_in_file = 16
-
-    # if spectra_in_file % spectra_to_read:
-    #     bunches_in_file += 1
+    bunches_in_file = spectra_in_file // spectra_to_read
+    # bunches_in_file = 16
 
     # Open data file with removed dispersion delay (.dat)
     data_file = open(filepath, 'rb')
     file_header = data_file.read(1024)
-    data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
+    data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024 byte from file beginning to skip header
 
-    # Time resolution of interpolated data (must be a half of dt in file, but is works only with doubled)
-    interp_time_resolution = 2 * time_resolution / scale_factor
+    # Time resolution of interpolated data
+    interp_time_resolution = time_resolution / scale_factor
 
     interp_spectra_in_profile = int(periods_per_fig * p_bar / interp_time_resolution) + 1
     # Keep in mind that 2 arises here because the time resolution is valid for each second sample, and other samples
@@ -206,7 +203,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     data = integrated_spectra - np.mean(integrated_spectra)
 
     # Saving data to file
-    # save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], 'DSPZ_' + filename + ' - folded pulses.smp')
+    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], 'DSPZ_' + filename + ' - folded pulses.smp')
 
     # Making result picture
     fig = plt.figure(figsize=(9.2, 4.5))
