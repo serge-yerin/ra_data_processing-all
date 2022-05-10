@@ -138,11 +138,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
         profile_txt_file.close()
 
-    # *** Opening DAT datafile ***
+    # *** Opening DAT datafile to check the initial file type ***
     file = open(data_filename, 'rb')
-
-    # reading FHEADER
-    df_filesize = os.stat(data_filename).st_size                          # Size of file
     df_filename = file.read(32).decode('utf-8').rstrip('\x00')            # Initial data file name
     file.close()
 
@@ -154,8 +151,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     elif receiver_type == '.jds':
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc, 
-            sp_in_file, receiver_mode, mode, n_avr, time_res, 
-            fmin, fmax, df, frequency_list, fft_size, data_block_size] = FileHeaderReaderJDS(data_filename, 0, 1)
+            sp_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency_list, fft_size,
+            data_block_size] = FileHeaderReaderJDS(data_filename, 0, 1)
     else:
         sys.exit(' Error! Unknown data type!')
 
@@ -195,8 +192,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         shift_vector = DM_full_shift_calc(len(frequency_list)-4, fmin, fmax, df / pow(10, 6),
                                           time_res, DM, receiver_type)
         print(' Number of frequency channels:  ', len(frequency_list) - 4)
-        ifmin = 0
-        ifmax = int(len(frequency_list)-4)
+        ifmin = int(fmin * 1e6 / df)
+        ifmax = int(fmax * 1e6 / df) - 4
 
     if save_compensated_data > 0:
         with open(data_filename, 'rb') as file:
@@ -222,11 +219,6 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         del file_header
 
     max_shift = np.abs(shift_vector[0])
-
-    # if SpecFreqRange == 1:
-    #     buffer_array = np.zeros((ifmax - ifmin, 2 * max_shift))
-    # else:
-    #     buffer_array = np.zeros((len(frequency_list) - 4, 2 * max_shift))  # - 4
 
     buffer_array = np.zeros((ifmax - ifmin, 2 * max_shift))
 
@@ -339,17 +331,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         if block > 0:
             # Saving data with compensated DM to DAT file
             if save_compensated_data > 0 and block > 0:
-
-
-                # temp = array_compensated_dm.copy(order='C')
-                temp = array_compensated_dm.copy()
-                temp = np.transpose(temp)
-                print(temp.shape)
-                temp_to_write = temp.copy(order='C')
-                del temp
-                # temp = np.array(array_compensated_dm.transpose(), dtype=np.float64).copy(order='C')
-
-
+                temp_to_write = np.transpose(array_compensated_dm).copy(order='C')
                 new_data_file = open(new_data_file_name, 'ab')
                 new_data_file.write(temp_to_write)
                 new_data_file.close()
