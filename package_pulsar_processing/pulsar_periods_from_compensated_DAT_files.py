@@ -1,6 +1,6 @@
 # Python3
-Software_version = '2020.03.19'
-Software_name = 'Pulsar DM delay compensated DAT reader'
+software_version = '2020.03.19'
+software_name = 'Pulsar DM delay compensated DAT reader'
 # Program intended to read and show pulsar data from DAT files (with compensated DM delay)
 # Make figures overlap by one pulse!!!
 
@@ -58,12 +58,12 @@ from package_ra_data_processing.spectra_normalization import Normalization_dB
 # *******************************************************************************
 
 
-def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
+def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap, save_strongest, threshold):
 
-    current_time = time.strftime("%H:%M:%S")
-    current_date = time.strftime("%d.%m.%Y")
+    a_current_time = time.strftime("%H:%M:%S")
+    a_current_date = time.strftime("%d.%m.%Y")
 
     # Creating a folder where all pictures and results will be stored (if it doesn't exist)
     result_path = "RESULTS_pulsar_n_periods_pics_" + filename
@@ -106,6 +106,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
          df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
          df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 1)
 
+    print(frequency[0], frequency[-1])
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
     # ************************************************************************************
@@ -135,12 +136,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
 
     for block in range(num_of_blocks+1):   # Main loop by blocks of data
 
-        # bar.next()
-
-        # current_time = time.strftime("%H:%M:%S")
-        # print(' * Data block # ', block + 1, ' of ', num_of_blocks + 1, '  started at: ', current_time)
-
-        # Reading the last block which is less then 3 periods
+        # Reading the last block which is less than 3 periods
         if block == num_of_blocks:
             spectra_to_read = spectra_in_file - num_of_blocks * spectra_to_read
 
@@ -156,7 +152,7 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
         profile = profile - np.mean(profile)
         data = data - np.mean(data)
 
-        # Time line
+        # Timeline
         fig_time_scale = timeline[block * spectra_to_read: (block+1) * spectra_to_read]
 
         # Making result picture
@@ -164,8 +160,8 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
         rc('font', size=5, weight='bold')
         ax1 = fig.add_subplot(211)
         ax1.plot(profile, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='3 pulses time profile')
-        ax1.legend(loc = 'upper right', fontsize = 5)
-        ax1.grid(b=True, which='both', color='silver', linewidth='0.50', linestyle='-')
+        ax1.legend(loc='upper right', fontsize = 5)
+        ax1.grid(visible=True, which='both', color='silver', linewidth='0.50', linestyle='-')
         ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
         ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
         ax1.set_title('File: ' + filename + '  Description: ' + df_description + '  Resolution: ' +
@@ -186,9 +182,9 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
         fig.suptitle('Single pulses of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
                      ', Period: ' + str(p_bar) + ' s.), fig. ' + str(block + 1) + ' of ' + str(num_of_blocks+1),
                      fontsize=7, fontweight='bold')
-        fig.text(0.80, 0.04, 'Processed ' + current_date + ' at '+current_time,
+        fig.text(0.80, 0.04, 'Processed ' + a_current_date + ' at ' + a_current_time,
                  fontsize=3, transform=plt.gcf().transFigure)
-        fig.text(0.09, 0.04, 'Software version: '+Software_version+', yerin.serge@gmail.com, IRA NASU',
+        fig.text(0.09, 0.04, 'Software version: ' + software_version+', yerin.serge@gmail.com, IRA NASU',
                  fontsize=3, transform=plt.gcf().transFigure)
         pylab.savefig(result_path + '/' + filename + ' fig. ' + str(block+1) + ' - Combined picture.png',
                       bbox_inches='tight', dpi=customDPI)
@@ -212,12 +208,6 @@ def pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normal
 
 if __name__ == '__main__':
 
-    startTime = time.time()
-    current_time = time.strftime("%H:%M:%S")
-    current_date = time.strftime("%d.%m.%Y")
-
-    print('  Today is ', current_date, ' time is ', current_time, ' \n')
-
-    pulsar_period_DM_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
+    pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap, True, 0.25)
