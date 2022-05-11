@@ -23,6 +23,9 @@ pulsar_name = 'B0809+74'
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
 data_types = ['chA']
 
+periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
+scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
+
 save_n_period_pics = True     # Save n-period pictures?
 save_strongest = True         # Save strongest images to additional separate folder?
 threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
@@ -35,7 +38,7 @@ VmaxNorm = 6                  # Upper limit of figure dynamic range for normaliz
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-customDPI = 300               # Resolution of images of dynamic spectra
+custom_dpi = 300              # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
@@ -61,6 +64,7 @@ if __package__ is None:
 
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
+from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding import pulsar_period_folding
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
@@ -87,7 +91,7 @@ for file in range(len(file_name_list_current)):
 # Run ADR reader for the current folder
 done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, MaxNsp, 0,
                                                             8, Vmin, Vmax, VminNorm, VmaxNorm,
-                                                            VminCorrMag, VmaxCorrMag, colormap, customDPI,
+                                                            VminCorrMag, VmaxCorrMag, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
                                                             longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
@@ -173,5 +177,16 @@ print('\n\n  * Making dynamic spectra of the data with compensated dispersion de
 
 ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], data_types_to_process, '', result_folder_name, 0, 0, 0, -120, -10,
                      0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+
+#
+#
+#
+#
+#
+print('\n\n  * Making averaged (folded) pulse profile... \n\n')
+
+for dedispersed_data_file_name in dedispersed_data_file_list:
+    pulsar_period_folding('', dedispersed_data_file_name, pulsar_name, scale_factor, -0.5, 3, periods_per_fig,
+                          custom_dpi, colormap)
 
 print('\n\n  *  Pipeline finished successfully! \n\n')
