@@ -5,24 +5,24 @@ Software_name = 'Pulsar dynamic spectra folding'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-# Path to data files
+# Path to folder with the data file
 common_path = ''  # Empty string means the project directory
 
-# Directory of DAT file to be analyzed:
+# File name of DAT file to be analyzed:
 filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
-normalize_response = 0            # Normalize (1) or not (0) the frequency response
+
+periods_per_fig = 2               # Periods pf pulsar to show in the figure
+spectra_to_read = 500             # Spectra to read in one bunch (depends on RAM)
+
 profile_pic_min = -0.25           # Minimum limit of profile picture
 profile_pic_max = 1.20            # Maximum limit of profile picture
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
-periods_per_fig = 2
-spectra_to_read = 500
-
-scale_factor = 10
-custom_dpi = 500                   # Resolution of images of dynamic spectra
+scale_factor = 10                 # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
+custom_dpi = 500                  # Resolution of images of dynamic spectra
 colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet' or 'Greys')
 
 # *******************************************************************************
@@ -128,7 +128,7 @@ def make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_p
 # *******************************************************************************
 
 
-def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response, profile_pic_min, profile_pic_max,
+def pulsar_period_folding(common_path, filename, pulsar_name, profile_pic_min, profile_pic_max,
                           spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap):
 
     current_time = time.strftime("%H:%M:%S")
@@ -210,8 +210,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
     profiles_counter = 0  # Absolute profiles counter
     current_time_remainder = 0.0  # Counts time float lag between precise period and time resolution
 
-    bar = IncrementalBar(' Averaging pulsar pulses... ',
-                         max=bunches_in_file, suffix='%(percent)d%%')
+    bar = IncrementalBar(' Averaging pulsar pulses... ', max=bunches_in_file, suffix='%(percent)d%%')
     bar.start()
 
     for bunch in range(bunches_in_file):
@@ -292,7 +291,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, normalize_response
 
 if __name__ == '__main__':
 
-    pulsar_period_folding(common_path, filename, pulsar_name, normalize_response, profile_pic_min, profile_pic_max,
+    pulsar_period_folding(common_path, filename, pulsar_name, profile_pic_min, profile_pic_max,
                           spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
