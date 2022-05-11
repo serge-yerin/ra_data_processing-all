@@ -126,7 +126,7 @@ def make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_p
 # *******************************************************************************
 
 
-def pulsar_period_folding(common_path, filename, pulsar_name,  spectrum_pic_min, spectrum_pic_max,
+def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
                           periods_per_fig, custom_dpi, colormap):
 
     current_time = time.strftime("%H:%M:%S")
@@ -291,7 +291,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name,  spectrum_pic_min,
 
 if __name__ == '__main__':
 
-    pulsar_period_folding(common_path, filename, pulsar_name, spectrum_pic_min, spectrum_pic_max,
+    pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
                           periods_per_fig, custom_dpi, colormap)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
