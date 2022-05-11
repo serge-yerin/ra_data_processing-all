@@ -94,19 +94,18 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
     if df_filepath[-4:] == '.adr':
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
-                CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
-                NAvr, time_resolution, fmin, fmax, df, frequency, FFTsize, SLine,
-                Width, BlockSize] = FileHeaderReaderADR(filepath, 0, 0)
+                clock_frq, df_creation_time_utc, receiver_mode, mode, sum_diff_mode,
+                n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
+                width, block_size] = FileHeaderReaderADR(filepath, 0, 0)
 
         freq_points_num = len(frequency)
 
     if df_filepath[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
-        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq,
-         df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 1)
+        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
+         df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
+         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(filepath, 0, 1)
 
-    print(frequency[0], frequency[-1])
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
     # ************************************************************************************
