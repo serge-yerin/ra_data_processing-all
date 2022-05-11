@@ -16,8 +16,6 @@ pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
 periods_per_fig = 2               # Periods pf pulsar to show in the figure
 spectra_to_read = 500             # Spectra to read in one bunch (depends on RAM)
 
-profile_pic_min = -0.25           # Minimum limit of profile picture
-profile_pic_max = 1.20            # Maximum limit of profile picture
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
 spectrum_pic_max = 3              # Maximum limit of dynamic spectrum picture
 
@@ -128,8 +126,8 @@ def make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_p
 # *******************************************************************************
 
 
-def pulsar_period_folding(common_path, filename, pulsar_name, profile_pic_min, profile_pic_max,
-                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap):
+def pulsar_period_folding(common_path, filename, pulsar_name,  spectrum_pic_min, spectrum_pic_max,
+                          periods_per_fig, custom_dpi, colormap):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -275,6 +273,8 @@ def pulsar_period_folding(common_path, filename, pulsar_name, profile_pic_min, p
                    str(profiles_counter) + ' integrated profiles '
 
     pic_filename = filename + ' - folded pulses.png'
+    profile_pic_min = -0.25  # Minimum limit of profile picture
+    profile_pic_max = 1.20  # Maximum limit of profile picture
 
     make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, profile_pic_max,
                                              spectrum_pic_min, spectrum_pic_max, periods_per_fig,
@@ -291,7 +291,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, profile_pic_min, p
 
 if __name__ == '__main__':
 
-    pulsar_period_folding(common_path, filename, pulsar_name, profile_pic_min, profile_pic_max,
-                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap)
+    pulsar_period_folding(common_path, filename, pulsar_name, spectrum_pic_min, spectrum_pic_max,
+                          periods_per_fig, custom_dpi, colormap)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
