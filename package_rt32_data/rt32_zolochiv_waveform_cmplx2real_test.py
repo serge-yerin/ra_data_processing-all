@@ -9,6 +9,8 @@ directory = '../RA_DATA_ARCHIVE/RT-32_Zolochiv_waveform_first_sample/'
 filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 filepath = directory + filename
 result_path = ''
+spectra_inversion = False  # Set True if the data were obtained with inverse spectrum
+shift_channel_number = 0   # Shift spectra by number of channels (use 0 if you do not know what it is)
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -47,7 +49,7 @@ def show_phase_spectra(array):
     return
 
 
-def rpr_wf_data_reader(filepath):
+def rpr_wf_data_reader(filepath, shift_channel_number, spectra_inversion):
     """
     RT-32 Zolochiv Ukraine RPR receiver waveform data reader (not finished, just POC)
     """
@@ -88,6 +90,12 @@ def rpr_wf_data_reader(filepath):
         # Calculation of spectra
         fft_new = np.fft.fft(np.transpose(tt0_new))
         print('Shape of fft_new:', fft_new.shape, fft_new.dtype)
+
+        # Shift spectra by predefined number of channels
+        fft_new = np.roll(fft_new, shift_channel_number, axis=1)
+
+        if spectra_inversion:
+            fft_new = np.fliplr(fft_new)
 
         # show_amplitude_spectra(fft_new)
         # show_phase_spectra(fft_new)
@@ -224,8 +232,8 @@ def test_int8_to_2bit_words_v2():
 
 
 if __name__ == '__main__':
-    # rpr_wf_data_reader(filepath)
+    rpr_wf_data_reader(filepath, shift_channel_number, spectra_inversion)
     # test_int8_to_2bit_words_conversion()
-    test_int8_to_2bit_words_v2()
+    # test_int8_to_2bit_words_v2()
 
 
