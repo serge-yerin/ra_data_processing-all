@@ -11,6 +11,7 @@ result_file_name = "n21c2_zo_no0001.vdif"
 filepath = directory + filename
 result_path = ''
 spectra_inversion = False  # Set True if the data were obtained with inverse spectrum
+shift_channel_number = 0  # Shift spectra by number of channels (use 0 if you do not know what it is)
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -406,7 +407,7 @@ def show_amplitude_spectra(array):
     return
 
 
-def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length):
+def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length, shift_channel_number, spectra_inversion):
     """
     Converts complex waveform data to real waveform with doubled clock frequency
     cmplx_wf - input numpy array of complex waveform data
@@ -422,6 +423,12 @@ def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length):
     # Calculation of spectra
     cmplx_wf_sp = np.fft.fft(cmplx_wf)
     # print('Shape of spectra:                ', cmplx_wf_sp.shape, cmplx_wf_sp.dtype)
+
+    # Shift spectra by predefined number of channels
+    cmplx_wf_sp = np.roll(cmplx_wf_sp, shift_channel_number, axis=1)
+
+    if spectra_inversion:
+        cmplx_wf_sp = np.fliplr(cmplx_wf_sp)
 
     # show_amplitude_spectra(cmplx_wf_sp)
 
@@ -504,7 +511,7 @@ def convert_4_level_waveform_to_32bit_words(real_4_level_wf, spectra_num, fft_le
     return word_32_bit_array
 
 
-def rt32wf_to_vdf_data_converter(filepath, verbose):
+def rt32wf_to_vdf_data_converter(filepath, shift_channel_number, spectra_inversion, verbose):
     """
     Function takes the header and RPR (.adr) data and creates the VDIF file
     """
@@ -597,8 +604,11 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
             #       cmplx_ch_1.shape, cmplx_ch_1.dtype)
 
             # Convert waveform from complex representation to real one with doubled clock frequency
-            real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0, spectra_num, fft_length)
-            real_wf_ch_1 = complex_wf_to_real_wf(cmplx_ch_1, spectra_num, fft_length)
+            real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0, spectra_num, fft_length,
+                                                 shift_channel_number, spectra_inversion)
+            real_wf_ch_1 = complex_wf_to_real_wf(cmplx_ch_1, spectra_num, fft_length,
+                                                 shift_channel_number, spectra_inversion)
+            # print(' Shape: ', cmplx_ch_0.shape, cmplx_ch_0.dtype, real_wf_ch_0.shape, real_wf_ch_0.dtype)
             del cmplx_ch_0, cmplx_ch_1
 
             # Reduce real waveform of any accuracy to 4 levels [0...3] (2-bits but in uint8 format)
@@ -677,5 +687,5 @@ def rt32wf_to_vdf_data_converter(filepath, verbose):
 
 if __name__ == '__main__':
     # rt32wf_to_vdf_frame_header(filepath)
-    rt32wf_to_vdf_data_converter(filepath, True)
+    rt32wf_to_vdf_data_converter(filepath, shift_channel_number, spectra_inversion, True)
 
