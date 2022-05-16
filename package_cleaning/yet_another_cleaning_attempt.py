@@ -1,6 +1,7 @@
 
 import os
 import numpy as np
+import numpy.ma as ma
 import matplotlib.pyplot as plt
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_processing.spectra_normalization import Normalization_dB
@@ -50,7 +51,7 @@ Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
 data = data[:-4, :]
 print(data.shape)
 data = data - np.mean(data)
-print(np.max(data), np.min(data), np.mean(data))
+print(np.max(data), np.min(data), np.mean(data), np.std(data))
 
 profile_0 = np.mean(data, axis=0)
 profile_1 = np.mean(data, axis=1)
@@ -60,6 +61,17 @@ ax0.plot(profile_0)
 ax1.plot(profile_1)
 plt.show()
 
-plt.plot()
-plt.imshow(data, vmin=-0.1, vmax=2, cmap='Greys')
+# plt.plot()
+# plt.imshow(data, vmin=-0.1, vmax=2, cmap='Greys')
+# plt.show()
+
+data_std = np.std(data)
+print(data_std)
+masked_data = np.ma.masked_greater(data, 2 * data_std)
+data_std = np.std(data)
+print(data_std)
+
+fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
+ax0.imshow(data, vmin=-0.1, vmax=2, cmap='Greys')
+ax1.imshow(masked_data, vmin=-0.1, vmax=2, cmap='Greys')
 plt.show()
