@@ -8,59 +8,88 @@ from package_ra_data_processing.spectra_normalization import Normalization_dB
 import cv2 as cv
 # Files to be analyzed:
 filepath = 'P250322_082507.jds_Data_chA.dat'
-# tl_file_name = common_path + DAT_file_name + '_Timeline.txt'
 
 
-def clean_dirty_lines(array, n_sigma, min_l):
-    # Find mask for all values greater than n sigma
-    data_std = np.std(array)
-    masked_array = np.ma.masked_greater(array, n_sigma * data_std)
-    mask = ma.getmaskarray(masked_array)
+def clean_dirty_lines_for_weak_signal(array, n_sigma, min_l=30, lin_data=True, show_figures=False):
 
-    # fig, ax0 = plt.subplots(1, 1, figsize=(8, 4))
-    # ax0.imshow(mask, vmin=0, vmax=1, cmap='Greys')
-    # plt.show()
+    a, b = array.shape
+    total_points = a * b
 
-    # Apply lines finding for the mask
-    new_mask = np.zeros_like(mask)
-    print(mask.dtype, new_mask.dtype)
-    print(np.min(mask), np.max(mask))
+    if lin_data:
+        array = 10 * np.log10(array)
+        array[np.isnan(array)] = -120
+        Normalization_dB(array.transpose(), a, b)
+        array = array - np.mean(array)
 
-    # Vertical lines mask making
-    kernel = np.array(min_l * [1]) / min_l
-    mask = np.array(mask, dtype=np.uint8)
-    new_vertical_mask = cv.filter2D(mask, -1, kernel)
+    print('Data shape, max, min, mean, std:', array.shape, np.round(np.max(array), 5), np.round(np.min(array), 5),
+                                              np.round(np.mean(array), 5), np.round(np.std(array), 5))
 
-    # Horizontal lined mask making
-    mask = np.transpose(mask)
-    new_horizont_mask = cv.filter2D(mask, -1, kernel)
-    new_horizont_mask = np.transpose(new_horizont_mask)
-    mask = np.transpose(mask)
+    # Set arrays and numbers for the while loop begin and for case when no loop iteration needed
 
-    # Converting to bool type to reduce memory
-    new_horizont_mask = np.array(new_horizont_mask, dtype=bool)
-    new_vertical_mask = np.array(new_vertical_mask, dtype=bool)
+    masked_array = array
+    data_std = np.std(masked_array)
+    old_data_std = 2 * data_std
+    cleaned_array = array
+    new_mask = np.zeros_like(array, dtype=bool)
+    dirty_points = 0
 
-    # Concatenating vertical and horizontal masks
-    new_mask = np.logical_or(new_horizont_mask, new_vertical_mask)
+    counter = 0
+    while old_data_std - data_std > 0.05:
 
-    # fig, [ax0, ax1, ax2, ax3] = plt.subplots(1, 4, figsize=(8, 4))
-    # ax0.imshow(mask, vmin=0, vmax=1, cmap='Greys')
-    # ax1.imshow(new_vertical_mask, vmin=0, vmax=1, cmap='Greys')
-    # ax2.imshow(new_horizont_mask, vmin=0, vmax=1, cmap='Greys')
-    # ax3.imshow(new_mask, vmin=0, vmax=1, cmap='Greys')
-    # plt.show()
+        # Find mask for all values greater than n sigma
+        masked_array = np.ma.masked_greater(array, n_sigma * data_std)
+        mask = ma.getmaskarray(masked_array)
 
-    cleaned_array = np.ma.masked_where(new_mask, array)
+        # Vertical lines mask making
+        kernel = np.array(min_l * [1]) / min_l
+        mask = np.array(mask, dtype=np.uint8)
+        new_vertical_mask = cv.filter2D(mask, -1, kernel)
 
-    # fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
-    # ax0.imshow(array, vmin=0, vmax=1, cmap='Greys')
-    # ax1.imshow(cleaned_array, vmin=0, vmax=1, cmap='Greys')
-    # plt.show()
+        # Horizontal lined mask making
+        mask = np.transpose(mask)
+        new_horizont_mask = cv.filter2D(mask, -1, kernel)
+        new_horizont_mask = np.transpose(new_horizont_mask)
+        # mask = np.transpose(mask)
 
-    # Apply as mask to data, calculate new std and repeat if needed
+        # Converting to bool type to reduce memory
+        new_horizont_mask = np.array(new_horizont_mask, dtype=bool)
+        new_vertical_mask = np.array(new_vertical_mask, dtype=bool)
 
-    return cleaned_array
+        # Concatenating vertical and horizontal masks
+        new_mask = np.logical_or(new_horizont_mask, new_vertical_mask)
+
+        # fig, [ax0, ax1, ax2, ax3] = plt.subplots(1, 4, figsize=(8, 4))
+        # ax0.imshow(mask, vmin=0, vmax=1, cmap='Greys')
+        # ax1.imshow(new_vertical_mask, vmin=0, vmax=1, cmap='Greys')
+        # ax2.imshow(new_horizont_mask, vmin=0, vmax=1, cmap='Greys')
+        # ax3.imshow(new_mask, vmin=0, vmax=1, cmap='Greys')
+        # plt.show()
+
+        # Apply as mask to data
+        cleaned_array = np.ma.masked_where(new_mask, array)
+
+        # Calculate statistics
+        dirty_points = np.sum(new_mask)
+        print('Std:', np.round(data_std, 5), 'masked', dirty_points, 'pix of', total_points,
+              'or', np.round(dirty_points / total_points * 100, 5), '% ')
+
+        if show_figures:
+            # Show initial array and cleaned array
+            fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
+            ax0.imshow(array, vmin=0, vmax=1, cmap='Greys')
+            ax1.imshow(cleaned_array, vmin=0, vmax=1, cmap='Greys')
+            plt.show()
+
+        # Calculate new std and repeat if needed
+        old_data_std = data_std
+        data_std = np.std(masked_array)
+
+        # Make sure the loop is not infinite
+        counter += 1
+        if counter > 10:
+            break
+
+    return cleaned_array, new_mask, dirty_points
 
 
 # *** Data file header read ***
@@ -89,25 +118,15 @@ spectra_to_read = 4000
 # Reading and preparing block of data (3 periods)
 data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
 data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-
+data = data[:-4, :]
 
 # Preparing single averaged data profile for figure
 # profile = data.mean(axis=0)[:]
 # profile = profile - np.mean(profile)
 # data = data - np.mean(data)
 
-
-data = 10 * np.log10(data)
-data[np.isnan(data)] = -120
-
-Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
-data = data[:-4, :]
-print(data.shape)
-data = data - np.mean(data)
-print(np.max(data), np.min(data), np.mean(data), np.std(data))
-
-profile_0 = np.mean(data, axis=0)
-profile_1 = np.mean(data, axis=1)
+# profile_0 = np.mean(data, axis=0)
+# profile_1 = np.mean(data, axis=1)
 
 # fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
 # ax0.plot(profile_0)
@@ -118,17 +137,4 @@ profile_1 = np.mean(data, axis=1)
 # plt.imshow(data, vmin=-0.1, vmax=2, cmap='Greys')
 # plt.show()
 
-# data_std = np.std(data)
-# print(data_std)
-# masked_data = np.ma.masked_greater(data, 2 * data_std)
-# mask_array = ma.getmaskarray(masked_data)
-# data_std = np.std(data)
-# print(data_std)
-
-# fig, [ax0, ax1, ax2] = plt.subplots(1, 3, figsize=(8, 4))
-# ax0.imshow(data, vmin=-0.1, vmax=2, cmap='Greys')
-# ax1.imshow(masked_data, vmin=-0.1, vmax=2, cmap='Greys')
-# ax2.imshow(mask_array, vmin=0.0, vmax=1, cmap='Greys')
-# plt.show()
-
-clean_dirty_lines(data, 2, 20, 8)
+clean_dirty_lines_for_weak_signal(data, 2)
