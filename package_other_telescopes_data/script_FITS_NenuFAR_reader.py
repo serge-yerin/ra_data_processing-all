@@ -29,7 +29,7 @@ from astropy.time import Time
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_plot_formats.plot_formats import TwoDynSpectraPlot, TwoOrOneValuePlot  # OneImmedSpecterPlot, plot2D
 from package_ra_data_files_formats.file_header_FITS import file_header_reader_fits
 
@@ -161,8 +161,8 @@ TwoDynSpectraPlot(dynamic_spectra1.transpose(), dynamic_spectra2.transpose(), np
                   currentDate, currentTime, Software_version, customDPI)
 
 # Normalization of data (extracting the frequency response of the signal path)
-Normalization_dB(dynamic_spectra1, freq_points_num, nt)
-Normalization_dB(dynamic_spectra2, freq_points_num, nt)
+normalization_db(dynamic_spectra1, freq_points_num, nt)
+normalization_db(dynamic_spectra2, freq_points_num, nt)
 
 
 # Preparing variables for figure

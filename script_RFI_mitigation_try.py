@@ -13,7 +13,7 @@ import time
 from datetime import datetime, timedelta
 from matplotlib import rc
 
-from package_ra_data_processing.spectra_normalization import Normalization_lin
+from package_ra_data_processing.f_spectra_normalization import normalization_lin
 from package_plot_formats.plot_formats import plot1D, plot2Da
 from package_cleaning.clean_lines_of_pixels import clean_lines_of_pixels
 from package_cleaning.array_clean_by_STD_value import array_clean_by_STD_value

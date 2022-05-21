@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 from package_ra_data_files_formats.file_header_RPR import file_header_reader_rpr, chunk_header_reader_rpr
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 ################################################################################
 
 # *** Search ADR files in the directory ***
@@ -419,11 +419,11 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
 
                     # *** Normalizing amplitude-frequency responce ***
                     if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
-                        Normalization_dB(Data_Ch_A, freq_points_num, Nim * SpInFrame * FrameInChunk)
+                        normalization_db(Data_Ch_A, freq_points_num, Nim * SpInFrame * FrameInChunk)
                     if (ADRmode == 4 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
-                        Normalization_dB(Data_Ch_B, freq_points_num, Nim * SpInFrame * FrameInChunk)
+                        normalization_db(Data_Ch_B, freq_points_num, Nim * SpInFrame * FrameInChunk)
                     # if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
-                    #     Normalization_dB(CorrModule, freq_points_num, Nim * SpInFrame * FrameInChunk)
+                    #     normalization_db(CorrModule, freq_points_num, Nim * SpInFrame * FrameInChunk)
 
                     # *** Deleting cahnnels with strong RFI ***
                     if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:

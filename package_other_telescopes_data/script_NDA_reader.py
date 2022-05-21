@@ -54,7 +54,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_plot_formats.plot_formats import TwoImmedSpectraPlot, TwoDynSpectraPlot
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
 # *************************************************************
@@ -244,8 +244,8 @@ with open(fname, 'rb') as file:
             if DynSpecSaveCleaned == 1:
 
                 # *** Normalizing amplitude-frequency response ***
-                Normalization_dB(dataLHP.transpose(), freq_points_num, Nsp)
-                Normalization_dB(dataRHP.transpose(), freq_points_num, Nsp)
+                normalization_db(dataLHP.transpose(), freq_points_num, Nsp)
+                normalization_db(dataRHP.transpose(), freq_points_num, Nsp)
 
                 # *** Deleting channels with strong RFI ***
                 simple_channel_clean(dataLHP.transpose(), RFImeanConst)
@@ -277,7 +277,7 @@ with open(fname, 'rb') as file:
                 TotalIntensity = 10 * np.log10(Data_sum)
 
                 # *** Normalizing amplitude-frequency response of total intensity ***
-                Normalization_dB(TotalIntensity.transpose(), freq_points_num, Nsp)
+                normalization_db(TotalIntensity.transpose(), freq_points_num, Nsp)
 
                 # *** Deleting channels with strong RFI ***
                 simple_channel_clean(TotalIntensity.transpose(), RFImeanConst)
@@ -464,8 +464,8 @@ with open(fname, 'rb') as file:
         if DynSpecSaveCleaned == 1:
 
             # *** Normalizing amplitude-frequency response ***
-            Normalization_dB(dataLHP, freq_points_num, block_num)
-            Normalization_dB(dataRHP, freq_points_num, block_num)
+            normalization_db(dataLHP, freq_points_num, block_num)
+            normalization_db(dataRHP, freq_points_num, block_num)
 
             # *** Deleting channels with strong RFI ***
             simple_channel_clean(dataLHP, RFImeanConst)
@@ -498,7 +498,7 @@ with open(fname, 'rb') as file:
             TotalIntensity = 10 * np.log10(Data_sum)
 
             # *** Normalizing amplitude-frequency response of total intensity ***
-            Normalization_dB(TotalIntensity, freq_points_num, block_num)
+            normalization_db(TotalIntensity, freq_points_num, block_num)
 
             # *** Deleting channels with strong RFI ***
             simple_channel_clean(TotalIntensity, RFImeanConst)

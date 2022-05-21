@@ -71,7 +71,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  \
     OneValueWithTimePlot
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
 # *******************************************************************************
@@ -535,7 +535,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
     if data_types[j] != 'C_p' and data_types[j] != 'CRe' and data_types[j] != 'CIm':
 
         # *** Normalization and cleaning of dynamic spectra ***
-        array = Normalization_dB(array.transpose(), len(freqLine), time_points_num)  # len(dateTimeNew)
+        array = normalization_db(array.transpose(), len(freqLine), time_points_num)  # len(dateTimeNew)
         # array = simple_channel_clean(array.transpose(), RFImeanConst)
         array = simple_channel_clean(array, RFImeanConst)
         array = array.transpose()

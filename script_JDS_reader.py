@@ -47,7 +47,7 @@ from datetime import datetime, timedelta
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_plot_formats.plot_formats import  TwoDynSpectraPlot, TwoOrOneValuePlot
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
 from package_cleaning.simple_channel_clean import simple_channel_clean
@@ -430,10 +430,10 @@ for fileNo in range (len(fileList)):   # loop by files
 
                 # *** Normalizing amplitude-frequency responce ***
                 if Mode == 1 or Mode == 2:
-                    Normalization_dB(Data_ChA, FreqPointsNum, Nsp)
-                    Normalization_dB(Data_ChB, FreqPointsNum, Nsp)
+                    normalization_db(Data_ChA, FreqPointsNum, Nsp)
+                    normalization_db(Data_ChB, FreqPointsNum, Nsp)
                 if Mode == 2 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
-                    Normalization_dB(CorrModule, FreqPointsNum, Nsp)
+                    normalization_db(CorrModule, FreqPointsNum, Nsp)
 
 
                 # *** Deleting cahnnels with strong RFI ***

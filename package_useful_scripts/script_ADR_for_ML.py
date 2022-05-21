@@ -58,7 +58,7 @@ from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, C
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 
 
 ################################################################################
@@ -252,11 +252,11 @@ for fileNo in range (len(fileList)):   # loop by files
 
                 # *** Normalizing amplitude-frequency responce ***
                 if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
-                    Normalization_dB(Data_Ch_A, FreqPointsNum, Nim * SpInFrame * FrameInChunk)
+                    normalization_db(Data_Ch_A, FreqPointsNum, Nim * SpInFrame * FrameInChunk)
                 if (ADRmode == 4 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:
-                    Normalization_dB(Data_Ch_B, FreqPointsNum, Nim * SpInFrame * FrameInChunk)
+                    normalization_db(Data_Ch_B, FreqPointsNum, Nim * SpInFrame * FrameInChunk)
                 if ADRmode == 6 and CorrelationProcess == 1 and CorrSpecSaveCleaned == 1:
-                    Normalization_dB(CorrModule, FreqPointsNum, Nim * SpInFrame * FrameInChunk)
+                    normalization_db(CorrModule, FreqPointsNum, Nim * SpInFrame * FrameInChunk)
 
                 # *** Deleting cahnnels with strong RFI ***
                 if (ADRmode == 3 or ADRmode == 5 or ADRmode == 6) and DynSpecSaveCleaned == 1:

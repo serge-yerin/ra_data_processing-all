@@ -23,7 +23,7 @@ if __package__ is None:
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean
 ################################################################################
 
@@ -494,7 +494,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
         if typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm':
             # Normalization and cleaning of dynamic spectra 
-            Normalization_dB(array.transpose(), len(freq_line), len(dateTimeNew))
+            normalization_db(array.transpose(), len(freq_line), len(dateTimeNew))
             simple_channel_clean(array.transpose(), RFImeanConst)
 
             # *** Dynamic spectra of cleaned and normalized signal ***

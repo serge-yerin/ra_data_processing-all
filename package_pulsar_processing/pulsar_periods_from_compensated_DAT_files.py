@@ -50,7 +50,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 
 # ###############################################################################
 # *******************************************************************************
@@ -144,7 +144,7 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
         data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
         data = 10*np.log10(data)
         if normalize_response > 0:
-            Normalization_dB(data.transpose(), len(frequency), spectra_to_read)
+            normalization_db(data.transpose(), len(frequency), spectra_to_read)
 
         # Preparing single averaged data profile for figure
         profile = data.mean(axis=0)[:]

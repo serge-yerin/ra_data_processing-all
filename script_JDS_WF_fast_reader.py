@@ -43,7 +43,7 @@ if __package__ is None:
 from package_ra_data_files_formats.check_if_JDS_files_of_equal_parameters import check_if_JDS_files_of_equal_parameters
 from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
@@ -407,9 +407,9 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
             # Normalization and cleaning of data
 
-            Normalization_dB(spectra_ch_a.transpose(), freq_points_num, no_of_av_spectra_per_file)
+            normalization_db(spectra_ch_a.transpose(), freq_points_num, no_of_av_spectra_per_file)
             if Channel == 2: 
-                Normalization_dB(spectra_ch_b.transpose(), freq_points_num, no_of_av_spectra_per_file)
+                normalization_db(spectra_ch_b.transpose(), freq_points_num, no_of_av_spectra_per_file)
 
             simple_channel_clean(spectra_ch_a, 8)
             if Channel == 2: 

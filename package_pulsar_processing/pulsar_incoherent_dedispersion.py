@@ -52,7 +52,7 @@ matplotlib.use('agg')
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_ra_data_processing.spectra_normalization import Normalization_lin
+from package_ra_data_processing.f_spectra_normalization import normalization_lin
 from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
@@ -267,7 +267,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
             num_frequencies = num_frequencies_initial  # + 4
 
         # Normalization of data
-        Normalization_lin(data, num_frequencies, 1 * max_shift)
+        normalization_lin(data, num_frequencies, 1 * max_shift)
 
         now_time = time.time()
         print('\n  *** Preparation of data took:              ', round((now_time - a_previous_time), 2), 'seconds ')

@@ -3,7 +3,7 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-from package_ra_data_processing.spectra_normalization import Normalization_dB
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 import cv2 as cv
 
 # Files to be analyzed:
@@ -23,7 +23,7 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
     if lin_data:
         array = 10 * np.log10(array)
         array[np.isnan(array)] = -120
-        Normalization_dB(array.transpose(), a, b)
+        normalization_db(array.transpose(), a, b)
         array = array - np.mean(array)
 
     print('Data shape, max, min, mean, std:', array.shape, np.round(np.max(array), 5), np.round(np.min(array), 5),
