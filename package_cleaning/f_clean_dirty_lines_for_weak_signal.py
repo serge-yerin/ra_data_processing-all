@@ -21,7 +21,8 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
     total_points = a * b
 
     if lin_data:
-        array = 10 * np.log10(array)
+        with np.errstate(invalid='ignore'):
+            array = 10 * np.log10(array)
         array[np.isnan(array)] = -120
         normalization_db(array.transpose(), a, b)
         array = array - np.mean(array)
