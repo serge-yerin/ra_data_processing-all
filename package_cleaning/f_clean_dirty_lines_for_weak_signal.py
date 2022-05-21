@@ -1,4 +1,3 @@
-
 import os
 import numpy as np
 import numpy.ma as ma
@@ -6,12 +5,18 @@ import matplotlib.pyplot as plt
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_processing.spectra_normalization import Normalization_dB
 import cv2 as cv
+
 # Files to be analyzed:
 filepath = 'P250322_082507.jds_Data_chA.dat'
 
 
-def clean_dirty_lines_for_weak_signal(array, n_sigma, min_l=30, lin_data=True, show_figures=False):
-
+def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=30, lin_data=True, show_figures=False):
+    """
+    Takes the array, makes log of it ib necessary, counts std and in a loop^
+    - masks lines of data which exceed std in a row of min_l pixels horizontally and vertically
+    - calculates new std with masked noise, if it is more than delta_sigma less than previous std
+      the will be next loop, else - we assume the array is cleaned and return it.
+    """
     a, b = array.shape
     total_points = a * b
 
@@ -25,19 +30,19 @@ def clean_dirty_lines_for_weak_signal(array, n_sigma, min_l=30, lin_data=True, s
                                               np.round(np.mean(array), 5), np.round(np.std(array), 5))
 
     # Set arrays and numbers for the while loop begin and for case when no loop iteration needed
-
-    masked_array = array
+    new_mask = np.zeros_like(array, dtype=bool)
+    new_mask[-4:, :] = 1  # set mask for 4 last spectra samples where time is stored
+    masked_array = np.ma.masked_where(new_mask, array)
     data_std = np.std(masked_array)
     old_data_std = 2 * data_std
     cleaned_array = array
-    new_mask = np.zeros_like(array, dtype=bool)
     dirty_points = 0
 
     counter = 0
-    while old_data_std - data_std > 0.05:
+    while old_data_std - data_std > delta_sigma:
 
         # Find mask for all values greater than n sigma
-        masked_array = np.ma.masked_greater(array, n_sigma * data_std)
+        masked_array = np.ma.masked_greater(masked_array, n_sigma * data_std)
         mask = ma.getmaskarray(masked_array)
 
         # Vertical lines mask making
@@ -92,49 +97,43 @@ def clean_dirty_lines_for_weak_signal(array, n_sigma, min_l=30, lin_data=True, s
     return cleaned_array, new_mask, dirty_points
 
 
-# *** Data file header read ***
-df_filesize = os.stat(filepath).st_size  # Size of file
+if __name__ == "__main__":
 
-# Opening DAT datafile and data file header read
-file = open(filepath, 'rb')
-df_filepath = file.read(32).decode('utf-8').rstrip('\x00')  # Initial data file name
-file.close()
+    # Opening DAT datafile and data file header read
+    file = open(filepath, 'rb')
+    df_filepath = file.read(32).decode('utf-8').rstrip('\x00')  # Initial data file name
+    file.close()
 
-if df_filepath[-4:] == '.jds':  # If data obtained from DSPZ receiver
+    if df_filepath[-4:] == '.jds':  # If data obtained from DSPZ receiver
 
-    [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
-     df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-     df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(filepath, 0, 1)
+        [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
+         df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
+         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(filepath, 0, 1)
 
+    data_file = open(filepath, 'rb')
+    data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-# Time line file reading
-# timeline, dt_timeline = time_line_file_reader(timeline_filepath)
+    spectra_to_read = 4000
 
-data_file = open(filepath, 'rb')
-data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
+    for chunk in range(10):
 
-spectra_to_read = 4000
+        # Reading and preparing block of data (3 periods)
+        data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
+        data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
+        # data = data[:-4, :]
 
-# Reading and preparing block of data (3 periods)
-data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
-data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-data = data[:-4, :]
+        # Preparing single averaged data profile for figure
+        # profile = data.mean(axis=0)[:]
+        # profile = profile - np.mean(profile)
+        # data = data - np.mean(data)
 
-# Preparing single averaged data profile for figure
-# profile = data.mean(axis=0)[:]
-# profile = profile - np.mean(profile)
-# data = data - np.mean(data)
+        # profile_0 = np.mean(data, axis=0)
+        # profile_1 = np.mean(data, axis=1)
 
-# profile_0 = np.mean(data, axis=0)
-# profile_1 = np.mean(data, axis=1)
+        # fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
+        # ax0.plot(profile_0)
+        # ax1.plot(profile_1)
+        # plt.show()
 
-# fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
-# ax0.plot(profile_0)
-# ax1.plot(profile_1)
-# plt.show()
-
-# plt.plot()
-# plt.imshow(data, vmin=-0.1, vmax=2, cmap='Greys')
-# plt.show()
-
-clean_dirty_lines_for_weak_signal(data, 2)
+        clean_dirty_lines_for_weak_signal(data, delta_sigma=0.05, n_sigma=2,
+                                          min_l=30, lin_data=True, show_figures=True)
