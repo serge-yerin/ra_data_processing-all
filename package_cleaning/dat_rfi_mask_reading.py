@@ -38,7 +38,7 @@ def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
     mask_file = open(mask_file_name, 'rb')
     mask_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    print(' Making mask to clean data...')
+    print(' Applying mask to clean data...')
 
     for chunk in range(chunks_in_file):
 
@@ -58,9 +58,8 @@ def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
         # ax0.imshow(data, vmin=0, vmax=1, cmap='Greys')
         # plt.show()
 
-        # Reading and preparing block of data (3 periods)
+        # Reading and preparing block of mask
         mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read_per_bunch * len(frequency))
-        print(mask.shape)
         mask = np.reshape(mask, [len(frequency), spectra_to_read_per_bunch], order='F')
 
         cldt = data * np.invert(mask)
@@ -78,5 +77,5 @@ def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
 
 if __name__ == '__main__':
     filepath = 'P250322_082507.jds_Data_chA.dat'
-    dat_rfi_mask_reading(filepath, 2000)
+    dat_rfi_mask_reading(filepath, 8000)
     
