@@ -132,9 +132,13 @@ for i in range(len(data_types_to_process)):
         amp_min = -0.15
         amp_max = 0.55
 
-    dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat',
-                                                                pulsar_name, 512, amp_min, amp_max, 0, 0, 1, 10,
-                                                                2.8, 0, 0.0, 16.5, 1, 1, 300, 'Greys')
+    # dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat',
+    #                                                             pulsar_name, 512, amp_min, amp_max, 0, 0, 1, 10,
+    #                                                             2.8, 0, 0.0, 16.5, 1, 1, 300, 'Greys')
+    dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + data_types_to_process[i]
+                                                                + '.dat', pulsar_name, 512, amp_min, amp_max,
+                                                                0, 0.0, 16.5, 1, 1, 300, 'Greys')
+
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
 # '''
