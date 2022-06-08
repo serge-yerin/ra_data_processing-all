@@ -13,6 +13,7 @@ filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
 
+use_mask_file = True
 periods_per_fig = 2               # Periods pf pulsar to show in the figure
 spectra_to_read = 500             # Spectra to read in one bunch (depends on RAM)
 
@@ -29,6 +30,7 @@ colormap = 'Greys'                # Colormap of images of dynamic spectra ('jet'
 import os
 import sys
 import numpy as np
+import numpy.ma as ma
 import time
 import pylab
 import matplotlib.pyplot as plt
@@ -183,6 +185,10 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     file_header = data_file.read(1024)
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024 byte from file beginning to skip header
 
+    if use_mask_file:
+        mask_file = open(filepath[:-3] + 'msk', 'rb')
+        mask_file.seek(1024)  # Jumping to 1024 byte from file beginning
+
     # Time resolution of interpolated data
     interp_time_resolution = time_resolution / scale_factor
 
@@ -218,6 +224,14 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
         data_raw = np.reshape(data_raw, [len(frequency), spectra_to_read], order='F')
         data_raw = 10 * np.log10(data_raw, dtype=np.float32)
 
+        if use_mask_file:
+            mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read * len(frequency))
+            mask = np.reshape(mask, [len(frequency), spectra_to_read], order='F')
+            # data_raw = data_raw * np.invert(mask)
+            # data_raw[data_raw == 0] = -120
+            # Apply as mask to data
+            data_raw = np.ma.masked_where(data_raw, mask)
+
         # Append the new interpolated (np.kron) data to buffer
         data_interp = np.append(data_interp, np.kron(data_raw, np.ones((1, scale_factor))), axis=1)
         del data_raw
@@ -245,6 +259,8 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     bar.finish()
 
     data_file.close()
+    if use_mask_file:
+        mask_file.close()
 
     print('\n Total number of integrated pulses: ', profiles_counter)
 
