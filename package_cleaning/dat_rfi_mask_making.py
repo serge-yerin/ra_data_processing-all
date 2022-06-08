@@ -1,4 +1,3 @@
-import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,7 +30,6 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
 
     # *** Open data file and read it's header ***
     data_file = open(filepath, 'rb')
-    # data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
     file_header = data_file.read(1024)  # Data file header read
 
     # *** Creating a binary file with data for long data storage ***
@@ -48,11 +46,10 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
         data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read_per_bunch * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read_per_bunch], order='F')
 
-        cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data)
+        cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data, show_figures=False)
 
         print('Data type of the mask: ', mask.dtype)
 
-        # temp_to_write = np.transpose(array_compensated_dm).copy(order='C')
         new_data_file = open(new_data_file_name, 'ab')
         mask = np.transpose(mask).copy(order='C')
         new_data_file.write(mask)
