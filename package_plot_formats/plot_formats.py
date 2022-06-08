@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker   # <---- Added to suppress warning
 import numpy as np
 import pylab
-
 from matplotlib import rc
 
 
