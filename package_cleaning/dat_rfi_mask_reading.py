@@ -4,15 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_processing.f_spectra_normalization import normalization_db
-from package_cleaning.f_clean_dirty_lines_for_weak_signal import clean_dirty_lines_for_weak_signal
 
 
 def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
     """
-    Reads dat file and makes a mask for the data in a special .msk file to be used bu further processing
-    Needs a path to file and number of spectra ti read in bunch to synchronize bunches with the other
-    parts of processing pipeline
-    returns the name of the mask file
+    Reads msk file and applies the mask to the corresponding data from .dat file
     """
     # Opening DAT datafile and data file header read
     file = open(filepath, 'rb')
@@ -27,7 +23,9 @@ def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
     else:
         sys.exit('Error file format')
 
-    chunks_in_file = int(sp_in_file / spectra_to_read_per_bunch)
+    # Number of spectra in the file for dat file, not jds
+    dat_sp_in_file = int((df_filesize - 1024) / (len(frequency) * 8))
+    chunks_in_file = int(dat_sp_in_file / spectra_to_read_per_bunch)
 
     # *** Open data file and read it's header ***
     data_file = open(filepath, 'rb')
@@ -66,8 +64,11 @@ def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
 
         fig, [ax0, ax1, ax2] = plt.subplots(1, 3, figsize=(8, 4))
         ax0.imshow(data, vmin=0, vmax=1, cmap='Greys')
+        ax0.set_title('Initial data')
         ax1.imshow(mask, vmin=0, vmax=1, cmap='Greys')
+        ax1.set_title('Mask')
         ax2.imshow(cldt, vmin=0, vmax=1, cmap='Greys')
+        ax2.set_title('Cleaned data')
         plt.show()
 
     data_file.close()
@@ -76,6 +77,6 @@ def dat_rfi_mask_reading(filepath, spectra_to_read_per_bunch):
 
 
 if __name__ == '__main__':
-    filepath = 'P250322_082507.jds_Data_chA.dat'
-    dat_rfi_mask_reading(filepath, 8000)
+    filepath = 'E300117_180000.jds_Data_chA.dat'
+    dat_rfi_mask_reading(filepath, 4000)
     

@@ -26,7 +26,9 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
     else:
         sys.exit('Error file format')
 
-    chunks_in_file = int(sp_in_file / spectra_to_read_per_bunch)
+    # Number of spectra in the file for dat file, not jds
+    dat_sp_in_file = int((df_filesize - 1024) / (len(frequency) * 8))
+    chunks_in_file = int(dat_sp_in_file / spectra_to_read_per_bunch)
 
     # *** Open data file and read it's header ***
     data_file = open(filepath, 'rb')
@@ -42,7 +44,7 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
 
     for chunk in range(chunks_in_file):
 
-        # Reading and preparing block of data (3 periods)
+        # Reading and preparing a chunk of data
         data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read_per_bunch * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read_per_bunch], order='F')
 
@@ -54,11 +56,12 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
         mask = np.transpose(mask).copy(order='C')
         new_data_file.write(mask)
         new_data_file.close()
+        del mask
 
     return new_data_file_name
 
 
 if __name__ == '__main__':
-    filepath = 'P250322_082507.jds_Data_chA.dat'
+    filepath = 'E300117_180000.jds_Data_chA.dat'
     file_name = dat_rfi_mask_making(filepath, 4000)
     print('Mask file name: ', file_name)
