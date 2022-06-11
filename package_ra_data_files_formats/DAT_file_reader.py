@@ -32,32 +32,40 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 # *******************************************************************************
 
 
-def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, result_folder_name, averOrMin,
-                    StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
+def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name, aver_or_min,
+                    start_stop_switch, freq_range_switch, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
                     customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
                     freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT, freqStopTXT, freq_list,
                     print_or_not):
     """
-    Function intended to analyze long spectra '.dat' files of radio astronomy data
+    Function intended to visualize long spectra '.dat' files of radio astronomy data
+    dat_file_path - path to folder with initial dat files to process
+    dat_file_name - a part of dat file name which relates to initial data like "E170519_234344.jds"
+    types_of_data - list of strings which indicate types of data to process like "chA", "CRe" etc.
+    dat_result_path - path to folder where folders with results will be stored
+    result_folder_name - name of the result folder after "'DAT_Results_'"
+    aver_or_min - if 0 - use averaging of data bunch, if 1 - use minimal value of a data bunch 
+    start_stop_switch - set to 1 if you want to specify particular time range to cut out of the data
+    freq_range_switch - set to 1 if you want to specify particular frequency range to cut out of the data
     """
 
     current_date = time.strftime("%d.%m.%Y")
 
     # Files to be analyzed:
-    filename = common_path + DAT_file_name + '_Data_chA.dat'
-    tl_file_name = common_path + DAT_file_name + '_Timeline.txt'
+    filename = dat_file_path + dat_file_name + '_Data_chA.dat'
+    tl_file_name = dat_file_path + dat_file_name + '_Timeline.txt'
 
-    for j in range(len(typesOfData)):  # Main loop by types of data to analyze
+    for j in range(len(types_of_data)):  # Main loop by types of data to analyze
 
         # Current name of DAT file to be analyzed dependent on data type:
         temp = list(filename)
-        temp[-7:-4] = typesOfData[j]
+        temp[-7:-4] = types_of_data[j]
         filename = "".join(temp)
-        temp = list(DAT_file_name + '_Data_chA.dat')
-        temp[-7:-4] = typesOfData[j]
+        temp = list(dat_file_name + '_Data_chA.dat')
+        temp[-7:-4] = types_of_data[j]
         only_file_name = "".join(temp)
 
-        if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B':
+        if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B':
             temp = list(filename)
             temp[-7:-4] = 'chA'
             filename01 = "".join(temp)
@@ -65,14 +73,14 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             filename02 = "".join(temp)
             filename = filename01
 
-        if typesOfData[j] == 'wfA+B':
+        if types_of_data[j] == 'wfA+B':
             temp = list(filename)
             temp[-7:-4] = 'A+B'
             filename = "".join(temp)
 
         # Print the type of data to be analyzed
         if print_or_not == 1: 
-            print('\n\n   Processing data type: ', typesOfData[j], '\n')
+            print('\n\n   Processing data type: ', types_of_data[j], '\n')
         current_time = time.strftime("%H:%M:%S")
         print('   Processing file: ', only_file_name, '   started at: ', current_time)
         if print_or_not == 1: 
@@ -92,24 +100,24 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         Vmax = VmaxMan
         VminNorm = VminNormMan
         VmaxNorm = VmaxNormMan
-        if averOrMin == 0: 
+        if aver_or_min == 0: 
             reducing_type = 'Averaging '
-        if averOrMin == 1: 
+        if aver_or_min == 1: 
             reducing_type = 'Least of '
 
-        if typesOfData[j] == 'chA':
+        if types_of_data[j] == 'chA':
             nameAdd = ' channel A'
             fileNameAdd = ''
             fileNameAddNorm = '001_'
             fileNameAddSpectr = '008_'
 
-        if typesOfData[j] == 'chB':
+        if types_of_data[j] == 'chB':
             nameAdd = ' channel B'
             fileNameAdd = ''
             fileNameAddNorm = '001_'
             fileNameAddSpectr = '008_'
 
-        if typesOfData[j] == 'C_m':
+        if types_of_data[j] == 'C_m':
             nameAdd = ' correlation module'
             Vmin = -160
             VmaxNorm = 2 * VmaxNormMan
@@ -117,7 +125,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             fileNameAddNorm = '004_'
             fileNameAddSpectr = '011_'
 
-        if typesOfData[j] == 'C_p':
+        if types_of_data[j] == 'C_p':
             nameAdd = ' correlation phase'
             YaxName = 'Phase, rad'
             label = 'Phase'
@@ -126,24 +134,24 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             fileNameAdd = '005_'
             fileNameAddSpectr = '012_'
 
-        if typesOfData[j] == 'CRe':
+        if types_of_data[j] == 'CRe':
             nameAdd = ' correlation RE part'
             YaxName = 'Amplitude'
             fileNameAdd = '006_'
             fileNameAddSpectr = '013_'
 
-        if typesOfData[j] == 'CIm':
+        if types_of_data[j] == 'CIm':
             nameAdd = ' correlation IM part'
             YaxName = 'Amplitude'
             fileNameAdd = '007_'
             fileNameAddSpectr = '014_'
 
-        if typesOfData[j] == 'A+B':
+        if types_of_data[j] == 'A+B':
             nameAdd = ' sum A + B'
             fileNameAddNorm = '003_'
             fileNameAddSpectr = '009_'
 
-        if typesOfData[j] == 'A-B':
+        if types_of_data[j] == 'A-B':
             nameAdd = ' difference |A - B|'
             Vmin = Vmin - 20
             Vmax = Vmax - 20
@@ -151,7 +159,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             fileNameAddNorm = '002_'
             fileNameAddSpectr = '010_'
 
-        if typesOfData[j] == 'wfA+B':
+        if types_of_data[j] == 'wfA+B':
             nameAdd = ' wfsum A + B'
             fileNameAdd = ''
             fileNameAddNorm = '001_'
@@ -160,7 +168,9 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         # *********************************************************************************
 
         # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-        newpath = DAT_result_path + 'DAT_Results_' + result_folder_name
+        if len(dat_result_path) > 1 and dat_result_path[-1] != '/':
+            dat_result_path += '/'
+        newpath = dat_result_path + 'DAT_Results_' + result_folder_name
         if not os.path.exists(newpath):
             os.makedirs(newpath)
 
@@ -200,7 +210,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             timeline.append(str(line))
         TLfile.close()
 
-        if StartStopSwitch == 1:  # If we read only specified time limits of files
+        if start_stop_switch == 1:  # If we read only specified time limits of files
 
             # Converting text to ".datetime" format
             dt_timeline = []
@@ -257,7 +267,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
         # Calculation of the dimensions of arrays to read
         nx = len(frequency)                  # the first dimension of the array
-        if StartStopSwitch == 1:             # If we read only specified time limits of files
+        if start_stop_switch == 1:             # If we read only specified time limits of files
             ny = int(istop - istart)         # the second dimension of the array: number of spectra to read
         else:
             ny = int(((df_filesize-1024)/(nx*8))) # the second dimension of the array: file size - 1024 bytes
@@ -283,11 +293,11 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             print('\n\n\n  *** Data reading and averaging *** \n\n')
 
         file1 = open(filename, 'rb')
-        if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B': 
+        if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': 
             file2 = open(filename02, 'rb')
 
         file1.seek(1024+istart*8*nx, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
-        if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B': 
+        if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': 
             file2.seek(1024+istart*8*nx, os.SEEK_SET)   
 
         array = np.empty((nx, 0), float)
@@ -295,32 +305,32 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         for block in range(numOfBlocks):
 
             data1 = np.fromfile(file1, dtype=np.float64, count=nx * averageConst)
-            if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B': 
+            if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': 
                 data2 = np.fromfile(file2, dtype=np.float64, count=nx * averageConst)
 
-            if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B':
-                if typesOfData[j] == 'A+B': 
+            if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B':
+                if types_of_data[j] == 'A+B': 
                     data = data1 + data2
-                if typesOfData[j] == 'A-B': 
+                if types_of_data[j] == 'A-B': 
                     data = data1 - data2
             else:
                 data = data1
 
             del data1
-            if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B': 
+            if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': 
                 del data2
 
             data = np.reshape(data, [nx, averageConst], order='F')
 
             dataApp = np.empty((nx, 1), float)
 
-            if typesOfData[j] == 'chA' or typesOfData[j] == 'chB' or \
-                    typesOfData[j] == 'A+B' or typesOfData[j] == 'wfA+B':
+            if types_of_data[j] == 'chA' or types_of_data[j] == 'chB' or \
+                    types_of_data[j] == 'A+B' or types_of_data[j] == 'wfA+B':
                 # If analyzing intensity - average and log data
-                if averOrMin == 0:
+                if aver_or_min == 0:
                     with np.errstate(invalid='ignore'):
                         dataApp[:, 0] = 10*np.log10(data.mean(axis=1)[:])
-                elif averOrMin == 1:
+                elif aver_or_min == 1:
                     with np.errstate(invalid='ignore'):
                         dataApp[:, 0] = 10*np.log10(np.amin(data, axis=1)[:])
                 else:
@@ -328,27 +338,27 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                 array = np.append(array, dataApp, axis=1)
                 array[np.isnan(array)] = -120
 
-            if typesOfData[j] == 'A-B':
+            if types_of_data[j] == 'A-B':
                 # If analyzing intensity - average and log absolute values of data
                 with np.errstate(invalid='ignore'):
                     dataApp[:, 0] = 10 * np.log10(np.abs(data.mean(axis=1)[:]))
                 array = np.append(array, dataApp, axis=1)
                 array[np.isnan(array)] = -120
 
-            if typesOfData[j] == 'C_p' or typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
+            if types_of_data[j] == 'C_p' or types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
                 # If analyzing phase of Re/Im we do not log data, only averaging
                 dataApp[:, 0] = (data.mean(axis=1)[:])
                 array = np.append(array, dataApp, axis=1)
                 array[np.isnan(array)] = 0
 
-            if typesOfData[j] == 'C_m':
+            if types_of_data[j] == 'C_m':
                 dataApp[:,0] = (data.mean(axis=1)[:])
                 array = np.append(array, dataApp, axis=1)
                 # array[np.isinf(array)] = -120
 
             del dataApp, data
         file1.close()
-        if typesOfData[j] == 'A+B' or typesOfData[j] == 'A-B': file2.close()
+        if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': file2.close()
 
         if print_or_not == 1:
             print('\n Array shape is now             ', array.shape)
@@ -372,7 +382,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             TimeScaleFig[i] = str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23])
 
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
-        if typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
+        if types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
             Vmin = 0 - AmplitudeReIm
             Vmax = 0 + AmplitudeReIm
 
@@ -385,7 +395,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
         TwoOrOneValuePlot(1, frequency, array[:,[1]], [], 'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax,
                           Vmin, Vmax, 'Frequency, MHz', YaxName, ' ', Suptitle, Title,
-                          newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+typesOfData[j] +
+                          newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_'+types_of_data[j] +
                           ' Immediate Spectrum full.png', current_date, current_time, Software_version)
 
         # *** Decide to use only list of frequencies or all frequencies in range
@@ -402,8 +412,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                 index = np.argmin(newFreq)+1
                 # tempArr1 = np.arange(0, len(dateTimeNew), 1)
 
-                if ChannelSavePNG == 1 or typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
-                    if typesOfData[j] == 'CRe' or typesOfData[j] == 'CIm':
+                if ChannelSavePNG == 1 or types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
+                    if types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
                         Vmin = 0 - AmplitudeReIm
                         Vmax = 0 + AmplitudeReIm
 
@@ -418,7 +428,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                              ' MHz ' + sumDifMode + ' Processing: ' + reducing_type + str(averageConst) +
                              ' spectra (' + str(round(averageConst*time_resolution, 3)) + ' sec.)')
 
-                    file_name = (newpath + '/' + df_filename[0:14] + '_' + typesOfData[j] + df_filename[-4:] +
+                    file_name = (newpath + '/' + df_filename[0:14] + '_' + types_of_data[j] + df_filename[-4:] +
                                  ' variation at ' + str(round(frequency[index], 3)) + ' MHz.png')
 
                     OneValueWithTimePlot(timeline, array[[index],:].transpose(), label, 0, len(dateTimeNew),
@@ -436,7 +446,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                     SingleChannelData.close()
 
         # Cutting the array inside frequency range specified by user
-        if SpecFreqRange == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
+        if freq_range_switch == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
                 (frequency[0] <= freqStop <= frequency[freq_points_num-1]) and (freqStart < freqStop):
             print('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
             A = []
@@ -453,7 +463,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             freq_line = frequency
 
         #####################################################################################
-        if SpecFreqRange == 1:
+        if freq_range_switch == 1:
             # *** Immediate spectrum in narrow frequency range ***
 
             Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + nameAdd)
@@ -465,7 +475,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             TwoOrOneValuePlot(1, freq_line, array[:, [1]], [],
                               'Spectrum', ' ', freq_line[0], freq_line[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
                               YaxName, ' ', Suptitle, Title,
-                              newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_' + typesOfData[
+                              newpath + '/' + fileNameAddSpectr + df_filename[0:14] + '_' + types_of_data[
                                   j] + ' Immediate Spectrum narrow range.png',
                               current_date, current_time, Software_version)
         #####################################################################################
@@ -473,7 +483,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
         Vmin = np.min(array)
         Vmax = np.max(array)
-        if typesOfData[j]== 'CRe' or typesOfData[j] == 'CIm':
+        if types_of_data[j]== 'CRe' or types_of_data[j] == 'CIm':
             Vmin = 0 - AmplitudeReIm
             Vmax = 0 + AmplitudeReIm
 
@@ -486,13 +496,13 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                     str(round(averageConst * time_resolution, 3)) + ' sec.)\n' +
                     ' Receiver: ' + str(df_system_name) + ', Place: ' + str(df_obs_place) +
                     ', Description: ' + str(df_description))
-        fig_file_name = (newpath + '/' + fileNameAdd + df_filename[0:14]+'_' + typesOfData[j] + ' Dynamic spectrum.png')
+        fig_file_name = (newpath + '/' + fileNameAdd + df_filename[0:14]+'_' + types_of_data[j] + ' Dynamic spectrum.png')
 
         OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freq_line,
                         len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
                         current_date, current_time, Software_version, customDPI)
 
-        if typesOfData[j] != 'C_p' and typesOfData[j] != 'CRe' and typesOfData[j] != 'CIm':
+        if types_of_data[j] != 'C_p' and types_of_data[j] != 'CRe' and types_of_data[j] != 'CIm':
             # Normalization and cleaning of dynamic spectra 
             normalization_db(array.transpose(), len(freq_line), len(dateTimeNew))
             simple_channel_clean(array.transpose(), RFImeanConst)
@@ -506,7 +516,7 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
                         str(round(averageConst * time_resolution, 3)) +
                         ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
                         ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
-            fig_file_name = (newpath + '/' + fileNameAddNorm + df_filename[0:14] + '_'+typesOfData[j] +
+            fig_file_name = (newpath + '/' + fileNameAddNorm + df_filename[0:14] + '_'+types_of_data[j] +
                              ' Dynamic spectrum cleaned and normalized' + '.png')
 
             OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig,
@@ -542,8 +552,8 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
             plt.xticks(fontsize=12, fontweight='bold')
             plt.xlabel('UTC time, HH:MM:SS', fontsize=12, fontweight='bold')
             #plt.text(0.72, 0.04,'Processed '+current_date+ ' at '+current_time, fontsize=6, transform=plt.gcf().transFigure)
-            pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+typesOfData[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = customDPI)
-            #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+typesOfData[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
+            pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+types_of_data[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = customDPI)
+            #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+types_of_data[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
                                                                                  #filename[-7:-4:]
             plt.close('all')
             '''
@@ -557,18 +567,18 @@ def DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, re
 
 if __name__ == '__main__':
 
-    common_path = 'DATA/'
+    dat_file_path = 'DATA/'
     result_path = ''
-    DAT_file_name = ''
-    typesOfData = ['chA, chB']
-    DAT_result_path = ''
+    dat_file_name = ''
+    types_of_data = ['chA, chB']
+    dat_result_path = ''
     result_folder_name = ''
-    StartStopSwitch = 0
-    SpecFreqRange = 0
+    start_stop_switch = 0
+    freq_range_switch = 0
     RFImeanConst = 8  # Constant of RFI mitigation (usually 8)
     VminCorrMag = -150  # Lower limit of figure dynamic range for correlation magnitude spectra
     VmaxCorrMag = -30  # Upper limit of figure dynamic range for correlation magnitude spectra
-    averOrMin = 0  # Use average value (0) per data block or minimum value (1)
+    aver_or_min = 0  # Use average value (0) per data block or minimum value (1)
     VminMan = -120  # Manual lower limit of immediate spectrum figure color range
     VmaxMan = -10  # Manual upper limit of immediate spectrum figure color range
     VminNormMan = 0  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
@@ -589,8 +599,8 @@ if __name__ == '__main__':
     freq_list = []
     print_or_not = 1
 
-    ok = DAT_file_reader(common_path, DAT_file_name, typesOfData, DAT_result_path, result_folder_name,
-                         averOrMin, StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
+    ok = DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name,
+                         aver_or_min, start_stop_switch, freq_range_switch, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                          RFImeanConst, customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
                          AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
                          freqStopTXT, freq_list, print_or_not)
