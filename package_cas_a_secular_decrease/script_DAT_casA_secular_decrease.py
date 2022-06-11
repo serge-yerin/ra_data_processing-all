@@ -8,7 +8,8 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-path_to_data = 'DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
+# path_to_data = 'DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
+path_to_data = '../interferometer_dat/'  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'd:/PYTHON/ra_data_processing-all/' # 'DATA/'
@@ -254,16 +255,19 @@ for type_of_data in typesOfData:
             dateTimeStart = str(start_time)[0:19]
             dateTimeStop = str(end_time)[0:19]
 
+        result_folder_name = ''
+
         done_or_not = DAT_file_reader(path_to_data, data_files_name_list[file_no], [type_of_data],
-                                      data_files_name_list[file_no]+'_'+source, averOrMin, StartStopSwitch,
+                                      path_to_data, data_files_name_list[file_no] + '_' + source,    # result_folder_name,
+                                      averOrMin, StartStopSwitch,
                                       SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
                                       customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
                                       AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
                                       freqStopTXT, freqList, 0)  # See script_DAT_multifile_reader.py for correction!
 
         # Saving TXT file with parameters from file header
-        path = path_to_data + 'DAT_Results_' + data_files_name_list[file_no]+'_'+source+'/'
-        TXT_file = open(path + data_files_name_list[file_no]+'_'+source + '_header.info', "w")
+        path = path_to_data + 'DAT_Results_' + data_files_name_list[file_no]+'_' + source + '/'
+        TXT_file = open(path + data_files_name_list[file_no] + '_'+source + '_header.info', "w")
         TXT_file.write(' Observatory:           ' + df_obs_place + '\n')
         TXT_file.write(' Receiver:              ' + df_system_name + '\n')
         TXT_file.write(' Initial filename:      ' + df_filename + '\n')
