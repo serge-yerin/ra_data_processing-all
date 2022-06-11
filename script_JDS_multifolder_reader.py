@@ -123,10 +123,9 @@ else:
     print(' *                                                                                   *  ',
           '\n ************************************************************************************* \n\n\n')
 
-
-decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
-if decision != 1:
-    sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
+    decision = int(input('* Enter "1" to process all folders, or "0" to stop the script:     '))
+    if decision != 1:
+        sys.exit('\n\n\n              ***  Program stopped! *** \n\n\n')
 
 
 print('\n\n\n   **************************************************************')
@@ -174,7 +173,7 @@ for folder_no in range(num_of_folders):
     else:
         DAT_result_path = list_of_folder_names[folder_no]
 
-    # Run DAT reader for the resuls of current folder
+    # Run DAT reader for the results of current folder
     done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
                                   averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
