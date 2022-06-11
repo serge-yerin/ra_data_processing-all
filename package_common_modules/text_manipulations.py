@@ -1,11 +1,8 @@
-'''
-'''
-
 
 def find_between(string, start, stop):
-    '''
+    """
     Searching of a line part between quotes (or any other symbols)
-    '''
+    """
     try:
         begin = string.index(start) + len(start)
         end = string.index(stop, begin)
@@ -15,21 +12,21 @@ def find_between(string, start, stop):
 
 
 def read_date_time_and_one_value_txt (filenamelist):
-    '''
+    """
     Reading txt files with time and date and one column data
-    '''
+    """
     x_value = []
     y_value = []
 
-    for file in range (len(filenamelist)):
+    for file in range(len(filenamelist)):
         file = open(filenamelist[file], 'r')
         x_val = []
         y_val = []
         for line in file:
             words = line.rstrip().split()
-            x_val.append(words[0]) #+ ' ' + words[1])
-            #y_val.append(float(words[2]))
-            y_val.append(float(words[1]))
+            x_val.append(words[0] + ' ' + words[1])
+            y_val.append(float(words[2]))
+            # y_val.append(float(words[1]))
         file.close()
 
         x_value.append(x_val)
@@ -37,12 +34,10 @@ def read_date_time_and_one_value_txt (filenamelist):
     return x_value, y_value
 
 
-
-
 def read_frequency_and_two_values_txt(filenamelist):
-    '''
-    Reading txt files with frequecy and two value column data
-    '''
+    """
+    Reading txt files with frequency and two value column data
+    """
     x_value = []
     y1_value = []
     y2_value = []
