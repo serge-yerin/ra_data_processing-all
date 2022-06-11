@@ -34,19 +34,42 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 
 def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name, aver_or_min,
                     start_stop_switch, freq_range_switch, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
-                    customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq, AmplitudeReIm,
+                    custom_dpi, colormap, channel_save_txt, channel_save_png, ListOrAllFreq, AmplitudeReIm,
                     freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT, freqStopTXT, freq_list,
                     print_or_not):
     """
     Function intended to visualize long spectra '.dat' files of radio astronomy data
-    dat_file_path - path to folder with initial dat files to process
-    dat_file_name - a part of dat file name which relates to initial data like "E170519_234344.jds"
-    types_of_data - list of strings which indicate types of data to process like "chA", "CRe" etc.
-    dat_result_path - path to folder where folders with results will be stored
-    result_folder_name - name of the result folder after "'DAT_Results_'"
-    aver_or_min - if 0 - use averaging of data bunch, if 1 - use minimal value of a data bunch 
-    start_stop_switch - set to 1 if you want to specify particular time range to cut out of the data
-    freq_range_switch - set to 1 if you want to specify particular frequency range to cut out of the data
+    Parameters:
+        dat_file_path - path to folder with initial dat files to process
+        dat_file_name - a part of dat file name which relates to initial data like "E170519_234344.jds"
+        types_of_data - list of strings which indicate types of data to process like "chA", "CRe" etc.
+        dat_result_path - path to folder where folders with results will be stored
+        result_folder_name - name of the result folder after "'DAT_Results_'"
+        aver_or_min - if 0 - use averaging of data bunch, if 1 - use minimal value of a data bunch
+        start_stop_switch - set to 1 if you want to specify particular time range to cut out of the data
+        freq_range_switch - set to 1 if you want to specify particular frequency range to cut out of the data
+        VminMan -
+        VmaxMan -
+        VminNormMan -
+        VmaxNormMan -
+        RFImeanConst -
+        custom_dpi -
+        colormap -
+        channel_save_txt -
+        channel_save_png -
+        ListOrAllFreq -
+        AmplitudeReIm -
+        freqStart -
+        freqStop -
+        dateTimeStart -
+        dateTimeStop -
+        freqStartTXT -
+        freqStopTXT -
+        freq_list -
+        print_or_not - if 1 - prints to console the detailed info, of 0 - does not print
+
+    Returns:
+        ok - an integer indicating everythin went well
     """
 
     current_date = time.strftime("%d.%m.%Y")
@@ -412,7 +435,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
                 index = np.argmin(newFreq)+1
                 # tempArr1 = np.arange(0, len(dateTimeNew), 1)
 
-                if ChannelSavePNG == 1 or types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
+                if channel_save_png == 1 or types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
                     if types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
                         Vmin = 0 - AmplitudeReIm
                         Vmax = 0 + AmplitudeReIm
@@ -436,7 +459,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
                                          Suptitle, Title, file_name, current_date, current_time, Software_version)
 
                 # Saving value changes at particular frequency to TXT file
-                if ChannelSaveTXT == 1:
+                if channel_save_txt == 1:
                     SingleChannelData = open(newpath + '/' + df_filename[0:14] + '_' + filename[-7:-4:]
                                              + df_filename[-4:] + ' variation at ' + str(round(frequency[index], 3)) +
                                              ' MHz.txt', "w")
@@ -500,7 +523,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
         OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freq_line,
                         len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
-                        current_date, current_time, Software_version, customDPI)
+                        current_date, current_time, Software_version, custom_dpi)
 
         if types_of_data[j] != 'C_p' and types_of_data[j] != 'CRe' and types_of_data[j] != 'CIm':
             # Normalization and cleaning of dynamic spectra 
@@ -521,7 +544,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
             OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig,
                              freq_line, len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
-                             fig_file_name, current_date, current_time, Software_version, customDPI)
+                             fig_file_name, current_date, current_time, Software_version, custom_dpi)
 
             '''
             # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
@@ -552,8 +575,8 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             plt.xticks(fontsize=12, fontweight='bold')
             plt.xlabel('UTC time, HH:MM:SS', fontsize=12, fontweight='bold')
             #plt.text(0.72, 0.04,'Processed '+current_date+ ' at '+current_time, fontsize=6, transform=plt.gcf().transFigure)
-            pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+types_of_data[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = customDPI)
-            #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+types_of_data[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = customDPI)
+            pylab.savefig('DAT_Results/' + fileNameAddNorm + df_filename[0:14]+'_'+types_of_data[j]+' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = custom_dpi)
+            #pylab.savefig('DAT_Results/' +fileNameAddNorm+ df_filename[0:14]+'_'+types_of_data[j]+ ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = custom_dpi)
                                                                                  #filename[-7:-4:]
             plt.close('all')
             '''
@@ -585,10 +608,10 @@ if __name__ == '__main__':
     VmaxNormMan = 12  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
     AmplitudeReIm = 1 * 10 ** (-12)  # Color range of Re and Im dynamic spectra
     # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
-    customDPI = 200  # Resolution of images of dynamic spectra
+    custom_dpi = 200  # Resolution of images of dynamic spectra
     colormap = 'jet'  # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-    ChannelSaveTXT = 0
-    ChannelSavePNG = 0
+    channel_save_txt = 0
+    channel_save_png = 0
     ListOrAllFreq = 0
     freqStart = 0
     freqStop = 0
@@ -601,6 +624,6 @@ if __name__ == '__main__':
 
     ok = DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name,
                          aver_or_min, start_stop_switch, freq_range_switch, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
-                         RFImeanConst, customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
+                         RFImeanConst, custom_dpi, colormap, channel_save_txt, channel_save_png, ListOrAllFreq,
                          AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
                          freqStopTXT, freq_list, print_or_not)
