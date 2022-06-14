@@ -27,19 +27,13 @@ freqList_GURT = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.
 
 
 averOrMin = 0                    # Use average value (0) per data block or minimum value (1)
-StartStopSwitch = 1              # Read the whole file (0) or specified time limits (1)
 AutoStartStop = 1                # 1 - calculate depending on source in comment, 0 - use manual values
 AutoSourceSwitch = 1             # 1 - find sources in comment, 0 - use manually set source
-SpecFreqRange = 0                # Specify particular frequency range (1) or whole range (0)
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
 VmaxNormMan = 18                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
-customDPI = 300                  # Resolution of images of dynamic spectra
-colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
-ChannelSaveTXT = 1               # Save intensities at specified frequencies to TXT file
-ChannelSavePNG = 1               # Save intensities at specified frequencies to PNG file
 ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 20 * 10**(-12)  # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
@@ -52,9 +46,8 @@ freqStart = 0.0
 freqStop = 10.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
-dateTimeStart = '2019-07-19 00:00:00'
-dateTimeStop =  '2019-07-23 04:00:00'
-
+date_time_start = '2019-07-19 00:00:00'
+date_time_stop =  '2019-07-23 04:00:00'
 
 # Begin and end frequency of TXT files to save (MHz)
 freqStartTXT = 8.0
@@ -77,7 +70,6 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
@@ -142,7 +134,7 @@ for type_of_data in typesOfData:
         if df_filename[-4:] == '.jds':  # If data obtained from DSPZ receiver
 
             freqList = freqList_UTR2
-            AmplitudeReIm = AmplitudeReIm_GURT
+            AmplitudeReIm = AmplitudeReIm_UTR2
             [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
                 SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency, FreqPointsNum,
                 dataBlockSize] = FileHeaderReaderJDS(path_to_data + dat_files_list[file_no], 0, 0)
@@ -150,9 +142,11 @@ for type_of_data in typesOfData:
         if AutoSourceSwitch == 1:
             if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
                 '''
-                if '3c461' in df_description.lower() or 'cas' in df_description.lower() or '461' in df_description.lower():
+                if '3c461' in df_description.lower() or 'cas' in df_description.lower() or 
+                '461' in df_description.lower():
                     source = '3C461'
-                elif '3c405' in df_description.lower() or 'cyg' in df_description.lower() or '405' in df_description.lower():
+                elif '3c405' in df_description.lower() or 'cyg' in df_description.lower() or 
+                '405' in df_description.lower():
                     source = '3C405'
                 else:
                     print('  Source not detected !!!')
@@ -175,10 +169,12 @@ for type_of_data in typesOfData:
                     print('  Source not detected !!!')
                     source = str(input(' * Enter source name like 3C405 or 3C461:            '))
 
-        if AutoSourceSwitch == 0:
+        elif AutoSourceSwitch == 0:
             print('\n   !!! Enter source name manually !!!')
             print('   Filename:   ', dat_files_list[file_no])
             source = str(input('   Enter source name like 3C405 or 3C461:            '))
+        else:
+            sys.exit('Error! AutoSourceSwitch is wrong')
 
         add = 0
         if type_of_data == 'CIm':
@@ -225,10 +221,11 @@ for type_of_data in typesOfData:
                                         int(uSecond)))
 
         if AutoStartStop == 0:  # If switch is off - use manually set time and date
-            start_time = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]),
-                                  int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]), 0)
-            end_time = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]),
-                                int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
+            start_time = datetime(int(date_time_start[0:4]), int(date_time_start[5:7]), int(date_time_start[8:10]),
+                                  int(date_time_start[11:13]), int(date_time_start[14:16]), int(date_time_start[17:19]),
+                                  0)
+            end_time = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]), int(date_time_stop[8:10]),
+                                int(date_time_stop[11:13]), int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
         # *** Showing the time limits of file and time limits of chosen part
         print('\n                                Start                         End \n')
@@ -252,17 +249,16 @@ for type_of_data in typesOfData:
 
         # DAT_result_path = 'DAT_Results_' + data_files_name_list[file_no]
         if AutoStartStop == 1:
-            dateTimeStart = str(start_time)[0:19]
-            dateTimeStop = str(end_time)[0:19]
+            date_time_start = str(start_time)[0:19]
+            date_time_stop = str(end_time)[0:19]
 
         result_folder_name = ''
 
         done_or_not = DAT_file_reader(path_to_data, data_files_name_list[file_no], [type_of_data],
                                       path_to_data, data_files_name_list[file_no] + '_' + source,    # result_folder_name,
-                                      averOrMin, StartStopSwitch,
-                                      SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
-                                      customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
-                                      AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
+                                      averOrMin, 1, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan, RFImeanConst,
+                                      300, 'jet', 1, 1, ListOrAllFreq,
+                                      AmplitudeReIm, freqStart, freqStop, date_time_start, date_time_stop, freqStartTXT,
                                       freqStopTXT, freqList, 0)  # See script_DAT_multifile_reader.py for correction!
 
         # Saving TXT file with parameters from file header
