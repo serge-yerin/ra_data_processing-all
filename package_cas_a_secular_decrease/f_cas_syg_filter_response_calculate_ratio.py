@@ -271,8 +271,8 @@ def filter_interf_response_and_calculate_ratio(path_to_data, y_auto, v_min, v_ma
                 ax2.annotate(str(ymax),  xy=(50, ymax), fontsize=6, ha='center')
                 ax2.set_xlim([0, int(len(experiment_spectra)/10)])
                 ax2.set_ylim([-100, -50])
-                if source == 'SygA': path = path_to_data_SygA
-                if source == 'CasA': path = path_to_data_CasA
+                # if source == 'SygA': path = path_to_data_SygA
+                # if source == 'CasA': path = path_to_data_CasA
                 pylab.savefig(result_path + '/' + parent_filename + ' spectra of interferometric response at ' +
                               str(num_freq) + ' MHz.png', bbox_inches='tight', dpi=custom_dpi)
                 plt.close('all')
