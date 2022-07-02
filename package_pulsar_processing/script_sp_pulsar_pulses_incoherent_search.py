@@ -4,7 +4,7 @@
 # TODO: add cleaning
 
 # Python3
-software_version = '2022.05.10'
+software_version = '2022.07.02'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -26,45 +26,19 @@ data_types = ['chA']
 periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
 scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-# save_n_period_pics = True     # Save n-period pictures?
-save_n_period_pics = False     # Save n-period pictures?
+save_n_period_pics = False    # Save n-period pictures?
 save_strongest = True         # Save strongest images to additional separate folder?
 threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
 
-MaxNsp = 2048                 # Number of spectra to read for one figure
-Vmin = -100                   # Lower limit of figure dynamic range
-Vmax = -40                    # Upper limit of figure dynamic range
-VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 6                  # Upper limit of figure dynamic range for normalized spectra
-VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
-VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
-CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-# longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-# longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-# longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
-if 'chA' in data_types:
-    longFileSaveAch = 1
-else:
-    longFileSaveAch = 0
-
-if 'chB' in data_types:
-    longFileSaveBch = 1
-else:
-    longFileSaveBch = 0
-
-if 'C_m' in data_types:
-    longFileSaveCMP = 1
-else:
-    longFileSaveCMP = 0
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -83,7 +57,29 @@ from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding imp
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
+from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 # ###############################################################################
+
+# Preparations for automatic processing
+if 'chA' in data_types:
+    longFileSaveAch = 1
+else:
+    longFileSaveAch = 0
+
+if 'chB' in data_types:
+    longFileSaveBch = 1
+else:
+    longFileSaveBch = 0
+
+if 'C_m' in data_types:
+    longFileSaveCMP = 1
+else:
+    longFileSaveCMP = 0
+
+if 'C_m' in data_types:
+    CorrelationProcess = 1
+else:
+    CorrelationProcess = 0
 
 # '''
 print('\n\n  * Making dynamic spectra of the initial data... ')
@@ -104,14 +100,13 @@ for file in range(len(file_name_list_current)):
     file_name_list_current[file] = directory + file_name_list_current[file]
 
 # Run ADR reader for the current folder
-done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, MaxNsp, 0,
-                                                            8, Vmin, Vmax, VminNorm, VmaxNorm,
-                                                            VminCorrMag, VmaxCorrMag, colormap, custom_dpi,
+
+done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
+                                                            8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
                                                             longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                             CorrSpecSaveCleaned, 0, 0)
-
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
 if 'chA' in DAT_file_list and 'chA' in data_types:
@@ -136,6 +131,17 @@ ok = DAT_file_reader('', DAT_file_name, data_types_to_process, '', result_folder
 #
 #
 
+# RFI mask making
+for i in range(len(data_types_to_process)):
+    dat_rfi_mask_making(DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 4000)
+
+#
+#
+#
+#
+#
+
+
 print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
 for i in range(len(data_types_to_process)):
@@ -147,12 +153,9 @@ for i in range(len(data_types_to_process)):
         amp_min = -0.15
         amp_max = 0.55
 
-    # dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat',
-    #                                                             pulsar_name, 512, amp_min, amp_max, 0, 0, 1, 10,
-    #                                                             2.8, 0, 0.0, 16.5, 1, 1, 300, 'Greys')
     dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + data_types_to_process[i]
                                                                 + '.dat', pulsar_name, 512, amp_min, amp_max,
-                                                                0, 0.0, 16.5, 1, 1, 300, 'Greys')
+                                                                0, 0.0, 16.5, 1, 1, 300, 'Greys', use_mask_file=True)
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
@@ -206,6 +209,6 @@ print('\n\n  * Making averaged (folded) pulse profile... \n\n')
 
 for dedispersed_data_file_name in dedispersed_data_file_list:
     pulsar_period_folding('', dedispersed_data_file_name, pulsar_name, scale_factor, -0.5, 3, periods_per_fig,
-                          custom_dpi, colormap)
+                          custom_dpi, colormap, use_mask_file=True)
 
 print('\n\n  *  Pipeline finished successfully! \n\n')
