@@ -8,7 +8,7 @@ from package_cleaning.f_clean_dirty_lines_for_weak_signal import clean_dirty_lin
 
 def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
     """
-    Reads dat file and makes a mask for the data in a special .msk file to be used bu further processing
+    Reads dat file and makes a mask for the data in a special .msk file to be used by further processing
     Needs a path to file and number of spectra ti read in bunch to synchronize bunches with the other
     parts of processing pipeline
     returns the name of the mask file
