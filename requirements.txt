@@ -9,3 +9,4 @@ progress
 requests
 scipy
 wakeonlan
+opencv-python
