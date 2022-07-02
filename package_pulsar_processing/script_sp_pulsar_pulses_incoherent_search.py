@@ -15,7 +15,7 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = 'DATA/'
+directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74/'
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
@@ -26,7 +26,8 @@ data_types = ['chA']
 periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
 scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-save_n_period_pics = True     # Save n-period pictures?
+# save_n_period_pics = True     # Save n-period pictures?
+save_n_period_pics = False     # Save n-period pictures?
 save_strongest = True         # Save strongest images to additional separate folder?
 threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
 
@@ -40,16 +41,30 @@ VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlat
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
+# longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
+# longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
+# longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
+if 'chA' in data_types:
+    longFileSaveAch = 1
+else:
+    longFileSaveAch = 0
+
+if 'chB' in data_types:
+    longFileSaveBch = 1
+else:
+    longFileSaveBch = 0
+
+if 'C_m' in data_types:
+    longFileSaveCMP = 1
+else:
+    longFileSaveCMP = 0
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
