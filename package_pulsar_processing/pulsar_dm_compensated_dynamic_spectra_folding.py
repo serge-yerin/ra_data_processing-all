@@ -224,13 +224,19 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
         data_raw = np.reshape(data_raw, [len(frequency), spectra_to_read], order='F')
         data_raw = 10 * np.log10(data_raw, dtype=np.float32)
 
+        # Apply masking if needed
         if use_mask_file:
+            # Read mask from file
             mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read * len(frequency))
             mask = np.reshape(mask, [len(frequency), spectra_to_read], order='F')
-            # data_raw = data_raw * np.invert(mask)
-            # data_raw[data_raw == 0] = -120
-            # Apply as mask to data
-            data_raw = np.ma.masked_where(data_raw, mask)
+            # Apply as mask to data copy and calculate mean value without noise
+            masked_data_raw = np.ma.masked_where(data_raw, mask)
+            data_raw_mean = np.mean(masked_data_raw)
+            del masked_data_raw
+
+            # Apply as mask to data (change masked data with mean values of data outside mask)
+            data_raw = data_raw * np.invert(mask)
+            data_raw = data_raw + mask * data_raw_mean
 
         # Append the new interpolated (np.kron) data to buffer
         data_interp = np.append(data_interp, np.kron(data_raw, np.ones((1, scale_factor))), axis=1)
