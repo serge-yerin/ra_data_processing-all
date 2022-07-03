@@ -50,7 +50,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
-
+from package_ra_data_processing.f_spectra_normalization import normalization_db
 # ###############################################################################
 
 
@@ -230,7 +230,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
             mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read * len(frequency))
             mask = np.reshape(mask, [len(frequency), spectra_to_read], order='F')
             # Apply as mask to data copy and calculate mean value without noise
-            masked_data_raw = np.ma.masked_where(data_raw, mask)
+            masked_data_raw = np.ma.masked_where(mask, data_raw)
             data_raw_mean = np.mean(masked_data_raw)
             del masked_data_raw
 
@@ -269,6 +269,11 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
         mask_file.close()
 
     print('\n Total number of integrated pulses: ', profiles_counter)
+
+    # Normalizing each frequency channel to have smooth dynamic spectra
+    integrated_spectra = np.transpose(integrated_spectra)
+    integrated_spectra = normalization_db(integrated_spectra, integrated_spectra.shape[1], integrated_spectra.shape[0])
+    integrated_spectra = np.transpose(integrated_spectra)
 
     # Preparing single averaged data profile for figure
     profile = integrated_spectra.mean(axis=0)[:]
@@ -314,6 +319,6 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
 if __name__ == '__main__':
 
     pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
-                          periods_per_fig, custom_dpi, colormap)
+                          periods_per_fig, custom_dpi, colormap, use_mask_file=use_mask_file)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
