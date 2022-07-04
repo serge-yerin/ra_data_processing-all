@@ -287,11 +287,13 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     profile = np.roll(profile, roll_count)
 
     # Saving data to file
-    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], 'DSPZ_' + filename + ' - folded pulses.smp')
+    data_filename = filename.split('/')[-1]
+    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], common_path +
+                                  'DSPZ_' + data_filename + ' - folded pulses.smp')
     print('\n SMP data file saved. \n')
 
     # Make a figure of pulses profiles and dynamic spectrum
-    fig_title = 'File: ' + filename + '   Description: ' + df_description + '   Resolution: ' + \
+    fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '   Resolution: ' + \
                 str(np.round(df/1000, 3)) + ' kHz and ' + str(np.round(time_resolution*1000, 3)) + ' ms.' + \
                 '\n from ' + timeline[0][:19] + ' till ' + timeline[-1][:19] + ' UTC'
 
@@ -299,7 +301,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
                    r' $\mathrm{pc \cdot cm^{-3}}$' + ', Period: ' + str(p_bar) + ' s.), ' + \
                    str(profiles_counter) + ' integrated profiles '
 
-    pic_filename = filename + ' - folded pulses.png'
+    pic_filename = common_path + filename + ' - folded pulses.png'
     profile_pic_min = -0.25  # Minimum limit of profile picture
     profile_pic_max = 1.20  # Maximum limit of profile picture
 
