@@ -15,7 +15,8 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74/'
+result_directory = '../'
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
@@ -37,7 +38,7 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
+# where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 
 # *******************************************************************************
@@ -47,7 +48,7 @@ import os
 import sys
 from os import path
 
-# To change system path to main source_directory of the project:
+# To change system path to main directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
@@ -73,31 +74,36 @@ else:
 
 if 'C_m' in data_types:
     longFileSaveCMP = 1
-else:
-    longFileSaveCMP = 0
-
-if 'C_m' in data_types:
     CorrelationProcess = 1
 else:
+    longFileSaveCMP = 0
     CorrelationProcess = 0
+
 
 # '''
 print('\n\n  * Making dynamic spectra of the initial data... ')
 
 # Find all files in folder once more:
-file_name_list_current = find_files_only_in_current_folder(directory, '.jds', 0)
+file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
+
+result_folder_name = source_directory.split('/')[-2]
 
 # Path to intermediate data files and results
-path_to_DAT_files = os.path.dirname(os.path.realpath(__file__)) + '/'
+if result_directory == '':
+    result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
 
-result_folder_name = directory.split('/')[-2]
-if where_save_pics == 0:
-    result_path = path_to_DAT_files + 'JDS_Results_' + result_folder_name
-else:
-    result_path = directory + 'JDS_Results_' + result_folder_name
+path_to_dat_files = result_directory + '/' + pulsar_name + '_' + result_folder_name + '/'
+
+
+# if where_save_pics == 0:
+#     result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
+# else:
+#     result_path = source_directory + 'JDS_Results_' + result_folder_name
+
+result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
 
 for file in range(len(file_name_list_current)):
-    file_name_list_current[file] = directory + file_name_list_current[file]
+    file_name_list_current[file] = source_directory + file_name_list_current[file]
 
 # Run ADR reader for the current folder
 
@@ -106,7 +112,7 @@ done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_curre
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
                                                             longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
-                                                            CorrSpecSaveCleaned, 0, 0)
+                                                            CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files)
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
 if 'chA' in DAT_file_list and 'chA' in data_types:
@@ -118,10 +124,11 @@ if 'C_m' in DAT_file_list and 'C_m' in data_types:
 
 print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', data_types_to_process, '\n')
 
-result_folder_name = directory.split('/')[-2] + '_initial'
+result_folder_name = source_directory.split('/')[-2] + '_initial'
 
-ok = DAT_file_reader('', DAT_file_name, data_types_to_process, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
-                     300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
+                     0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
+                     16.5, 33.0, [], 0)
 # '''
 #
 #
@@ -133,7 +140,7 @@ ok = DAT_file_reader('', DAT_file_name, data_types_to_process, '', result_folder
 
 # RFI mask making
 for i in range(len(data_types_to_process)):
-    dat_rfi_mask_making(DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 4000)
+    dat_rfi_mask_making(path_to_dat_files + DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 4000)
 
 #
 #
@@ -153,9 +160,10 @@ for i in range(len(data_types_to_process)):
         amp_min = -0.15
         amp_max = 0.55
 
-    dedispersed_data_file_name = pulsar_incoherent_dedispersion('', DAT_file_name + '_Data_' + data_types_to_process[i]
-                                                                + '.dat', pulsar_name, 512, amp_min, amp_max,
-                                                                0, 0.0, 16.5, 1, 1, 300, 'Greys', use_mask_file=True)
+    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, DAT_file_name + '_Data_' +
+                                                                data_types_to_process[i] + '.dat', pulsar_name, 512,
+                                                                amp_min, amp_max, 0, 0.0, 16.5, 1, 1, 300, 'Greys',
+                                                                use_mask_file=True, result_path=path_to_dat_files)
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
@@ -184,8 +192,9 @@ if save_n_period_pics:
             dyn_sp_min = -0.2
             dyn_sp_max = 3
 
-        pulsar_period_dm_compensated_pics('', dedispersed_data_file_name, pulsar_name, 0, amp_min, amp_max,
-                                          dyn_sp_min, dyn_sp_max, 3, 500, 'Greys', save_strongest, threshold)
+        pulsar_period_dm_compensated_pics(path_to_dat_files, dedispersed_data_file_name, pulsar_name, 0,
+                                          amp_min, amp_max, dyn_sp_min, dyn_sp_max, 3, 500, 'Greys',
+                                          save_strongest, threshold)
 
 #
 #
@@ -193,12 +202,13 @@ if save_n_period_pics:
 #
 #
 
-result_folder_name = directory.split('/')[-2] + '_dedispersed'
+result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
 
 print('\n\n  * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
-ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], data_types_to_process, '', result_folder_name, 0, 0, 0, -120, -10,
-                     0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process, path_to_dat_files,
+                     result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
+                     16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
 #
 #
@@ -208,7 +218,7 @@ ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], data_types_to_proc
 print('\n\n  * Making averaged (folded) pulse profile... \n\n')
 
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    pulsar_period_folding('', dedispersed_data_file_name, pulsar_name, scale_factor, -0.5, 3, periods_per_fig,
-                          custom_dpi, colormap, use_mask_file=True)
+    pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name, pulsar_name, scale_factor, -0.5, 3,
+                          periods_per_fig, custom_dpi, colormap, use_mask_file=True)
 
 print('\n\n  *  Pipeline finished successfully! \n\n')
