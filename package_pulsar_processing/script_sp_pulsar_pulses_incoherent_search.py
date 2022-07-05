@@ -1,10 +1,7 @@
 # TODO: make a sum of channels A & B (or may be not)
-# TODO: integrate average pulse to the end of the pipeline
-# TODO: save all results to the single folder
-# TODO: add cleaning
 
 # Python3
-software_version = '2022.07.02'
+software_version = '2022.07.05'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -38,7 +35,6 @@ DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-# where_save_pics = 0           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 
 # *******************************************************************************
@@ -46,6 +42,7 @@ CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures 
 # *******************************************************************************
 import os
 import sys
+import datetime
 from os import path
 
 # To change system path to main directory of the project:
@@ -81,7 +78,12 @@ else:
 
 
 # '''
-print('\n\n  * Making dynamic spectra of the initial data... ')
+#
+#
+#
+#
+
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making dynamic spectra of the initial data')
 
 # Find all files in folder once more:
 file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
@@ -94,18 +96,12 @@ if result_directory == '':
 
 path_to_dat_files = result_directory + '/' + pulsar_name + '_' + result_folder_name + '/'
 
-
-# if where_save_pics == 0:
-#     result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
-# else:
-#     result_path = source_directory + 'JDS_Results_' + result_folder_name
-
 result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
 
 for file in range(len(file_name_list_current)):
     file_name_list_current[file] = source_directory + file_name_list_current[file]
 
-# Run ADR reader for the current folder
+# Run JDS/ADR reader for the current folder
 
 done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
@@ -122,7 +118,8 @@ if 'chB' in DAT_file_list and 'chB' in data_types:
 if 'C_m' in DAT_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
 
-print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', data_types_to_process, '\n')
+print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
+      DAT_file_name, ', of types:', data_types_to_process, '\n')
 
 result_folder_name = source_directory.split('/')[-2] + '_initial'
 
@@ -132,12 +129,12 @@ ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, pa
 # '''
 #
 #
-#
 # DAT_file_name = 'E300117_180000.jds'
 # data_types_to_process = ['chA']
 #
 #
 
+print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
 # RFI mask making
 for i in range(len(data_types_to_process)):
     dat_rfi_mask_making(path_to_dat_files + DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 4000)
@@ -147,9 +144,10 @@ for i in range(len(data_types_to_process)):
 #
 #
 #
+#
 
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing... \n\n')
 
-print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
 for i in range(len(data_types_to_process)):
     # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
@@ -176,7 +174,8 @@ for i in range(len(data_types_to_process)):
 #
 
 if save_n_period_pics:
-    print('\n\n  *  Making figures of 3 pulsar periods... \n\n')
+
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making figures of 3 pulsar periods... \n\n')
 
     for dedispersed_data_file_name in dedispersed_data_file_list:
         # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
@@ -204,7 +203,8 @@ if save_n_period_pics:
 
 result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
 
-print('\n\n  * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
+print('\n\n  * ', str(datetime.datetime.now())[:19],
+      ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
 ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process, path_to_dat_files,
                      result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
@@ -215,10 +215,11 @@ ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], dat
 #
 #
 #
-print('\n\n  * Making averaged (folded) pulse profile... \n\n')
+
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making averaged (folded) pulse profile... \n\n')
 
 for dedispersed_data_file_name in dedispersed_data_file_list:
     pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name, pulsar_name, scale_factor, -0.5, 3,
                           periods_per_fig, custom_dpi, colormap, use_mask_file=True)
 
-print('\n\n  *  Pipeline finished successfully! \n\n')
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
