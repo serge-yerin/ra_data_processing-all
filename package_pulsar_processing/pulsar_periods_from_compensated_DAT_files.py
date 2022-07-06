@@ -8,10 +8,10 @@ software_name = 'Pulsar DM delay compensated DAT reader'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
+results_path = ''  # '/media/data/PYTHON/ra_data_processing-all/' #
 
 # Directory of DAT file to be analyzed:
-filename = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat'
+dat_file_path = 'Norm_DM_0.972_DM_1.0_DM_1.0_E310120_225419.jds_Data_wfA+B.dat'
 
 pulsar_name = 'B0809+74'  # 'B0950+08'
 normalize_response = 0            # Normalize (1) or not (0) the frequency response
@@ -58,7 +58,7 @@ from package_ra_data_processing.f_spectra_normalization import normalization_db
 # *******************************************************************************
 
 
-def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
+def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap, save_strongest, threshold):
 
@@ -66,7 +66,8 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
     a_current_date = time.strftime("%d.%m.%Y")
 
     # Creating a folder where all pictures and results will be stored (if it doesn't exist)
-    result_path = "RESULTS_pulsar_n_periods_pics_" + filename
+    dat_file_name = dat_file_path.split('/')[-1]
+    result_path = results_path + "RESULTS_pulsar_n_periods_pics_" + dat_file_name[:-4]
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     if save_strongest:
@@ -77,17 +78,15 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
-    # DAT file to be analyzed:
-    filepath = common_path + filename
-
     # Timeline file to be analyzed:
-    timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
+    # timeline_filepath = results_path + dat_file_name.split('_Data_')[0] + '_Timeline.txt'
+    timeline_filepath = dat_file_path.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
-    file = open(filepath, 'rb')
+    file = open(dat_file_path, 'rb')
 
     # Data file header read
-    df_filesize = os.stat(filepath).st_size                         # Size of file
+    df_filesize = os.stat(dat_file_path).st_size                         # Size of file
     df_filepath = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
     file.close()
 
@@ -96,7 +95,7 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
                 clock_frq, df_creation_time_utc, receiver_mode, mode, sum_diff_mode,
                 n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
-                width, block_size] = FileHeaderReaderADR(filepath, 0, 0)
+                width, block_size] = FileHeaderReaderADR(dat_file_path, 0, 0)
 
         freq_points_num = len(frequency)
 
@@ -104,7 +103,7 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
          df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(filepath, 0, 1)
+         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(dat_file_path, 0, 1)
 
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
@@ -127,7 +126,7 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
     # Data reading and making figures
     print('\n\n  *** Data reading and making figures *** \n\n')
 
-    data_file = open(filepath, 'rb')
+    data_file = open(dat_file_path, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
     bar = IncrementalBar('   Making pictures of n periods: ', max=num_of_blocks, suffix='%(percent)d%%')
@@ -159,12 +158,12 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
         rc('font', size=5, weight='bold')
         ax1 = fig.add_subplot(211)
         ax1.plot(profile, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='3 pulses time profile')
-        ax1.legend(loc='upper right', fontsize = 5)
+        ax1.legend(loc='upper right', fontsize=5)
         ax1.grid(visible=True, which='both', color='silver', linewidth='0.50', linestyle='-')
         ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
         ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-        ax1.set_title('File: ' + filename + '  Description: ' + df_description + '  Resolution: ' +
-                      str(np.round(df/1000, 3))+' kHz and ' + str(np.round(time_resolution*1000, 3)) + ' ms.',
+        ax1.set_title('File: ' + dat_file_name + '  Description: ' + df_description + '  Resolution: ' +
+                      str(np.round(df/1000, 3)) + ' kHz and ' + str(np.round(time_resolution*1000, 3)) + ' ms.',
                       fontsize=5, fontweight='bold')
         ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         ax2 = fig.add_subplot(212)
@@ -185,12 +184,13 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
                  fontsize=3, transform=plt.gcf().transFigure)
         fig.text(0.09, 0.04, 'Software version: ' + software_version+', yerin.serge@gmail.com, IRA NASU',
                  fontsize=3, transform=plt.gcf().transFigure)
-        pylab.savefig(result_path + '/' + filename + ' fig. ' + str(block+1) + ' - Combined picture.png',
+        pylab.savefig(result_path + '/' + dat_file_name[:-4] + ' fig. ' + str(block+1) + ' - Combined picture.png',
                       bbox_inches='tight', dpi=customDPI)
 
         # If the profile has points above threshold save picture also into separate folder
         if save_strongest and np.max(profile) > threshold:
-            pylab.savefig(best_result_path + '/' + filename + ' fig. ' + str(block + 1) + ' - Combined picture.png',
+            pylab.savefig(best_result_path + '/' + dat_file_name[:-4] + ' fig. ' + str(block + 1) +
+                          ' - Combined picture.png',
                           bbox_inches='tight', dpi=customDPI)
         plt.close('all')
 
@@ -207,6 +207,6 @@ def pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normal
 
 if __name__ == '__main__':
 
-    pulsar_period_dm_compensated_pics(common_path, filename, pulsar_name, normalize_response, profile_pic_min,
+    pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
                                       colormap, True, 0.25)
