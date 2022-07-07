@@ -109,6 +109,7 @@ done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_curre
                                                             longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files)
+
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
 if 'chA' in DAT_file_list and 'chA' in data_types:
@@ -117,6 +118,7 @@ if 'chB' in DAT_file_list and 'chB' in data_types:
     data_types_to_process.append('chB')
 if 'C_m' in DAT_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
+
 
 print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
       DAT_file_name, ', of types:', data_types_to_process, '\n')
@@ -134,8 +136,9 @@ ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, pa
 #
 #
 
-print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
 # RFI mask making
+print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
+
 for i in range(len(data_types_to_process)):
     dat_rfi_mask_making(path_to_dat_files + DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 4000)
 
@@ -146,6 +149,7 @@ for i in range(len(data_types_to_process)):
 #
 #
 
+# Dispersion delay removing
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing... \n\n')
 
 dedispersed_data_file_list = []
@@ -173,6 +177,7 @@ for i in range(len(data_types_to_process)):
 #
 #
 
+# Making N periods pics
 if save_n_period_pics:
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making figures of 3 pulsar periods... \n\n')
@@ -201,8 +206,8 @@ if save_n_period_pics:
 #
 #
 
+# Making another long dynamic spectra
 result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-
 print('\n\n  * ', str(datetime.datetime.now())[:19],
       ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
@@ -216,6 +221,7 @@ ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], dat
 #
 #
 
+# Averaging the pulse
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making averaged (folded) pulse profile... \n\n')
 
 for dedispersed_data_file_name in dedispersed_data_file_list:
