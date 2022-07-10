@@ -29,7 +29,7 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                     v_min_corr_mag, v_max_corr_mag, colormap, custom_dpi, corr_process, 
                     long_file_save_ch_a, long_file_save_ch_b, long_file_save_cri, long_file_save_cmp,
                     dyn_spec_save_initial, dyn_spec_save_cleaned, corr_spectr_save_initial, corr_spectr_save_cleaned, 
-                    spectra_file_save_switch, immediate_sp_no, dat_files_path=''):
+                    spectra_file_save_switch, immediate_sp_no, dat_files_path='', print_or_not=1):
     
     # current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -46,10 +46,13 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
         if not os.path.exists(result_path + '/Correlation_spectra'):
             os.makedirs(result_path + '/Correlation_spectra')
 
+    print('\n JDS File reader: \n')
+    print('   Data folder: ', file_list[0].split('/')[:-1])
+
     # Main loop
     for file_no in range(len(file_list)):   # loop by files
-        print('\n\n  *  File ',  str(file_no+1), ' of', str(len(file_list)))
-        print('  *  File path: ', str(file_list[file_no]))
+        print('\n  * ', str(datetime.datetime.now())[:19], ' File ',  str(file_no+1), ' of', str(len(file_list)),
+              ' : ', str(file_list[file_no].split('/')[-1]))
 
     # *********************************************************************************
 
@@ -89,24 +92,24 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
 
                 # *** Creating a binary file with data for long data storage ***
                 if(mode == 1 or mode == 2) and long_file_save_ch_a == 1:
-                    data_a_file_name = dat_files_path + df_filename+'_data_chA.dat'
+                    data_a_file_name = dat_files_path + df_filename+'_Data_chA.dat'
                     data_a_file = open(data_a_file_name, 'wb')
                     data_a_file.write(file_header)
                     data_a_file.close()
                     dat_file_list.append('chA')
                 if long_file_save_ch_b == 1 and (mode == 1 or mode == 2):
-                    data_b_file_name = dat_files_path + df_filename+'_data_chB.dat'
+                    data_b_file_name = dat_files_path + df_filename+'_Data_chB.dat'
                     data_b_file = open(data_b_file_name, 'wb')
                     data_b_file.write(file_header)
                     data_b_file.close()
                     dat_file_list.append('chB')
                 if long_file_save_cri == 1 and corr_process == 1 and mode == 2:
-                    data_cre_name = dat_files_path + df_filename+'_data_CRe.dat'
+                    data_cre_name = dat_files_path + df_filename+'_Data_CRe.dat'
                     data_cre_file = open(data_cre_name, 'wb')
                     data_cre_file.write(file_header)
                     data_cre_file.close()
                     dat_file_list.append('CRe')
-                    data_cim_name = dat_files_path + df_filename+'_data_CIm.dat'
+                    data_cim_name = dat_files_path + df_filename+'_Data_CIm.dat'
                     data_cim_file = open(data_cim_name, 'wb')
                     data_cim_file.write(file_header)
                     data_cim_file.close()
@@ -139,11 +142,11 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                 if fig_max < 1: 
                     fig_max = 1
                 for fig in range(fig_max):
-                    # Time1 = time.time()               # Timing
                     fig_id = fig_id + 1
                     current_time = time.strftime("%H:%M:%S")
-                    print (' File # ', str(file_no+1), ' of ', str(len(file_list)), ', figure # ', fig_id+1, 
-                           ' of ', fig_max, '   started at: ', current_time)
+                    if print_or_not:
+                        print(' File # ', str(file_no+1), ' of ', str(len(file_list)), ', figure # ', fig_id+1,
+                              ' of ', fig_max, '   started at: ', current_time)
                     if (sp_in_file - sp_skip - max_sp_num * fig_id) < max_sp_num:
                         n_sp = int(sp_in_file - sp_skip - max_sp_num * fig_id)
                     else:
