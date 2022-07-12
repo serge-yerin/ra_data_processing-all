@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import datetime
 import matplotlib.pyplot as plt
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_processing.f_spectra_normalization import normalization_db
@@ -48,9 +49,8 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
         data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read_per_bunch * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read_per_bunch], order='F')
 
+        print('\n * Chunk', chunk+1, 'of', chunks_in_file, 'time:', str(datetime.datetime.now())[:19])
         cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data, show_figures=False)
-
-        print('Data type of the mask: ', mask.dtype)
 
         new_data_file = open(new_data_file_name, 'ab')
         mask = np.transpose(mask).copy(order='C')
