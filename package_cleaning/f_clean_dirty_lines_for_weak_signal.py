@@ -27,8 +27,8 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
         normalization_db(array.transpose(), a, b)
         array = array - np.mean(array)
 
-    print('Data shape, max, min, mean, std:', array.shape, np.round(np.max(array), 5), np.round(np.min(array), 5),
-                                              np.round(np.mean(array), 5), np.round(np.std(array), 5))
+    print('   Bunch shape :', array.shape, ', Max: ', np.round(np.max(array), 5), ', Min: ', np.round(np.min(array), 5),
+          ', Mean: ', np.round(np.mean(array), 5), ', StD: ', np.round(np.std(array), 2))
 
     # Set arrays and numbers for the while loop begin and for case when no loop iteration needed
     new_mask = np.zeros_like(array, dtype=bool)
@@ -76,8 +76,8 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
 
         # Calculate statistics
         dirty_points = np.sum(new_mask)
-        print('Std:', np.round(data_std, 5), 'masked', dirty_points, 'pix of', total_points,
-              'or', np.round(dirty_points / total_points * 100, 5), '% ')
+        print('   Iteration:', counter+1, ' StD:', np.round(data_std, 5), ' Masked:', dirty_points,
+              'pix of', total_points, 'or', np.round(dirty_points / total_points * 100, 5), '%')
 
         if show_figures:
             # Show initial array and cleaned array
