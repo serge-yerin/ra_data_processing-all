@@ -1,6 +1,7 @@
 # TODO: make a sum of channels A & B (or may be not)
 
 # Python3
+software_name = 'Pulses Incoherent Averaging Script'
 software_version = '2022.07.05'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
@@ -19,13 +20,12 @@ pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA']
+data_types = ['chA', 'chB']
 
 periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
 scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
 save_n_period_pics = False    # Save n-period pictures?
-save_strongest = True         # Save strongest images to additional separate folder?
 threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -76,12 +76,14 @@ else:
     longFileSaveCMP = 0
     CorrelationProcess = 0
 
+#
+#
+#
+#
+print('\n\n\n\n   ***************************************************************************')
+print('   *          ', software_name, ' v.', software_version, '            *      (c) YeS 2022')
+print('   *************************************************************************** \n')
 
-# '''
-#
-#
-#
-#
 
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making dynamic spectra of the initial data')
 
@@ -108,7 +110,8 @@ done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_curre
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
                                                             longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
-                                                            CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files)
+                                                            CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
+                                                            print_or_not=0)
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
@@ -128,7 +131,7 @@ result_folder_name = source_directory.split('/')[-2] + '_initial'
 ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                      0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
                      16.5, 33.0, [], 0)
-# '''
+#
 #
 #
 # DAT_file_name = 'E300117_180000.jds'
@@ -140,12 +143,14 @@ ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, pa
 print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
 
 for i in range(len(data_types_to_process)):
-    dat_rfi_mask_making(path_to_dat_files + DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 4000)
+    dat_rfi_mask_making(path_to_dat_files + DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 1024)
+
 
 #
 #
-#
-#
+# data_types_to_process = ['chA', 'chB']
+# path_to_dat_files = 'g:/python/B0809+74_2022.04.13_URAN2_B0809+74/'
+# DAT_file_name = 'P130422_115005.jds'
 #
 #
 
@@ -169,7 +174,7 @@ for i in range(len(data_types_to_process)):
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
-# '''
+#
 #
 #
 # dedispersed_data_file_list = ['B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat']
@@ -198,7 +203,7 @@ if save_n_period_pics:
 
         pulsar_period_dm_compensated_pics(path_to_dat_files, dedispersed_data_file_name, pulsar_name, 0,
                                           amp_min, amp_max, dyn_sp_min, dyn_sp_max, 3, 500, 'Greys',
-                                          save_strongest, threshold)
+                                          True, threshold)
 
 #
 #
@@ -215,9 +220,13 @@ ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], dat
                      result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
                      16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
+
 #
 #
 #
+# dedispersed_data_file_list = ['B0809+74_DM_5.755_P130422_115005.jds_Data_chA.dat',
+#                               'B0809+74_DM_5.755_P130422_115005.jds_Data_chB.dat']
+# path_to_dat_files = 'g:/python/B0809+74_2022.04.13_URAN2_B0809+74/'
 #
 #
 
