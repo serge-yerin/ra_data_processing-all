@@ -47,11 +47,11 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
             os.makedirs(result_path + '/Correlation_spectra')
 
     print('\n JDS File reader: \n')
-    print('   Data folder: ', file_list[0].split('/')[:-1])
+    print('  Data folder: ', "/".join(file_list[0].split('/')[:-1]), '\n')
 
     # Main loop
     for file_no in range(len(file_list)):   # loop by files
-        print('\n  * ', str(datetime.datetime.now())[:19], ' File ',  str(file_no+1), ' of', str(len(file_list)),
+        print('  * ', str(datetime.now())[:19], ' File ',  str(file_no+1), ' of ', str(len(file_list)),
               ' : ', str(file_list[file_no].split('/')[-1]))
 
     # *********************************************************************************
