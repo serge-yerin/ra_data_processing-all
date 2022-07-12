@@ -137,11 +137,14 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     # Taking pulsar period from catalogue
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
+    print('\n * Data file name: ', filename)
+
     # DAT datafile to be analyzed:
     filepath = common_path + filename
 
     # Timeline file to be analyzed:
     timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
+    # timeline_filepath = filename.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
     file = open(filepath, 'rb')
