@@ -190,8 +190,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
 
         print(' Software name:                 ', df_softname)
         print(' Software version:              ', df_softvers)
-        print(' DSP soft version:              ', df_dsp_vers)
-        print('\n')
+        print(' DSP soft version:              ', df_dsp_vers, '\n')
 
     # Receiver developers made NAvr = 2 for single spectrum, so for waveform we correct the value:
     # if mode == 0:   # For waveform mode correct NAvr = 2
@@ -236,7 +235,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         receiver_mode = 'Correlation mode'
     if mode == 1 or mode == 2:
         if print_or_not == 1:
-            print('\n Number of JDS spectra in file:     ', sp_in_file, '\n\n')
+            print(' Number of JDS spectra in file: ', sp_in_file, '\n\n')
 
     return df_filename, df_filesize, df_system_name, df_obs_place, df_description, clock_freq, df_creation_timeUTC, \
            sp_in_file, receiver_mode, mode, Navr, time_res, fmin, fmax, df, frequency, Wb, data_block_size
