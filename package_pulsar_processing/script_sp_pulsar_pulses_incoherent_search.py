@@ -1,4 +1,5 @@
-# TODO: make a sum of channels A & B (or may be not)
+# TODO: make a sum of channels A & B
+# TODO: try making correlation with calibration
 
 # Python3
 software_name = 'Pulses Incoherent Averaging Script'
@@ -25,12 +26,12 @@ data_types = ['chA', 'chB']
 periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
 scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
+save_long_dyn_spectra = False
 save_n_period_pics = False    # Save n-period pictures?
 threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
-longFileSaveCRI = 0           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
@@ -108,7 +109,7 @@ for file in range(len(file_name_list_current)):
 done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
-                                                            longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
+                                                            0, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                             print_or_not=0)
@@ -123,14 +124,15 @@ if 'C_m' in DAT_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
 
 
-print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
-      DAT_file_name, ', of types:', data_types_to_process, '\n')
+if save_long_dyn_spectra:
+    print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
+          DAT_file_name, ', of types:', data_types_to_process, '\n')
 
-result_folder_name = source_directory.split('/')[-2] + '_initial'
+    result_folder_name = source_directory.split('/')[-2] + '_initial'
 
-ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
-                     0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
-                     16.5, 33.0, [], 0)
+    ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
+                         0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
+                         16.5, 33.0, [], 0)
 #
 #
 #
@@ -211,14 +213,16 @@ if save_n_period_pics:
 #
 #
 
-# Making another long dynamic spectra
-result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-print('\n\n  * ', str(datetime.datetime.now())[:19],
-      ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
+if save_long_dyn_spectra:
 
-ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process, path_to_dat_files,
-                     result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
-                     16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+    # Making another long dynamic spectra
+    result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
+    print('\n\n  * ', str(datetime.datetime.now())[:19],
+          ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
+
+    ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process, path_to_dat_files,
+                         result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
+                         16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
 
 #
