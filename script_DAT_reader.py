@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2022.01.29'
+Software_version = '2022.07.26'
 # Program intended to read and show data from DAT files
 
 # *******************************************************************************
@@ -16,9 +16,9 @@ filename = common_path + 'A200605_084324.adr_Data_chA.dat'
 data_types = ['chA', 'chAdt']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
-# freqList = [10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0]
-freqList = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-# freqList = [4.0, 5.0, 6.0, 7.0, 8.0, 8.05, 8.1, 8.15, 8.5, 9.0]
+# freq_list_to_save = [10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0]
+freq_list_to_save = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+# freq_list_to_save = [4.0, 5.0, 6.0, 7.0, 8.0, 8.05, 8.1, 8.15, 8.5, 9.0]
 
 aver_or_min = 0                  # Use average value (0) per data block or minimum value (1)
 start_stop_switch = 0            # Read the whole file (0) or specified time limits (1)
@@ -29,28 +29,28 @@ VminNormMan = 0                  # Manual lower limit of normalized dynamic spec
 VmaxNormMan = 25                 # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 diff_v_min = -2                  # Lower limit of colormap in differential mode
 diff_v_max = 2                   # Higher limit of colormap in differential mode
-RFImeanConst = 6                 # Constant of RFI mitigation (usually = 8)
-custom_dpi = 300                  # Resolution of images of dynamic spectra
+rfi_mean_const = 6               # Constant of RFI mitigation (usually = 8)
+custom_dpi = 300                 # Resolution of images of dynamic spectra
 colormap = 'jet'                 # Colormap of images of dynamic spectra ('jet' or 'Greys')
-ChannelSaveTXT = 0               # Save intensities at specified frequencies to TXT file
-ChannelSavePNG = 0               # Save intensities at specified frequencies to PNG file
-ListOrAllFreq = 0                # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
+channel_save_txt = 0             # Save intensities at specified frequencies to TXT file
+channel_save_png = 0             # Save intensities at specified frequencies to PNG file
+list_or_all_freq_save = 0        # Take all frequencies of a list to save TXT and PNG? 1-All, 0-List
 AmplitudeReIm = 20 * 10**(-12)   # Colour range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value for CasA for interferometer of 2 GURT subarrays
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 10.0
-freqStop = 70.0
+dyn_spectra_freq_start = 0.0
+dyn_spectra_freq_stop = 80.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
 date_time_start = '2020-06-05 09:33:00'
 date_time_stop =  '2020-06-05 09:40:00'
 
 # Begin and end frequency of TXT files to save (MHz)
-freqStartTXT = 8.0
-freqStopTXT = 33.0
+freq_start_txt_png = 8.0
+freq_stop_txt_png = 33.0
 
-save_to_txt_file = False         # Save short part of dynamic spectrum to txt file
+save_dyn_sp_to_txt_file = False         # Save short part of dynamic spectrum to txt file
 
 # ###############################################################################
 # *******************************************************************************
@@ -78,9 +78,9 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 
-print('\n\n\n   ****************************************************')
-print('   * DAT time data files processing  v.', Software_version, '   *      (c) YeS 2018')
-print('   **************************************************** \n')
+print('\n\n\n   *******************************************************')
+print('   *    DAT time data files processing  v.', Software_version, '   *      (c) YeS 2022')
+print('   ******************************************************* \n')
 
 start_time = time.time()
 current_time = time.strftime("%H:%M:%S")
@@ -415,7 +415,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 #                                 F I G U R E S                                 *
 # *******************************************************************************
 
-    print('\n Building images... ')
+    print('\n Making plots... ')
 
     # Exact string timescales to show on plots
     TimeScaleFig = np.empty_like(dateTimeNew)
@@ -441,64 +441,72 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                           'DAT_Results/' + fileNameAddSpectr + df_filename[0:14] + '_' + data_types[j] +
                           ' Immediate Spectrum.png', current_date, current_time, Software_version)
 
-    # *** Decide to use only list of frequencies or all frequencies in range
-    if ListOrAllFreq == 0:
-        freqList = np.array(freqList)
-    if ListOrAllFreq == 1:
-        freqList = np.array(frequency)
+    # Select frequencies to save channels in TXT and PNG
+    if list_or_all_freq_save < 1:
+        # Simply use list specified in the script header
+        freq_list_to_save = np.array(freq_list_to_save)
+    else:
+        # Take all available frequencies in the specified frequency range
+        freq_list_to_save = []
+        for i in range(len(frequency)):
+            if (frequency[i] > freq_start_txt_png) and (frequency[i] < freq_stop_txt_png):
+                freq_list_to_save.append(frequency[i])
 
-    # *** Finding frequency most close to specified by user ***
-    for fc in range(len(freqList)):
-        if (freqList[fc] > freqStartTXT) and (freqList[fc] < freqStopTXT):
-            newFreq = np.array(frequency)
-            newFreq = np.absolute(newFreq - freqList[fc])
-            index = np.argmin(newFreq) + 1
-            tempArr1 = np.arange(0, len(dateTimeNew), 1)
+    # Loop by frequencies to save single channel TXTs and PNGs
+    for fc in range(len(freq_list_to_save)):
 
-            if ChannelSavePNG == 1:  # or data_types[j] == 'CRe' or data_types[j] == 'CIm':
-                if data_types[j] == 'CRe' or data_types[j] == 'CIm':
-                    Vmin = 0 - AmplitudeReIm
-                    Vmax = 0 + AmplitudeReIm
+        # Finding frequency most close to specified by user
+        newFreq = np.array(frequency)
+        newFreq = np.absolute(newFreq - freq_list_to_save[fc])
+        index = np.argmin(newFreq) + 1
+        tempArr1 = np.arange(0, len(dateTimeNew), 1)
 
-                # *** Plotting intensity changes at particular frequency ***
-                timeline = []
-                for i in range(len(dateTimeNew)):
-                    timeline.append(str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23]))
+        if channel_save_png == 1:
+            if data_types[j] == 'CRe' or data_types[j] == 'CIm':
+                Vmin = 0 - AmplitudeReIm
+                Vmax = 0 + AmplitudeReIm
 
-                Suptitle = 'Intensity variation ' + str(df_filename[0:18]) + ' ' + nameAdd
-                Title = ('Initial parameters: dt = ' + str(round(time_res, 3)) + ' Sec, df = ' +
-                         str(round(df/1000, 3)) + ' kHz, Frequency = ' + str(round(frequency[index], 3)) +
-                         ' MHz ' + sumDifMode+' Processing: ' + reducing_type + str(averageConst) +
-                         ' spectra (' + str(round(averageConst * time_res, 3)) + ' sec.)')
+            # Plotting intensity changes at particular frequency
+            timeline = []
+            for i in range(len(dateTimeNew)):
+                timeline.append(str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23]))
 
-                FileName = ('DAT_Results/' + df_filename[0:14] + '_' + data_types[j] +
-                            ' Intensity variation at ' + str(round(frequency[index], 3)) + '.png')
+            Suptitle = 'Intensity variation ' + str(df_filename[0:18]) + ' ' + nameAdd
+            Title = ('Initial parameters: dt = ' + str(round(time_res, 3)) + ' Sec, df = ' +
+                     str(round(df/1000, 3)) + ' kHz, Frequency = ' + str(round(frequency[index], 3)) +
+                     ' MHz ' + sumDifMode+' Processing: ' + reducing_type + str(averageConst) +
+                     ' spectra (' + str(round(averageConst * time_res, 3)) + ' sec.)')
 
-                OneValueWithTimePlot(timeline, array[[index], :].transpose(), Label,
-                                     0, len(dateTimeNew), Vmin, Vmax, 0, 0,
-                                     'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
-                                     Suptitle, Title, FileName,
-                                     current_date, current_time, Software_version)
+            FileName = ('DAT_Results/' + df_filename[0:14] + '_' + data_types[j] +
+                        ' Intensity variation at ' + str(round(frequency[index], 3)) + '.png')
 
-            # *** Saving value changes at particular frequency to TXT file ***
-            if ChannelSaveTXT == 1:
-                SingleChannelData = open('DAT_Results/' + df_filename[0:14] + '_' + filename[-7:-4:] +
-                                         ' Intensity variation at ' + str(round(frequency[index], 3)) + ' MHz.txt', "w")
-                for i in range(len(dateTimeNew)):
-                    SingleChannelData.write(str(dateTimeNew[i]).rstrip() + '   ' +
-                                            str(array.transpose()[i, index]) + ' \n')
-                SingleChannelData.close()
+            OneValueWithTimePlot(timeline, array[[index], :].transpose(), Label,
+                                 0, len(dateTimeNew), Vmin, Vmax, 0, 0,
+                                 'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', YaxName,
+                                 Suptitle, Title, FileName,
+                                 current_date, current_time, Software_version)
+
+        # *** Saving value changes at particular frequency to TXT file ***
+        if channel_save_txt == 1:
+            SingleChannelData = open('DAT_Results/' + df_filename[0:14] + '_' + filename[-7:-4:] +
+                                     ' Intensity variation at ' + str(round(frequency[index], 3)) + ' MHz.txt', "w")
+            for i in range(len(dateTimeNew)-1):
+                SingleChannelData.write(str(dateTimeNew[i]).rstrip() + '   ' +
+                                        str(array.transpose()[i, index]) + ' \n')
+            SingleChannelData.close()
 
     # *** Cutting the array inside frequency range specified by user ***
-    if spec_freq_range == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
-            (frequency[0] <= freqStop <= frequency[freq_points_num-1]) and (freqStart < freqStop):
+    if spec_freq_range == 1 and (frequency[0] <= dyn_spectra_freq_start <= frequency[freq_points_num-1]) and \
+            (frequency[0] <= dyn_spectra_freq_stop <= frequency[freq_points_num-1]) and \
+            (dyn_spectra_freq_start < dyn_spectra_freq_stop):
 
-        print('\n You have chosen the frequency range:          ', freqStart, '-', freqStop, 'MHz')
+        print('\n You have chosen the frequency range:          ', 
+              dyn_spectra_freq_start, '-', dyn_spectra_freq_stop, 'MHz')
         A = []
         B = []
         for i in range(len(frequency)):
-            A.append(abs(frequency[i] - freqStart))
-            B.append(abs(frequency[i] - freqStop))
+            A.append(abs(frequency[i] - dyn_spectra_freq_start))
+            B.append(abs(frequency[i] - dyn_spectra_freq_stop))
         ifmin = A.index(min(A))
         ifmax = B.index(min(B))
         array = array[ifmin:ifmax, :]
@@ -536,8 +544,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # *** Normalization and cleaning of dynamic spectra ***
         array = normalization_db(array.transpose(), len(freqLine), time_points_num)  # len(dateTimeNew)
-        # array = simple_channel_clean(array.transpose(), RFImeanConst)
-        array = simple_channel_clean(array, RFImeanConst)
+        array = simple_channel_clean(array, rfi_mean_const)
         array = array.transpose()
 
         colormap_cur = colormap
@@ -547,8 +554,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
             for i in range(array.shape[1] - 1):
                 array[:, i] = array[:, i + 1] - array[:, i]
             array[:, -1] = 0  # Make the last column of data zeros as they were not differentiated properly
-            # configure colormap
-            colormap_cur = 'Greys_r'
+            colormap_cur = 'Greys_r'  # configure colormap
 
         # *** Dynamic spectra of cleaned and normalized signal ***
 
@@ -567,11 +573,12 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # Save selected part of the dynamic spectrum to txt file
 
-        if save_to_txt_file and start_stop_switch > 0:
+        if save_dyn_sp_to_txt_file and start_stop_switch > 0:
 
             # Saving dynamic spectra
             txt_file_name = str(df_filename[0:18]) + '_' + data_types[j] + '_' + \
-                            date_time_start[11:].replace(':', '-') + ' - ' + date_time_stop[11:].replace(':', '-') + '.txt'
+                            date_time_start[11:].replace(':', '-') + ' - ' + \
+                            date_time_stop[11:].replace(':', '-') + '.txt'
             txt_file = open(txt_file_name, "w")
             for step in range(len(freqLine)):
                 txt_file.write(''.join(format(array[step, i], "12.5f") for i in range(time_points_num)) + ' \n')
