@@ -14,7 +14,7 @@ filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
 
 use_mask_file = True
-periods_per_fig = 2               # Periods pf pulsar to show in the figure
+periods_per_fig = 1               # Periods of pulsar to show in the figure
 spectra_to_read = 500             # Spectra to read in one bunch (depends on RAM)
 
 spectrum_pic_min = -0.5           # Minimum limit of dynamic spectrum picture
@@ -144,7 +144,6 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
 
     # Timeline file to be analyzed:
     timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
-    # timeline_filepath = filename.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
     file = open(filepath, 'rb')
@@ -195,12 +194,12 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     # Time resolution of interpolated data
     interp_time_resolution = time_resolution / scale_factor
 
-    interp_spectra_in_profile = int(periods_per_fig * p_bar / interp_time_resolution) + 1
+    interp_spectra_in_profile = int(periods_per_fig * p_bar / interp_time_resolution)
     # Keep in mind that 2 arises here because the time resolution is valid for each second sample, and other samples
     # are obtained with overlap of wf samples to calculate fft
 
     # Calculation of remainder of the pulsar period when divided by interpolated time resolution
-    remainder_of_n_periods = (interp_time_resolution * interp_spectra_in_profile) - (periods_per_fig * p_bar)
+    remainder_of_n_periods = (periods_per_fig * p_bar) - (interp_time_resolution * interp_spectra_in_profile)
     if remainder_of_n_periods < 0:
         sys.exit('Error! Remainder is less then zero! ')
 
@@ -209,9 +208,9 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     print(' Interpolated time resolution: ', interp_time_resolution, ' s.\n')
 
     # Interpolated data buffer
-    data_interp = np.zeros([len(frequency), 0], dtype=np.float32)
+    data_interp = np.zeros([freq_points_num, 0], dtype=np.float32)
     # Array for result integrated pulse
-    integrated_spectra = np.zeros([len(frequency), interp_spectra_in_profile], dtype=np.float32)
+    integrated_spectra = np.zeros([freq_points_num, interp_spectra_in_profile], dtype=np.float32)
 
     # Counters:
     profiles_counter = 0  # Absolute profiles counter
@@ -223,15 +222,15 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     for bunch in range(bunches_in_file):
         # print(' Bunch # ', bunch+1, ' of ', bunches_in_file)
 
-        data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
-        data_raw = np.reshape(data_raw, [len(frequency), spectra_to_read], order='F')
+        data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * freq_points_num)
+        data_raw = np.reshape(data_raw, [freq_points_num, spectra_to_read], order='F')
         data_raw = 10 * np.log10(data_raw, dtype=np.float32)
 
         # Apply masking if needed
         if use_mask_file:
             # Read mask from file
-            mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read * len(frequency))
-            mask = np.reshape(mask, [len(frequency), spectra_to_read], order='F')
+            mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read * freq_points_num)
+            mask = np.reshape(mask, [freq_points_num, spectra_to_read], order='F')
             # Apply as mask to data copy and calculate mean value without noise
             masked_data_raw = np.ma.masked_where(mask, data_raw)
             data_raw_mean = np.mean(masked_data_raw)
