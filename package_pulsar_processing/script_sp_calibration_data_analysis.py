@@ -8,9 +8,9 @@ software_name = 'JDS cross-spectra phase calibration data analysis'
 source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_calibration/'  # Directory with JDS files to be analyzed
 result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
 
+do_filtering = True
+
 MaxNsp = 2048                 # Number of spectra to read for one figure
-spSkip = 0                    # Number of chunks to skip from data beginning
-RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
 Vmin = -100                   # Lower limit of figure dynamic range
 Vmax = -40                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
@@ -18,16 +18,12 @@ VmaxNorm = 20                 # Upper limit of figure dynamic range for normaliz
 VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
 VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-customDPI = 300               # Resolution of images of dynamic spectra
+custom_dpi = 300              # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
 longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
@@ -59,7 +55,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-
+from package_ra_data_processing.filtering import median_filter
 # ###############################################################################
 
 
@@ -70,7 +66,7 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data):
     """
 
     # Prepare a folder for results
-    result_path = 'RESULTS_cross-sp_calibr_' + path_to_calibr_data.split('/')[-2] + '/'
+    result_path = result_directory + 'RESULTS_cross-sp_calibr_' + path_to_calibr_data.split('/')[-2] + '/'
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
@@ -99,19 +95,17 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data):
         print('\n  Processing file: ', df_description.replace('_', ' '),
               ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
-        # Run ADR reader for the current folder
-        # done, dat_file_name, dat_file_list = JDS_file_reader([path_to_calibr_data + file_list[file_no]],
-        #                                                             result_path, MaxNsp, spSkip,
-        #                                                             RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-        #                                                             VminCorrMag, VmaxCorrMag, colormap, customDPI,
-        #                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
-        #                                                             longFileSaveCRI, longFileSaveCMP, DynSpecSaveInitial,
-        #                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
-        #                                                             CorrSpecSaveCleaned, SpecterFileSaveSwitch,
-        #                                                             ImmediateSpNo, dat_files_path=result_path,
-        #                                                             print_or_not=0)
+        # Run JDS reader for the current folder
+        # done, dat_file_name, dat_file_types = JDS_file_reader([path_to_calibr_data + file_list[file_no]],
+        #                                                       result_path, MaxNsp, 0,
+        #                                                       20, Vmin, Vmax, VminNorm, VmaxNorm,
+        #                                                       VminCorrMag, VmaxCorrMag, colormap, custom_dpi,
+        #                                                       CorrelationProcess, longFileSaveAch, longFileSaveBch,
+        #                                                       longFileSaveCRI, longFileSaveCMP, 0,
+        #                                                       0, 0, 0, 0, 0, dat_files_path=result_path,
+        #                                                       print_or_not=0)
 
-    def read_dat_file_for_carlibration(file_name, num_of_spectra, freq_points_num):
+    def read_dat_file_for_calibration(file_name, num_of_spectra, freq_points_num):
         file = open(file_name, 'rb')
         file.seek(1024)
         data = np.fromfile(file, dtype=np.float64, count=num_of_spectra * freq_points_num)
@@ -126,33 +120,80 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data):
         re_file_name = result_path + init_file_names[pair] + '_Data_CRe.dat'
         file_size = os.stat(re_file_name).st_size
         num_of_spectra = int((file_size - 1024) / (8 * freq_points_num))
-        re_data = read_dat_file_for_carlibration(re_file_name, num_of_spectra, freq_points_num)
+        re_data = read_dat_file_for_calibration(re_file_name, num_of_spectra, freq_points_num)
         print(re_file_name)
 
         im_file_name = result_path + init_file_names[pair] + '_Data_CIm.dat'
-        im_data = read_dat_file_for_carlibration(im_file_name, num_of_spectra, freq_points_num)
+        im_data = read_dat_file_for_calibration(im_file_name, num_of_spectra, freq_points_num)
 
         cross_sp_phase = np.arctan2(im_data, re_data)
         # cross_sp_phase = corr_phase[:, 0]
         cross_sp_phase = np.mean(cross_sp_phase, axis=1)
+        if do_filtering:
+            cross_sp_phase = median_filter(cross_sp_phase, 30)
         cross_sp_angl.append(cross_sp_phase)
 
         cross_sp_module = 10 * np.log10((re_data ** 2 + im_data ** 2) ** 0.5)
         # cross_sp_module = corr_phase[:, 0]
         cross_sp_module = np.mean(cross_sp_module, axis=1)
+        if do_filtering:
+            cross_sp_module = median_filter(cross_sp_module, 30)
         cross_sp_ampl.append(cross_sp_module)
 
-    fig, axs = plt.subplots(1, 1)
+    # Figures of initial and averaged spectra for each file
     for i in range(len(file_list)):
-        axs.plot(cross_sp_angl[i])
-    axs.set_ylim(-3.15, 3.15)
-    pylab.savefig('Cross-spectra phase'+'.png', bbox_inches='tight', dpi=160)
+        rc('font', size=10, weight='bold')
+        fig = plt.figure(figsize=(18, 10))
+        fig.suptitle('Calibration matrix of waveform signals correlation for ' + file_list[i] +
+                     ' (' + labels[i] + ')', fontsize=12, fontweight='bold')
+        ax1 = fig.add_subplot(211)
+        ax1.set_title('Files: ' + init_file_names[0] + ' - ' + init_file_names[-1], fontsize=12)
+        ax1.plot(cross_sp_ampl[i], linestyle='-', linewidth='1.30', label='Cross spectra amplitude')
+        ax1.legend(loc='upper right', fontsize=10)
+        ax1.set(xlim=(0, freq_points_num-4))
+        ax1.set_ylim(-120, -60)
+        ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
+        ax2 = fig.add_subplot(212)
+        ax2.plot(cross_sp_angl[i], linestyle='-', linewidth='1.30', label='Cross spectra phase')
+        ax2.set(xlim=(0, freq_points_num-4))
+        ax2.set_ylim(-3.15, 3.15)
+        ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+        ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=10)
+        fig.subplots_adjust(hspace=0.07, top=0.94)
+        pylab.savefig(result_path + 'Signal_cross-spectra_' + init_file_names[i] + '.png', bbox_inches='tight', dpi=160)
+        plt.close('all')
 
-    fig, axs = plt.subplots(1, 1)
+    # Plot cross spectra matrix
+    rc('font', size=10, weight='bold')
+    fig = plt.figure(figsize=(18, 10))
+    fig.suptitle('Cross spectra calibration matrix', fontsize=12, fontweight='bold')
+    ax1 = fig.add_subplot(211)
+    ax1.set_title('Files: ' + init_file_names[0] + ' - ' + init_file_names[-1], fontsize=12)
+    for i in range(len(cross_sp_ampl)):
+        ax1.plot(cross_sp_ampl[i], linestyle='-', linewidth='1.30', label=labels[i]+' '+init_file_names[i])
+    ax1.legend(loc='upper right', fontsize=10)
+    ax1.set(xlim=(0, freq_points_num-4))
+    ax1.set_ylim(-120, -60)
+    ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
+    ax2 = fig.add_subplot(212)
+    for i in range(len(cross_sp_angl)):
+        ax2.plot(cross_sp_angl[i], linestyle='-', linewidth='1.30', label=labels[i])
+    ax2.set(xlim=(0, freq_points_num-4))
+    ax2.set_ylim(-3.15, 3.15)
+    ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
+    ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
+    ax2.legend(loc='upper right', fontsize=10)
+    fig.subplots_adjust(hspace=0.07, top=0.94)
+    pylab.savefig(result_path + 'Cross_spectra_calibration_matrix.png', bbox_inches='tight', dpi=160)
+    plt.close('all')
+
+    # Save phase matrix to txt files
     for i in range(len(file_list)):
-        axs.plot(cross_sp_ampl[i])
-    # axs.set_ylim(-3.15, 3.15)
-    pylab.savefig('Cross-spectra magnitude'+'.png', bbox_inches='tight', dpi=160)
+        phase_txt_file = open(result_path + 'Calibration_' + init_file_names[i] + '_cross_spectra_phase.txt', "w")
+        for freq in range(freq_points_num-4):
+            phase_txt_file.write(''.join(' {:+12.7E}'.format(cross_sp_angl[i][freq])) + ' \n')
+        phase_txt_file.close()
 
 
 # ###############################################################################
@@ -163,9 +204,9 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data):
 
 if __name__ == '__main__':
 
-    print('\n\n\n\n\n\n\n\n   ********************************************************************')
-    print('   * ', software_name, ' v.', software_version, ' *      (c) YeS 2020')
-    print('   ******************************************************************** \n\n\n')
+    print('\n\n\n\n\n\n\n\n   **********************************************************************')
+    print('   * ', software_name, ' v.', software_version, ' *      (c) YeS 2022')
+    print('   ********************************************************************** \n\n\n')
 
     start_time = time.time()
     current_time = time.strftime("%H:%M:%S")
