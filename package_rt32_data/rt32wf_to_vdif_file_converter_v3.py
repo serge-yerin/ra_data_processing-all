@@ -10,8 +10,9 @@ filename = 'A210612_075610_rt32_waveform_first_sample.adr'
 result_file_name = "n21c2_zo_no0001.vdif"
 filepath = directory + filename
 result_path = ''
-spectra_inversion = False  # Set True if the data were obtained with inverse spectrum
-shift_channel_number = 0  # Shift spectra by number of channels (use 0 if you do not know what it is)
+spectra_inversion = True      # Set True if the data were obtained with inverse spectrum
+spectra_conjugate = True
+shift_channel_number = 0      # Shift spectra by number of channels (use 0 if you do not know what it is)
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -407,7 +408,7 @@ def show_amplitude_spectra(array):
     return
 
 
-def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length, shift_channel_number, spectra_inversion):
+def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length, shift_channel_number, spectra_inversion, spectra_conjugate):
     """
     Converts complex waveform data to real waveform with doubled clock frequency
     cmplx_wf - input numpy array of complex waveform data
@@ -427,6 +428,11 @@ def complex_wf_to_real_wf(cmplx_wf, spectra_num, fft_length, shift_channel_numbe
     # Shift spectra by predefined number of channels
     cmplx_wf_sp = np.roll(cmplx_wf_sp, shift_channel_number, axis=1)
 
+    # If asked, make spectra complex conjugation
+    if spectra_conjugate:
+        cmplx_wf_sp = np.conj(cmplx_wf_sp)
+
+    # If asked, make spectra inversion
     if spectra_inversion:
         cmplx_wf_sp = np.fliplr(cmplx_wf_sp)
 
@@ -605,9 +611,9 @@ def rt32wf_to_vdf_data_converter(filepath, shift_channel_number, spectra_inversi
 
             # Convert waveform from complex representation to real one with doubled clock frequency
             real_wf_ch_0 = complex_wf_to_real_wf(cmplx_ch_0, spectra_num, fft_length,
-                                                 shift_channel_number, spectra_inversion)
+                                                 shift_channel_number, spectra_inversion, spectra_conjugate)
             real_wf_ch_1 = complex_wf_to_real_wf(cmplx_ch_1, spectra_num, fft_length,
-                                                 shift_channel_number, spectra_inversion)
+                                                 shift_channel_number, spectra_inversion, spectra_conjugate)
             # print(' Shape: ', cmplx_ch_0.shape, cmplx_ch_0.dtype, real_wf_ch_0.shape, real_wf_ch_0.dtype)
             del cmplx_ch_0, cmplx_ch_1
 
