@@ -1,3 +1,10 @@
+
+phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
+fname = 'E280120_205546.jds'
+file_path = ''
+result_path = ''
+
+
 import os
 import pylab
 import numpy as np
@@ -6,7 +13,8 @@ import matplotlib.pyplot as plt
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 
 
-def cross_spectra_phase_calibration(fname, phase_calibr_txt_file):
+def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_calibr_txt_file, save_complex=True,
+                                    save_module=True):
     """
     function reads cross-spectra data (Re and Im) in .dat format (obtained from jds or adr files)
     multiplies complex data by phase calibration data read from txt file.
@@ -18,18 +26,49 @@ def cross_spectra_phase_calibration(fname, phase_calibr_txt_file):
     """
 
     # Rename the data file to make the new data file of the same name as initial one
-    non_calibrated_fname = fname[:-4] + '_without_phase_calibration' + '.dat'
-    calibrated_fname = fname
-    print('\n  Phase calibration of one channel \n')
-    print('  Old filename of initial file:  ', calibrated_fname)
-    print('  New filename of initial file:  ', non_calibrated_fname)
+    re_fname = file_name + '_Data_CRe' + '.dat'
+    im_fname = file_name + '_Data_CIm' + '.dat'
+    mod_fname = file_name + '_Data_C_m' + '.dat'
 
-    os.rename(calibrated_fname, non_calibrated_fname)
+    non_calibrated_re_fname = file_path + re_fname[:-4] + '_without_phase_calibration' + '.dat'
+    non_calibrated_im_fname = file_path + im_fname[:-4] + '_without_phase_calibration' + '.dat'
 
-    #  *** Data file header read ***
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
+    os.rename(re_fname, non_calibrated_re_fname)
+    os.rename(im_fname, non_calibrated_im_fname)
+
+    calibrated_re_fname = result_path + re_fname
+    calibrated_im_fname = result_path + im_fname
+    calibrated_mod_fname = result_path + mod_fname
+
+    print('\n  Phase calibration of cross-spectra data (Re and IM) \n')
+
+    # #  *** Data file header read ***
+    # [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
+    #  clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
+    #  df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
+
+    # Read and copy first data file header from initial file to calibrated files
+    non_calibr_file_data = open(non_calibrated_re_fname, 'rb')
+    file_header = non_calibr_file_data.read(1024)
+
+    if save_complex:
+        # *** Creating a binary file for Real data for long data storage ***
+        calibr_file_data = open(calibrated_re_fname, 'wb')
+        calibr_file_data.write(file_header)
+        calibr_file_data.close()
+
+        # *** Creating a binary file for Imag data for long data storage ***
+        calibr_file_data = open(calibrated_im_fname, 'wb')
+        calibr_file_data.write(file_header)
+        calibr_file_data.close()
+
+    if save_module:
+        # *** Creating a binary file for Module data for long data storage ***
+        calibr_file_data = open(calibrated_mod_fname, 'wb')
+        calibr_file_data.write(file_header)
+        calibr_file_data.close()
+
+    del file_header
 
     # Read phase calibration txt file
     phase_calibr_file = open(phase_calibr_txt_file, 'r')
@@ -52,15 +91,8 @@ def cross_spectra_phase_calibration(fname, phase_calibr_txt_file):
     for i in range(len(phase_vs_freq)):
         cmplx_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
 
-    # Create long data files and copy first data file header to them
-    non_calibr_file_data = open(non_calibrated_fname, 'rb')
-    file_header = non_calibr_file_data.read(1024)
 
-    # *** Creating a binary file with data for long data storage ***
-    calibr_file_data = open(calibrated_fname, 'wb')
-    calibr_file_data.write(file_header)
-    calibr_file_data.close()
-    del file_header
+
 
 
 # *******************************************************************************
@@ -69,7 +101,5 @@ def cross_spectra_phase_calibration(fname, phase_calibr_txt_file):
 
 
 if __name__ == '__main__':
-    phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
-    fname = 'E280120_205546.jds_Data_chA.dat'
 
-    cross_spectra_phase_calibration(fname, phase_calibr_txt_file)
+    cross_spectra_phase_calibration(file_path, fname, result_path, phase_calibr_txt_file)
