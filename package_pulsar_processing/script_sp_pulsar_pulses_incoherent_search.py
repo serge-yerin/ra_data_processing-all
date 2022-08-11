@@ -1,5 +1,8 @@
 # TODO: make a sum of channels A & B
 # TODO: try making correlation with calibration
+# TODO: calculate the total data loss from cleaning
+# TODO: save pics of data with compensated delay applying mask as well
+# TODO: make picture of separate consequent pulses as in the well-known B1919+21 plot
 
 # Python3
 software_name = 'Pulses Incoherent Averaging Script'
