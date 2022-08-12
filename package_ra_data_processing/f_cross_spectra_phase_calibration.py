@@ -132,7 +132,8 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
 
             # Phase calibration
             print(data_complex.shape, complex_phase.shape)
-            data_complex = data_complex * complex_phase
+            for i in range(no_of_spectra_in_bunch):
+                data_complex[:, i] = data_complex[:, i] * complex_phase[:]
 
             # Saving calibrated data to a file
             calibr_re_file_data = open(calibrated_re_fname, 'ab')
