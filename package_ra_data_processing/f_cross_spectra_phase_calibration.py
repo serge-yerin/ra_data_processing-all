@@ -1,5 +1,5 @@
 
-fname = 'P130422_121607.jds'
+fname = 'P130422_114422.jds'
 
 file_path = 'RESULTS_cross-correlation_calibration/'
 result_path = 'RESULTS_cross-correlation_calibration/'
@@ -34,16 +34,18 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     re_fname = file_name + '_Data_CRe' + '.dat'
     im_fname = file_name + '_Data_CIm' + '.dat'
     mod_fname = file_name + '_Data_C_m' + '.dat'
+    phs_fname = file_name + '_Data_C_p' + '.dat'
 
     non_calibrated_re_fname = file_path + re_fname[:-4] + '_without_phase_calibration' + '.dat'
     non_calibrated_im_fname = file_path + im_fname[:-4] + '_without_phase_calibration' + '.dat'
 
-    os.rename(file_path + re_fname, non_calibrated_re_fname)
-    os.rename(file_path + im_fname, non_calibrated_im_fname)
+    # os.rename(file_path + re_fname, non_calibrated_re_fname)
+    # os.rename(file_path + im_fname, non_calibrated_im_fname)
 
     calibrated_re_fname = result_path + re_fname
     calibrated_im_fname = result_path + im_fname
     calibrated_mod_fname = result_path + mod_fname
+    calibrated_phs_fname = result_path + phs_fname
 
     print('\n  Phase calibration of cross-spectra data (Re and IM) \n')
 
@@ -56,6 +58,26 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     non_calibr_re_data_file = open(non_calibrated_re_fname, 'rb')
     non_calibr_im_data_file = open(non_calibrated_im_fname, 'rb')
     file_header = non_calibr_re_data_file.read(1024)
+
+    print(file_header)
+
+    ifmin = int(fmin * 1e6 / df)
+    ifmax = int(fmax * 1e6 / df) - 4
+    print(ifmin, ifmax)
+    # new_data_file.seek(624)  # Lb in header
+    # new_data_file.write(np.int32(ifmin).tobytes())
+    # new_data_file.seek(628)  # Hb in header
+    # new_data_file.write(np.int32(ifmax).tobytes())
+    # new_data_file.seek(632)  # Wb in header
+    # new_data_file.write(np.int32(ifmax - ifmin).tobytes())
+    # new_data_file.close()
+    print((file_header[624:628]))
+    print((file_header[628:632]))
+    print((file_header[632:636]))
+
+
+
+    input()
 
     if save_complex:
         # *** Creating a binary file for Real data for long data storage ***
@@ -73,6 +95,11 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
         calibr_mod_file_data = open(calibrated_mod_fname, 'wb')
         calibr_mod_file_data.write(file_header)
         calibr_mod_file_data.close()
+
+        # *** Creating a binary file for Phase data for long data storage ***
+        calibr_phs_file_data = open(calibrated_phs_fname, 'wb')
+        calibr_phs_file_data.write(file_header)
+        calibr_phs_file_data.close()
 
     del file_header
 
@@ -95,16 +122,13 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     # Converting phase to complex numbers (make function and store in separate file)
     complex_phase = np.zeros((len(phase_vs_freq)), dtype=complex)
     for i in range(len(phase_vs_freq)):
-        complex_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
+        complex_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])  # - ?
 
     # Calculation the number of spectra in the file and the number of bunches to read and convert
     no_of_spectra_in_file = int((df_filesize - 1024) / (freq_points_num * 8))
-    print('  Number of spectra per file:    ', no_of_spectra_in_file, '\n')
-    print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
-    print('                            :    ', no_of_spectra_in_file / no_of_spectra_in_bunch)
-
     no_of_bunches_in_file = math.ceil(no_of_spectra_in_file / no_of_spectra_in_bunch)
-
+    print('  Number of spectra per file:    ', no_of_spectra_in_file, '')
+    print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
     print('  Number of batches per file:    ', no_of_bunches_in_file, '')
 
     bar = IncrementalBar(' Phase calibration of the file: ', max=no_of_bunches_in_file - 1,
@@ -116,32 +140,49 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
             no_of_spectra_in_bunch = no_of_spectra_in_file - bunch * no_of_spectra_in_bunch
             # print(' Last bunch ', bunch+1, ', spectra in bunch: ', no_of_spectra_in_bunch)
 
-            # Read data from Re and Im files
-            data_re = np.fromfile(non_calibr_re_data_file, dtype=np.float64,
-                                  count=no_of_spectra_in_bunch * freq_points_num)
-            data_re = np.reshape(data_re, [freq_points_num, no_of_spectra_in_bunch], order='F')
-            data_re = data_re[:-4]
+        # Read data from Re and Im files
+        data_re = np.fromfile(non_calibr_re_data_file, dtype=np.float64,
+                              count=no_of_spectra_in_bunch * freq_points_num)
+        data_re = np.reshape(data_re, [freq_points_num, no_of_spectra_in_bunch], order='F')
+        data_re = data_re[:-4]
 
-            data_im = np.fromfile(non_calibr_im_data_file, dtype=np.float64,
-                                  count=no_of_spectra_in_bunch * freq_points_num)
-            data_im = np.reshape(data_im, [freq_points_num, no_of_spectra_in_bunch], order='F')
-            data_im = data_im[:-4]
+        data_im = np.fromfile(non_calibr_im_data_file, dtype=np.float64,
+                              count=no_of_spectra_in_bunch * freq_points_num)
+        data_im = np.reshape(data_im, [freq_points_num, no_of_spectra_in_bunch], order='F')
+        data_im = data_im[:-4]
 
-            data_complex = data_re + 1j * data_im
-            del data_re, data_im
+        data_complex = data_re + 1j * data_im
+        del data_re, data_im
 
-            # Phase calibration
-            print(data_complex.shape, complex_phase.shape)
-            for i in range(no_of_spectra_in_bunch):
-                data_complex[:, i] = data_complex[:, i] * complex_phase[:]
+        # Phase calibration
+        for i in range(no_of_spectra_in_bunch):
+            data_complex[:, i] = data_complex[:, i] * complex_phase[:]
 
-            # Saving calibrated data to a file
+        # Saving calibrated data to a file
+        if save_complex:
             calibr_re_file_data = open(calibrated_re_fname, 'ab')
-            # calibr_re_file_data.write((np.float64(wf_data).transpose().copy(order='C')))
-            calibr_re_file_data.write((np.float64(np.real(data_complex)).copy(order='C')))
+            calibr_re_file_data.write((np.float64(np.real(data_complex)).transpose().copy(order='C')))
             calibr_re_file_data.close()
 
+            calibr_im_file_data = open(calibrated_im_fname, 'ab')
+            calibr_im_file_data.write((np.float64(np.imag(data_complex)).transpose().copy(order='C')))
+            calibr_im_file_data.close()
+
+        if save_module:
+            calibr_mod_file_data = open(calibrated_mod_fname, 'ab')
+            calibr_mod_file_data.write((np.float64(np.absolute(data_complex)).transpose().copy(order='C')))
+            calibr_mod_file_data.close()
+
+            corr_phase = np.arctan2(np.imag(data_complex), np.real(data_complex))
+            corr_phase[np.isnan(corr_phase)] = 0
+
+            calibr_phs_file_data = open(calibrated_phs_fname, 'ab')
+            calibr_phs_file_data.write((np.float64(corr_phase).transpose().copy(order='C')))
+            calibr_phs_file_data.close()
+
         bar.next()
+
+    print('\n Calibrated files saved \n')
 
 
 # *******************************************************************************
@@ -151,4 +192,5 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
 
 if __name__ == '__main__':
 
-    cross_spectra_phase_calibration(file_path, fname, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch)
+    cross_spectra_phase_calibration(file_path, fname, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
+                                    save_complex=False, save_module=True)
