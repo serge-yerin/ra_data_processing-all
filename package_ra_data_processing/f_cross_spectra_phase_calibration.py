@@ -125,8 +125,8 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     print('  Number of batches per file:    ', no_of_bunches_in_file, '')
     print('  Number of frequency points:    ', freq_points_num, '')
 
-    # bar = IncrementalBar('\n  Phase calibration of the file: ', max=no_of_bunches_in_file,
-    #                      suffix='%(percent)d%%   ')
+    bar = IncrementalBar('\n  Phase calibration of the file: ', max=no_of_bunches_in_file,
+                         suffix='%(percent)d%%   ')
 
     for bunch in range(no_of_bunches_in_file):
 
@@ -145,63 +145,43 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
         data_im = np.reshape(data_im, [freq_points_num, no_of_spectra_in_bunch], order='F')
         data_im = data_im[:-4]  # Delete the last 4 channels where time is stored
 
-        print(data_im[0:3, 0:3])
-
         data_complex = np.array(data_re + 1j * data_im, dtype=np.complex128)
         del data_re, data_im
 
-        # # Phase calibration
-        # for i in range(no_of_spectra_in_bunch):
-        #     data_complex[:, i] = data_complex[:, i] * complex_phase[:]
+        # Phase calibration
+        for i in range(no_of_spectra_in_bunch):
+            data_complex[:, i] = data_complex[:, i] * np.conj(complex_phase[:])
 
-        # fig = plt.figure(figsize=(9, 5))
-        # # ax1 = fig.add_subplot(121)
-        # # ax1.imshow(10 * np.log10(np.absolute(data_complex)))
-        # ax1 = fig.add_subplot(121)
-        # ax1.imshow(data_re)
-        # ax2 = fig.add_subplot(122)
-        # ax2.imshow(np.real(data_complex))
-        # plt.show()
-        # plt.close('all')
-
+        # Transposed to save into files correctly
         data_complex = np.transpose(data_complex)
 
         # Saving calibrated data to a file
         if save_complex:
             calibr_re_file_data = open(calibrated_re_fname, 'ab')
-            # tmp = np.float64(np.real(data_complex)).transpose().copy(order='C')
             tmp = np.real(data_complex).copy(order='C')
-            # tmp = tmp.copy(order='C')
             calibr_re_file_data.write(tmp)
             calibr_re_file_data.close()
 
             calibr_im_file_data = open(calibrated_im_fname, 'ab')
-            # tmp = np.float64(np.imag(data_complex)).transpose().copy(order='C')
-            # tmp_data = np.imag(data_complex)
             tmp = np.imag(data_complex).copy(order='C')
-            print(tmp[0:3, 0:3])
-            print(type(tmp))
-            print(tmp.dtype)
             calibr_im_file_data.write(tmp)
             calibr_im_file_data.close()
 
         if save_module:
+
             calibr_mod_file_data = open(calibrated_mod_fname, 'ab')
-            tmp = np.absolute(data_complex).copy(order='C')
-            print(tmp.dtype)
-            # tmp = tmp.copy(order='C')
+            tmp = 10 * np.log10(np.absolute(data_complex)).copy(order='C')
             calibr_mod_file_data.write(tmp)
             calibr_mod_file_data.close()
 
             calibr_phs_file_data = open(calibrated_phs_fname, 'ab')
             tmp = np.angle(data_complex).copy(order='C')
-            # tmp = tmp.copy(order='C')
             calibr_phs_file_data.write(tmp)
             calibr_phs_file_data.close()
 
-        # bar.next()
+        bar.next()
 
-    # bar.finish()
+    bar.finish()
     non_calibr_re_data_file.close()
     non_calibr_im_data_file.close()
 
