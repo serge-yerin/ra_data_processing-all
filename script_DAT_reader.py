@@ -169,7 +169,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         VmaxNorm = 1
 
     if data_types[j] == 'C_m':
-        nameAdd = ' correlation module'
+        nameAdd = ' cross-spectra module'
         Vmin = -160
         VmaxNorm = 2 * VmaxNormMan
         fileNameAdd = ''
@@ -177,7 +177,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         fileNameAddSpectr = '011_'
 
     if data_types[j] == 'C_p':
-        nameAdd = ' correlation phase'
+        nameAdd = ' cross-spectra phase'
         YaxName = 'Phase, rad'
         Label = 'Phase'
         Vmin = -3.5
@@ -186,13 +186,13 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
         fileNameAddSpectr = '012_'
 
     if data_types[j] == 'CRe':
-        nameAdd = ' correlation RE part'
+        nameAdd = ' cross-spectra RE part'
         YaxName = 'Amplitude'
         fileNameAdd = '006_'
         fileNameAddSpectr = '013_'
 
     if data_types[j] == 'CIm':
-        nameAdd = ' correlation IM part'
+        nameAdd = ' cross-spectra IM part'
         YaxName = 'Amplitude'
         fileNameAdd = '007_'
         fileNameAddSpectr = '014_'
