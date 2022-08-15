@@ -141,7 +141,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             fileNameAddSpectr = '008_'
 
         if types_of_data[j] == 'C_m':
-            nameAdd = ' correlation module'
+            nameAdd = ' cross-spectra module'
             Vmin = -160
             VmaxNorm = 2 * VmaxNormMan
             fileNameAdd = ''
@@ -149,7 +149,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             fileNameAddSpectr = '011_'
 
         if types_of_data[j] == 'C_p':
-            nameAdd = ' correlation phase'
+            nameAdd = ' cross-spectra phase'
             YaxName = 'Phase, rad'
             label = 'Phase'
             Vmin = -3.5
@@ -158,13 +158,13 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             fileNameAddSpectr = '012_'
 
         if types_of_data[j] == 'CRe':
-            nameAdd = ' correlation RE part'
+            nameAdd = ' cross-spectra RE part'
             YaxName = 'Amplitude'
             fileNameAdd = '006_'
             fileNameAddSpectr = '013_'
 
         if types_of_data[j] == 'CIm':
-            nameAdd = ' correlation IM part'
+            nameAdd = ' cross-spectra IM part'
             YaxName = 'Amplitude'
             fileNameAdd = '007_'
             fileNameAddSpectr = '014_'
