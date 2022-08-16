@@ -19,7 +19,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 
 
 def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
-                                    save_complex=True, save_module=True):
+                                    save_complex=True, save_module=True, save_phase=True):
     """
     function reads cross-spectra data (Re and Im) in .dat format (obtained from jds or adr files)
     multiplies complex data by phase calibration data read from txt file.
@@ -87,6 +87,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
         calibr_mod_file_data.write(file_header)
         calibr_mod_file_data.close()
 
+    if save_phase:
         # *** Creating a binary file for Phase data for long data storage ***
         calibr_phs_file_data = open(calibrated_phs_fname, 'wb')
         calibr_phs_file_data.write(file_header)
@@ -174,6 +175,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
             calibr_mod_file_data.write(tmp)
             calibr_mod_file_data.close()
 
+        if save_phase:
             calibr_phs_file_data = open(calibrated_phs_fname, 'ab')
             tmp = np.angle(data_complex).copy(order='C')
             calibr_phs_file_data.write(tmp)
@@ -196,4 +198,4 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
 if __name__ == '__main__':
 
     cross_spectra_phase_calibration(file_path, fname, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
-                                    save_complex=True, save_module=True)
+                                    save_complex=True, save_module=True, save_phase=False)
