@@ -3,7 +3,7 @@ fname = 'P130422_114422.jds'
 
 file_path = 'RESULTS_cross-correlation_calibration/'
 result_path = 'RESULTS_cross-correlation_calibration/'
-phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = file_path + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 
 no_of_spectra_in_bunch = 2048
 
@@ -96,7 +96,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     del file_header
 
     # Read phase calibration txt file
-    phase_calibr_file = open(file_path + phase_calibr_txt_file, 'r')
+    phase_calibr_file = open(phase_calibr_txt_file, 'r')
     phase_vs_freq = []
     for line in phase_calibr_file:
         phase_vs_freq.append(float(line))
