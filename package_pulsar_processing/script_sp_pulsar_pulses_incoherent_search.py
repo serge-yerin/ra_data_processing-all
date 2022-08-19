@@ -24,7 +24,6 @@ pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-# data_types = ['chA', 'chB']
 data_types = ['chA', 'chB', 'C_m']
 
 phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
@@ -32,7 +31,7 @@ periods_per_fig = 1            # Number of periods on averaged (folded) pulse pr
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
 save_long_dyn_spectra = False  # Save figures of the whole observation spectrogram?
-save_n_period_pics = False     # Save n-period pictures?
+save_n_period_pics = True      # Save n-period pictures?
 threshold = 0.25               # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -79,12 +78,9 @@ else:
 longFileSaveCMP = 0
 
 if 'C_m' in data_types:
-    # longFileSaveCMP = 1
     CorrelationProcess = 1
-    data_types.append(['CRe', 'CIm'])
     long_file_save_im_re = 1
 else:
-    # longFileSaveCMP = 0
     CorrelationProcess = 0
     long_file_save_im_re = 0
 
@@ -125,14 +121,15 @@ done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_curre
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                             print_or_not=0)
 
-print(dat_file_name)
-print(dat_file_list)
+
+# dat_file_name = 'P130422_121607.jds'
+# dat_file_list = ['chA', 'chB', 'C_m']
+
 
 # Calibrate phase of cross-correlation data if needed
 if 'C_m' in data_types:
-    cross_spectra_phase_calibration(result_path, file_name, result_path, phase_calibr_txt_file, 2048,
-                                    save_complex=False, save_module=True, save_phase=False)
-
+    cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
+                                    save_complex=False, save_module=True, save_phase=False, log_module=False)
 
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
@@ -141,7 +138,7 @@ if 'chA' in dat_file_list and 'chA' in data_types:
     data_types_to_process.append('chA')
 if 'chB' in dat_file_list and 'chB' in data_types:
     data_types_to_process.append('chB')
-if 'C_m' in dat_file_list and 'C_m' in data_types:
+if long_file_save_im_re > 0 and 'C_m' in data_types:
     data_types_to_process.append('C_m')
 
 
@@ -166,7 +163,19 @@ if save_long_dyn_spectra:
 print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
 
 for i in range(len(data_types_to_process)):
-    dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat', 1024)
+    if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
+        delta_sigma = 0.05
+        n_sigma = 2
+        min_l = 30
+    elif data_types_to_process[i] == 'C_m':
+        delta_sigma = 0.1
+        n_sigma = 5
+        min_l = 30
+    else:
+        sys.exit('            Type error!')
+
+    dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
+                        1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
 
 #
