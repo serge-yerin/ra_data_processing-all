@@ -7,7 +7,7 @@ from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.f_clean_dirty_lines_for_weak_signal import clean_dirty_lines_for_weak_signal
 
 
-def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
+def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delta_sigma=0.05, n_sigma=2, min_l=30):
     """
     Reads dat file and makes a mask for the data in a special .msk file to be used by further processing
     Needs a path to file and number of spectra ti read in bunch to synchronize bunches with the other
@@ -50,7 +50,9 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch):
         data = np.reshape(data, [len(frequency), spectra_to_read_per_bunch], order='F')
 
         print('\n * Chunk', chunk+1, 'of', chunks_in_file, 'time:', str(datetime.datetime.now())[:19])
-        cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data, show_figures=False)
+        cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data, delta_sigma=delta_sigma,
+                                                                              n_sigma=n_sigma, min_l=min_l,
+                                                                              lin_data=lin_data, show_figures=False)
 
         new_data_file = open(new_data_file_name, 'ab')
         mask = np.transpose(mask).copy(order='C')
