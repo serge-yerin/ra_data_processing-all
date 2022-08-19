@@ -17,28 +17,30 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
 result_directory = '../'
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA', 'chB']
+# data_types = ['chA', 'chB']
+data_types = ['chA', 'chB', 'C_m']
 
-periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
-scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
+phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
+periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
+scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-save_long_dyn_spectra = False
-save_n_period_pics = False    # Save n-period pictures?
-threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
+save_long_dyn_spectra = False  # Save figures of the whole observation spectrogram?
+save_n_period_pics = False     # Save n-period pictures?
+threshold = 0.25               # Threshold of the strongest pulses (or RFIs)
 
-colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-custom_dpi = 300              # Resolution of images of dynamic spectra
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
-DynSpecSaveCleaned = 0        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveCleaned = 0       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+custom_dpi = 300               # Resolution of images of dynamic spectra
+DynSpecSaveInitial = 0         # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveCleaned = 0         # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveInitial = 0        # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveCleaned = 0        # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 
 
 # *******************************************************************************
@@ -60,6 +62,7 @@ from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
+from package_ra_data_processing.f_cross_spectra_phase_calibration import cross_spectra_phase_calibration
 # ###############################################################################
 
 # Preparations for automatic processing
@@ -73,12 +76,17 @@ if 'chB' in data_types:
 else:
     longFileSaveBch = 0
 
+longFileSaveCMP = 0
+
 if 'C_m' in data_types:
-    longFileSaveCMP = 1
+    # longFileSaveCMP = 1
     CorrelationProcess = 1
+    data_types.append(['CRe', 'CIm'])
+    long_file_save_im_re = 1
 else:
-    longFileSaveCMP = 0
+    # longFileSaveCMP = 0
     CorrelationProcess = 0
+    long_file_save_im_re = 0
 
 #
 #
@@ -109,37 +117,47 @@ for file in range(len(file_name_list_current)):
 
 # Run JDS/ADR reader for the current folder
 
-done_or_not, DAT_file_name, DAT_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
+done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
-                                                            0, longFileSaveCMP, DynSpecSaveInitial,
+                                                            long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                             print_or_not=0)
 
+print(dat_file_name)
+print(dat_file_list)
+
+# Calibrate phase of cross-correlation data if needed
+if 'C_m' in data_types:
+    cross_spectra_phase_calibration(result_path, file_name, result_path, phase_calibr_txt_file, 2048,
+                                    save_complex=False, save_module=True, save_phase=False)
+
+
+
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
-if 'chA' in DAT_file_list and 'chA' in data_types:
+if 'chA' in dat_file_list and 'chA' in data_types:
     data_types_to_process.append('chA')
-if 'chB' in DAT_file_list and 'chB' in data_types:
+if 'chB' in dat_file_list and 'chB' in data_types:
     data_types_to_process.append('chB')
-if 'C_m' in DAT_file_list and 'C_m' in data_types:
+if 'C_m' in dat_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
 
 
 if save_long_dyn_spectra:
     print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
-          DAT_file_name, ', of types:', data_types_to_process, '\n')
+          dat_file_name, ', of types:', data_types_to_process, '\n')
 
     result_folder_name = source_directory.split('/')[-2] + '_initial'
 
-    ok = DAT_file_reader(path_to_dat_files, DAT_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
+    ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
                          16.5, 33.0, [], 0)
 #
 #
 #
-# DAT_file_name = 'E300117_180000.jds'
+# dat_file_name = 'E300117_180000.jds'
 # data_types_to_process = ['chA']
 #
 #
@@ -148,14 +166,14 @@ if save_long_dyn_spectra:
 print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
 
 for i in range(len(data_types_to_process)):
-    dat_rfi_mask_making(path_to_dat_files + DAT_file_name + '_Data_' + data_types_to_process[i] + '.dat', 1024)
+    dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat', 1024)
 
 
 #
 #
 # data_types_to_process = ['chA', 'chB']
 # path_to_dat_files = 'g:/python/B0809+74_2022.04.13_URAN2_B0809+74/'
-# DAT_file_name = 'P130422_115005.jds'
+# dat_file_name = 'P130422_115005.jds'
 #
 #
 
@@ -172,7 +190,7 @@ for i in range(len(data_types_to_process)):
         amp_min = -0.15
         amp_max = 0.55
 
-    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, DAT_file_name + '_Data_' +
+    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
                                                                 data_types_to_process[i] + '.dat', pulsar_name, 512,
                                                                 amp_min, amp_max, 0, 0.0, 16.5, 1, 1, 300, 'Greys',
                                                                 use_mask_file=True, result_path=path_to_dat_files)
