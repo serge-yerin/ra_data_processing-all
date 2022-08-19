@@ -224,7 +224,9 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
 
         data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * freq_points_num)
         data_raw = np.reshape(data_raw, [freq_points_num, spectra_to_read], order='F')
-        data_raw = 10 * np.log10(data_raw, dtype=np.float32)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            data_raw = 10 * np.log10(data_raw, dtype=np.float32)
+        data_raw[np.isinf(data_raw)] = -135.5
 
         # Apply masking if needed
         if use_mask_file:
