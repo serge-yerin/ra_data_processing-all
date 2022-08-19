@@ -19,7 +19,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 
 
 def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
-                                    save_complex=True, save_module=True, save_phase=True):
+                                    save_complex=True, save_module=True, save_phase=True, log_module=True):
     """
     function reads cross-spectra data (Re and Im) in .dat format (obtained from jds or adr files)
     multiplies complex data by phase calibration data read from txt file.
@@ -109,6 +109,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     ax1.set_title('Calibration phase from ' + phase_calibr_txt_file)
     ax1.legend(loc='upper right', fontsize=6)
     ax1.grid(visible=True, which='both', color='silver', linestyle='-')
+    ax1.set_xlabel('Frequency points, #', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Phase, rad', fontsize=6, fontweight='bold')
     pylab.savefig(result_path + '00_Calibration_phase.png', bbox_inches='tight', dpi=250)
     plt.close('all')
@@ -124,10 +125,11 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     print('  Number of spectra per file:    ', no_of_spectra_in_file, '')
     print('  Number of spectra in bunch:    ', no_of_spectra_in_bunch)
     print('  Number of batches per file:    ', no_of_bunches_in_file, '')
-    print('  Number of frequency points:    ', freq_points_num, '')
+    print('  Number of frequency points:    ', freq_points_num, '\n')
 
-    bar = IncrementalBar('\n  Phase calibration of the file: ', max=no_of_bunches_in_file,
-                         suffix='%(percent)d%%   ')
+    bar = IncrementalBar('  Phase calibration of the file: ', max=no_of_bunches_in_file,
+                         suffix='%(percent)d%%        ')
+    bar.start()
 
     for bunch in range(no_of_bunches_in_file):
 
@@ -171,7 +173,11 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
         if save_module:
 
             calibr_mod_file_data = open(calibrated_mod_fname, 'ab')
-            tmp = 10 * np.log10(np.absolute(data_complex)).copy(order='C')
+            if log_module:
+                tmp = 10 * np.log10(np.absolute(data_complex)).copy(order='C')
+                tmp[np.isinf(tmp)] = -135.5
+            else:
+                tmp = np.absolute(data_complex).copy(order='C')
             calibr_mod_file_data.write(tmp)
             calibr_mod_file_data.close()
 
@@ -198,4 +204,4 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
 if __name__ == '__main__':
 
     cross_spectra_phase_calibration(file_path, fname, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
-                                    save_complex=True, save_module=True, save_phase=False)
+                                    save_complex=True, save_module=True, save_phase=False, log_module=False)
