@@ -126,20 +126,20 @@ done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_curre
 # dat_file_list = ['chA', 'chB', 'C_m']
 
 
-# Calibrate phase of cross-correlation data if needed
-if 'C_m' in data_types:
-    cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
-                                    save_complex=False, save_module=True, save_phase=False, log_module=False)
-
-
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
 if 'chA' in dat_file_list and 'chA' in data_types:
     data_types_to_process.append('chA')
 if 'chB' in dat_file_list and 'chB' in data_types:
     data_types_to_process.append('chB')
-if long_file_save_im_re > 0 and 'C_m' in data_types:
+if 'CRe' in dat_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
+
+
+# Calibrate phase of cross-correlation data if needed
+if 'C_m' in data_types_to_process:
+    cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
+                                    save_complex=False, save_module=True, save_phase=False, log_module=False)
 
 
 if save_long_dyn_spectra:
