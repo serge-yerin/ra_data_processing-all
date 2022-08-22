@@ -178,9 +178,11 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
 
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
     spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
-    print(' Spectra in file:', spectra_in_file)
     bunches_in_file = spectra_in_file // spectra_to_read
-    # bunches_in_file = 16
+    print(' Spectra in file:                    ', spectra_in_file)
+    print(' Bunches in file:                    ', bunches_in_file)
+    print(' Periods per figure:                 ', periods_per_fig)
+    print(' Using mask for cleaning:            ', use_mask_file)
 
     # Open data file with removed dispersion delay (.dat)
     data_file = open(filepath, 'rb')
@@ -203,9 +205,10 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     if remainder_of_n_periods < 0:
         sys.exit('Error! Remainder is less then zero! ')
 
-    print(' Spectra in one profile: ', interp_spectra_in_profile)
+    print(' Scale factor:                       ', scale_factor)
+    print(' Spectra in one profile:             ', interp_spectra_in_profile)
     print(' Remainder on n periods (1 profile): ', remainder_of_n_periods, ' s.')
-    print(' Interpolated time resolution: ', interp_time_resolution, ' s.\n')
+    print(' Interpolated time resolution:       ', interp_time_resolution, ' s.\n')
 
     # Interpolated data buffer
     data_interp = np.zeros([freq_points_num, 0], dtype=np.float32)
@@ -216,11 +219,10 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     profiles_counter = 0  # Absolute profiles counter
     current_time_remainder = 0.0  # Counts time float lag between precise period and time resolution
 
-    bar = IncrementalBar(' Averaging pulsar pulses... ', max=bunches_in_file, suffix='%(percent)d%%')
+    bar = IncrementalBar(' Averaging pulsar pulses... ', max=bunches_in_file, suffix='%(percent)d%%     ')
     bar.start()
 
     for bunch in range(bunches_in_file):
-        # print(' Bunch # ', bunch+1, ' of ', bunches_in_file)
 
         data_raw = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * freq_points_num)
         data_raw = np.reshape(data_raw, [freq_points_num, spectra_to_read], order='F')
