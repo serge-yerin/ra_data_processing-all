@@ -99,7 +99,8 @@ def catalogue_pulsar(pulsar_name):
     elif 'J1917+0834' in pulsar_name: pulsar_ra = '19h17m48.85s';   pulsar_dec = '+08d+34m54.63s'; pulsar_DM = 0;        p_bar = 1.18102329730
     elif 'J1918+1541' in pulsar_name: pulsar_ra = '19h18m7.70s';    pulsar_dec = '+15d41m15.2s';   pulsar_DM = 0;        p_bar = 0.37088299877
     elif 'B1918+26'   in pulsar_name: pulsar_ra = '19h20m38.374s';  pulsar_dec = '+26d50m38.4s';   pulsar_DM = 0;        p_bar = 0.785521849527
-    elif 'B1919+21'   in pulsar_name: pulsar_ra = '19h21m44.81s';   pulsar_dec = '+21d53m2.25s';   pulsar_DM = 12.440;   p_bar = 1.3373021601895
+    # elif 'B1919+21'   in pulsar_name: pulsar_ra = '19h21m44.81s';   pulsar_dec = '+21d53m2.25s';   pulsar_DM = 12.440;   p_bar = 1.3373021601895
+    elif 'B1919+21'   in pulsar_name: pulsar_ra = '19h21m44.81s';   pulsar_dec = '+21d53m2.25s';   pulsar_DM = 12.4449;   p_bar = 1.3373021601895
     elif 'B1929+10'   in pulsar_name: pulsar_ra = '19h32m13.95s';   pulsar_dec = '+10d59m32.42s';  pulsar_DM = 3.176;    p_bar = 0.226517635038
     elif 'B1944+17'   in pulsar_name: pulsar_ra = '19h46m53.044s';  pulsar_dec = '+18d5m41.24s';   pulsar_DM = 0;        p_bar = 0.4406184769108
     elif 'B1952+29'   in pulsar_name: pulsar_ra = '19h54m22.554s';  pulsar_dec = '+29d23m17.29s';  pulsar_DM = 0;        p_bar = 0.4266767865302
