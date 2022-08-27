@@ -14,14 +14,14 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
     """
     Takes the array, makes log of it ib necessary, counts std and in a loop^
     - masks lines of data which exceed std in a row of min_l pixels horizontally and vertically
-    - calculates new std with masked noise, if it is more than delta_sigma less than previous std
-      the will be next loop, else - we assume the array is cleaned and return it.
+    - calculates new std with masked noise, if it is less than previous std for more than delta_sigma
+      there will be next loop, else - we assume the array is cleaned and return it.
     """
     a, b = array.shape
     total_points = a * b
 
     if lin_data:
-        with np.errstate(invalid='ignore'):
+        with np.errstate(divide='ignore'):
             array = 10 * np.log10(array)
         array[np.isnan(array)] = -120
         array[np.isinf(array)] = -135.5
@@ -56,7 +56,6 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
         mask = np.transpose(mask)
         new_horizont_mask = cv.filter2D(mask, -1, kernel)
         new_horizont_mask = np.transpose(new_horizont_mask)
-        # mask = np.transpose(mask)
 
         # Converting to bool type to reduce memory
         new_horizont_mask = np.array(new_horizont_mask, dtype=bool)
