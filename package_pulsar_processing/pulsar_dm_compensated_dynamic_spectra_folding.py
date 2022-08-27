@@ -6,11 +6,14 @@ Software_name = 'Pulsar dynamic spectra folding'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to folder with the data file
-source_path = ''  # Path to source file without name
-result_path = ''  # Path where the result files will be stored
+# source_path = ''  # Path to source file without name
+source_path = 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path to source file without name
+# result_path = ''  # Path where the result files will be stored
+result_path = 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path where the result files will be stored
 
 # File name of DAT file to be analyzed:
-filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
+# filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
+filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
 
@@ -130,7 +133,7 @@ def make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_p
 
 
 def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
-                          periods_per_fig, custom_dpi, colormap, use_mask_file=False):
+                          periods_per_fig, custom_dpi, colormap, use_mask_file=False, save_pulse_evolution=True):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -215,6 +218,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     data_interp = np.zeros([freq_points_num, 0], dtype=np.float32)
     # Array for result integrated pulse
     integrated_spectra = np.zeros([freq_points_num, interp_spectra_in_profile], dtype=np.float32)
+    # Profile of the full observation
+    full_obs_profile = np.empty(shape=(0, 0), dtype=np.float32)
 
     # Counters:
     profiles_counter = 0  # Absolute profiles counter
@@ -260,8 +265,14 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
             # Calculate current reminder
             current_time_remainder += remainder_of_n_periods
             # Integrate dynamic spectra
-            integrated_spectra = integrated_spectra + \
-                                 data_interp[:, i * interp_spectra_in_profile: (i+1) * interp_spectra_in_profile]
+            data_frame = data_interp[:, i * interp_spectra_in_profile: (i+1) * interp_spectra_in_profile]
+            integrated_spectra = integrated_spectra + data_frame
+
+            if save_pulse_evolution:
+
+                # Calculate frame profile and append it to full-length profile
+                frame_profile = np.mean(data_frame, axis=0)
+                full_obs_profile = np.append(full_obs_profile, frame_profile)
 
         profiles_counter += profiles_in_bunch
 
@@ -292,6 +303,30 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     roll_count = int((len(profile) / 2 / periods_per_fig) - np.argmax(profile))
     data = np.roll(data, roll_count, axis=1)
     profile = np.roll(profile, roll_count)
+
+    if save_pulse_evolution:
+        # Normalizing of full length observation profile
+        full_obs_profile = full_obs_profile - np.min(full_obs_profile)
+
+        # fig, ax0 = plt.subplots(1, 1, figsize=(8, 4))
+        # ax0.plot(full_obs_profile)
+        # plt.show()
+
+        tmp = full_obs_profile.copy()
+        tmp = tmp[(interp_spectra_in_profile - roll_count):]
+        tmp = tmp[:-roll_count]
+        # tmp = np.reshape(full_obs_profile, [interp_spectra_in_profile, profiles_counter], order='F')
+        tmp = np.reshape(tmp, [interp_spectra_in_profile, profiles_counter-1], order='F')
+        tmp = normalization_db(tmp, tmp.shape[1], tmp.shape[0])
+        # tmp = np.roll(tmp, roll_count, axis=0)
+        tmp = np.transpose(tmp)
+
+        pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
+
+        fig, ax0 = plt.subplots(1, 1, figsize=(8, 4))
+        ax0.imshow(tmp, cmap='Greys', aspect='auto')
+        pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
+        plt.show()
 
     # Saving data to file
     data_filename = filename.split('/')[-1]
