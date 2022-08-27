@@ -7,6 +7,7 @@ from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.f_clean_dirty_lines_for_weak_signal import clean_dirty_lines_for_weak_signal
 
 
+# def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delta_sigma=0.05, n_sigma=2, min_l=30):
 def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delta_sigma=0.05, n_sigma=2, min_l=30):
     """
     Reads dat file and makes a mask for the data in a special .msk file to be used by further processing
@@ -31,7 +32,7 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delt
     dat_sp_in_file = int((df_filesize - 1024) / (len(frequency) * 8))
     chunks_in_file = int(dat_sp_in_file / spectra_to_read_per_bunch)
 
-    # *** Open data file and read it's header ***
+    # *** Open data file and read its header ***
     data_file = open(filepath, 'rb')
     file_header = data_file.read(1024)  # Data file header read
 
@@ -49,11 +50,13 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delt
         data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read_per_bunch * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read_per_bunch], order='F')
 
+        # Make mask
         print('\n * Chunk', chunk+1, 'of', chunks_in_file, 'time:', str(datetime.datetime.now())[:19])
         cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data, delta_sigma=delta_sigma,
                                                                               n_sigma=n_sigma, min_l=min_l,
                                                                               lin_data=lin_data, show_figures=False)
 
+        # Save mask array to the file
         new_data_file = open(new_data_file_name, 'ab')
         mask = np.transpose(mask).copy(order='C')
         new_data_file.write(mask)
