@@ -24,8 +24,9 @@ pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA', 'chB', 'C_m']
+data_types = ['C_m']
 
+# Calibration file needed only if cross-spectra are involved
 phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
@@ -139,7 +140,7 @@ if 'CRe' in dat_file_list and 'C_m' in data_types:
 # Calibrate phase of cross-correlation data if needed
 if 'C_m' in data_types_to_process:
     cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
-                                    save_complex=False, save_module=True, save_phase=False, log_module=False)
+                                    save_complex=False, save_module=True, save_phase=True, log_module=False)
 
 
 if save_long_dyn_spectra:
@@ -151,11 +152,12 @@ if save_long_dyn_spectra:
     ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
                          16.5, 33.0, [], 0)
+
 #
 #
 #
-# dat_file_name = 'E300117_180000.jds'
-# data_types_to_process = ['chA']
+# dat_file_name = 'P130422_121607.jds'
+# data_types_to_process = ['C_m']
 #
 #
 
@@ -192,12 +194,12 @@ print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removi
 dedispersed_data_file_list = []
 for i in range(len(data_types_to_process)):
     # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
-    if data_types_to_process[i] == 'C_m':
-        amp_min = -0.05
-        amp_max = 0.15
-    else:
-        amp_min = -0.15
-        amp_max = 0.55
+    # if data_types_to_process[i] == 'C_m':
+    #     amp_min = -0.05
+    #     amp_max = 0.15
+    # else:
+    amp_min = -0.15
+    amp_max = 0.55
 
     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
                                                                 data_types_to_process[i] + '.dat', pulsar_name, 512,
@@ -250,9 +252,9 @@ if save_long_dyn_spectra:
     print('\n\n  * ', str(datetime.datetime.now())[:19],
           ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
-    ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process, path_to_dat_files,
-                         result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12),
-                         16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+    ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process,
+                         path_to_dat_files, result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
+                         0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
 
 #
