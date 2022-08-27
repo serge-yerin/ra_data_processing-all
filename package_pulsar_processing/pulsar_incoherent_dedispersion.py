@@ -52,6 +52,7 @@ from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
+from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_pulsar_processing.pulsar_pulses_time_profile_FFT import pulsar_pulses_time_profile_FFT
@@ -200,28 +201,19 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         with open(data_filepath, 'rb') as file:
             file_header = file.read(1024)  # Data file header read
 
+        # Change number of frequency channels in the header
+        file_header = jds_header_new_channels_numbers(file_header, ifmin, ifmax)
+
         # *** Creating a binary file with data for long data storage ***
         new_data_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + filename
         new_data_file = open(new_data_file_name, 'wb')
         new_data_file.write(file_header)
-        new_data_file.seek(624)                         # Lb in header
-        new_data_file.write(np.int32(ifmin).tobytes())
-        new_data_file.seek(628)                         # Hb in header
-        new_data_file.write(np.int32(ifmax).tobytes())
-        new_data_file.seek(632)                         # Wb in header
-        new_data_file.write(np.int32(ifmax - ifmin).tobytes())  # bytes([np.int32(ifmax - ifmin)]))
         new_data_file.close()
 
         if use_mask_file:
             new_mask_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + filename[:-3] + 'msk'
             new_mask_file = open(new_mask_file_name, 'wb')
             new_mask_file.write(file_header)
-            new_mask_file.seek(624)  # Lb in header
-            new_mask_file.write(np.int32(ifmin).tobytes())
-            new_mask_file.seek(628)  # Hb in header
-            new_mask_file.write(np.int32(ifmax).tobytes())
-            new_mask_file.seek(632)  # Wb in header
-            new_mask_file.write(np.int32(ifmax - ifmin).tobytes())  # bytes([np.int32(ifmax - ifmin)]))
             new_mask_file.close()
 
         # *** Creating a name for long timeline TXT file ***
