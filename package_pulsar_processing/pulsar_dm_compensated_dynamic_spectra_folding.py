@@ -6,7 +6,8 @@ Software_name = 'Pulsar dynamic spectra folding'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to folder with the data file
-common_path = ''  # Empty string means the project directory
+source_path = ''  # Path to source file without name
+result_path = ''  # Path where the result files will be stored
 
 # File name of DAT file to be analyzed:
 filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
@@ -128,7 +129,7 @@ def make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_p
 # *******************************************************************************
 
 
-def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
+def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
                           periods_per_fig, custom_dpi, colormap, use_mask_file=False):
 
     current_time = time.strftime("%H:%M:%S")
@@ -140,10 +141,10 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
     print('\n * Data file name: ', filename)
 
     # DAT datafile to be analyzed:
-    filepath = common_path + filename
+    filepath = source_path + filename
 
     # Timeline file to be analyzed:
-    timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
+    timeline_filepath = source_path + filename.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
     file = open(filepath, 'rb')
@@ -294,8 +295,8 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
 
     # Saving data to file
     data_filename = filename.split('/')[-1]
-    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], common_path +
-                                  'DSPZ_' + data_filename + ' - folded pulses.smp')
+    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], result_path +
+                                  'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp')
     print('\n SMP data file saved. \n')
 
     # Make a figure of pulses profiles and dynamic spectrum
@@ -307,7 +308,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
                    r' $\mathrm{pc \cdot cm^{-3}}$' + ', Period: ' + str(p_bar) + ' s.), ' + \
                    str(profiles_counter) + ' integrated profiles '
 
-    pic_filename = common_path + filename + ' - folded pulses.png'
+    pic_filename = result_path + filename[:-4] + ' - folded pulses.png'
     profile_pic_min = -0.25  # Minimum limit of profile picture
     profile_pic_max = 1.20  # Maximum limit of profile picture
 
@@ -326,7 +327,7 @@ def pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spec
 
 if __name__ == '__main__':
 
-    pulsar_period_folding(common_path, filename, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
+    pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
                           periods_per_fig, custom_dpi, colormap, use_mask_file=use_mask_file)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
