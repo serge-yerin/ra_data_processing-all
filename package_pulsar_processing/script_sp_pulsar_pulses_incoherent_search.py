@@ -6,7 +6,7 @@
 
 # Python3
 software_name = 'Pulses Incoherent Averaging Script'
-software_version = '2022.07.05'
+software_version = '2022.08.27'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -17,21 +17,23 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
-result_directory = '../'
+# source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+# result_directory = '../'
+result_directory = 'e:/python/'
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['C_m']
+data_types = ['chA', 'C_m']
 
 # Calibration file needed only if cross-spectra are involved
 phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-save_long_dyn_spectra = False  # Save figures of the whole observation spectrogram?
+save_long_dyn_spectra = True   # Save figures of the whole observation spectrogram?
 save_n_period_pics = True      # Save n-period pictures?
 threshold = 0.25               # Threshold of the strongest pulses (or RFIs)
 
@@ -193,14 +195,9 @@ print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removi
 
 dedispersed_data_file_list = []
 for i in range(len(data_types_to_process)):
-    # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
-    # if data_types_to_process[i] == 'C_m':
-    #     amp_min = -0.05
-    #     amp_max = 0.15
-    # else:
+
     amp_min = -0.15
     amp_max = 0.55
-
     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
                                                                 data_types_to_process[i] + '.dat', pulsar_name, 512,
                                                                 amp_min, amp_max, 0, 0.0, 16.5, 1, 1, 300, 'Greys',
@@ -222,18 +219,11 @@ if save_n_period_pics:
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making figures of 3 pulsar periods... \n\n')
 
     for dedispersed_data_file_name in dedispersed_data_file_list:
-        # Setting different ranges of integrated signal for cross spectra amplitude and simple spectra
-        if '_Data_C_m' in dedispersed_data_file_name:
-            amp_min = -0.01
-            amp_max = 0.02
-            dyn_sp_min = -0.02
-            dyn_sp_max = 0.3
-
-        else:
-            amp_min = -0.15
-            amp_max = 0.55
-            dyn_sp_min = -0.2
-            dyn_sp_max = 3
+        # Setting  ranges of integrated signal
+        amp_min = -0.15
+        amp_max = 0.55
+        dyn_sp_min = -0.2
+        dyn_sp_max = 3
 
         pulsar_period_dm_compensated_pics(path_to_dat_files, dedispersed_data_file_name, pulsar_name, 0,
                                           amp_min, amp_max, dyn_sp_min, dyn_sp_max, 3, 500, 'Greys',
@@ -252,9 +242,9 @@ if save_long_dyn_spectra:
     print('\n\n  * ', str(datetime.datetime.now())[:19],
           ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
-    ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], data_types_to_process,
+    ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], data_types_to_process,
                          path_to_dat_files, result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
-                         0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+                         0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)  # path_to_dat_files
 
 
 #
@@ -270,7 +260,8 @@ if save_long_dyn_spectra:
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making averaged (folded) pulse profile... \n\n')
 
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name, pulsar_name, scale_factor, -0.5, 3,
-                          periods_per_fig, custom_dpi, colormap, use_mask_file=True)
+    pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name.split('/')[-1], path_to_dat_files, pulsar_name,
+                          scale_factor, -0.5, 3, periods_per_fig, custom_dpi, colormap, use_mask_file=True,
+                          save_pulse_evolution=True)
 
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
