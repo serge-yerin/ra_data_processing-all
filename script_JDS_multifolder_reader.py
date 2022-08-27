@@ -8,7 +8,8 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to directory with files to be analyzed:
-path_to_data = 'DATA/'  # 'h:/To process/'
+# path_to_data = 'DATA/'  # 'h:/To process/'
+path_to_data = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'  # 'h:/To process/'
 
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning

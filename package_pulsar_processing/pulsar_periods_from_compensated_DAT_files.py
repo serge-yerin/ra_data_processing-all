@@ -36,7 +36,7 @@ import pylab
 import matplotlib.pyplot as plt
 from os import path
 from matplotlib import rc
-from matplotlib.gridspec import GridSpec
+import matplotlib.ticker as mticker   # <---- Added to suppress warning
 from progress.bar import IncrementalBar
 import matplotlib
 matplotlib.use('agg')
@@ -141,7 +141,12 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
         # Reading and preparing block of data (3 periods)
         data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
         data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-        data = 10*np.log10(data)
+
+        with np.errstate(divide='ignore'):
+            data = 10 * np.log10(data)
+        data[data == np.nan] = -135.5
+        data[data == -np.inf] = -135.5
+
         if normalize_response > 0:
             normalization_db(data.transpose(), len(frequency), spectra_to_read)
 
@@ -175,6 +180,10 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
         for i in range(len(text)-1):
             k = int(text[i])
             text[i] = fig_time_scale[k][11:23]
+
+        ticks_loc = ax2.get_xticks().tolist()                           # <---- Added to suppress warning
+        ax2.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))         # <---- Added to suppress warning
+
         ax2.set_xticklabels(text, fontsize=5, fontweight='bold')
         fig.subplots_adjust(hspace=0.05, top=0.91)
         fig.suptitle('Single pulses of ' + pulsar_name + ' (DM: ' + str(DM) + r' $\mathrm{pc \cdot cm^{-3}}$' +
