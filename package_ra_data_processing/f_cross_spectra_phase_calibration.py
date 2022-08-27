@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from progress.bar import IncrementalBar
 
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-
+from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
 
 def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
                                     save_complex=True, save_module=True, save_phase=True, log_module=True):
@@ -64,11 +64,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     ifmin = int(fmin * 1e6 / df)        # Minimal channel number
     ifmax = int(fmax * 1e6 / df) - 4    # Maximal channel number
 
-    file_header = bytearray(file_header)
-    file_header[624:628] = np.int32(ifmin).tobytes()
-    file_header[628:632] = np.int32(ifmax).tobytes()
-    file_header[632:636] = np.int32(ifmax - ifmin).tobytes()
-    file_header = bytes(file_header)
+    file_header = jds_header_new_channels_numbers(file_header, ifmin, ifmax)
 
     if save_complex:
         # *** Creating a binary file for Real data for long data storage ***
