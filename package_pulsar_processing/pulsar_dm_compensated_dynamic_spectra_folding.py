@@ -349,7 +349,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
                 if fill:
                     ax0.fill_between(xx, np.ones(data.shape[1]) * y, curve + y,
                                      zorder=data.shape[0] - k + 1, color='royalblue')
-                ax0.plot(xx, curve + y, color='royalblue', zorder=data.shape[0] - k + 1)
+                ax0.plot(xx, curve + y, color='royalblue', zorder=data.shape[0] - k + 1, linewidth=0.2)
                 ax0.axis('off')
             if labels:
                 ax0.yticks(ys, labels)
