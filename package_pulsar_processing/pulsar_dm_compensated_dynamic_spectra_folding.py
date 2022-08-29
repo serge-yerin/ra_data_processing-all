@@ -315,10 +315,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         tmp = full_obs_profile.copy()
         tmp = tmp[(interp_spectra_in_profile - roll_count):]
         tmp = tmp[:-roll_count]
-        # tmp = np.reshape(full_obs_profile, [interp_spectra_in_profile, profiles_counter], order='F')
         tmp = np.reshape(tmp, [interp_spectra_in_profile, profiles_counter-1], order='F')
         tmp = normalization_db(tmp, tmp.shape[1], tmp.shape[0])
-        # tmp = np.roll(tmp, roll_count, axis=0)
         tmp = np.transpose(tmp)
 
         pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
@@ -327,6 +325,39 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         ax0.imshow(tmp, cmap='Greys', aspect='auto')
         pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
         plt.show()
+        plt.close('all')
+
+        def ridgeline(data, overlap=0.0, fill=True, labels=None):
+            """
+            Creates a ridgeline plot.
+
+            data - 2D numpy array.
+            overlap -  overlap between distributions. 1 - max overlap, 0 - no overlap.
+            fill - fill the distributions.
+            labels - values to place on the y axis to describe the distributions.
+            """
+            pic_filename = result_path + filename[:-4] + ' - ridge plot.png'
+            if overlap > 1.0 or overlap < 0.0:
+                raise ValueError('overlap must be in [0 1]')
+            xx = np.linspace(0, 1, num=tmp.shape[1])
+            ys = []
+            fig, ax0 = plt.subplots(1, 1, figsize=(4, 8))
+            for k in range(data.shape[0]):
+                y = k * (1.0 - overlap)
+                ys.append(y)
+                curve = data[k, :]
+                if fill:
+                    ax0.fill_between(xx, np.ones(data.shape[1]) * y, curve + y,
+                                     zorder=data.shape[0] - k + 1, color='royalblue')
+                ax0.plot(xx, curve + y, color='royalblue', zorder=data.shape[0] - k + 1)
+                ax0.axis('off')
+            if labels:
+                ax0.yticks(ys, labels)
+            pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
+            plt.show()
+            plt.close('all')
+
+        ridgeline(tmp, overlap=0.9, fill=False, labels=None)
 
     # Saving data to file
     data_filename = filename.split('/')[-1]
