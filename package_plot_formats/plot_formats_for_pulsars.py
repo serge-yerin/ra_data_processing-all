@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pylab
 from matplotlib import rc
+import matplotlib.ticker as mticker   # <---- Added to suppress warning
 
 
 def plot_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, profile_pic_max,
@@ -51,6 +52,70 @@ def plot_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, pr
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
+    if save:
+        pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
+    if show:
+        plt.show()
+    plt.close('all')
+    return 0
+
+
+def plot_pulsar_pulses_evolution(data, fig_suptitle, fig_title, timeline, scale_factor,
+                                 pic_filename, custom_dpi, software_version, current_date, current_time,
+                                 show=False, save=True):
+    """
+    Plots pulsar pulse evolution with time, i.e. each line is a pulse period
+    data - 2D numpy array (float)
+    fig_title - title pf the plot (text)
+    v_min - min value of colormap
+    v_max - max value of colormap
+    timeline - timeline as read from txt file to use for the figure
+    scale_factor
+    pic_filename
+    custom_dpi
+    software_version
+    current_date - just current date (text)
+    current_time - just current time (text)
+    show - to display figure on the screen or not (bool)
+    save - to save the figure to the file or not (bool)
+    """
+    fig = plt.figure(figsize=(8.0, 6.0))
+    rc('font', size=6, weight='bold')
+    ax0 = fig.add_subplot(111)
+    ax0.imshow(data, cmap='Greys', aspect='auto')  #  vmin=v_min, vmax=v_max
+    ax0.set_title(fig_title, fontsize=5, fontweight='bold')
+
+    major_ticks_bottom = np.linspace(0, data.shape[1], 4 + 1)
+
+    ax0.axis([0, 1, data.shape[0] - 1, 0])
+    ax0.set_xticks(major_ticks_bottom)
+
+    ax0.set_xlabel('Number of sample in pulsar period', fontsize=6, fontweight='bold')
+    ax0.set_ylabel('Number of pulsar period', fontsize=6, fontweight='bold')
+
+    ax1 = ax0.twinx()
+    ax1.tick_params(axis='y', which='both', bottom=False, top=False, labelbottom=False)
+
+    ax1.axis([0, 1, data.shape[0] - 1, 0])
+    ax1.set_xticks(major_ticks_bottom)
+    text = ax0.get_yticks().tolist()
+    for i in range(len(text) - 1):
+        k = int(text[i])
+        text[i] = timeline[k * int(data.shape[1] / scale_factor)][11:23]
+
+    ticks_loc = ax1.get_yticks().tolist()                           # <---- Added to suppress warning
+    ax1.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))    # <---- Added to suppress warning
+    ax1.set_yticklabels(text, fontsize=6, fontweight='bold')
+
+    fig.subplots_adjust(hspace=0.05, top=0.92)
+    fig.suptitle(fig_suptitle, fontsize=7, fontweight='bold')
+
+    fig.text(0.922, 0.93, 'UTC time', fontsize=6, transform=plt.gcf().transFigure)
+    fig.text(0.82, 0.060, 'Processed ' + current_date + ' at ' + current_time,
+             fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.060, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+             fontsize=3, transform=plt.gcf().transFigure)
+
     if save:
         pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
     if show:
