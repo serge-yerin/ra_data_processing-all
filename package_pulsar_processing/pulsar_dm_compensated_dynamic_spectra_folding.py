@@ -1,4 +1,4 @@
-Software_version = '2022.05.10'
+software_version = '2022.05.10'
 Software_name = 'Pulsar dynamic spectra folding'
 # Program intended to integrate (fold) average pulse profile from DAT files of pulsar data (with compensated DM delay)
 
@@ -7,15 +7,15 @@ Software_name = 'Pulsar dynamic spectra folding'
 # *******************************************************************************
 # Path to folder with the data file
 # source_path = ''  # Path to source file without name
-source_path = 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path to source file without name
+source_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path to source file without name
 # result_path = ''  # Path where the result files will be stored
-result_path = 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path where the result files will be stored
+result_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path where the result files will be stored
 
 # File name of DAT file to be analyzed:
 # filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA.dat'
 
-pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08'
+pulsar_name = 'B0809+74'  # 'J2325-0530' # 'B0950+08' 'B1919+21'
 
 use_mask_file = True
 periods_per_fig = 1               # Periods of pulsar to show in the figure
@@ -42,6 +42,7 @@ from os import path
 from matplotlib import rc
 from progress.bar import IncrementalBar
 import matplotlib
+import matplotlib.ticker as mticker   # <---- Added to suppress warning
 
 matplotlib.use('TkAgg')
 
@@ -55,6 +56,8 @@ from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_processing.f_spectra_normalization import normalization_db
+from package_plot_formats.plot_formats_for_pulsars import plot_pulse_profile_and_spectra
+from package_plot_formats.plot_formats_for_pulsars import plot_pulsar_ridgeline_profiles
 # ###############################################################################
 
 
@@ -69,61 +72,6 @@ def save_integrated_pulse_to_file(array, file_header, pulsar_period, samples_per
     integrated_pulse_file.write(np.transpose(array).copy(order='C'))
     integrated_pulse_file.write(file_header)
     integrated_pulse_file.close()
-    return 0
-
-
-def make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, profile_pic_max,
-                                             spectrum_pic_min, spectrum_pic_max,  periods_per_fig,
-                                             fig_suptitle, fig_title, pic_filename, current_date, current_time,
-                                             custom_dpi, colormap, show=False, save=True):
-    """Displays and/or saves picture with integrated profile and dynamic spectrum of average pulse"""
-    # Making result picture
-    fig = plt.figure(figsize=(9.2, 4.5))
-    rc('font', size=5, weight='bold')
-
-    ax1 = fig.add_subplot(211)
-    ax1.plot(profile, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60',
-             label='Pulses integrated time profile')
-    ax1.legend(loc='upper right', fontsize=5)
-    ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
-    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title(fig_title, fontsize=5, fontweight='bold')
-
-    # Grid lines parameters
-    major_ticks_top = np.linspace(0, len(profile), periods_per_fig+1)
-    minor_ticks_top = np.linspace(0, len(profile), (4 * periods_per_fig+1))
-    ax1.set_xticks([])
-    ax1.yaxis.grid(visible=True, which='major', color='silver', linewidth='0.30', linestyle='--')  # Major y
-    ax1.yaxis.grid(visible=True, which='minor', color='silver', linewidth='0.30', linestyle='--')  # Minor all
-
-    ax1up = ax1.twiny()
-    ax1up.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
-    ax1up.set_xticks(major_ticks_top)
-    ax1up.set_xticks(minor_ticks_top, minor=True)
-
-    ax1up.xaxis.grid(visible=True, which='major', color='gray', linewidth='0.50', linestyle='-')  # Major x
-    ax1up.xaxis.grid(visible=True, which='minor', color='silver', linewidth='0.30', linestyle='--')  # Minor all
-
-    ax2 = fig.add_subplot(212)
-    ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
-               extent=[0, periods_per_fig, frequency[0], frequency[-1]])
-    ax2.set_xlabel('Pulsar period phase', fontsize=6, fontweight='bold')
-    ax2.set_ylabel('Frequency, MHz', fontsize=6, fontweight='bold')
-
-    major_ticks_bottom = np.linspace(0, periods_per_fig, 4 * periods_per_fig+1)
-    ax2.set_xticks(major_ticks_bottom)
-
-    fig.subplots_adjust(hspace=0.05, top=0.86)
-    fig.suptitle(fig_suptitle, fontsize=7, fontweight='bold')
-    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-             fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
-             fontsize=3, transform=plt.gcf().transFigure)
-    if save:
-        pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
-    if show:
-        plt.show()
-    plt.close('all')
     return 0
 
 
@@ -159,7 +107,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     if df_filepath[-4:] == '.adr':
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq, df_creation_time_utc,
-                receiver_mode, mode, sum_diff_mode,  n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
+                receiver_mode, mode, sum_diff_mode, n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
                 width, block_size] = FileHeaderReaderADR(filepath, 0, 0)
 
         freq_points_num = len(frequency)
@@ -320,44 +268,46 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         tmp = np.transpose(tmp)
 
         pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
+        fig_title = 'Pulsar profile evolution'
 
-        fig, ax0 = plt.subplots(1, 1, figsize=(8, 4))
+        fig = plt.figure(figsize=(8.0, 6.0))
+        rc('font', size=6, weight='bold')
+        ax0 = fig.add_subplot(111)
         ax0.imshow(tmp, cmap='Greys', aspect='auto')
+        ax0.set_title(fig_title, fontsize=8, fontweight='bold')
+
+        major_ticks_bottom = np.linspace(0, interp_spectra_in_profile, 4 + 1)
+
+        ax0.axis([0, interp_spectra_in_profile * interp_time_resolution, profiles_counter-2, 0])  # -1
+        ax0.set_xticks(major_ticks_bottom)
+
+        ax0.set_xlabel('Number of sample in pulsar period', fontsize=6, fontweight='bold')
+        ax0.set_ylabel('Number of pulsar period', fontsize=6, fontweight='bold')
+
+        ax1 = ax0.twinx()
+        ax1.tick_params(axis='y', which='both', bottom=False, top=False, labelbottom=False)
+
+        ax1.axis([0, interp_spectra_in_profile * interp_time_resolution, profiles_counter-2, 0])
+        ax1.set_xticks(major_ticks_bottom)
+        text = ax0.get_yticks().tolist()
+        for i in range(len(text) - 1):
+            k = int(text[i])
+            text[i] = timeline[k * int(interp_spectra_in_profile / scale_factor)][11:23]
+
+        ticks_loc = ax1.get_yticks().tolist()                           # <---- Added to suppress warning
+        ax1.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))    # <---- Added to suppress warning
+
+        ax1.set_yticklabels(text, fontsize=6, fontweight='bold')
+        fig.text(0.922, 0.90, 'UTC time', fontsize=6, transform=plt.gcf().transFigure)
+        # fig.text(0.82, 0.065, 'Processed ' + ' at ', fontsize=5, transform=plt.gcf().transFigure)
+
         pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
-        plt.show()
+        # plt.show()
         plt.close('all')
 
-        def ridgeline(data, overlap=0.0, fill=True, labels=None):
-            """
-            Creates a ridgeline plot.
-
-            data - 2D numpy array.
-            overlap -  overlap between distributions. 1 - max overlap, 0 - no overlap.
-            fill - fill the distributions.
-            labels - values to place on the y axis to describe the distributions.
-            """
-            pic_filename = result_path + filename[:-4] + ' - ridge plot.png'
-            if overlap > 1.0 or overlap < 0.0:
-                raise ValueError('overlap must be in [0 1]')
-            xx = np.linspace(0, 1, num=tmp.shape[1])
-            ys = []
-            fig, ax0 = plt.subplots(1, 1, figsize=(4, 8))
-            for k in range(data.shape[0]):
-                y = k * (1.0 - overlap)
-                ys.append(y)
-                curve = data[k, :]
-                if fill:
-                    ax0.fill_between(xx, np.ones(data.shape[1]) * y, curve + y,
-                                     zorder=data.shape[0] - k + 1, color='royalblue')
-                ax0.plot(xx, curve + y, color='royalblue', zorder=data.shape[0] - k + 1, linewidth=0.2)
-                ax0.axis('off')
-            if labels:
-                ax0.yticks(ys, labels)
-            pylab.savefig(pic_filename, bbox_inches='tight', dpi=custom_dpi)
-            plt.show()
-            plt.close('all')
-
-        ridgeline(tmp, overlap=0.9, fill=False, labels=None)
+        # Make ridge plot profiles figure
+        pic_filename = result_path + filename[:-4] + ' - ridge plot.png'
+        plot_pulsar_ridgeline_profiles(tmp, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving data to file
     data_filename = filename.split('/')[-1]
@@ -378,10 +328,10 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     profile_pic_min = -0.25  # Minimum limit of profile picture
     profile_pic_max = 1.20  # Maximum limit of profile picture
 
-    make_figure_of_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, profile_pic_max,
-                                             spectrum_pic_min, spectrum_pic_max, periods_per_fig,
-                                             fig_suptitle, fig_title, pic_filename, current_date, current_time,
-                                             custom_dpi, colormap, show=True, save=True)
+    plot_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, profile_pic_max,
+                                   spectrum_pic_min, spectrum_pic_max, periods_per_fig, fig_suptitle, fig_title,
+                                   pic_filename, current_date, current_time, software_version, custom_dpi,
+                                   colormap, show=True, save=True)
 
     return 0
 
