@@ -7,15 +7,18 @@ software_name = 'Pulsar dynamic spectra folding'
 # *******************************************************************************
 # Path to folder with the data file
 # source_path = ''  # Path to source file without name
-source_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path to source file without name
+# source_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path to source file without name
+source_path = 'e:/python/B0950+08_DSP_spectra_pulsar_UTR2_B0950+08_all/'  # Path to source file without name
 # result_path = ''  # Path where the result files will be stored
-result_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path where the result files will be stored
+# result_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path where the result files will be stored
+result_path = 'e:/python/B0950+08_DSP_spectra_pulsar_UTR2_B0950+08_all/'  # Path where the result files will be stored
 
 # File name of DAT file to be analyzed:
 # filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
-filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA.dat'
+# filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA.dat'
+filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA.dat'
 
-pulsar_name = 'B0809+74'  # 'B0809+74'  # 'J2325-0530'  # 'B0950+08'  # 'B1919+21'
+pulsar_name = 'B0950+08'  # 'B0809+74'  # 'B0809+74'  # 'J2325-0530'  # 'B0950+08'  # 'B1919+21'
 
 use_mask_file = True
 periods_per_fig = 1               # Periods of pulsar to show in the figure
@@ -149,7 +152,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     # are obtained with overlap of wf samples to calculate fft
 
     # Calculation of remainder of the pulsar period when divided by interpolated time resolution
-    remainder_of_n_periods = (periods_per_fig * p_bar) - (interp_time_resolution * interp_spectra_in_profile)
+    remainder_of_n_periods = np.longdouble(periods_per_fig * p_bar) - \
+                             (interp_time_resolution * interp_spectra_in_profile)
     if remainder_of_n_periods < 0:
         sys.exit('Error! Remainder is less then zero! ')
 
@@ -167,7 +171,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
 
     # Counters:
     profiles_counter = 0  # Absolute profiles counter
-    current_time_remainder = 0.0  # Counts time float lag between precise period and time resolution
+    current_time_remainder = np.longdouble(0.0)  # Counts time float lag between precise period and time resolution
 
     bar = IncrementalBar(' Averaging pulsar pulses... ', max=bunches_in_file, suffix='%(percent)d%%     ')
     bar.start()
@@ -256,8 +260,13 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         # Normalizing of full length observation profile
         full_obs_profile = full_obs_profile - np.min(full_obs_profile)
 
-        full_obs_profile = full_obs_profile[(interp_spectra_in_profile - roll_count):]  # to center the pulse
-        full_obs_profile = full_obs_profile[:-roll_count]                               # to center the pulse
+        if roll_count >= 0:
+            full_obs_profile = full_obs_profile[(interp_spectra_in_profile - roll_count):]   # to center the pulse
+            full_obs_profile = full_obs_profile[:-roll_count]                                # to center the pulse
+        else:
+            full_obs_profile = full_obs_profile[-roll_count:]                                # to center the pulse
+            full_obs_profile = full_obs_profile[:-(interp_spectra_in_profile + roll_count)]  # to center the pulse
+
         full_obs_profile = np.reshape(full_obs_profile, [interp_spectra_in_profile, profiles_counter-1], order='F')
         full_obs_profile = normalization_db(full_obs_profile, full_obs_profile.shape[1], full_obs_profile.shape[0])
         full_obs_profile = np.transpose(full_obs_profile)
@@ -266,7 +275,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
         fig_suptitle = 'Pulsar ' + pulsar_name + ' profile evolution (DM: ' + str(pulsar_dm) + \
                     r' $\mathrm{pc \cdot cm^{-3}}$' + ', Period: ' + str(p_bar) + ' s.)'
-        fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '   Resolution: ' + \
+        fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '\nResolution: ' + \
                     str(np.round(df / 1000, 3)) + ' kHz and ' + str(np.round(time_resolution * 1000, 3)) + ' ms.' + \
                     ' scale factor: ' + str(scale_factor)
         plot_pulsar_pulses_evolution(full_obs_profile, fig_suptitle, fig_title, timeline, scale_factor,
@@ -298,7 +307,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     plot_pulse_profile_and_spectra(profile, data, frequency, profile_pic_min, profile_pic_max,
                                    spectrum_pic_min, spectrum_pic_max, periods_per_fig, fig_suptitle, fig_title,
                                    pic_filename, current_date, current_time, software_version, custom_dpi,
-                                   colormap, show=True, save=True)
+                                   colormap, show=False, save=True)
 
     return 0
 
@@ -310,7 +319,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
 
 if __name__ == '__main__':
 
-    pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
-                          periods_per_fig, custom_dpi, colormap, use_mask_file=use_mask_file)
+    pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor,
+                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap,
+                          use_mask_file=use_mask_file)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
