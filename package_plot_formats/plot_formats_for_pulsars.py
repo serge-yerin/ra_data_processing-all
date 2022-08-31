@@ -82,7 +82,7 @@ def plot_pulsar_pulses_evolution(data, fig_suptitle, fig_title, timeline, scale_
     fig = plt.figure(figsize=(8.0, 6.0))
     rc('font', size=6, weight='bold')
     ax0 = fig.add_subplot(111)
-    ax0.imshow(data, cmap='Greys', aspect='auto')  #  vmin=v_min, vmax=v_max
+    ax0.imshow(data, cmap='Greys', aspect='auto')  # vmin=v_min, vmax=v_max
     ax0.set_title(fig_title, fontsize=5, fontweight='bold')
 
     major_ticks_bottom = np.linspace(0, data.shape[1], 4 + 1)
@@ -110,7 +110,7 @@ def plot_pulsar_pulses_evolution(data, fig_suptitle, fig_title, timeline, scale_
     fig.subplots_adjust(hspace=0.05, top=0.92)
     fig.suptitle(fig_suptitle, fontsize=7, fontweight='bold')
 
-    fig.text(0.922, 0.93, 'UTC time', fontsize=6, transform=plt.gcf().transFigure)
+    fig.text(0.922, 0.935, 'UTC time', fontsize=6, transform=plt.gcf().transFigure)
     fig.text(0.82, 0.060, 'Processed ' + current_date + ' at ' + current_time,
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.060, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
