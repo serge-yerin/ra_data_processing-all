@@ -13,10 +13,11 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 # *******************************************************************************
 
 
-def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of_spectra_in_bunch, phase_calibr_txt_file):
+def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp,
+                                       no_of_spectra_in_bunch, phase_calibr_txt_file):
     """
     function reads waveform data in wf32 format, makes FFT, cuts the symmetrical half of the spectra and
-    multiplies complex data by phase calibration data read from txt file. Then a symmetrcal part of spectra
+    multiplies complex data by phase calibration data read from txt file. Then a symmetrical part of spectra
     are made and joined to the shifted one, inverse FFT as applied and data are stored in waveform wf32 format
     Input parameters:
         fname -                         name of file with initial wf32 data
@@ -37,7 +38,7 @@ def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
 
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
+     clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
      df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
 
     # Read phase calibration txt file
@@ -47,13 +48,16 @@ def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp, no_of
         phase_vs_freq.append(np.float(line))
     phase_calibr_file.close()
 
+    # Path of the initial file
+    path = '/'.join(fname.split('/')[:-1]) + '/'
+
     fig = plt.figure(figsize=(9, 5))
     ax1 = fig.add_subplot(111)
     ax1.plot(phase_vs_freq, linestyle='-', linewidth='1.00', label='Phase to add')
     ax1.legend(loc='upper right', fontsize=6)
     ax1.grid(b=True, which='both', color='silver', linestyle='-')
     ax1.set_ylabel('Phase, a.u.', fontsize=6, fontweight='bold')
-    pylab.savefig('00_Phase to add.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(path + '00_Phase to add.png', bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Converting phase to complex numbers
