@@ -49,23 +49,23 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 file_header = file.read(1024)
 
             # *** Creating a name for long timeline TXT file ***
-            tl_file_name = df_filename + '_Timeline.wtxt'
+            tl_file_name = result_directory + df_filename + '_Timeline.wtxt'
             tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
             tl_file.close()
 
             # *** Creating a binary file with data for long data storage ***
-            file_data_A_name = df_filename + '_Data_chA.wf32'
-            result_wf32_files.append(file_data_A_name)
-            file_data_A = open(file_data_A_name, 'wb')
-            file_data_A.write(file_header)
-            file_data_A.close()
+            file_data_a_name = result_directory + df_filename + '_Data_chA.wf32'
+            result_wf32_files.append(file_data_a_name)
+            file_data_a = open(file_data_a_name, 'wb')
+            file_data_a.write(file_header)
+            file_data_a.close()
 
             if channel == 2:
-                file_data_B_name = df_filename + '_Data_chB.wf32'
-                result_wf32_files.append(file_data_B_name)
-                file_data_B = open(file_data_B_name, 'wb')
-                file_data_B.write(file_header)
-                file_data_B.close()
+                file_data_b_name = result_directory + df_filename + '_Data_chB.wf32'
+                result_wf32_files.append(file_data_b_name)
+                file_data_b = open(file_data_b_name, 'wb')
+                file_data_b.write(file_header)
+                file_data_b.close()
 
             del file_header
 
@@ -139,13 +139,13 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     del wf_data
 
                 # Saving WF data to dat file
-                file_data_A = open(file_data_A_name, 'ab')
-                file_data_A.write(np.float32(wf_data_chA).transpose().copy(order='C'))
-                file_data_A.close()
+                file_data_a = open(file_data_a_name, 'ab')
+                file_data_a.write(np.float32(wf_data_chA).transpose().copy(order='C'))
+                file_data_a.close()
                 if channel == 2:
-                    file_data_B = open(file_data_B_name, 'ab')
-                    file_data_B.write(np.float32(wf_data_chB).transpose().copy(order='C'))
-                    file_data_B.close()
+                    file_data_b = open(file_data_b_name, 'ab')
+                    file_data_b.write(np.float32(wf_data_chB).transpose().copy(order='C'))
+                    file_data_b.close()
 
                 # Saving time data to ling timeline file
                 with open(tl_file_name, 'a') as tl_file:
@@ -157,9 +157,9 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
             bar.finish()
 
         file.close()  # Close the data file
-        del file_data_A
+        del file_data_a
         if channel == 2:
-            del file_data_B
+            del file_data_b
 
     return result_wf32_files
 
