@@ -15,14 +15,14 @@ from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes impor
 # *******************************************************************************
 
 
-def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
+def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_dedisp):
     """
     function reads waveform data in wf32 format, makes FFT, cuts the symmetrical half of the spectra and shifts the
     lines of complex data to provide coherent dedispersion. Then a symmetrcal part of spectra are made and joined
     to the shifted one, inverse FFT as applied and data are stored in waveform wf32 format
     Input parameters:
-        DM -                            dispersion measure to compensate
-        fname -                         name of file with initial wf32 data
+        pulsar_dm -                            dispersion measure to compensate
+        file_path -                     path and name of file with initial wf32 data
         no_of_points_for_fft_dedisp -   number of waveform data points to use for FFT
     Output parameters:
         file_data_name -                name of file with processed data
@@ -30,8 +30,8 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+     clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
+     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(file_path, 0, 0)
 
     # Manually set frequencies for one channel mode
     freq_points_num = int(no_of_points_for_fft_dedisp / 2)
@@ -44,7 +44,10 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
     # Create long data files and copy first data file header to them
 
-    with open(fname, 'rb') as file:
+    fname = file_path.split('/')[-1]
+    fpath = '/'.join(file_path.split('/')[:-1]) + '/'
+
+    with open(file_path, 'rb') as file:
         # *** Data file header read ***
         file_header = file.read(1024)
 
@@ -52,32 +55,33 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         if fname.startswith('DM_'):
             prev_dm_str = fname.split('_')[1]
             prev_dm = np.float32(prev_dm_str)
-            new_dm = prev_dm + DM
+            new_dm = prev_dm + pulsar_dm
             n = len('DM_' + prev_dm_str + '_')
             file_data_name = 'DM_' + str(np.round(new_dm, 6)) + '_' + fname[n:]
         else:
-            file_data_name = 'DM_' + str(np.round(DM, 6)) + '_' + fname
+            file_data_name = 'DM_' + str(np.round(pulsar_dm, 6)) + '_' + fname
 
         # *** Creating a binary file with data for long data storage ***
-        file_data = open(file_data_name, 'wb')
+        file_data = open(fpath + file_data_name, 'wb')
         file_data.write(file_header)
         file_data.close()
         del file_header
 
         # *** Creating a new timeline TXT file for results ***
         new_tl_file_name = file_data_name.split("_Data_ch", 1)[0] + '_Timeline.wtxt'
-        new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+        new_tl_file = open(fpath + new_tl_file_name, 'w')  # Open and close to delete the file with the same name
         new_tl_file.close()
 
         # Calculation of the time shifts
-        shift_vector = DM_full_shift_calc(freq_points_num, fmin, fmax, df / pow(10, 6), time_resolution, DM, 'jds')
+        shift_vector = DM_full_shift_calc(freq_points_num, fmin, fmax, df / pow(10, 6),
+                                          time_resolution, pulsar_dm, 'jds')
         max_shift = np.abs(shift_vector[0])
 
         # Preparing buffer array
         buffer_array = np.zeros((freq_points_num, 2 * max_shift), dtype='complex64')
 
         print(' Maximal shift is:                            ', max_shift, ' pixels ')
-        print(' Dispersion measure:                          ', DM, ' pc / cm3 ')
+        print(' Dispersion measure:                          ', pulsar_dm, ' pc / cm3 ')
 
         # Calculation of number of blocks and number of spectra in the file
         no_of_spectra_in_bunch = max_shift.copy()
@@ -97,8 +101,8 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
         # !!! Fake timing. Real timing to be done!!!
         # *** Reading timeline file ***
         old_tl_file_name = fname.split("_Data_ch", 1)[0] + '_Timeline.wtxt'
-        old_tl_file = open(old_tl_file_name, 'r')
-        new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+        old_tl_file = open(fpath + old_tl_file_name, 'r')
+        new_tl_file = open(fpath + new_tl_file_name, 'w')  # Open and close to delete the file with the same name
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
@@ -184,7 +188,7 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
             #  Dispersion delay removing
             data_space = np.zeros((freq_points_num, 2 * max_shift), dtype='complex64')
 
-            # if it is the last bunch - use only availble data
+            # if it is the last bunch - use only available data
             if bunch >= no_of_bunches_per_file - 1:
                 data_space[:, max_shift:max_shift + no_of_spectra_in_bunch] = spectra[:, :]
             else:
@@ -295,10 +299,10 @@ def coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp):
 
 
 if __name__ == '__main__':
-    DM = 5.075
+    pulsar_dm = 5.075
     no_of_points_for_fft_dedisp = 16384  # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
-    fname = 'E280120_205546.jds_Data_chA.wf32'
+    path_to_file = 'E280120_205546.jds_Data_chA.wf32'
 
-    file_name = coherent_wf_to_wf_dedispersion(DM, fname, no_of_points_for_fft_dedisp)
+    file_name = coherent_wf_to_wf_dedispersion(pulsar_dm, path_to_file, no_of_points_for_fft_dedisp)
 
     print('Names of files: ', file_name)
