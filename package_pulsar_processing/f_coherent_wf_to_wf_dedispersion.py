@@ -106,7 +106,6 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
-        # bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file - 1,
         bar = IncrementalBar(' Coherent dispersion delay removing: ', max=no_of_bunches_per_file,
                              suffix='%(percent)d%%')
         bar.start()
@@ -116,12 +115,19 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
 
             # Trying to read all the file, not only integer number of bunches
             if bunch >= no_of_bunches_per_file - 1:
-                no_of_spectra_in_bunch = int(((df_filesize - 1024) - bunch * max_shift * no_of_points_for_fft_dedisp * 4) /
+
+                # Make sure all the variables are int, otherwise we can get overflow
+                df_filesize = int(df_filesize)
+                no_of_points_for_fft_dedisp = int(no_of_points_for_fft_dedisp)
+                bunch = int(bunch)
+                max_shift = int(max_shift)
+                no_of_spectra_in_bunch = int(((df_filesize - 1024) -
+                                              bunch * max_shift * no_of_points_for_fft_dedisp * 4) //
                                              (no_of_points_for_fft_dedisp * 4))
+
                 # print('\n  Bunch No ', str(bunch+1), ' of ', no_of_bunches_per_file, ' bunches')
                 # print('\n  Number of spectra in the last bunch is: ', no_of_spectra_in_bunch)
                 # print('\n  Maximal shift is:                       ', max_shift)
-
             # Read time from timeline file for the bunch
             time_scale_bunch = []
             for line in range(no_of_spectra_in_bunch):
@@ -299,9 +305,11 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
 
 
 if __name__ == '__main__':
-    pulsar_dm = 5.075
+    # pulsar_dm = 5.075
+    pulsar_dm = 1.0
     no_of_points_for_fft_dedisp = 16384  # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
-    path_to_file = 'E280120_205546.jds_Data_chA.wf32'
+    # path_to_file = 'E280120_205546.jds_Data_chA.wf32'
+    path_to_file = 'e:/python/B0950+08_DSP_waveform_B0950p08_high_band/E310120_225419.jds_Data_wfA+B.wf32'
 
     file_name = coherent_wf_to_wf_dedispersion(pulsar_dm, path_to_file, no_of_points_for_fft_dedisp)
 
