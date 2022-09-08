@@ -1,13 +1,18 @@
 # Python3
 # pip install progress
-Software_version = '2021.07.22'
-Software_name = 'JDS Waveform coherent dispersion delay removing'
+software_version = '2022.09.06'
+software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dispersion delay removing and saving found pulses
 # !!! Time possibly is not correct !!!
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
+# source_directory = 'DATA/'              # Directory with JDS files to be analyzed
+source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_waveform_B0950p08_high_band/'   # Directory with JDS files to be analyzed
+# result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
+result_directory = 'e:/python/'                   # Directory where DAT files to be stored (empty string means project directory)
+
 pulsar_name = 'B0950+08'  # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'J0242+6256'
 
 make_sum = True
@@ -16,12 +21,11 @@ no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spe
 no_of_points_for_fft_dedisp = 16384     # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
 no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
-source_directory = 'DATA/'              # Directory with JDS files to be analyzed
-result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
 median_filter_window = 80               # Window of median filter to smooth the average profile
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
-phase_calibr_txt_file = 'DATA/Calibration_E300120_232956.jds_cross_spectra_phase.txt'
+# phase_calibr_txt_file = 'DATA/Calibration_E300120_232956.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = source_directory + 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
 use_window_for_fft = False              # Use FFT window (not finished)
@@ -33,6 +37,7 @@ norm_compensated_dat_file_name = 'Norm_DM_4.8471_E150721_154000.jds_Data_wfA+B.d
 # *******************************************************************************
 # Common functions
 import shutil
+import os
 import sys
 import time
 import numpy as np
@@ -71,7 +76,7 @@ from package_ra_data_processing.f_normalize_dat_file import normalize_dat_file
 if __name__ == '__main__':
 
     print('\n\n\n\n\n\n\n\n   ********************************************************************')
-    print('   * ', Software_name, ' v.', Software_version, ' *      (c) YeS 2020')
+    print('   * ', software_name, ' v.', software_version, ' *      (c) YeS 2020')
     print('   ******************************************************************** \n\n')
     
     start_time = time.time()
@@ -90,6 +95,19 @@ if __name__ == '__main__':
     print('                                  or : ', np.round(max_shift * 16384/33000000, 1), ' seconds')  # nfft/f_cl
     print('                                  or :  ~', int(np.ceil((max_shift * 16384/33000000) / 16)),
           ' files in 2 ch 33 MHz mode\n\n')
+
+    # Preparing result directory
+    result_folder_name = source_directory.split('/')[-2]
+
+    # Path to intermediate data files and results
+    if result_directory == '':
+        result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
+    elif result_directory[-1] != '/':
+        result_directory = result_directory + '/'
+
+    result_directory = result_directory + pulsar_name + '_' + result_folder_name + '/'
+    if not os.path.exists(result_directory):
+        os.makedirs(result_directory)
 
     # Reading initial jds file list to save the list of files in the result folder
     file_list = find_files_only_in_current_folder(source_directory, '.jds', 0)
@@ -275,4 +293,4 @@ if __name__ == '__main__':
     end_time = time.time()
     print('\n\n  The program execution lasted for ',
           round((end_time - start_time), 2), 'seconds (', round((end_time - start_time)/60, 2), 'min. ) \n')
-    print('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
+    print('\n\n                 *** ', software_name, ' has finished! *** \n\n\n')
