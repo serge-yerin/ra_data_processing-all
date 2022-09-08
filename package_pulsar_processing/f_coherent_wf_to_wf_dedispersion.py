@@ -280,7 +280,7 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
                 '''
 
                 # Saving waveform data to wf32 file
-                file_data = open(file_data_name, 'ab')
+                file_data = open(fpath + file_data_name, 'ab')
                 file_data.write(np.float32(wf_data).transpose().copy(order='C'))
                 file_data.close()
 
@@ -296,7 +296,7 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
         old_tl_file.close()
         new_tl_file.close()
 
-    return file_data_name
+    return fpath + file_data_name
 
 
 # *******************************************************************************
