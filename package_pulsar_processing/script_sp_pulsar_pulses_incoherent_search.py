@@ -1,7 +1,6 @@
 # TODO: make a sum of channels A & B
 # TODO: calculate the total data loss from cleaning
 # TODO: save pics of data with compensated delay applying mask as well
-# TODO: make picture of separate consequent pulses as in the well-known B1919+21 plot
 # TODO: make similar pipeline, but starting from cutting into periods and averaging and then delay compensation
 
 # Python3
