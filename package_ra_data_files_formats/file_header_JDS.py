@@ -203,7 +203,7 @@ def FileHeaderReaderJDS(filepath, start_byte, print_or_not):
         fft_size = 16384.0
     # else:
     #    Sfft = float(fft_size/2)
-    time_res = Navr * (fft_size / clock_freq / 2)
+    time_res = np.float64(Navr * (fft_size / clock_freq / 2))
     df = float((float(clock_freq) / 2) / float(fft_size / 2))
     # df = float((float(clock_freq) / 2.0 / float(Sfft) ))
     if print_or_not == 1:
