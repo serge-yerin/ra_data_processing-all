@@ -172,7 +172,7 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
     current_date = time.strftime("%d.%m.%Y")
 
     # Creating a folder where all pictures and results will be stored (if it doesn't exist)
-    result_path = common_path + "RESULTS_pulsar_extracted_pulse_" + filename
+    result_path = common_path + "Extracted_pulse_" + filename
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
