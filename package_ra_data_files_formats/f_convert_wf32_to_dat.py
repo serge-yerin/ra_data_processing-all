@@ -3,7 +3,7 @@ import numpy as np
 from progress.bar import IncrementalBar
 
 from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
-
+from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
 
 # *******************************************************************************
 #          W A V E F O R M   F L O A T 3 2   T O   S P E C T R A                *
@@ -32,17 +32,23 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
         # *** Creating a binary file with spectra data for long data storage ***
         file_data_name = fname[:-5] + '.dat'
         file_data = open(file_data_name, 'wb')
+
+        file_header = jds_header_new_channels_numbers(file_header, 0, freq_points_num,
+                                                      fft_size=no_of_points_for_fft_spectr, n_avr=1)
+
         file_data.write(file_header)
-        file_data.seek(574)  # FFT size place in header
-        file_data.write(np.int32(no_of_points_for_fft_spectr).tobytes())
-        file_data.seek(624)  # Lb place in header
-        file_data.write(np.int32(0).tobytes())
-        file_data.seek(628)  # Hb place in header
-        file_data.write(np.int32(freq_points_num).tobytes())
-        file_data.seek(632)  # Wb place in header
-        file_data.write(np.int32(freq_points_num).tobytes())
-        file_data.seek(636)
-        file_data.write(np.int32(1).tobytes())  # Seem to work OK
+
+        # file_data.seek(574)  # FFT size place in header
+        # file_data.write(np.int32(no_of_points_for_fft_spectr).tobytes())
+        # file_data.seek(624)  # Lb place in header
+        # file_data.write(np.int32(0).tobytes())
+        # file_data.seek(628)  # Hb place in header
+        # file_data.write(np.int32(freq_points_num).tobytes())
+        # file_data.seek(632)  # Wb place in header
+        # file_data.write(np.int32(freq_points_num).tobytes())
+        # file_data.seek(636)
+        # file_data.write(np.int32(1).tobytes())  # Seem to work OK
+
         file_data.close()
         del file_header
 
@@ -337,17 +343,23 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
         # Creating a binary file with spectra data for long data storage
         file_data_name = fname[:-5] + '.dat'
         file_data = open(file_data_name, 'wb')
+
+        file_header = jds_header_new_channels_numbers(file_header, 0, freq_points_num,
+                                                      fft_size=no_of_points_for_fft_spectr, n_avr=1)
+
         file_data.write(file_header)
-        file_data.seek(574)  # FFT size place in header
-        file_data.write(np.int32(no_of_points_for_fft_spectr).tobytes())
-        file_data.seek(624)  # Lb place in header
-        file_data.write(np.int32(0).tobytes())
-        file_data.seek(628)  # Hb place in header
-        file_data.write(np.int32(freq_points_num).tobytes())
-        file_data.seek(632)  # Wb place in header
-        file_data.write(np.int32(freq_points_num).tobytes())
-        file_data.seek(636)  # Navr place in header
-        file_data.write(np.int32(1).tobytes())  # Works fine
+
+        # file_data.seek(574)  # FFT size place in header
+        # file_data.write(np.int32(no_of_points_for_fft_spectr).tobytes())
+        # file_data.seek(624)  # Lb place in header
+        # file_data.write(np.int32(0).tobytes())
+        # file_data.seek(628)  # Hb place in header
+        # file_data.write(np.int32(freq_points_num).tobytes())
+        # file_data.seek(632)  # Wb place in header
+        # file_data.write(np.int32(freq_points_num).tobytes())
+        # file_data.seek(636)  # Navr place in header
+        # file_data.write(np.int32(1).tobytes())  # Works fine
+
         file_data.close()
         del file_header
 
