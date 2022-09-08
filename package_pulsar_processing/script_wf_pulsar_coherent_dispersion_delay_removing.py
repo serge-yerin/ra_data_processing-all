@@ -1,10 +1,11 @@
+# TODO: Correct timeline file making and check correctness of timeline from receiver
+
 # Python3
-# pip install progress
 software_version = '2022.09.06'
 software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dispersion delay removing and saving found pulses
-# !!! Time possibly is not correct !!!
+
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
@@ -108,7 +109,6 @@ if __name__ == '__main__':
     result_directory = result_directory + pulsar_name + '_' + result_folder_name + '/'
     if not os.path.exists(result_directory):
         os.makedirs(result_directory)
-
     # Reading initial jds file list to save the list of files in the result folder
     file_list = find_files_only_in_current_folder(source_directory, '.jds', 0)
 
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         if len(initial_wf32_files) > 1 and make_sum:
             print('\n\n  * Making sum of two WF32 files... \n')
             file_name = sum_signals_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
-            print('  Sum file:', file_name, '\n')
+            print('\n  Sum file:', file_name, '\n')
             typesOfData = ['wfA+B']
         else:
             file_name = initial_wf32_files[0]  # [0] or [1]
@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
         #
         #
-        # file_name = 'DM_2.972_E150221_213204.jds_Data_wfA+B.dat'
+        # file_name = 'DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
         # typesOfData = ['wfA+B']
         #
         #
@@ -215,7 +215,10 @@ if __name__ == '__main__':
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
         print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
 
-        output_file_name = normalize_dat_file('', file_name, no_of_spectra_in_bunch,
+        file_name = file_name.split('/')[-1]
+        result_directory = '/'.join(file_name.split('/')[:-1]) + '/'
+
+        output_file_name = normalize_dat_file(result_directory, file_name, no_of_spectra_in_bunch,
                                               median_filter_window, show_av_sp_to_normalize)
 
         print(' Files names after normalizing: ', output_file_name)
@@ -223,13 +226,13 @@ if __name__ == '__main__':
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
         print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
 
-        pulsar_period_dm_compensated_pics('', output_file_name, pulsar_name, 0, -0.15, 0.55, -0.2, 3.0, 3, 500,
-                                          'Greys', False, 0.25)
-
+        pulsar_period_dm_compensated_pics(result_directory, output_file_name, pulsar_name,
+                                          0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys', False, 0.25)
+        
         #
         #
-        # output_file_name = 'Norm_DM_5.755_E280120_205546.jds_Data_chA.dat'
-        # typesOfData = ['chA']
+        # output_file_name = 'Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
+        # typesOfData = ['wfA+B']
         #
         #
 
@@ -238,8 +241,8 @@ if __name__ == '__main__':
         #
         # result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
         # file_name = output_file_name.split('_Data_', 1)[0]  # + '.dat'
-        # ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
-        #                      0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
+        # ok = DAT_file_reader('', file_name, typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
+        #                      300, 'jet', 0, 0, 0, 20 * 10 ** (-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
     else:
         output_file_name = norm_compensated_dat_file_name
@@ -252,9 +255,9 @@ if __name__ == '__main__':
     period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
-    path, dat_fname, png_fname = cut_needed_pulsar_period_from_dat_to_dat('', output_file_name, pulsar_name,
-                                                                          period_number, -0.15, 0.55, -0.2, 3.0,
-                                                                          periods_per_fig, 500, 'Greys')
+    path, dat_fname, png_fname = cut_needed_pulsar_period_from_dat_to_dat(result_directory, output_file_name,
+                                                                          pulsar_name, period_number, -0.15, 0.55,
+                                                                          -0.2, 3.0, periods_per_fig, 500, 'Greys')
 
     #
     #
