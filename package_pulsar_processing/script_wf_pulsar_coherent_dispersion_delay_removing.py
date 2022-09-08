@@ -109,6 +109,7 @@ if __name__ == '__main__':
     result_directory = result_directory + pulsar_name + '_' + result_folder_name + '/'
     if not os.path.exists(result_directory):
         os.makedirs(result_directory)
+
     # Reading initial jds file list to save the list of files in the result folder
     file_list = find_files_only_in_current_folder(source_directory, '.jds', 0)
 
@@ -216,7 +217,6 @@ if __name__ == '__main__':
         print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
 
         file_name = file_name.split('/')[-1]
-        result_directory = '/'.join(file_name.split('/')[:-1]) + '/'
 
         output_file_name = normalize_dat_file(result_directory, file_name, no_of_spectra_in_bunch,
                                               median_filter_window, show_av_sp_to_normalize)
@@ -255,6 +255,7 @@ if __name__ == '__main__':
     period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
+    output_file_name = output_file_name.split('/')[-1]
     path, dat_fname, png_fname = cut_needed_pulsar_period_from_dat_to_dat(result_directory, output_file_name,
                                                                           pulsar_name, period_number, -0.15, 0.55,
                                                                           -0.2, 3.0, periods_per_fig, 500, 'Greys')
