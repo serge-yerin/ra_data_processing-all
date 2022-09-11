@@ -5,20 +5,15 @@ software_name = 'Pulsar dynamic spectra folding'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-# Path to folder with the data file
-# source_path = ''  # Path to source file without name
-# source_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path to source file without name
-source_path = 'e:/python/B0950+08_DSP_spectra_pulsar_UTR2_B0950+08_all/'  # Path to source file without name
-# result_path = ''  # Path where the result files will be stored
-# result_path = 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'  # Path where the result files will be stored
-result_path = 'e:/python/B0950+08_DSP_spectra_pulsar_UTR2_B0950+08_all/'  # Path where the result files will be stored
+# Path to folder with the initial (source) data files (without file names)
+source_path = ''  # 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
+# Path where the result and temporary files will be stored
+result_path = ''  # 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
 
 # File name of DAT file to be analyzed:
-# filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
-# filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA.dat'
-filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA.dat'
+filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 
-pulsar_name = 'B0950+08'  # 'B0809+74'  # 'B0809+74'  # 'J2325-0530'  # 'B0950+08'  # 'B1919+21'
+pulsar_name = 'B0809+74'  # 'B0809+74'  # 'J2325-0530'  # 'B0950+08'  # 'B1919+21'
 
 use_mask_file = True
 periods_per_fig = 1               # Periods of pulsar to show in the figure
