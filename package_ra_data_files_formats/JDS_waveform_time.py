@@ -24,10 +24,20 @@ def jds_waveform_time(wf_data, clock_frequency, data_block_size):
     second_of_day = np.uint32(np.bitwise_and(wf_data[-2, :], tmp_c)) + \
                     np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a))
 
-    phase_of_second = np.uint32(wf_data[data_block_size - 4, :]) + \
-                      np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
+    phase_of_second = np.uint32(wf_data[data_block_size - 4, :])  # + \
+                      # np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
 
+    # DSP receivers have a bug, sometimes all the elder 16 bits have ones in the counter
+    # To have correct time we check if the elder 16 bits are ones
+    probe = np.uint32(np.bitwise_and(phase_of_second[:], int('11111111111111110000000000000000', 2)))
+    # Here we simply apply mask to separate 26 bit of counter as suggested in DSP manual
     phase_of_second[:] = np.uint32(np.bitwise_and(phase_of_second[:], tmp_b))
+
+    # If probe shows we have 16 bit of ones, we correct it which cutting out the elder 16 bits
+    for k in range(len(probe)):
+        if probe[k] == 4294901760:
+            phase_of_second[k] = np.uint32(np.bitwise_and(phase_of_second[k],
+                                                          int('00000000000000001111111111111111', 2)))
 
     hour = np.floor(second_of_day[:] / 3600)
     minutes = np.floor((second_of_day[:] % 3600) / 60)
