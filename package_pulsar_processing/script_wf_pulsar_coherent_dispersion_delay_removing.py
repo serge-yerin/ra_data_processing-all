@@ -1,7 +1,7 @@
 # TODO: Correct timeline file making and check correctness of timeline from receiver
 
 # Python3
-software_version = '2022.09.06'
+software_version = '2022.09.11'
 software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dispersion delay removing and saving found pulses
@@ -9,10 +9,10 @@ software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-# source_directory = 'DATA/'              # Directory with JDS files to be analyzed
-source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_waveform_B0950p08_high_band/'   # Directory with JDS files to be analyzed
-# result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
-result_directory = 'e:/python/'                   # Directory where DAT files to be stored (empty string means project directory)
+# Directory with JDS files to be analyzed
+source_directory = 'DATA/'  # 'e:/python/RA_DATA_ARCHIVE/DSP_waveform_B0950p08_high_band/'
+# Directory where DAT files to be stored (empty string means project directory)
+result_directory = 'e:/python/'
 
 pulsar_name = 'B0950+08'  # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'J0242+6256'
 
@@ -33,6 +33,11 @@ use_window_for_fft = False              # Use FFT window (not finished)
 
 only_extract_pulse = False
 norm_compensated_dat_file_name = 'Norm_DM_4.8471_E150721_154000.jds_Data_wfA+B.dat'
+
+scale_factor = 10
+spectrum_pic_min = -0.5
+spectrum_pic_max = 3
+periods_per_fig = 1
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
@@ -51,6 +56,7 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
+from package_common_modules.text_manipulations import separate_filename_and_path
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 # from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
 from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat
@@ -67,7 +73,7 @@ from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_
 from package_ra_data_processing.wf32_two_channel_phase_calibration import wf32_two_channel_phase_calibration
 from package_ra_data_processing.sum_signals_of_wf32_files import sum_signals_of_wf32_files
 from package_ra_data_processing.f_normalize_dat_file import normalize_dat_file
-
+from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding import pulsar_period_folding
 
 # *******************************************************************************
 #                            M A I N    P R O G R A M                           *
@@ -136,8 +142,8 @@ if __name__ == '__main__':
 
         if len(initial_wf32_files) > 1 and calibrate_phase:
             print('\n\n  * Making phase calibration of wf32 file... \n')
-            wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp, no_of_spectra_in_bunch,
-                                               phase_calibr_txt_file)
+            wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp,
+                                               no_of_spectra_in_bunch, phase_calibr_txt_file)
 
         #
         #
@@ -228,7 +234,21 @@ if __name__ == '__main__':
 
         pulsar_period_dm_compensated_pics(result_directory, output_file_name, pulsar_name,
                                           0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys', False, 0.25)
-        
+
+        #
+        #
+        #
+        #
+        #
+
+        # Separate file path from file name
+        data_directory, output_file_name = separate_filename_and_path(output_file_name)
+
+        # Make an average pulse profile and pulse evolution plot
+        pulsar_period_folding(data_directory, output_file_name, result_directory, pulsar_name, scale_factor,
+                              spectrum_pic_min, spectrum_pic_max, periods_per_fig, 500, 'Greys',
+                              use_mask_file=False, save_pulse_evolution=True)
+
         #
         #
         # output_file_name = 'Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
