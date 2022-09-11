@@ -58,3 +58,19 @@ def read_frequency_and_two_values_txt(filenamelist):
         y1_value.append(y1_val)
         y2_value.append(y2_val)
     return x_value, y1_value, y2_value
+
+
+def separate_filename_and_path(file_path):
+    """
+    separates string of file name and the path into separate strings
+    file_path - input file path
+    """
+
+    import sys
+
+    directory = '/'.join(file_path.split('/')[:-1]) + '/'
+    file_name = file_path.split('/')[-1]
+    if sys.platform != 'win32':
+        directory = '/' + directory
+
+    return directory, file_name
