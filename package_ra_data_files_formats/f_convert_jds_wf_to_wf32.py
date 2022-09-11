@@ -30,9 +30,9 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
+     clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_res, fmin, fmax,
      df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(source_directory + file_list[0], 0, 1)
-    if Mode > 0:
+    if mode > 0:
         sys.exit('  ERROR!!! Data recorded in wrong mode! Waveform mode needed.\n\n    Program stopped!')
 
     result_wf32_files = []
@@ -119,7 +119,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     # Cut the timeline of second channel
                     timeline_block_str = timeline_block_str[0:int(len(timeline_block_str) / 2)]  
                 for i in range(len(timeline_block_str)):
-                    time_scale_bunch.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[i])  # [0:12]
+                    time_scale_bunch.append(df_creation_time_utc[0:10] + ' ' + timeline_block_str[i])  # [0:12]
 
                 # Deleting the time blocks from waveform data
                 real_data_block_size = data_block_size - 4
