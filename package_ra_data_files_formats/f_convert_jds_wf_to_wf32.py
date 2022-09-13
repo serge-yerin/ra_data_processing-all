@@ -53,6 +53,11 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
             tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
             tl_file.close()
 
+            # *** Creating a name for long phase of second TXT file (to be added to timeline) ***
+            sp_file_name = result_directory + df_filename + '_Second_phase.xtxt'
+            sp_file = open(sp_file_name, 'w')  # Open and close to delete the file with the same name
+            sp_file.close()
+
             # *** Creating a binary file with data for long data storage ***
             file_data_a_name = result_directory + df_filename + '_Data_chA.wf32'
             result_wf32_files.append(file_data_a_name)
@@ -114,10 +119,11 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
 
                 # Timing
-                timeline_block_str = jds_waveform_time(wf_data, clock_freq, data_block_size)
+                timeline_block_str, phase_of_second = jds_waveform_time(wf_data, clock_freq, data_block_size)
                 if channel == 2:                    # Two channels mode
                     # Cut the timeline of second channel
                     timeline_block_str = timeline_block_str[0:int(len(timeline_block_str) / 2)]  
+                    phase_of_second = phase_of_second[0:int(len(phase_of_second) / 2)]
                 for i in range(len(timeline_block_str)):
                     time_scale_bunch.append(df_creation_time_utc[0:10] + ' ' + timeline_block_str[i])  # [0:12]
 
@@ -147,10 +153,18 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                     file_data_b.write(np.float32(wf_data_chB).transpose().copy(order='C'))
                     file_data_b.close()
 
-                # Saving time data to ling timeline file
+                # Saving time data to long timeline file
                 with open(tl_file_name, 'a') as tl_file:
                     for i in range(no_of_spectra_in_bunch):
                         tl_file.write((str(time_scale_bunch[i][:])) + ' \n')  # str
+
+                # Saving time data to long phase of second file (to be processed and added to time)
+                with open(sp_file_name, 'a') as sp_file:
+                    if bunch == 0:
+                        sp_file.write('# ' + str(clock_freq) + '\n')  # str
+                        sp_file.write('# ' + str(df_creation_time_utc) + '\n')  # str
+                    for i in range(no_of_spectra_in_bunch):
+                        sp_file.write((str(phase_of_second[i])) + ' \n')  # str
 
                 bar.next()
 
