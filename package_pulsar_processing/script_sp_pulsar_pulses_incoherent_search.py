@@ -28,7 +28,7 @@ pulsar_name = 'B0809+74'
 data_types = ['chA', 'C_m']
 
 # Calibration file needed only if cross-spectra are involved
-phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
+phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
