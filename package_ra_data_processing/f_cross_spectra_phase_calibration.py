@@ -97,6 +97,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     for line in phase_calibr_file:
         phase_vs_freq.append(float(line))
     phase_calibr_file.close()
+    phase_vs_freq = np.array(phase_vs_freq)
 
     fig = plt.figure(figsize=(9, 5))
     ax1 = fig.add_subplot(111)
