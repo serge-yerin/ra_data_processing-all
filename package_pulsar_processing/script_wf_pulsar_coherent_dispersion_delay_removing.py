@@ -5,6 +5,7 @@ software_version = '2022.09.11'
 software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
 # and make coherent dispersion delay removing and saving found pulses
+# !!! Now works ONLY with 16.5-33.0 MHz data acquired with 33 MHz clock frequency !!!
 
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
@@ -25,15 +26,16 @@ no_of_bunches_per_file = 16             # Number of bunches to read one WF file 
 median_filter_window = 80               # Window of median filter to smooth the average profile
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
-# phase_calibr_txt_file = 'DATA/Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 phase_calibr_txt_file = source_directory + 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
-use_window_for_fft = False              # Use FFT window (not finished)
+use_window_for_fft = True              # Use FFT window (not finished)
 
+# If only extract pulse from normalized dedispersed dat file, use this True and the name of file, otherwise ignored
 only_extract_pulse = False
 norm_compensated_dat_file_name = 'Norm_DM_4.8471_E150721_154000.jds_Data_wfA+B.dat'
 
+# Parameters for final average spectra folding
 scale_factor = 10
 spectrum_pic_min = -0.5
 spectrum_pic_max = 3
@@ -127,11 +129,13 @@ if __name__ == '__main__':
     # '''
 
     if not only_extract_pulse:
-
-        print('\n\n  * Converting waveform from JDS to WF32 format... \n\n')
+        t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+        print('\n\n', t, 'Converting waveform from JDS to WF32 format. \n\n')
 
         initial_wf32_files = convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per_file)
-        print('\n List of WF32 files: ', initial_wf32_files, '\n')
+        print('\n  List of WF32 files:')
+        for i in range(len(initial_wf32_files)):
+            print('   - ', initial_wf32_files[i])
 
         #
         #
@@ -141,7 +145,8 @@ if __name__ == '__main__':
         #
 
         if len(initial_wf32_files) > 1 and calibrate_phase:
-            print('\n\n  * Making phase calibration of wf32 file... \n')
+            t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+            print('\n\n', t, 'Making phase calibration of wf32 file... \n')
             wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp,
                                                no_of_spectra_in_bunch, phase_calibr_txt_file)
 
@@ -153,7 +158,8 @@ if __name__ == '__main__':
         #
 
         if len(initial_wf32_files) > 1 and make_sum:
-            print('\n\n  * Making sum of two WF32 files... \n')
+            t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+            print('\n\n', t, 'Making sum of two WF32 files. \n')
             file_name = sum_signals_of_wf32_files(initial_wf32_files[0], initial_wf32_files[1], no_of_spectra_in_bunch)
             print('\n  Sum file:', file_name, '\n')
             typesOfData = ['wfA+B']
@@ -169,7 +175,7 @@ if __name__ == '__main__':
         #
         #
 
-        print('\n\n  * Making coherent dispersion delay removing... \n')
+        print('\n\n  * Making coherent dispersion delay removing. \n')
         for i in range(int(pulsar_dm // dm_step)):  #
             t = strftime("%Y-%m-%d %H:%M:%S")
             print('\n Step ', i+1, ' of ', int((pulsar_dm // dm_step) + 1), ' started at: ', t, '\n')
@@ -204,11 +210,12 @@ if __name__ == '__main__':
         #
 
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-        print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data... \n')
+        print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data. \n')
 
-        file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr, no_of_spectra_in_bunch)
-        # file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
-        #                                              int(no_of_spectra_in_bunch/2), use_window_for_fft)
+        # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr,
+        #                                                 no_of_spectra_in_bunch)
+        file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
+                                                     int(no_of_spectra_in_bunch/2), use_window_for_fft)
 
         print('\n Dedispersed DAT file: ', file_name, '\n')
 
@@ -220,7 +227,7 @@ if __name__ == '__main__':
         #
 
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-        print('\n\n', t, 'Making normalization of the dedispersed spectra data... \n')
+        print('\n\n', t, 'Making normalization of the dedispersed spectra data. \n')
 
         file_name = file_name.split('/')[-1]
 
@@ -230,7 +237,7 @@ if __name__ == '__main__':
         print(' Files names after normalizing: ', output_file_name)
 
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
-        print('\n\n', t, 'Making figures of 3 pulsar periods... \n\n')
+        print('\n\n', t, 'Making figures of 3 pulsar periods. \n\n')
 
         pulsar_period_dm_compensated_pics(result_directory, output_file_name, pulsar_name,
                                           0, -0.15, 0.55, -0.2, 3.0, 3, 500, 'Greys', False, 0.25)
@@ -240,6 +247,9 @@ if __name__ == '__main__':
         #
         #
         #
+
+        t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
+        print('\n\n', t, 'Pulsar folding. \n\n')
 
         # Separate file path from file name
         data_directory, output_file_name = separate_filename_and_path(output_file_name)
