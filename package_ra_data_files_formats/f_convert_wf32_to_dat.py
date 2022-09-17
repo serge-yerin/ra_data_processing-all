@@ -10,7 +10,7 @@ from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_
 # *******************************************************************************
 
 
-def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, hanning_window):
+def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, use_window):
     """
         function converts waveform data in .wf32 format to spectra in .dat format
         : fname : name of .wf32 file with waveform data
@@ -26,10 +26,9 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
     freq_points_num = int(no_of_points_for_fft_spectr / 2)
 
     with open(fname, 'rb') as file:
-        # *** Data file header read ***
-        file_header = file.read(1024)
+        file_header = file.read(1024)  # Data file header read
 
-        # *** Creating a binary file with spectra data for long data storage ***
+        # Create a binary file with spectra data for long data storage and make file header
         file_data_name = fname[:-5] + '.dat'
         file_data = open(file_data_name, 'wb')
 
@@ -37,18 +36,6 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
                                                       fft_size=no_of_points_for_fft_spectr, n_avr=1)
 
         file_data.write(file_header)
-
-        # file_data.seek(574)  # FFT size place in header
-        # file_data.write(np.int32(no_of_points_for_fft_spectr).tobytes())
-        # file_data.seek(624)  # Lb place in header
-        # file_data.write(np.int32(0).tobytes())
-        # file_data.seek(628)  # Hb place in header
-        # file_data.write(np.int32(freq_points_num).tobytes())
-        # file_data.seek(632)  # Wb place in header
-        # file_data.write(np.int32(freq_points_num).tobytes())
-        # file_data.seek(636)
-        # file_data.write(np.int32(1).tobytes())  # Seem to work OK
-
         file_data.close()
         del file_header
 
@@ -66,7 +53,6 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
         print(' Number of bunches to read in file:           ', no_of_bunches_per_file)
         print(' Time resolution of calculated spectra:       ', round(real_spectra_dt * 1000, 3), ' ms')
         print(' Frequency resolution of calculated spectra:  ', round(real_spectra_df / 1000, 3), ' kHz \n')
-        # print('\n  Reading data from file \n')
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
@@ -91,8 +77,6 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
         bar.start()
 
         for bunch in range(no_of_bunches_per_file - 1):
-
-            # print('Bunch # ', bunch, ' of ', no_of_bunches_per_file - 1)
 
             # Read time from timeline file for the bunch
             time_scale_bunch = []
@@ -128,9 +112,8 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
             del wf_data_1, wf_data_2
 
             # Apply window to data for FFT
-            if hanning_window:
-                # window = np.hanning(no_of_points_for_fft_spectr)
-                window = np.hamming(no_of_points_for_fft_spectr)
+            if use_window:
+                window = np.kaiser(no_of_points_for_fft_spectr, 5)
                 wf_data[:] = wf_data[:] * window[:]
                 del window
 
@@ -139,17 +122,13 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 
             # Calculation of spectra
             spectra[:] = np.power(np.abs(np.fft.fft(wf_data[:])), 2)
-            # spectra[:] = np.abs(np.fft.fft(np.power(wf_data[:], 2))) # Does not work
-            # spectra[:, i] = np.power(np.abs(np.fft.fft(wf_data[:, i])), 2)
             del wf_data
 
             # Storing only first (left) mirror part of spectra
             spectra = spectra[:, : int(no_of_points_for_fft_spectr / 2)]
-            # spectra = spectra[: int(no_of_points_for_fft_spectr / 2), :]
 
             # At 33 MHz clock frequency the specter is upside down, to correct it we use flip up/down
             if int(clock_freq / 1000000) == 33:
-                # spectra = np.flipud(spectra)
                 spectra = np.fliplr(spectra)
 
             # Saving spectra data to dat file
@@ -166,7 +145,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
     return file_data_name
 
 
-# def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, hanning_window):
+# def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_spectra_in_bunch, use_window):
 #     """
 #         function converts waveform data in .wf32 format to spectra in .dat format
 #         : fname : name of .wf32 file with waveform data
@@ -277,7 +256,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
 #             del wf_data_1, wf_data_2
 #
 #             # Apply window to data for FFT
-#             if hanning_window:
+#             if use_window:
 #                 window = np.hanning(no_of_points_for_fft_spectr)
 #                 for i in range(2 * no_of_spectra_in_bunch):
 #                     wf_data[:, i] = wf_data[:, i] * window[:]
@@ -344,22 +323,11 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
         file_data_name = fname[:-5] + '.dat'
         file_data = open(file_data_name, 'wb')
 
+        # Change data header according to new number of channels and other parameters
         file_header = jds_header_new_channels_numbers(file_header, 0, freq_points_num,
                                                       fft_size=no_of_points_for_fft_spectr, n_avr=1)
 
         file_data.write(file_header)
-
-        # file_data.seek(574)  # FFT size place in header
-        # file_data.write(np.int32(no_of_points_for_fft_spectr).tobytes())
-        # file_data.seek(624)  # Lb place in header
-        # file_data.write(np.int32(0).tobytes())
-        # file_data.seek(628)  # Hb place in header
-        # file_data.write(np.int32(freq_points_num).tobytes())
-        # file_data.seek(632)  # Wb place in header
-        # file_data.write(np.int32(freq_points_num).tobytes())
-        # file_data.seek(636)  # Navr place in header
-        # file_data.write(np.int32(1).tobytes())  # Works fine
-
         file_data.close()
         del file_header
 
@@ -415,6 +383,7 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
             #
 
             # window = np.hamming(no_of_points_for_fft_spectr)
+            # window = np.kaiser(no_of_points_for_fft_spectr, 2)
             # for i in range(no_of_spectra_in_bunch):
             #     wf_data[:, i] = wf_data[:, i] * window[:]
             # del window
