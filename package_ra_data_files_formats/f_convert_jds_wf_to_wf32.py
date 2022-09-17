@@ -26,7 +26,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     file_list = find_and_check_files_in_current_folder(source_directory, '.jds')
 
     # To print in console the header of first file
-    print('\n  First file header parameters: \n')
+    print('\n  First file header parameters: ')
 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
