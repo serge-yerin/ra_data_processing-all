@@ -17,24 +17,31 @@ def jds_waveform_time(wf_data, clock_frequency, data_block_size):
     #  from precision clock generator, so we round the measured frequency to exact 66 or 33 MHz
 
     clock_frequency = int(clock_frequency/10**6) * 10**6
-    # tmp_a = np.uint32(int('00000000000000000000000000000001', 2))  # To separate 1 bit of second part of second of the day
-    # tmp_b = np.uint32(int('00000111111111111111111111111111', 2))  # To separate 0-26 bits of phase of second
+    tmp_a = np.uint32(int('00000000000000000000000000000001', 2))  # To separate 1 bit of second part of second of the day
+    tmp_b = np.uint32(int('00000111111111111111111111111111', 2))  # To separate 0-26 bits of phase of second
+    tmp_c = np.uint32(int('00000000000000001111111111111111', 2))  # To separate 0-26 bits of phase of second
+
+    second_of_day = np.uint32(np.bitwise_and(wf_data[-2, :], tmp_c)) + \
+                    np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a))
+
+    phase_of_second = np.uint32(wf_data[data_block_size - 4, :]) + \
+                      np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
+
+    # tmp_a = np.uint16(int('0000000000000001', 2))  # To separate 1 bit of second part of second of the day
+    # tmp_b = np.uint16(int('0000011111111111', 2))  # To separate 0-26 bits of phase of second
     # tmp_c = np.uint32(int('00000000000000001111111111111111', 2))  # To separate 0-26 bits of phase of second
-    #
-    # second_of_day = np.uint32(np.bitwise_and(wf_data[-2, :], tmp_c)) + \
-    #                 np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a))
-    #
-    # phase_of_second = np.uint32(wf_data[data_block_size - 4, :])  + \
-    #                   np.power(2, 16) * np.uint32(wf_data[data_block_size - 3, :])
 
-    tmp_a = np.uint16(int('0000000000000001', 2))  # To separate 1 bit of second part of second of the day
-    tmp_b = np.uint16(int('0000011111111111', 2))  # To separate 0-26 bits of phase of second
-    # tmp_c = np.uint32(int('00000000000000001111111111111111', 2))  # To separate 0-26 bits of phase of second
+    # second_of_day = np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a)) + np.uint32(wf_data[-2, :])
 
-    second_of_day = np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a)) + np.uint32(wf_data[-2, :])
+    # a = np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a))
+    # b = np.uint32(wf_data[-2, :])
+    # c = np.left_shift(a, 16)
+    # second_of_day = b | c
 
-    phase_of_second = np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[data_block_size - 3, :], tmp_b)) + \
-                      np.uint32(wf_data[data_block_size - 4, :])
+    # second_of_day = np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[-1, :], tmp_a)) + np.uint32(wf_data[-2, :])
+
+    # phase_of_second = np.power(2, 16) * np.uint32(np.bitwise_and(wf_data[data_block_size - 3, :], tmp_b)) + \
+    #                   np.uint32(wf_data[data_block_size - 4, :])
 
     # Here we simply apply mask to separate 26 bit of counter as suggested in DSP manual
     # phase_of_second[:] = np.uint32(np.bitwise_and(phase_of_second[:], tmp_b))
