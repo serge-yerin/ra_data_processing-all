@@ -5,6 +5,22 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_common_modules.text_manipulations import find_between
 
 
+def right_ascension_to_deg(pulsar_ra):
+    hour = int(pulsar_ra[0:2])
+    mins = int(pulsar_ra[3:5])
+    secs = float(find_between(pulsar_ra, 'm', 's'))
+    ra_deg = (hour + mins / 60. + secs / 3600.) * 15
+    return ra_deg
+
+
+def declination_to_deg(pulsar_dec):
+    degs = int(pulsar_dec[0:3])
+    mins = int(pulsar_dec[4:6])
+    secs = float(find_between(pulsar_dec, 'm', 's'))
+    dec_deg = (degs + mins / 60. + secs / 3600.)
+    return dec_deg
+
+
 def pulsar_visible_period(pulsar_name, obs_time, print_or_not=False):
     """
     Calculates pulsar visible period from baricentric period and observation epoch (date and time)
@@ -19,20 +35,6 @@ def pulsar_visible_period(pulsar_name, obs_time, print_or_not=False):
 
     # Take pulsar coordinates and baricentric period from catalogue
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name, epoch_obs='2020-01-01 00:00:00.000000')
-
-    def right_ascension_to_deg(pulsar_ra):
-        hour = int(pulsar_ra[0:2])
-        mins = int(pulsar_ra[3:5])
-        secs = float(find_between(pulsar_ra, 'm', 's'))
-        ra_deg = (hour + mins/60. + secs/3600.) * 15
-        return ra_deg
-
-    def declination_to_deg(pulsar_dec):
-        degs = int(pulsar_dec[0:3])
-        mins = int(pulsar_dec[4:6])
-        secs = float(find_between(pulsar_dec, 'm', 's'))
-        dec_deg = (degs + mins/60. + secs/3600.)
-        return dec_deg
 
     # Convert from hh:mm:ss or deg:min:sec catalogue values to degrees
     ra_deg = right_ascension_to_deg(pulsar_ra)
