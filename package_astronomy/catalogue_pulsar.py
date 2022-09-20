@@ -1,6 +1,13 @@
+from astropy.time import Time
+import numpy as np
 
 
-def catalogue_pulsar(pulsar_name):
+def catalogue_pulsar(pulsar_name, epoch_obs='2020-01-01 00:00:00.000000'):
+
+    # Calculate epoch of observations in julian days
+    t = Time([epoch_obs], scale='utc')
+    epoch_obs = np.float64(t.jd)
+
     pulsar_name = pulsar_name.upper()
     pulsar_ra = ''; pulsar_dec = ''; pulsar_DM = 0; p_bar = 0
 
@@ -44,7 +51,7 @@ def catalogue_pulsar(pulsar_name):
 
     # elif 'B0809+74'   in pulsar_name or 'J0814+7429' in pulsar_name : pulsar_ra = '08h14m59.5s';    pulsar_dec = '+74d29m05.7s';   pulsar_DM = 5.75066;    p_bar = 1.292241446862    # + (epoch_obs-2400000.5-49162.00)*1.68114E-16*86400
     # elif 'B0809+74'   in pulsar_name or 'J0814+7429' in pulsar_name : pulsar_ra = '08h14m59.5s';    pulsar_dec = '+74d29m05.7s';   pulsar_DM = 5.752;    p_bar = 1.292241446862    # + (epoch_obs-2400000.5-49162.00)*1.68114E-16*86400
-    elif 'B0809+74'   in pulsar_name or 'J0814+7429' in pulsar_name : pulsar_ra = '08h14m59.5s';    pulsar_dec = '+74d29m05.7s';   pulsar_DM = 5.755;    p_bar = 1.292241446862    # + (epoch_obs-2400000.5-49162.00)*1.68114E-16*86400
+    elif 'B0809+74'   in pulsar_name or 'J0814+7429' in pulsar_name: pulsar_ra = '08h14m59.5s';    pulsar_dec = '+74d29m05.7s'; pulsar_DM = 5.755; p_bar = 1.292241446862 + (epoch_obs - 2400000.5 - 49162.00) * 1.68114E-16 * 86400
     elif 'B0820+02'   in pulsar_name: pulsar_ra = '08h23m09.76s';   pulsar_dec = '+01d59m12.41s';  pulsar_DM = 23.73;    p_bar = 0.8648728046988
     elif 'B0823+26'   in pulsar_name: pulsar_ra = '08h26m51.383s';  pulsar_dec = '+26d37m23.79s';  pulsar_DM = 19.4751;  p_bar = 0.53066051169
     elif 'B0834+06'   in pulsar_name: pulsar_ra = '08h37m05.642s';  pulsar_dec = '+06d10m14.56s';  pulsar_DM = 12.8579;  p_bar = 1.2737682915785
@@ -57,7 +64,7 @@ def catalogue_pulsar(pulsar_name):
     elif 'J0943+22'   in pulsar_name: pulsar_ra = '09h43m25.0s';    pulsar_dec = '+22d56m12.41s';  pulsar_DM = 0;        p_bar = 0.532913
     elif 'J0947+27'   in pulsar_name: pulsar_ra = '09h47m22.0s';    pulsar_dec = '+27d42m00.0s';   pulsar_DM = 0;        p_bar = 0.85105
     # elif 'B0950+08'   in pulsar_name or 'J0953+0755' in pulsar_name: pulsar_ra = '09h53m09.31s';   pulsar_dec = '+07d55m35.75s';  pulsar_DM = 2.96927;    p_bar = 0.2530651649482  #+ (julday(11,30,2013,4,45,0)-2400000.5-46375.00)*2.29758E-16*86400
-    elif 'B0950+08'   in pulsar_name or 'J0953+0755' in pulsar_name: pulsar_ra = '09h53m09.31s';   pulsar_dec = '+07d55m35.75s';  pulsar_DM = 2.972;    p_bar = 0.2530651649482
+    elif 'B0950+08'   in pulsar_name or 'J0953+0755' in pulsar_name: pulsar_ra = '09h53m09.31s';   pulsar_dec = '+07d55m35.75s';  pulsar_DM = 2.972;    p_bar = 0.2530651649482 + (epoch_obs - 2400000.5 - 46375.00) * 2.29758E-16 * 86400
 
     elif 'J1046+0304' in pulsar_name: pulsar_ra = '10h46m43.23s';   pulsar_dec = '+03d04m06.9s';   pulsar_DM = 0;        p_bar = 0.326271446035
 
