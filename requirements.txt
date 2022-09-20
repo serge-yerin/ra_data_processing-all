@@ -10,3 +10,4 @@ requests
 scipy
 wakeonlan
 opencv-python
+PyAstronomy
