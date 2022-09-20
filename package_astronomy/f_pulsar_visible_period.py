@@ -70,17 +70,18 @@ def pulsar_visible_period(pulsar_name, obs_time, print_or_not=False):
     p_visible = np.float64(p_bar * ((1 - v / c) / (1 + v / c)) ** 0.5)
 
     if print_or_not:
-        print(' Heliocentric velocity vector [km/s]: ', vh)
-        print(' Barycentric velocity vector [km/s]:  ', vb, '\n')
-        print(' Pulsar name:                         ', pulsar_name)
-        print(' Dispersion measure:                  ', pulsar_dm, ' pc * cm^-3 ')
-        print(' Catalogue coordinates:               ', pulsar_ra, '  ', pulsar_dec)
-        print(' Right ascension:                     ', ra_deg, ' deg or', ra_rad, ' rad')
-        print(' Declination:                         ', dec_deg, ' deg or', dec_rad, ' rad')
-        print(' Observation time:                    ', obs_time)
-        print(' Observation time (Jul):              ', Time([obs_time], scale='utc')[0].jd)
-        print(' Barycentric period:                  ', p_bar, 's.')
-        print(' Visible period:                      ', p_visible, 's.')
+        print(' Calculating visible period of pulsar... \n')
+        print(' Pulsar name:                        ', pulsar_name)
+        print(' Dispersion measure:                 ', pulsar_dm, ' pc * cm^-3 ')
+        print(' Catalogue coordinates:              ', pulsar_ra, '  ', pulsar_dec)
+        print(' Right ascension:                    ', ra_deg, ' deg or', ra_rad, ' rad')
+        print(' Declination:                        ', dec_deg, ' deg or', dec_rad, ' rad')
+        print(' Observation time:                   ', obs_time)
+        print(' Observation time (Jul):             ', Time([obs_time], scale='utc')[0].jd)
+        print(' Heliocentric velocity vector [km/s]:', vh)
+        print(' Barycentric velocity vector [km/s]: ', vb)
+        print(' Barycentric period:                 ', p_bar, 's.')
+        print(' Visible period:                     ', p_visible, 's. \n')
 
     return p_visible, jd
 
