@@ -48,6 +48,7 @@ from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
+from package_astronomy.f_pulsar_visible_period import pulsar_visible_period
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_plot_formats.plot_formats_for_pulsars import plot_pulse_profile_and_spectra
 from package_plot_formats.plot_formats_for_pulsars import plot_pulsar_ridgeline_profiles
@@ -80,7 +81,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
 
-    # Taking pulsar period from catalogue
+    # Taking pulsar DM from catalogue
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     print('\n * Data file name: ', filename)
@@ -122,6 +123,9 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     timeline, dt_timeline = time_line_file_reader(timeline_filepath)
     del dt_timeline
 
+    # Calculating pulsar visible period for particular observation time
+    p_visible, jd = pulsar_visible_period(pulsar_name, timeline[0], print_or_not=True)
+
     # Calculation of the dimensions of arrays to read taking into account the pulsar period
     spectra_in_file = int((df_filesize - 1024) / (8 * freq_points_num))
     bunches_in_file = spectra_in_file // spectra_to_read
@@ -142,13 +146,14 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     # Time resolution of interpolated data
     interp_time_resolution = time_resolution / scale_factor
 
-    interp_spectra_in_profile = int(periods_per_fig * p_bar / interp_time_resolution)
+    interp_spectra_in_profile = int(periods_per_fig * p_visible / interp_time_resolution)
     # Keep in mind that 2 arises here because the time resolution is valid for each second sample, and other samples
     # are obtained with overlap of wf samples to calculate fft
 
     # Calculation of remainder of the pulsar period when divided by interpolated time resolution
-    remainder_of_n_periods = np.longdouble(periods_per_fig * p_bar) - \
+    remainder_of_n_periods = np.longdouble(periods_per_fig * p_visible) - \
                              (interp_time_resolution * interp_spectra_in_profile)
+
     if remainder_of_n_periods < 0:
         sys.exit('Error! Remainder is less then zero! ')
 
@@ -269,7 +274,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         # Make a figure of pulse evolution with time
         pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
         fig_suptitle = 'Pulsar ' + pulsar_name + ' profile evolution (DM: ' + str(pulsar_dm) + \
-                    r' $\mathrm{pc \cdot cm^{-3}}$' + ', Period: ' + str(p_bar) + ' s.)'
+                    r' $\mathrm{pc \cdot cm^{-3}}$' + ', Barycentric period: ' + str(p_bar) + ' s.)'
         fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '\nResolution: ' + \
                     str(np.round(df / 1000, 3)) + ' kHz and ' + str(np.round(time_resolution * 1000, 3)) + ' ms.' + \
                     ' scale factor: ' + str(scale_factor)
@@ -282,7 +287,9 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving integrated pulse data to a file
-    save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], result_path +
+    # save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], result_path +
+    #                               'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp')
+    save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1], result_path +
                                   'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp')
     print('\n SMP data file saved. \n')
 
@@ -292,7 +299,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
                 '\n from ' + timeline[0][:19] + ' till ' + timeline[-1][:19] + ' UTC'
 
     fig_suptitle = 'Folded average pulses of ' + pulsar_name + ' (DM: ' + str(pulsar_dm) + \
-                   r' $\mathrm{pc \cdot cm^{-3}}$' + ', Period: ' + str(p_bar) + ' s.), ' + \
+                   r' $\mathrm{pc \cdot cm^{-3}}$' + ', Barycentric period: ' + str(p_bar) + ' s.), ' + \
                    str(profiles_counter) + ' integrated profiles '
 
     pic_filename = result_path + filename[:-4] + ' - folded pulses.png'
