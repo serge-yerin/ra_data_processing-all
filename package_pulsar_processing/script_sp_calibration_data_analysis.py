@@ -4,9 +4,10 @@ software_name = 'JDS cross-spectra phase calibration data analysis'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-
-source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_calibration/'  # Directory with JDS files to be analyzed
-result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
+# Directory with JDS files to be analyzed
+source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_calibration/'
+# Directory where DAT and result txt files to be stored (empty string means project directory)
+result_directory = ''
 
 do_filtering = True
 
@@ -59,7 +60,7 @@ from package_ra_data_processing.filtering import median_filter
 # ###############################################################################
 
 
-def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data):
+def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, result_directory):
     """
     The function reads 2-channel cross-spectra calibration files (UTR-2/URAN noise generator calibration with a set of
     attenuators) and provides a phase difference txt file for cross-spectra observations calibration
@@ -96,14 +97,14 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data):
               ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
         # Run JDS reader for the current folder
-        # done, dat_file_name, dat_file_types = JDS_file_reader([path_to_calibr_data + file_list[file_no]],
-        #                                                       result_path, MaxNsp, 0,
-        #                                                       20, Vmin, Vmax, VminNorm, VmaxNorm,
-        #                                                       VminCorrMag, VmaxCorrMag, colormap, custom_dpi,
-        #                                                       CorrelationProcess, longFileSaveAch, longFileSaveBch,
-        #                                                       longFileSaveCRI, longFileSaveCMP, 0,
-        #                                                       0, 0, 0, 0, 0, dat_files_path=result_path,
-        #                                                       print_or_not=0)
+        done, dat_file_name, dat_file_types = JDS_file_reader([path_to_calibr_data + file_list[file_no]],
+                                                              result_path, MaxNsp, 0,
+                                                              20, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                              VminCorrMag, VmaxCorrMag, colormap, custom_dpi,
+                                                              CorrelationProcess, longFileSaveAch, longFileSaveBch,
+                                                              longFileSaveCRI, longFileSaveCMP, 0,
+                                                              0, 0, 0, 0, 0, dat_files_path=result_path,
+                                                              print_or_not=0)
 
     def read_dat_file_for_calibration(file_name, num_of_spectra, freq_points_num):
         file = open(file_name, 'rb')
@@ -213,7 +214,7 @@ if __name__ == '__main__':
     current_date = time.strftime("%d.%m.%Y")
     print('  Today is ', current_date, ' time is ', current_time, '\n')
 
-    obtain_calibr_matrix_for_2_channel_sp_calibration(source_directory)
+    obtain_calibr_matrix_for_2_channel_sp_calibration(source_directory, result_directory)
 
     end_time = time.time()
     print('\n\n  The program execution lasted for ', round((end_time - start_time), 2), 'seconds (',
