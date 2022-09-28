@@ -16,10 +16,9 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-# source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
-source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
-# result_directory = '../'
-result_directory = 'e:/python/'
+source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+# Directory where all results will be stored:
+result_directory = ''  # 'e:/RA_DATA_RESULTS/'
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
@@ -123,9 +122,8 @@ done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_curre
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                             print_or_not=0)
 
-
+# dat_file_list = ['chA', 'chB', 'CRe', 'CIm']
 # dat_file_name = 'P130422_121607.jds'
-# dat_file_list = ['chA', 'chB', 'C_m']
 
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
@@ -140,6 +138,8 @@ if 'CRe' in dat_file_list and 'C_m' in data_types:
 
 # Calibrate phase of cross-correlation data if needed
 if 'C_m' in data_types_to_process:
+
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Calibrating cross-spectra data')
     cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
                                     save_complex=False, save_module=True, save_phase=True, log_module=False)
 
