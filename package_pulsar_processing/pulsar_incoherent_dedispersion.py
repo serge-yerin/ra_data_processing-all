@@ -342,10 +342,20 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
             with np.errstate(divide='ignore'):
                 array_compensated_pulsar_dm[:, :] = 10 * np.log10(array_compensated_pulsar_dm[:, :])
             array_compensated_pulsar_dm[array_compensated_pulsar_dm == -np.inf] = 0
+            array_compensated_pulsar_dm[array_compensated_pulsar_dm == np.nan] = 0
+            array_compensated_pulsar_dm[np.isinf(array_compensated_pulsar_dm)] = 0
 
             # Normalizing log data
             array_compensated_pulsar_dm = array_compensated_pulsar_dm - np.mean(array_compensated_pulsar_dm)
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            masked_data_raw = np.ma.masked_where(mask_compensated_pulsar_dm, array_compensated_pulsar_dm)
+            data_raw_mean = np.mean(masked_data_raw)
+            del masked_data_raw
+
+            # Apply as mask to data (change masked data with mean values of data outside mask)
+            array_compensated_pulsar_dm = array_compensated_pulsar_dm * np.invert(mask_compensated_pulsar_dm)
+            array_compensated_pulsar_dm = array_compensated_pulsar_dm + mask_compensated_pulsar_dm * data_raw_mean
 
             # Preparing single averaged data profile for figure
             profile = array_compensated_pulsar_dm.mean(axis=0)[:]
