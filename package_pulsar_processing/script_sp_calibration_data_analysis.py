@@ -7,7 +7,7 @@ software_name = 'JDS cross-spectra phase calibration data analysis'
 # Directory with JDS files to be analyzed
 source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_calibration/'
 # Directory where DAT and result txt files to be stored (empty string means project directory)
-result_directory = ''
+result_directory = source_directory  # ''
 
 do_filtering = True
 
