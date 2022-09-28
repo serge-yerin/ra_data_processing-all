@@ -60,7 +60,7 @@ from package_ra_data_processing.f_spectra_normalization import normalization_db
 
 def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
-                                      colormap, save_strongest, threshold):
+                                      colormap, save_strongest, threshold, use_mask_file=False):
 
     a_current_time = time.strftime("%H:%M:%S")
     a_current_date = time.strftime("%d.%m.%Y")
@@ -84,6 +84,10 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
 
     # Opening DAT datafile
     file = open(dat_file_path, 'rb')
+
+    if use_mask_file:
+        mask_file = open(dat_file_path[:-3] + 'msk', 'rb')
+        mask_file.seek(1024)  # Jumping to 1024 byte from file beginning
 
     # Data file header read
     df_filesize = os.stat(dat_file_path).st_size                         # Size of file
@@ -150,6 +154,23 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
         if normalize_response > 0:
             normalization_db(data.transpose(), len(frequency), spectra_to_read)
 
+        # Apply masking if needed
+        if use_mask_file:
+            # Read mask from file
+            mask = np.fromfile(mask_file, dtype=bool, count=spectra_to_read * len(frequency))
+            mask = np.reshape(mask, [len(frequency), spectra_to_read], order='F')
+            # Apply as mask to data copy and calculate mean value without noise
+            masked_data_raw = np.ma.masked_where(mask, data)
+            data_raw_mean = np.mean(masked_data_raw)
+            del masked_data_raw
+
+            # Apply as mask to data (change masked data with mean values of data outside mask)
+            data = data * np.invert(mask)
+            data = data + mask * data_raw_mean
+            add_text = ' (masked)'
+        else:
+            add_text = ''
+
         # Preparing single averaged data profile for figure
         profile = data.mean(axis=0)[:]
         profile = profile - np.mean(profile)
@@ -168,8 +189,8 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
         ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
         ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
         ax1.set_title('File: ' + dat_file_name + '  Description: ' + df_description + '  Resolution: ' +
-                      str(np.round(df/1000, 3)) + ' kHz and ' + str(np.round(time_resolution*1000, 3)) + ' ms.',
-                      fontsize=5, fontweight='bold')
+                      str(np.round(df/1000, 3)) + ' kHz and ' + str(np.round(time_resolution*1000, 3)) + ' ms' +
+                      add_text, fontsize=5, fontweight='bold')
         ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         ax2 = fig.add_subplot(212)
         ax2.imshow(np.flipud(data), aspect='auto', cmap=colormap, vmin=spectrum_pic_min, vmax=spectrum_pic_max,
@@ -207,6 +228,8 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
 
     bar.finish()
     data_file.close()
+    if use_mask_file:
+        mask_file.close()
 
 
 # *******************************************************************************
@@ -218,4 +241,4 @@ if __name__ == '__main__':
 
     pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, normalize_response, profile_pic_min,
                                       profile_pic_max, spectrum_pic_min, spectrum_pic_max, periods_per_fig, customDPI,
-                                      colormap, True, 0.25)
+                                      colormap, True, 0.25, use_mask_file=True)
