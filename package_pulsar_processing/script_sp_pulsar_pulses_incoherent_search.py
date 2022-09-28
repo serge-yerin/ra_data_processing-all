@@ -226,7 +226,7 @@ if save_n_period_pics:
 
         pulsar_period_dm_compensated_pics(path_to_dat_files, dedispersed_data_file_name, pulsar_name, 0,
                                           amp_min, amp_max, dyn_sp_min, dyn_sp_max, 3, 500, 'Greys',
-                                          True, threshold)
+                                          True, threshold, use_mask_file=True)
 
 #
 #
