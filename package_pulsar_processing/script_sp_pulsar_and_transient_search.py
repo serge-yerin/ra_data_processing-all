@@ -219,8 +219,14 @@ for k in range(dm_points-2):
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
           ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
 
-    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, 'Transient_DM_2.472_' + dat_file_name +
-                                                         '_Data_' + data_types_to_process[0] + '.dat', current_add_dm,
+    # dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, 'Transient_DM_2.472_' + dat_file_name +
+    #                                                      '_Data_' + data_types_to_process[0] + '.dat', current_add_dm,
+    #                                                      'Transient', batch_factor,
+    #                                                      512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
+    #                                                      start_dm=dm_vector[0], use_mask_file=True,
+    #                                                      result_path=path_to_dat_files)
+
+    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, dedispersed_data_file_list[0], current_add_dm,
                                                          'Transient', batch_factor,
                                                          512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
                                                          start_dm=dm_vector[0], use_mask_file=True,
