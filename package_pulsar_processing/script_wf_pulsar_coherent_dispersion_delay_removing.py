@@ -29,7 +29,7 @@ calibrate_phase = True                  # Do we need to calibrate phases between
 phase_calibr_txt_file = source_directory + 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
-use_window_for_fft = True              # Use FFT window (not finished)
+use_window_for_fft = False              # Use FFT window (not finished)
 
 # If only extract pulse from normalized dedispersed dat file, use this True and the name of file, otherwise ignored
 only_extract_pulse = False
