@@ -5,8 +5,8 @@ import sys
 ################################################################################
 
 
-def file_header_reader_rpr(filepath, start_byte, print_or_not):
-    '''
+def file_header_rpr_read(filepath, start_byte, print_or_not):
+    """
     Reads info from RPR (.adr) data file header and returns needed parameters to the main script
     Input parameters:
         filepath - a path to the file to read data
@@ -19,7 +19,7 @@ def file_header_reader_rpr(filepath, start_byte, print_or_not):
         df - frequyency resolution in Hz ???
         frequencyList0 - list of channels frequencies in MHz
         Width*1024 - number of frequency points i.e. ( len(frequency) )
-    '''
+    """
 
     file = open(filepath, 'rb')
     file.seek(start_byte)  # Jump to the start of the header info
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode,
         NAvr, TimeRes, fmin, fmax, df, frequencyList0,
-        FFTsize, SLine, Width, BlockSize] = file_header_reader_rpr(filename, 0, 1)
+        FFTsize, SLine, Width, BlockSize] = file_header_rpr_read(filename, 0, 1)
 
     print('\n\n * Parameters of the chunk in data file: ')
 

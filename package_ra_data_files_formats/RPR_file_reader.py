@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings("ignore")
 
-from package_ra_data_files_formats.file_header_RPR import file_header_reader_rpr, chunk_header_reader_rpr
+from package_ra_data_files_formats.file_header_RPR import file_header_rpr_read, chunk_header_reader_rpr
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
@@ -51,7 +51,7 @@ def rpr_file_reader(fileList, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vmi
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode,
                 sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency,
-                FFT_Size, SLine, Width, BlockSize] = file_header_reader_rpr(fname, 0, 1)
+                FFT_Size, SLine, Width, BlockSize] = file_header_rpr_read(fname, 0, 1)
 
         # Reading the chunk header
         [SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,
