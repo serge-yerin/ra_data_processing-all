@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings("ignore")
 
-from package_ra_data_files_formats.file_header_RPR import file_header_rpr_read, chunk_header_reader_rpr
+from package_ra_data_files_formats.read_file_header_rpr import file_header_rpr_read, chunk_header_reader_rpr
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
