@@ -1,5 +1,4 @@
-'''
-'''
+
 import struct
 import os
 import sys
@@ -9,8 +8,9 @@ import datetime
 
 ################################################################################
 
-def FileHeaderReaderADR(filepath, start_byte, print_or_not):
-    '''
+
+def file_header_adr_read(filepath, start_byte, print_or_not):
+    """
     Reads info from ADR (.adr) data file header and returns needed parameters to the main script
     Input parameters:
         filepath - a path to the file to read data
@@ -23,7 +23,7 @@ def FileHeaderReaderADR(filepath, start_byte, print_or_not):
         df - frequyency resolution in Hz ???
         frequencyList0 - list of channels frequencies in MHz
         Width*1024 - number of frequency points i.e. ( len(frequency) )
-    '''
+    """
 
     file = open(filepath, 'rb')
     file.seek(start_byte) # Jump to the start of the header info

@@ -57,7 +57,7 @@ if __package__ is None:
 
 
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR, ChunkHeaderReaderADR
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot

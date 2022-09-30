@@ -21,7 +21,7 @@ if __package__ is None:
 
 # My functions
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean

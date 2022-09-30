@@ -1,7 +1,7 @@
 '''
 '''
 import numpy as np
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
 
 ################################################################################
 

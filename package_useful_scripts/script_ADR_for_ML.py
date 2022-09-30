@@ -54,7 +54,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR, ChunkHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR, ChunkHeaderReaderADR
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot

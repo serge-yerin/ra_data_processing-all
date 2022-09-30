@@ -7,7 +7,7 @@ from progress.bar import IncrementalBar
 
 from package_ra_data_processing.filtering import median_filter, average_filter
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
 
 
 # *******************************************************************************
