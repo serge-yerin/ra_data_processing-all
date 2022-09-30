@@ -48,7 +48,7 @@ if __package__ is None:
 
 from package_ra_data_processing.f_spectra_normalization import normalization_lin
 from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
@@ -148,7 +148,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     # Reading file header to obtain main parameters of the file
     if receiver_type == '.adr':
-        [time_res, fmin, fmax, df, frequency_list, fft_size, clc_freq, mode] = FileHeaderReaderADR(data_filepath, 0, 1)
+        [time_res, fmin, fmax, df, frequency_list, fft_size, clc_freq, mode] = file_header_adr_read(data_filepath, 0, 1)
 
     elif receiver_type == '.jds':
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc, 

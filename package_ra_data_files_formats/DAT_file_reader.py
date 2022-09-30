@@ -21,7 +21,7 @@ if __package__ is None:
 
 # My functions
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean
@@ -210,7 +210,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
             [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clock_freq, df_creation_time_utc,
                 receiver_mode, mode, sum_diff_mode, n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, s_line,
-                width, block_size] = FileHeaderReaderADR(filename, 0, 0)
+                width, block_size] = file_header_adr_read(filename, 0, 0)
 
             freq_points_num = len(frequency)
 

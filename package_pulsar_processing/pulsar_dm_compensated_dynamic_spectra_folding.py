@@ -45,7 +45,7 @@ if __package__ is None:
 
 # My functions
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_astronomy.f_pulsar_visible_period import pulsar_visible_period
@@ -103,7 +103,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq, df_creation_time_utc,
                 receiver_mode, mode, sum_diff_mode, n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
-                width, block_size] = FileHeaderReaderADR(filepath, 0, 0)
+                width, block_size] = file_header_adr_read(filepath, 0, 0)
 
         freq_points_num = len(frequency)
 

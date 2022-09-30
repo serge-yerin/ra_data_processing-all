@@ -58,7 +58,7 @@ if __package__ is None:
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
 
@@ -108,7 +108,7 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
                 ampl_re_im = ampl_re_im_GURT
                 [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
                     receiver_mode, mode, sumDifmode, NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine, Width,
-                    block_size] = FileHeaderReaderADR(path_to_data + dat_files_list[file_no], 0, 0)
+                    block_size] = file_header_adr_read(path_to_data + dat_files_list[file_no], 0, 0)
 
             elif df_filename[-4:] == '.jds':  # If data obtained from DSPZ receiver
 

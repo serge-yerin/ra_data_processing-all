@@ -68,7 +68,7 @@ warnings.filterwarnings("ignore")
 
 # My functions
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  \
     OneValueWithTimePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
@@ -230,7 +230,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
             ReceiverMode, Mode, sumDifMode, NAvr, time_res, fmin, fmax, df, frequency, fft_size, SLine, Width,
-            BlockSize] = FileHeaderReaderADR(filename, 0, 1)
+            BlockSize] = file_header_adr_read(filename, 0, 1)
 
         freq_points_num = len(frequency)
 

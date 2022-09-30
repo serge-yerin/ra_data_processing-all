@@ -7,7 +7,7 @@ from progress.bar import IncrementalBar
 
 from package_ra_data_processing.filtering import median_filter, average_filter
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 
 
 # *******************************************************************************
@@ -47,7 +47,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
                 NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine,
-                Width, BlockSize] = FileHeaderReaderADR(directory + filename, 0, 0)
+                Width, BlockSize] = file_header_adr_read(directory + filename, 0, 0)
 
     if df_filename[-4:] == '.jds':     # If data obtained from DSPZ receiver
 

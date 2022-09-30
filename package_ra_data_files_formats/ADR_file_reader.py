@@ -16,7 +16,7 @@ import matplotlib
 matplotlib.use('agg')
 warnings.filterwarnings("ignore")
 
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR, ChunkHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read, ChunkHeaderReaderADR
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
@@ -56,7 +56,7 @@ def ADR_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 F_ADC, df_creation_utc, ReceiverMode, adr_mode,
                 sum_dif_mode, NAvr, time_res, fmin, fmax, df, frequency,
-                FFT_Size, SLine, Width, BlockSize] = FileHeaderReaderADR(fname, 0, 0)
+                FFT_Size, SLine, Width, BlockSize] = file_header_adr_read(fname, 0, 0)
 
         # Reading the chunk header
         [sp_in_file, sp_in_frame, FrameInChunk, ChunksInFile, sizeOfChunk,

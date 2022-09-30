@@ -1,7 +1,7 @@
 '''
 '''
 import numpy as np
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 
 ################################################################################
 
@@ -30,7 +30,7 @@ def check_if_ADR_files_of_equal_parameters(folder_path, file_list):
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode,
             sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency,
-            FFT_Size, SLine, Width, BlockSize] = FileHeaderReaderADR(filepath, 0, 0)
+            FFT_Size, SLine, Width, BlockSize] = file_header_adr_read(filepath, 0, 0)
 
         df_system_name_list.append(df_system_name)
         df_obs_place_list.append(df_obs_place)

@@ -15,7 +15,7 @@ if __package__ is None:
 
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 
 
@@ -59,7 +59,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
                 NAvr, time_resolution, fmin, fmax, df, frequency, FFTsize, SLine,
-                Width, BlockSize] = FileHeaderReaderADR(filepath, 0, 0)
+                Width, BlockSize] = file_header_adr_read(filepath, 0, 0)
 
         freq_points_num = len(frequency)
 
@@ -197,7 +197,7 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
          CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
          NAvr, time_resolution, fmin, fmax, df, frequency, FFTsize, SLine,
-         Width, BlockSize] = FileHeaderReaderADR(filepath, 0, 0)
+         Width, BlockSize] = file_header_adr_read(filepath, 0, 0)
 
         freq_points_num = len(frequency)
 

@@ -74,7 +74,7 @@ if __package__ is None:
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
 
@@ -190,7 +190,7 @@ for i in range(len(culm_time_3C405)):
 
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
         ReceiverMode, Mode, sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine, Width, BlockSize] = \
-        FileHeaderReaderADR(path_to_data + dat_files_list[0], 0, 0)
+        file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C405)) + '_' + source
     done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], typesOfData, result_folder, averOrMin,
@@ -237,7 +237,7 @@ for i in range(len(culm_time_3C461)):
 
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
         ReceiverMode, Mode, sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine, Width, BlockSize] = \
-        FileHeaderReaderADR(path_to_data + dat_files_list[0], 0, 0)
+        file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C461)) + '_' + source
     done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], typesOfData, result_folder, averOrMin,

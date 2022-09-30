@@ -75,7 +75,7 @@ from package_ra_data_files_formats.specify_frequency_range import specify_freque
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
@@ -702,7 +702,7 @@ if filename[0:3] == 'ADR':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode,
             NAvr, TimeRes, fmin, fmax, df, frequency_list, FFTsize,
-            SLine, Width, BlockSize] = FileHeaderReaderADR(filepath, smd_filesize - 1024 - 131096, 1)
+            SLine, Width, BlockSize] = file_header_adr_read(filepath, smd_filesize - 1024 - 131096, 1)
 
     record_date_time_dt = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]),
                                    int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]),

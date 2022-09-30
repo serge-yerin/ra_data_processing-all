@@ -54,7 +54,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from package_common_modules.find_all_files_in_folder_and_subfolders import find_all_files_in_folder_and_subfolders
-from package_ra_data_files_formats.read_file_header_adr import FileHeaderReaderADR, ChunkHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read, ChunkHeaderReaderADR
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
@@ -104,7 +104,7 @@ for fileNo in range (len(fileList)):   # loop by files
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode,
             sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency,
-            FFT_Size, SLine, Width, BlockSize] = FileHeaderReaderADR(fname, 0, 1)
+            FFT_Size, SLine, Width, BlockSize] = file_header_adr_read(fname, 0, 1)
 
     # Reading the chunk header
     [SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,

@@ -220,7 +220,7 @@ if __name__ == '__main__':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode,
         NAvr, TimeRes, fmin, fmax, df, frequencyList0,
-        FFTsize, SLine, Width, BlockSize] = FileHeaderReaderADR(filename, 0)
+        FFTsize, SLine, Width, BlockSize] = file_header_adr_read(filename, 0)
 
     print('\n\n * Parameters of the chunk in data file: ')
 
