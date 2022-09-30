@@ -49,7 +49,7 @@ if __package__ is None:
 from package_ra_data_processing.f_spectra_normalization import normalization_lin
 from package_ra_data_processing.average_some_lines_of_array import average_some_lines_of_array
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
@@ -153,7 +153,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     elif receiver_type == '.jds':
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc, 
             sp_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency_list, fft_size,
-            data_block_size] = FileHeaderReaderJDS(data_filepath, 0, 1)
+            data_block_size] = file_header_jds_read(data_filepath, 0, 1)
     else:
         sys.exit(' Error! Unknown data type!')
 

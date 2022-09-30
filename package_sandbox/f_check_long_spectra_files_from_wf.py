@@ -14,7 +14,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 
 
 
@@ -28,7 +28,7 @@ def check_long_spectra_files_from_wf(directory, file_re, file_im):
     fname = directory + fileList[0]
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-     df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(fname, 0, 1)
+     df, frequency, FreqPointsNum, data_block_size] = file_header_jds_read(fname, 0, 1)
 
     no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
     print(' Number of blocks in file:             ', no_of_blocks_in_file)

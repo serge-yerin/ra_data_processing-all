@@ -5,7 +5,7 @@ import numpy as np
 from progress.bar import IncrementalBar
 import matplotlib.pyplot as plt
 
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 
 
 # *******************************************************************************
@@ -39,7 +39,7 @@ def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp,
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_fname, 0, 0)
+     df, frequency_list, freq_points_num, data_block_size] = file_header_jds_read(non_calibrated_fname, 0, 0)
 
     # Read phase calibration txt file
     phase_calibr_file = open(phase_calibr_txt_file, 'r')

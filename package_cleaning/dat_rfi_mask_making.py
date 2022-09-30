@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.f_clean_dirty_lines_for_weak_signal import clean_dirty_lines_for_weak_signal
 
@@ -24,7 +24,7 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delt
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
          df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(filepath, 0, 1)
+         df, frequency, freq_points_num, data_block_size] = file_header_jds_read(filepath, 0, 1)
     else:
         sys.exit('Error file format')
 

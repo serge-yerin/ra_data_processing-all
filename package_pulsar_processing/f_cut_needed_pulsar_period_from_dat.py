@@ -14,7 +14,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 
@@ -67,7 +67,7 @@ def cut_needed_pulsar_period_from_dat(common_path, filename, pulsar_name, period
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-                df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 0)
+                df, frequency, freq_points_num, dataBlockSize] = file_header_jds_read(filepath, 0, 0)
 
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
@@ -205,7 +205,7 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
          CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 0)
+         df, frequency, freq_points_num, dataBlockSize] = file_header_jds_read(filepath, 0, 0)
 
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *

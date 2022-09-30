@@ -13,7 +13,7 @@ from matplotlib.gridspec import GridSpec
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_common_modules.text_manipulations import find_between
 
 spectrum_pic_min = -0.2           # Minimum limit of dynamic spectrum picture
@@ -177,7 +177,7 @@ def cut_needed_time_points_from_dat_to_txt(path, filename):
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description,
          CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, dataBlockSize] = FileHeaderReaderJDS(path + '/' + filename, 0, 0)
+         df, frequency, freq_points_num, dataBlockSize] = file_header_jds_read(path + '/' + filename, 0, 0)
 
     spectra_to_read = int((df_filesize - 1024) / (8 * freq_points_num))
 

@@ -59,7 +59,7 @@ if __package__ is None:
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
 
 
@@ -116,7 +116,7 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
                 ampl_re_im = ampl_re_im_UTR2
                 [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
                     SpInFile, receiver_mode, mode, Navr, TimeRes, fmin, fmax, df, frequency, FreqPointsNum,
-                    block_size] = FileHeaderReaderJDS(path_to_data + dat_files_list[file_no], 0, 0)
+                    block_size] = file_header_jds_read(path_to_data + dat_files_list[file_no], 0, 0)
             
             else:
                 sys.exit('   Error! Wrong file type!')

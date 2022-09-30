@@ -44,7 +44,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
@@ -111,7 +111,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq, df_creation_time_utc,
                 sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
-                block_size] = FileHeaderReaderJDS(filepath, 0, 1)
+                block_size] = file_header_jds_read(filepath, 0, 1)
     else:
         sys.exit(' Error! File type is unknown')
 

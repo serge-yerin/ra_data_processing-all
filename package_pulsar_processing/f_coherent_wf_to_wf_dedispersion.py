@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 
@@ -31,7 +31,7 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(file_path, 0, 0)
+     df, frequency_list, freq_points_num, data_block_size] = file_header_jds_read(file_path, 0, 0)
 
     # Manually set frequencies for one channel mode
     freq_points_num = int(no_of_points_for_fft_dedisp / 2)

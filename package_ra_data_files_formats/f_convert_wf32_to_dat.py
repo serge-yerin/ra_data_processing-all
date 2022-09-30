@@ -2,7 +2,7 @@
 import numpy as np
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
 
 # *******************************************************************************
@@ -21,7 +21,7 @@ def convert_wf32_to_dat_with_overlap(fname, no_of_points_for_fft_spectr, no_of_s
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-     df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+     df, frequency, freq_points_num, data_block_size] = file_header_jds_read(fname, 0, 0)
 
     freq_points_num = int(no_of_points_for_fft_spectr / 2)
 
@@ -311,7 +311,7 @@ def convert_wf32_to_dat_without_overlap(fname, no_of_points_for_fft_spectr, no_o
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         clock_freq, df_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-        df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+        df, frequency, freq_points_num, data_block_size] = file_header_jds_read(fname, 0, 0)
 
     freq_points_num = int(no_of_points_for_fft_spectr/2)
 

@@ -1,7 +1,7 @@
 '''
 '''
 import numpy as np
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 
 ################################################################################
 
@@ -28,7 +28,7 @@ def check_if_JDS_files_of_equal_parameters(folder_path, file_list):
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-            df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(filepath, 0, 0)
+            df, frequency, FreqPointsNum, dataBlockSize] = file_header_jds_read(filepath, 0, 0)
 
         df_system_name_list.append(df_system_name)
         df_obs_place_list.append(df_obs_place)

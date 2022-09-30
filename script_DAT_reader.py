@@ -67,7 +67,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # My functions
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  \
     OneValueWithTimePlot
@@ -238,7 +238,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
             spectra_in_file, ReceiverMode, Mode, Navr, time_res, fmin, fmax, df, frequency, freq_points_num,
-            dataBlockSize] = FileHeaderReaderJDS(filename, 0, 1)
+            dataBlockSize] = file_header_jds_read(filename, 0, 1)
 
         sumDifMode = ''
 

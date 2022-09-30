@@ -48,7 +48,7 @@ from datetime import datetime, timedelta
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_plot_formats.plot_formats import  TwoDynSpectraPlot, TwoOrOneValuePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
@@ -108,7 +108,7 @@ for fileNo in range (len(fileList)):   # loop by files
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(fname, 0, 1)
+        df, frequency, FreqPointsNum, dataBlockSize] = file_header_jds_read(fname, 0, 1)
 
     # *** Saving main parameters from header to LOG FILE ***
     Log_File.write(' Initial data file name:         %s \n' % df_filename)

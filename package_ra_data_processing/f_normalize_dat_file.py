@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from progress.bar import IncrementalBar
 
 from package_ra_data_processing.filtering import median_filter, average_filter
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 
 
@@ -53,7 +53,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, dataBlockSize] = FileHeaderReaderJDS(directory + filename, 0, 0)
+        df, frequency, FreqPointsNum, dataBlockSize] = file_header_jds_read(directory + filename, 0, 0)
 
     # Calculation of the dimensions of arrays to read
     nx = len(frequency)                           # the first dimension of the array

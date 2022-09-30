@@ -33,7 +33,7 @@ if __package__ is None:
 from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.check_if_JDS_files_of_equal_parameters import check_if_JDS_files_of_equal_parameters
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 # ###############################################################################
 
@@ -70,7 +70,7 @@ def jds_wf_true_resolution(source_directory, result_directory, no_of_points_for_
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(source_directory + fileList[0], 0, 1)
+        df, frequency, FreqPointsNum, data_block_size] = file_header_jds_read(source_directory + fileList[0], 0, 1)
 
     if Channel == 0 or Channel == 1:  # Single channel mode
         wf_data_chA = np.empty([0])
@@ -93,7 +93,7 @@ def jds_wf_true_resolution(source_directory, result_directory, no_of_points_for_
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-            df, frequency, FreqPointsNum, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+            df, frequency, FreqPointsNum, data_block_size] = file_header_jds_read(fname, 0, 0)
 
          # !!! Make automatic calculations of time and frequency resolutions for waveform mode!!!
 

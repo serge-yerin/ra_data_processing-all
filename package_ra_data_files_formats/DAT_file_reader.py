@@ -20,7 +20,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
@@ -218,7 +218,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
             [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clock_freq, df_creation_timeUTC, 
                 sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
-                data_block_size] = FileHeaderReaderJDS(filename, 0, 0)
+                data_block_size] = file_header_jds_read(filename, 0, 0)
 
             sum_diff_mode = ''
 

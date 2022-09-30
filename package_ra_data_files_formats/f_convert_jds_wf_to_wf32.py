@@ -2,7 +2,7 @@ import sys
 import numpy as np
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 
@@ -31,7 +31,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_res, fmin, fmax,
-     df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(source_directory + file_list[0], 0, 1)
+     df, frequency, freq_points_num, data_block_size] = file_header_jds_read(source_directory + file_list[0], 0, 1)
     if mode > 0:
         sys.exit('  ERROR!!! Data recorded in wrong mode! Waveform mode needed.\n\n    Program stopped!')
 

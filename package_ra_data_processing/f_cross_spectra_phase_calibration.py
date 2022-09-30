@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
 
 def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
@@ -52,7 +52,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     #  *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-     df, frequency_list, freq_points_num, data_block_size] = FileHeaderReaderJDS(non_calibrated_re_fname, 0, 0)
+     df, frequency_list, freq_points_num, data_block_size] = file_header_jds_read(non_calibrated_re_fname, 0, 0)
 
     # Read and copy first data file header from initial file to calibrated files
     non_calibr_re_data_file = open(non_calibrated_re_fname, 'rb')

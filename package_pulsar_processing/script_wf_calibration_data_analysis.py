@@ -33,7 +33,7 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 
 # ###############################################################################
@@ -258,7 +258,7 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
-     df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(source_file, 0, 0)
+     df, frequency, freq_points_num, data_block_size] = file_header_jds_read(source_file, 0, 0)
     if Mode > 0:
         sys.exit('  ERROR!!! Data recorded in wrong mode! Waveform mode needed.\n\n    Program stopped!')
 
@@ -414,7 +414,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
          clock_freq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
-         df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+         df, frequency, freq_points_num, data_block_size] = file_header_jds_read(fname, 0, 0)
 
         labels.append(df_system_name + ' ' + df_description.replace('_', ' '))
         file_names.append(df_filename)

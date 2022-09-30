@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 # My functions
 from package_plot_formats.plot_formats import TwoDynSpectraPlot, TwoOrOneValuePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
 from package_cleaning.simple_channel_clean import simple_channel_clean
 
@@ -64,7 +64,7 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             clc_freq, df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resol, fmin, fmax,
-            df, frequency, freq_points_num, data_block_size] = FileHeaderReaderJDS(fname, 0, 0)
+            df, frequency, freq_points_num, data_block_size] = file_header_jds_read(fname, 0, 0)
 
         # Initial time line settings
         time_scale_start_date = datetime(int(df_creation_time_utc[0:4]), int(df_creation_time_utc[5:7]), 

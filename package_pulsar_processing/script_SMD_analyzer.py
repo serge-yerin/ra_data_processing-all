@@ -76,7 +76,7 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
-from package_ra_data_files_formats.file_header_JDS import FileHeaderReaderJDS
+from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
@@ -713,7 +713,7 @@ if filename[0:3] == 'ADR':
 elif filename[0:3] == 'DSP':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile,
      ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency_list,
-     FFTsize, BlockSize] = FileHeaderReaderJDS(filepath, smd_filesize - 1024, 1)
+     FFTsize, BlockSize] = file_header_jds_read(filepath, smd_filesize - 1024, 1)
     telescope = 'UTR-2'
 
     record_date_time_dt = datetime(int('20' + df_filename[5:7]), int(df_filename[3:5]), int(df_filename[1:3]),
