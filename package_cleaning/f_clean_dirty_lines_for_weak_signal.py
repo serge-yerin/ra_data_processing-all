@@ -2,7 +2,7 @@ import os
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 import cv2 as cv
 

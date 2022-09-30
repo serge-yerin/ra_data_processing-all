@@ -2,7 +2,7 @@ import sys
 import numpy as np
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 

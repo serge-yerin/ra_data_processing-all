@@ -67,7 +67,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # My functions
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_plot_formats.plot_formats import OneDynSpectraPlot, OneDynSpectraPlotPhD, TwoOrOneValuePlot,  \
     OneValueWithTimePlot

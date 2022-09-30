@@ -2,7 +2,7 @@
 import numpy as np
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
 
 # *******************************************************************************

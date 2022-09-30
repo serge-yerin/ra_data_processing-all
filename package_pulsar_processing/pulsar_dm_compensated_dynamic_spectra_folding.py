@@ -44,7 +44,7 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.file_header_ADR import FileHeaderReaderADR
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.catalogue_pulsar import catalogue_pulsar

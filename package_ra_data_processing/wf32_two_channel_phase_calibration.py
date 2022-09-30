@@ -5,7 +5,7 @@ import numpy as np
 from progress.bar import IncrementalBar
 import matplotlib.pyplot as plt
 
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 
 
 # *******************************************************************************

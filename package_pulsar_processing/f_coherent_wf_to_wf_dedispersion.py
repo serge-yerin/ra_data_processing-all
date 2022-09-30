@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from progress.bar import IncrementalBar
 
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_pulsar_processing.pulsar_DM_full_shift_calculation import DM_full_shift_calc
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 

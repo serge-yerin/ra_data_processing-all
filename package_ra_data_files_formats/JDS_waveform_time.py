@@ -1,5 +1,5 @@
 import numpy as np
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 
 
 def jds_waveform_time(wf_data, clock_frequency, data_block_size):

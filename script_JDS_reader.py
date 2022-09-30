@@ -48,7 +48,7 @@ from datetime import datetime, timedelta
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_plot_formats.plot_formats import  TwoDynSpectraPlot, TwoOrOneValuePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayJDS
 from package_cleaning.simple_channel_clean import simple_channel_clean
 

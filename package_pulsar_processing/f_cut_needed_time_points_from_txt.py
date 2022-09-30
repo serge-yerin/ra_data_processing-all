@@ -13,7 +13,7 @@ from matplotlib.gridspec import GridSpec
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_ra_data_files_formats.file_header_JDS import file_header_jds_read
+from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_common_modules.text_manipulations import find_between
 
 spectrum_pic_min = -0.2           # Minimum limit of dynamic spectrum picture
