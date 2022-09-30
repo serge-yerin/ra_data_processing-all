@@ -21,8 +21,8 @@ SpecFreqRange = 0              # Specify particular frequency range (1) or whole
 freqStart = 2.0                # Lower frequency of dynamic spectrum (MHz)
 freqStop = 8.0                 # Higher frequency of dynamic spectrum (MHz)
 
-save_profile_txt = 1           # Save profile data to TXT file?
-save_compensated_data = 1      # Save data with compensated DM to DAT file?
+save_profile_txt = True        # Save profile data to TXT file?
+save_compensated_data = True      # Save data with compensated DM to DAT file?
 custom_dpi = 300                # Resolution of images of dynamic spectra
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
 # *******************************************************************************
@@ -111,7 +111,8 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
 
 def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_const, profile_pic_min, profile_pic_max,
                                    SpecFreqRange, freqStart, freqStop, save_profile_txt, save_compensated_data,
-                                   custom_dpi, colormap, use_mask_file=False, result_path=''):
+                                   custom_dpi, colormap, use_mask_file=False, save_pics=True, transient_dm=0,
+                                   result_path='', make_fourier=False):
 
     """
     Makes incoherent compensation of time delays in each frequency channel with its shift
@@ -127,17 +128,12 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
     newpath = result_path + 'RESULTS_pulsar_single_pulses_' + pulsar_name + '_' + filename[:-4]
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)
+    if save_pics:
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
 
     # Path to timeline file to be analyzed:
     time_line_file_name = common_path + filename[-31:-13] + '_Timeline.txt'
-
-    if save_profile_txt > 0:
-        # *** Creating a name for long timeline TXT file ***
-        profile_file_name = newpath + '/' + filename + '_time_profile.txt'
-        profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
-        profile_txt_file.close()
 
     # *** Opening DAT datafile to check the initial file type ***
     file = open(data_filepath, 'rb')
@@ -168,7 +164,17 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     dat_sp_in_file = int(((df_filesize - 1024) / (len(frequency_list) * 8)))
 
     # Obtain pulsar parameters from catalogue
-    pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
+    if 'Transient' in pulsar_name:
+        pulsar_dm = transient_dm
+    else:
+        pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
+
+    if save_profile_txt > 0:
+        # *** Creating a name for long timeline TXT file ***
+        profile_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + \
+                            filename[:-4] + '_time_profile.txt'
+        profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
+        profile_txt_file.close()
 
     # ************************************************************************************
     #                             R E A D I N G   D A T A                                *
@@ -368,20 +374,19 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
                     profile_txt_file.write(str(profile[i]) + ' \n')
                 profile_txt_file.close()
 
-            # Averaging of the array with pulses for figure
-            averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm, int(num_frequencies/average_const))
-            freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
-            max_time_shift = max_shift * time_res
+            if save_pics:
+                # Averaging of the array with pulses for figure
+                averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm, int(num_frequencies/average_const))
+                freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
+                max_time_shift = max_shift * time_res
 
-            # NEW start
-            averaged_array = averaged_array - np.mean(averaged_array)
-            # NEW stop
+                averaged_array = averaged_array - np.mean(averaged_array)
 
-            plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale,
-                                                newpath, filename, pulsar_name, pulsar_dm, freq_resolution, time_res,
-                                                max_time_shift, block, num_of_blocks-1, block,
-                                                profile_pic_min, profile_pic_max, df_description, colormap,
-                                                custom_dpi, a_current_date, a_current_time, software_version)
+                plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list, num_frequencies,
+                                                    fig_time_scale, newpath, filename, pulsar_name, pulsar_dm,
+                                                    freq_resolution, time_res, max_time_shift, block, num_of_blocks-1,
+                                                    block, profile_pic_min, profile_pic_max, df_description, colormap,
+                                                    custom_dpi, a_current_date, a_current_time, software_version)
 
         # Rolling temp_array to put current data first
         buffer_array = np.roll(buffer_array, - max_shift)
@@ -393,11 +398,12 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     dat_file.close()
 
     # Fourier analysis of the obtained time profile of pulses
-    if save_profile_txt > 0:
+    if save_profile_txt and make_fourier:
         print('\n\n  *** Making Fourier transform of the time profile...')
         pulsar_pulses_time_profile_FFT(newpath + '/', filename + '_time_profile.txt', pulsar_name, time_res,
                                        profile_pic_min, profile_pic_max, custom_dpi, colormap)
-
+    if not save_compensated_data:
+        new_data_file_name = ''
     return new_data_file_name
 
 
