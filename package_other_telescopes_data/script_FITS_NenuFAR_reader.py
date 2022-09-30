@@ -31,7 +31,7 @@ if __package__ is None:
 
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_plot_formats.plot_formats import TwoDynSpectraPlot, TwoOrOneValuePlot  # OneImmedSpecterPlot, plot2D
-from package_ra_data_files_formats.file_header_FITS import file_header_reader_fits
+from package_ra_data_files_formats.read_file_header_fits import file_header_fits_read
 
 
 # *******************************************************************************
@@ -51,7 +51,7 @@ newpath = "FITS_Results"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 
-file_header_reader_fits(foldpath, filename)
+file_header_fits_read(foldpath, filename)
 
 print('\n Reading data and plotting figures... \n')
 

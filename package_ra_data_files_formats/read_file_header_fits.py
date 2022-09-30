@@ -5,7 +5,7 @@ from astropy.io import fits
 
 ################################################################################
 
-def file_header_reader_fits(fold_path, file_name):
+def file_header_fits_read(fold_path, file_name):
     """
     Reads info from FITS (.fits) data file header, prints to terminal
     all names, dimensions and units of fields, returns nothing
@@ -70,4 +70,4 @@ if __name__ == '__main__':
     filename = '20210724_015600_BST.fits'
     foldpath = '../RA_DATA_ARCHIVE/NenuFAR_beamstatistic_file_Jupiter/'
 
-    file_header_reader_fits(foldpath, filename)
+    file_header_fits_read(foldpath, filename)
