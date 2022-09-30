@@ -328,7 +328,7 @@ def file_header_adr_read_old(filepath, start_byte, print_or_not):
 
 ################################################################################
 
-def ChunkHeaderReaderADR(filepath, start_byte, block_size, print_or_not):
+def chunk_header_reader_adr(filepath, start_byte, block_size, print_or_not):
     """
     Reads info from ADR (.adr) data file from chunk headerand returns parameters to the main script
     Input parameters:
@@ -400,4 +400,4 @@ if __name__ == '__main__':
     print('\n\n * Parameters of the chunk in data file: ')
 
     SpInFile, SpInFrame, FrameInChunk, ChunksInFile, sizeOfChunk,\
-        frm_sec, frm_phase = ChunkHeaderReaderADR(filename, 0, block_size, True)
+        frm_sec, frm_phase = chunk_header_reader_adr(filename, 0, block_size, True)

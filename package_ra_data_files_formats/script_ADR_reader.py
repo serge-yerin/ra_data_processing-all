@@ -57,7 +57,7 @@ if __package__ is None:
 
 
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read, ChunkHeaderReaderADR
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read, chunk_header_reader_adr
 from package_ra_data_files_formats.FPGA_to_PC_array import FPGAtoPCarrayADR
 from package_cleaning.simple_channel_clean import simple_channel_clean
 from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPlot, TwoDynSpectraPlot
@@ -129,7 +129,7 @@ for file_no in range(len(fileList)):
 
     # Reading the chunk header
     [sp_in_file, sp_in_frame, FrameInChunk, ChunksInFile, chunk_size,
-        frm_sec, frm_phase] = ChunkHeaderReaderADR(fname, 0, BlockSize, 1)
+        frm_sec, frm_phase] = chunk_header_reader_adr(fname, 0, BlockSize, 1)
 
     freq_points_num = int(Width * 1024)
     Log_File.close()
