@@ -81,9 +81,9 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
     It assumes we obtain raw dat files from ADR or JDS readers where for JDS the last channels are not deleted
     """
 
-    a_previous_time = time.time()
-    a_current_time = time.strftime("%H:%M:%S")
-    a_current_date = time.strftime("%d.%m.%Y")
+    # a_previous_time = time.time()
+    # a_current_time = time.strftime("%H:%M:%S")
+    # a_current_date = time.strftime("%d.%m.%Y")
 
     # Removing old DM from file name and updating it to current value
     if 'DM_' in filename:
@@ -105,7 +105,8 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
     #     os.makedirs(newpath)
 
     # Path to timeline file to be analyzed:
-    time_line_file_name = common_path + filename[-31:-13] + '_Timeline.txt'
+    time_line_file_name = filename.split('_Data_')[0] + '_Timeline.txt'
+    print(time_line_file_name)
 
     if save_profile_txt > 0:
         # *** Creating a name for long timeline TXT file ***
@@ -208,9 +209,9 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
     print(' Maximal shift is:              ', max_shift, ' pixels ')
     print(' Number of blocks in file:      ', num_of_blocks)
     print(' Source name:                   ', source_name)
-    print(' Full dispersion measure:       ', prev_dm + current_add_dm, ' pc / cm3')
+    print(' Full dispersion measure:       ', np.round(prev_dm + current_add_dm, 6), ' pc / cm3')
     print(' Start dispersion measure:      ', prev_dm, ' pc / cm3')
-    print(' Current add to start DM:       ', current_add_dm, ' pc / cm3 \n')
+    print(' Current add to start DM:       ', np.round(current_add_dm, 6), ' pc / cm3 \n')
 
     if receiver_type == '.jds':
         num_frequencies_initial = len(frequency_list) - 4
@@ -310,7 +311,7 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
                     new_mask_file.close()
                     del temp_to_write
 
-            # Saving time data to ling timeline file
+            # Saving time data to long timeline file
             with open(new_tl_file_name, 'a') as new_tl_file:
                 for i in range(max_shift):
                    new_tl_file.write((fig_date_time_scale[i][:]))  # str
