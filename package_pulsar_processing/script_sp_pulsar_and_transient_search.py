@@ -16,8 +16,8 @@ source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
 result_directory = '../../RA_DATA_RESULTS'
 
 central_dm = 2.972
-dm_range = 0.2
-dm_points = 11
+dm_range = 0.4
+dm_points = 41
 batch_factor = 20
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
@@ -189,7 +189,6 @@ path_to_dat_files = result_directory + '/' + 'Transient_search_' + result_folder
 #
 #
 data_types_to_process = ['chA']
-# path_to_dat_files = '../B1919+21_DSP_spectra_pulsar_UTR2_B1919+21/'
 dat_file_name = 'C250122_214003.jds'
 #
 #
@@ -213,21 +212,14 @@ for i in range(len(data_types_to_process)):
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
 
-for k in range(dm_points-2):
+for k in range(dm_points-1):
 
     current_add_dm = dm_vector[k + 1] - dm_vector[0]
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
           ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
 
-    # dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, 'Transient_DM_2.472_' + dat_file_name +
-    #                                                      '_Data_' + data_types_to_process[0] + '.dat', current_add_dm,
-    #                                                      'Transient', batch_factor,
-    #                                                      512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
-    #                                                      start_dm=dm_vector[0], use_mask_file=True,
-    #                                                      result_path=path_to_dat_files)
-
-    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, dedispersed_data_file_list[0], current_add_dm,
-                                                         'Transient', batch_factor,
+    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, dedispersed_data_file_list[0],
+                                                         current_add_dm, 'Transient', batch_factor,
                                                          512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
                                                          start_dm=dm_vector[0], use_mask_file=True,
                                                          result_path=path_to_dat_files)
