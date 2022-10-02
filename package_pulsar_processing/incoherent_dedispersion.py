@@ -17,7 +17,6 @@ average_const = 512            # Number of frequency channels to appear in resul
 profile_pic_min = -0.15        # Minimum limit of profile picture
 profile_pic_max = 0.55         # Maximum limit of profile picture
 
-# start_dm = 2.472
 current_add_dm = 0.1
 batch_factor = 10
 
@@ -95,6 +94,7 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
                        filename.split('DM_'+prev_dm_str)[1]
     else:
         new_filename = 'DM_' + str(np.round(current_add_dm + start_dm, 6)) + '_' + filename
+        prev_dm = 0
 
     # rc('font', size=6, weight='bold')  # -----------------------------------------------------------
     data_filepath = common_path + filename
@@ -105,8 +105,7 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
     #     os.makedirs(newpath)
 
     # Path to timeline file to be analyzed:
-    time_line_file_name = filename.split('_Data_')[0] + '_Timeline.txt'
-    print(time_line_file_name)
+    time_line_file_name = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
 
     if save_profile_txt > 0:
         # *** Creating a name for long timeline TXT file ***
@@ -232,9 +231,6 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
 
     for block in range(num_of_blocks):   # main loop by number of blocks in file
 
-        # print('\n * Data block # ', block + 1, ' of ', num_of_blocks,
-        #       '\n ******************************************************************')
-
         # Timeline arrangements:
         fig_time_scale = []
         fig_date_time_scale = []
@@ -265,10 +261,6 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
         # Normalization of data
         normalization_lin(data, num_frequencies, 1 * max_shift)
 
-        # now_time = time.time()
-        # print('\n  *** Preparation of data took:              ', round((now_time - a_previous_time), 2), 'seconds ')
-        # a_previous_time = now_time
-
         # Dispersion delay removing
         data_space = np.zeros((num_frequencies, 2 * max_shift))
         data_space[:, max_shift:] = data[:, :]
@@ -280,10 +272,6 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
             mask_space[:, max_shift:] = mask[:, :]
             temp_mask_array = pulsar_DM_compensation_with_indices_changes(mask_space, shift_vector)
             temp_mask_array = np.array(temp_mask_array, dtype=bool)
-
-        # now_time = time.time()
-        # print('\n  *** Dispersion delay removing took:        ', round((now_time - a_previous_time), 2), 'seconds ')
-        # a_previous_time = now_time
 
         # Adding the next data block
         buffer_array += temp_array
