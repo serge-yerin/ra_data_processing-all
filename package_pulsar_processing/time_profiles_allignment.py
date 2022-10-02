@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
+import matplotlib.ticker as mticker   # <---- Added to suppress warning
 
 common_path = 'e:/RA_DATA_RESULTS/Transient_search_DSP_spectra_pulsar_UTR2_B0950+08/'
 dat_file_name = 'C250122_214003.jds'
@@ -26,12 +27,14 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vec
         new_data_file_name
 
     """
+    print(dm_vector)
+
     data_filenames = []
     time_filenames = []
-    for i in range(len(dm_vector)):
-        data_filenames.append('Transient_DM_' + str(dm_vector[i]) + '_' + dat_file_name + '_Data_' +
+    for i in range(len(dm_vector)-1):
+        data_filenames.append('DM_' + str(np.round(dm_vector[i+1]-dm_vector[0], 6)) + '_' + dat_file_name + '_Data_' +
                               data_type_to_process + '_time_profile.txt')
-        time_filenames.append('Transient_DM_' + str(dm_vector[i]) + '_' + dat_file_name + '_Timeline.txt')
+        time_filenames.append('DM_' + str(np.round(dm_vector[i+1]-dm_vector[0], 6)) + '_' + dat_file_name + '_Timeline.txt')
 
     start_times = np.zeros(len(data_filenames), dtype=datetime)
     stop_times = np.zeros(len(data_filenames), dtype=datetime)
@@ -92,11 +95,47 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vec
 
     new_data_file_name = ''
 
-    plt.imshow(data_array[0:1000, 0:1000], aspect='auto', cmap='Greys')
+    fig, ax = plt.subplots(1, 1, figsize=(16.0, 7.0))
+    ax.imshow(data_array[:, :], aspect='auto', cmap='Greys')
+    text = ax.get_xticks().tolist()
+    for i in range(len(text) - 1):
+        k = int(text[i])
+        text[i] = timeline[k][11:23]
+
+    ticks_loc = ax.get_xticks().tolist()  # <---- Added to suppress warning
+    ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))  # <---- Added to suppress warning
+
+    ax.set_xticklabels(text, fontsize=8, fontweight='bold')
     plt.show()
 
     return new_tl_file_name, new_data_file_name
 
+
+def visualize_time_profile(common_path, data_file_name, time_filename):
+
+    timeline, dt_timeline = time_line_file_reader(common_path + time_filename)
+
+    data_file = open(common_path + data_file_name, 'r')
+    data_cur = []
+    for line in data_file:
+        data_cur.append(float(str(line)))
+    data_file.close()
+    data_cur = np.array(data_cur)
+
+    fig, ax = plt.subplots(1, 1, figsize=(16.0, 7.0))
+    ax.plot(data_cur)
+    text = ax.get_xticks().tolist()
+    for i in range(len(text) - 2):
+        k = int(text[i])
+        text[i] = timeline[k][11:23]
+
+    ticks_loc = ax.get_xticks().tolist()  # <---- Added to suppress warning
+    ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))  # <---- Added to suppress warning
+
+    ax.set_xticklabels(text, fontsize=8, fontweight='bold')
+    plt.show()
+
+    return
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -106,3 +145,7 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vec
 if __name__ == '__main__':
 
     align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vector)
+
+    # time_profile_file_name = 'Transient_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
+    # time_filename = 'Transient_DM_2.972_C250122_214003.jds_Timeline.txt'
+    # visualize_time_profile(common_path, time_profile_file_name, time_filename)
