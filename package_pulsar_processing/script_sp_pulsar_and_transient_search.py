@@ -18,7 +18,6 @@ result_directory = '../../RA_DATA_RESULTS'
 central_dm = 2.972
 dm_range = 0.4
 dm_points = 41
-batch_factor = 20
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
@@ -96,9 +95,18 @@ print('\n\n\n\n   **************************************************************
 print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2022')
 print('   *************************************************************************** \n')
 
+# Making a DM values vector
 dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
+
 print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
-print(dm_vector)
+for i in range(int(len(dm_vector)/2)):
+    print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
+
+# Central value
+k = int(len(dm_vector)/2)
+print(k, '        ', dm_vector[k])
+
+
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making dynamic spectra of the initial data')
 
 # # Find all files in folder once more:
@@ -212,16 +220,21 @@ for i in range(len(data_types_to_process)):
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
 
+
 for k in range(dm_points-1):
+
+    dedispersed_data_file_list = [dat_file_name + '_Data_' + data_types_to_process[0] + '.dat']
 
     current_add_dm = dm_vector[k + 1] - dm_vector[0]
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
           ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
 
+    batch_factor = 1
+
     dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, dedispersed_data_file_list[0],
                                                          current_add_dm, 'Transient', batch_factor,
                                                          512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
-                                                         start_dm=dm_vector[0], use_mask_file=True,
+                                                         start_dm=0, use_mask_file=True,
                                                          result_path=path_to_dat_files)
 
 
