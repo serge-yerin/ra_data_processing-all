@@ -73,16 +73,16 @@ from package_pulsar_processing.pulsar_incoherent_dedispersion import plot_integr
 def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, batch_factor, average_const,
                             profile_pic_min, profile_pic_max, SpecFreqRange, freqStart, freqStop, save_profile_txt,
                             save_compensated_data, custom_dpi, colormap,
-                            start_dm=0, use_mask_file=False, result_path=''):
+                            start_dm=0, use_mask_file=False, save_images=False, result_path=''):
 
     """
     Makes incoherent compensation of time delays in each frequency channel with its shift
     It assumes we obtain raw dat files from ADR or JDS readers where for JDS the last channels are not deleted
     """
 
-    # a_previous_time = time.time()
-    # a_current_time = time.strftime("%H:%M:%S")
-    # a_current_date = time.strftime("%d.%m.%Y")
+    if save_images:
+        a_current_time = time.strftime("%H:%M:%S")
+        a_current_date = time.strftime("%d.%m.%Y")
 
     # Removing old DM from file name and updating it to current value
     if 'DM_' in filename:
@@ -95,14 +95,19 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
     else:
         new_filename = 'DM_' + str(np.round(current_add_dm + start_dm, 6)) + '_' + filename
         prev_dm = 0
+        new_dm = current_add_dm + start_dm
+
+    print('From: ', filename)
+    print('To:   ', new_filename, '\n')
 
     # rc('font', size=6, weight='bold')  # -----------------------------------------------------------
     data_filepath = common_path + filename
 
-    # # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-    # newpath = result_path + source_name + '_' + new_filename[:-4]
-    # if not os.path.exists(newpath):
-    #     os.makedirs(newpath)
+    if save_images:
+        # Creating a folder where all pictures and results will be stored (if it doesn't exist)
+        newpath = result_path + 'Compensated_' + new_filename[:-4]
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
 
     # Path to timeline file to be analyzed:
     time_line_file_name = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
@@ -334,18 +339,19 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
                     profile_txt_file.write(str(profile[i]) + ' \n')
                 profile_txt_file.close()
 
-            # # Averaging of the array with pulses for figure
-            # averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm, int(num_frequencies/average_const))
-            # freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
-            # max_time_shift = max_shift * time_res
-            #
-            # averaged_array = averaged_array - np.mean(averaged_array)
+            if save_images:
+                # Averaging of the array with pulses for figure
+                averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm, int(num_frequencies/average_const))
+                freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
+                max_time_shift = max_shift * time_res
 
-            # plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale,
-            #                                     newpath, filename, source_name, pulsar_dm, freq_resolution, time_res,
-            #                                     max_time_shift, block, num_of_blocks-1, block,
-            #                                     profile_pic_min, profile_pic_max, df_description, colormap,
-            #                                     custom_dpi, a_current_date, a_current_time, software_version)
+                averaged_array = averaged_array - np.mean(averaged_array)
+
+                plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list, num_frequencies, fig_time_scale,
+                                                    newpath, new_filename, source_name, new_dm, freq_resolution, time_res,
+                                                    max_time_shift, block, num_of_blocks-1, block,
+                                                    profile_pic_min, profile_pic_max, df_description, colormap,
+                                                    custom_dpi, a_current_date, a_current_time, software_version)
 
         # Rolling temp_array to put current data first
         buffer_array = np.roll(buffer_array, - max_shift)
