@@ -16,8 +16,8 @@ source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
 result_directory = '../../RA_DATA_RESULTS'
 
 central_dm = 2.972
-dm_range = 0.4
-dm_points = 41
+dm_range = 0.2
+dm_points = 51  # 41
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
@@ -109,8 +109,8 @@ print(k, '        ', dm_vector[k])
 
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making dynamic spectra of the initial data')
 
-# # Find all files in folder once more:
-# file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
+# Find all files in folder once more:
+file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
 
 result_folder_name = source_directory.split('/')[-2]
 
@@ -120,84 +120,81 @@ if result_directory == '':
 #
 path_to_dat_files = result_directory + '/' + 'Transient_search_' + result_folder_name + '/'
 
-# result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
-#
-# for file in range(len(file_name_list_current)):
-#     file_name_list_current[file] = source_directory + file_name_list_current[file]
-#
-# # Run JDS/ADR reader for the current folder
-#
-# done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
-#                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
-#                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
-#                                                             long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
-#                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
-#                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
-#                                                             print_or_not=0)
-#
-# # dat_file_list = ['chA', 'chB', 'CRe', 'CIm']
-# # dat_file_name = 'P130422_121607.jds'
-#
-#
-# # Take only channel A, channel B and Cross Spectra amplitude if present
-# data_types_to_process = []
-# if 'chA' in dat_file_list and 'chA' in data_types:
-#     data_types_to_process.append('chA')
-# if 'chB' in dat_file_list and 'chB' in data_types:
-#     data_types_to_process.append('chB')
-# if 'CRe' in dat_file_list and 'C_m' in data_types:
-#     data_types_to_process.append('C_m')
-#
-#
-# # Calibrate phase of cross-correlation data if needed
-# if 'C_m' in data_types_to_process:
-#
-#     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Calibrating cross-spectra data')
-#     cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
-#                                     save_complex=False, save_module=True, save_phase=True, log_module=False)
-#
-#
-# if save_long_dyn_spectra:
-#     print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
-#           dat_file_name, ', of types:', data_types_to_process, '\n')
-#
-#     result_folder_name = source_directory.split('/')[-2] + '_initial'
-#
-#     ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
-#                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
-#                          16.5, 33.0, [], 0)
+result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
 
-#
-#
-#
+for file in range(len(file_name_list_current)):
+    file_name_list_current[file] = source_directory + file_name_list_current[file]
+
+# Run JDS/ADR reader for the current folder
+
+done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
+                                                            8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
+                                                            CorrelationProcess, longFileSaveAch, longFileSaveBch,
+                                                            long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
+                                                            DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                            CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
+                                                            print_or_not=0)
+
+# dat_file_list = ['chA', 'chB', 'CRe', 'CIm']
+# dat_file_name = 'P130422_121607.jds'
+
+
+# Take only channel A, channel B and Cross Spectra amplitude if present
+data_types_to_process = []
+if 'chA' in dat_file_list and 'chA' in data_types:
+    data_types_to_process.append('chA')
+if 'chB' in dat_file_list and 'chB' in data_types:
+    data_types_to_process.append('chB')
+if 'CRe' in dat_file_list and 'C_m' in data_types:
+    data_types_to_process.append('C_m')
+
+
+# Calibrate phase of cross-correlation data if needed
+if 'C_m' in data_types_to_process:
+
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Calibrating cross-spectra data')
+    cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
+                                    save_complex=False, save_module=True, save_phase=True, log_module=False)
+
+
+if save_long_dyn_spectra:
+    print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
+          dat_file_name, ', of types:', data_types_to_process, '\n')
+
+    result_folder_name = source_directory.split('/')[-2] + '_initial'
+
+    ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
+                         0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
+                         16.5, 33.0, [], 0)
+
+
 # dat_file_name = 'C250122_214003.jds'
 # data_types_to_process = ['chA']
-#
-#
-
-# # RFI mask making
-# print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
-#
-# for i in range(len(data_types_to_process)):
-#     if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
-#         delta_sigma = 0.05
-#         n_sigma = 2
-#         min_l = 30
-#     elif data_types_to_process[i] == 'C_m':
-#         delta_sigma = 0.1
-#         n_sigma = 5
-#         min_l = 30
-#     else:
-#         sys.exit('            Type error!')
-#
-#     dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
-#                         1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
 
+# RFI mask making
+print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
+
+for i in range(len(data_types_to_process)):
+    if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
+        delta_sigma = 0.05
+        n_sigma = 2
+        min_l = 30
+    elif data_types_to_process[i] == 'C_m':
+        delta_sigma = 0.1
+        n_sigma = 5
+        min_l = 30
+    else:
+        sys.exit('            Type error!')
+
+    dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
+                        1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
+
+
 #
 #
-data_types_to_process = ['chA']
-dat_file_name = 'C250122_214003.jds'
+# data_types_to_process = ['chA']
+# dat_file_name = 'C250122_214003.jds'
 #
 #
 
@@ -210,31 +207,35 @@ dedispersed_data_file_list = []
 
 for i in range(len(data_types_to_process)):
 
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
+          dm_points-1, ' DM: ', np.round(dm_vector[i], 6), ' pc / cm3 \n\n')
+
     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
                                                                 data_types_to_process[i] + '.dat', 'Transient', 512,
                                                                 amp_min, amp_max, 0, 0.0, 16.5, True, True, 300,
-                                                                'Greys', use_mask_file=True, save_pics=False,
+                                                                'Greys', use_mask_file=True, save_pics=True,
                                                                 transient_dm=dm_vector[0],
                                                                 result_path=path_to_dat_files)
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
-
-
 for k in range(dm_points-1):
 
-    dedispersed_data_file_list = [dat_file_name + '_Data_' + data_types_to_process[0] + '.dat']
-
     current_add_dm = dm_vector[k + 1] - dm_vector[0]
+
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
           ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
 
     batch_factor = 1
 
-    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, dedispersed_data_file_list[0],
+    from package_common_modules.text_manipulations import separate_filename_and_path
+
+    dir, file_name = separate_filename_and_path(dedispersed_data_file_list[0])
+
+    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, file_name,
                                                          current_add_dm, 'Transient', batch_factor,
                                                          512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
-                                                         start_dm=0, use_mask_file=True,
+                                                         start_dm=0, use_mask_file=True, save_images=False,
                                                          result_path=path_to_dat_files)
 
 
