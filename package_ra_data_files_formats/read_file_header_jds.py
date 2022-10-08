@@ -96,7 +96,7 @@ def file_header_jds_read(filepath, start_byte, print_or_not):
     # fft_size = np.frombuffer(header_bytes[530:534], np.float32)[0]
     # temp = file.read(40)                           # No info
     # fft_size   = struct.unpack('i', header_bytes[574:578])[0]  # FFT size
-    fft_size = np.frombuffer(header_bytes[574:578], np.uint16)[1]
+    fft_size = int(np.frombuffer(header_bytes[574:578], np.uint16)[1] / 2)
     # MinDSPSize = struct.unpack('i', file.read(4))[0]
     # MinDMASize = struct.unpack('i', file.read(4))[0]
     # DMASizeCnt = struct.unpack('i', file.read(4))[0]
@@ -235,7 +235,7 @@ def file_header_jds_read(filepath, start_byte, print_or_not):
     time_res = np.float64(Navr * (fft_size / clock_freq / 2))
     df = float((float(clock_freq) / 2) / float(fft_size / 2))
     if print_or_not == 1:
-        print(' Temporal resolution:           ', round((time_res*1000), 3), '  ms')
+        print(' Temporal resolution:           ', round((time_res * 1000), 3), '  ms')
         print(' Real frequency resolution:     ', round((df/1000), 3), ' kHz')
 
     # *** Frequency calculation (in MHz) ***
@@ -474,7 +474,7 @@ def file_header_jds_read_old(filepath, start_byte, print_or_not):
     df = float((float(clock_freq) / 2) / float(fft_size / 2))
     # df = float((float(clock_freq) / 2.0 / float(Sfft) ))
     if print_or_not == 1:
-        print(' Temporal resolution:           ', round((time_res*1000), 3), '  ms')
+        print(' Temporal resolution:           ', round((time_res * 1000), 3), '  ms')
         print(' Real frequency resolution:     ', round((df/1000), 3), ' kHz')
 
     # *** Frequency calculation (in MHz) ***
@@ -511,8 +511,8 @@ def file_header_jds_read_old(filepath, start_byte, print_or_not):
 if __name__ == '__main__':
 
     # filename = '../RA_DATA_ARCHIVE/DSP_waveform_66_MHz_B0950p08/E220213_201439.jds'
-    filename = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/C250122_070501.jds'
+    filename = 'e:/RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/C250122_070501.jds'
 
     print('\n\n Parameters of the file: ')
 
-    file_header_jds_read(filename, 0, 1)
+    a = file_header_jds_read(filename, 0, 1)
