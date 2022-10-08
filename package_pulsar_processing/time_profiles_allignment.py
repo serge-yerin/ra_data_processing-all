@@ -1,6 +1,9 @@
+import os
 import numpy as np
+import pylab
 import matplotlib.pyplot as plt
 from datetime import datetime
+from matplotlib import rc
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 import matplotlib.ticker as mticker   # <---- Added to suppress warning
 
@@ -9,8 +12,8 @@ dat_file_name = 'C250122_214003.jds'
 data_type_to_process = 'chA'
 
 central_dm = 2.972
-dm_range = 0.4
-dm_points = 41
+dm_range = 0.2
+dm_points = 51
 dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
 
 
@@ -32,9 +35,9 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vec
     data_filenames = []
     time_filenames = []
     for i in range(len(dm_vector)-1):
-        data_filenames.append('DM_' + str(np.round(dm_vector[i+1]-dm_vector[0], 6)) + '_' + dat_file_name + '_Data_' +
+        data_filenames.append('Transient_DM_' + str(np.round(dm_vector[i], 6)) + '_' + dat_file_name + '_Data_' +
                               data_type_to_process + '_time_profile.txt')
-        time_filenames.append('DM_' + str(np.round(dm_vector[i+1]-dm_vector[0], 6)) + '_' + dat_file_name + '_Timeline.txt')
+        time_filenames.append('Transient_DM_' + str(np.round(dm_vector[i], 6)) + '_' + dat_file_name + '_Timeline.txt')
 
     start_times = np.zeros(len(data_filenames), dtype=datetime)
     stop_times = np.zeros(len(data_filenames), dtype=datetime)
@@ -95,18 +98,38 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vec
 
     new_data_file_name = ''
 
-    fig, ax = plt.subplots(1, 1, figsize=(16.0, 7.0))
-    ax.imshow(data_array[:, :], aspect='auto', cmap='Greys')
-    text = ax.get_xticks().tolist()
-    for i in range(len(text) - 1):
-        k = int(text[i])
-        text[i] = timeline[k][11:23]
+    dt = 0.007944  # s
+    fig_time = 30  # s
+    samples_per_fig = int(fig_time / dt)
+    fig_num = int(data_array.shape[1] / samples_per_fig)
 
-    ticks_loc = ax.get_xticks().tolist()  # <---- Added to suppress warning
-    ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))  # <---- Added to suppress warning
+    print(fig_num, samples_per_fig)
 
-    ax.set_xticklabels(text, fontsize=8, fontweight='bold')
-    plt.show()
+    newpath = common_path + 'DM_search_'
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+
+    for j in range(fig_num):
+        rc('font', size=8, weight='bold')
+        fig, ax = plt.subplots(1, 1, figsize=(16.0, 7.0))
+        ax.imshow(data_array[:, j * samples_per_fig: (j+1) * samples_per_fig], aspect='auto', cmap='Greys',
+                  extent=[0, samples_per_fig, dm_vector[0], dm_vector[-1]])
+        ax.set_xlabel('Time, UTC', fontsize=8, fontweight='bold')
+        ax.set_ylabel('Dispersion measure, pc*cm-3', fontsize=8, fontweight='bold')
+        text = ax.get_xticks().tolist()
+        for i in range(len(text) - 1):
+            k = int(text[i])
+            text[i] = timeline[k + j * samples_per_fig][11:23]
+        ticks_loc = ax.get_xticks().tolist()  # <---- Added to suppress warning
+        ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))  # <---- Added to suppress warning
+        ax.set_xticklabels(text, fontsize=8, fontweight='bold')
+        fig.suptitle('Single pulses of ' + ' ' + str(len(dm_vector)) + ' DM points' +
+                     'fig. ' + str(j+1) + ' of ' + str(fig_num),
+                     fontsize=8, fontweight='bold')
+
+        pylab.savefig(newpath + '/' + dat_file_name[:-4] + ' fig. ' + str(j + 1) + '.png',
+                      bbox_inches='tight', dpi=300)
+        plt.close('all')
 
     return new_tl_file_name, new_data_file_name
 
