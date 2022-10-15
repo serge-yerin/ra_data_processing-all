@@ -18,9 +18,9 @@ pulsar_name = 'J0250+5854'
 auto_opt_DM_search = 0           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
 no_of_DM_steps = 361             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
-cleaning_switch = 0              # Use cleaning? (1 - Yes, 0 - No)
+cleaning_switch = 1              # Use cleaning? (1 - Yes, 0 - No)
 rfi_std_const = 1.0              # Standard deviation of integrated profile to clean channels
-save_intermediate_data = 0       # Plot intermediate figures? (1 = Yes)
+save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
 AverageChannelNumber = 128       # Number of points to average in frequency
 AverageTPointsNumber = 8         # Number of points to average time
 frequency_band_cut = 0           # Plot profiles in small frequency bands?
@@ -83,7 +83,7 @@ from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes impor
 from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
 
 
-def plot_average_profiles(array, data_type, filename, frequency_list, colormap, custom_dpi):
+def plot_average_profiles(array, data_type, filename, result_path, frequency_list, colormap, custom_dpi):
 
     n = '1' if data_type == 'Raw' else '2'
     plot2D(array, result_path + '/01.' + n + ' - ' + data_type + ' data.png', frequency_list, colormap,
@@ -150,15 +150,15 @@ def simple_mask_clean(array, rfi_std_const):
     return array, mask
 
 
-def averaging_in_frequency(matrix, freq_num, samples_per_period, AverageChannelNumber, roll_number, result_path,
-                           filename, save_intermediate_data):
+def averaging_in_frequency(matrix, freq_num, frequency_list, samples_per_period, AverageChannelNumber, roll_number,
+                           result_path, filename, save_intermediate_data):
     # *** Averaging data in frequency domain ***
 
     reduced_matrix = \
         np.array([[0.0 for col in range(samples_per_period)] for row in range(int(freq_num / AverageChannelNumber))])
     for j in range(int(freq_num / AverageChannelNumber)):
         for k in range(samples_per_period):
-            reduced_matrix[j, k] = sum(matrix[i * AverageChannelNumber: (j+1) * AverageChannelNumber, k])
+            reduced_matrix[j, k] = sum(matrix[j * AverageChannelNumber: (j+1) * AverageChannelNumber, k])
 
     reduced_matrix = np.roll(reduced_matrix, roll_number)  # Rolling the array to make the pulse in the center
 
@@ -169,7 +169,7 @@ def averaging_in_frequency(matrix, freq_num, samples_per_period, AverageChannelN
     # *** Plot of raw data with DM compensation and data reduction ***
 
     if save_intermediate_data == 1:
-        plot2D(reduced_matrix, result_path+'/03 - Dedispersed integrated data.png', reduced_frequency_list,
+        plot2D(reduced_matrix, result_path + '/03 - Dedispersed integrated data.png', reduced_frequency_list,
                colormap, 'Dedispersed and averaged in frequency pulsar pulse \n File: ' + filename, custom_dpi)
 
     return reduced_matrix, reduced_frequency_list
@@ -326,8 +326,8 @@ def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_p
     return
 
 
-def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, frequency_list,
-                            TimeRes, samples_per_period, DM, no_of_DM_steps, pulsarPeriod,
+def averge_profile_analysis(type, matrix, initial_matrix, filename, result_path, freq_num, fmin, fmax, df, frequency_list,
+                            TimeRes, samples_per_period, DM, no_of_DM_steps, pulsar_period,
                             save_intermediate_data, AverageChannelNumber, record_date_time,
                             pulsar_name, telescope, software_version, software_name, current_time,
                             current_date, df_filename, df_obs_place, df_description, ReceiverMode,
@@ -337,12 +337,12 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     dm_type = 'initial' if type == 'first' else 'optimal'
 
     #  Calculation of shift in pixels to compensate dispersion
-    shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
+    shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsar_period)
 
     #  Saving shift parameter for dispersion delay compensation vs. frequency to file and plot
     if save_intermediate_data == 1:
 
-        shift_param_txt = open(result_path+'/Shift parameter (' + dm_type + ').txt', "w")
+        shift_param_txt = open(result_path + '/Shift parameter (' + dm_type + ').txt', "w")
         for i in range(freq_num):
             shift_param_txt.write(str(fmin + df * i)+'   '+str(shift_param[i])+' \n' )
         shift_param_txt.close()
@@ -400,7 +400,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     # ***   Plotting and saving the SNR curve  ***
     plot1D(integrated_profile, result_path + '/' + fig_number + '5 - SNR.png',
            'Averaged profile for DM = ' + str(round(DM, 3)),
-           'Averaged pulse profile in band ' + str(round(frequency_list[0],3)) + ' - ' +
+           'Averaged pulse profile in band ' + str(round(frequency_list[0], 3)) + ' - ' +
            str(round(frequency_list[len(frequency_list)-1], 3)) + ' MHz \n File: ' + filename,
            'SNR', 'Phase of pulsar period', custom_dpi)
 
@@ -415,9 +415,9 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
 
     previous_time = time.time()
 
-    # Integrated profiles with DM variation calculation
+    # Integrated profiles with DM variation calculation  # initial_matrix
     profiles_varDM, DM_vector = pulsar_DM_variation(initial_matrix, no_of_DM_steps, freq_num, fmin, fmax, df,
-                                                    TimeRes, pulsarPeriod, samples_per_period, DM, noise_mean,
+                                                    TimeRes, pulsar_period, samples_per_period, DM, noise_mean,
                                                     noise_std, begin_index, end_index, DM_var_step, roll_number,
                                                     save_intermediate_data, custom_dpi)
 
@@ -478,7 +478,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     #         Averaging data in frequency domain for final figure
     # **************************************************************************
     if type == 'final':
-        reduced_array, reduced_frequency_list = averaging_in_frequency(matrix, freq_num,
+        reduced_array, reduced_frequency_list = averaging_in_frequency(matrix, freq_num, frequency_list,
                                                                        samples_per_period,
                                                                        AverageChannelNumber,
                                                                        roll_number, result_path,
@@ -502,8 +502,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     max_point_y = - (DM_vector[optimal_dm_index] - DM)
     dm_optimal = round(DM_vector[optimal_dm_index], 5)
 
-    print('\n\n ')
-    print('    Initial DM (from file) =               ', DM, ' pc / cm3')
+    print('\n\n    Initial DM (from file) =               ', DM, ' pc / cm3')
     print('    Optimal DM =                           ', dm_optimal, ' pc / cm3  \n')
     print('    SNR for current DM =                   ', round(snr_init_max, 3))
     # print('    SNR averaged in time for initial DM  = ', round(SNRinitDMtimeAver, 3), ' \n')
@@ -611,7 +610,7 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.705, 'Duration: ', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.670, 'Period: ' + str(np.round(pulsarPeriod, 6)) + ' s.',
+        fig.text(0.72, 0.670, 'Period: ' + str(np.round(pulsar_period, 6)) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.640, 'Time resolution: ' + str(np.round(TimeRes*1000, 4))+' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
@@ -644,9 +643,202 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
         plt.show()
         plt.close('all')
 
-    print('\n\n  In band calculations and DM variation lasted for ', round((end_time - startTime),3), 'seconds (',
-                                                                     round((end_time - startTime)/60, 2), 'min. ) \n\n')
+    # print('\n\n  In band calculations and DM variation lasted for ', round((end_time - startTime), 3), 'seconds (',
+    #                                                                  round((end_time - startTime)/60, 2), 'min. ) \n\n')
     return dm_optimal
+
+
+# ###############################################################################
+# *******************************************************************************
+#                         M A I N    F U N C T I O N                            *
+# *******************************************************************************
+
+
+# print('\n\n\n\n\n\n\n\n   **************************************************************')
+# print('   *    ', software_name, ' v.', software_version, '     *      (c) YeS 2019')
+# print('   ************************************************************** \n\n\n')
+
+
+def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_name, auto_opt_DM_search,
+                                   no_of_DM_steps, DM_var_step, cleaning_switch, rfi_std_const,
+                                   save_intermediate_data, AverageChannelNumber, AverageTPointsNumber,
+                                   frequency_band_cut, specify_freq_range, frequency_cuts, colormap,
+                                   custom_dpi, freq_startArray, freq_stopArray):
+    startTime = time.time()
+    previous_time = startTime
+    current_time = time.strftime("%H:%M:%S")
+    current_date = time.strftime("%d.%m.%Y")
+    print('  Today is ', current_date, ' time is ', current_time, ' \n')
+
+    filepath = source_path + filename
+    
+    pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
+    
+    print('\n  * Parameters of analysis: \n')
+    print(' Path to folder:  ', source_path, '\n')
+    print(' File name:  ', filename, '\n')
+    print(' Number of DM analysis steps =        ', no_of_DM_steps)
+    print(' Step of DM analysis =                ', DM_var_step)
+    print(' Save intermediate data?              ', save_intermediate_data)
+    print(' Number of channels to average =      ', AverageChannelNumber)
+    print(' Number of time points to average =   ', AverageTPointsNumber)
+    print(' Make cuts of frequency bands?        ', frequency_band_cut)
+    print(' Specify particular frequency range?  ', specify_freq_range)
+    print(' Frequencies to cut the range         ', frequency_cuts)
+    print(' Color map =                          ', colormap)
+    print(' DPI of plots =                       ', custom_dpi)
+    print(' Lowest frequency of the band =       ', freq_startArray)
+    print(' Highest frequency of the band =      ', freq_stopArray)
+    print(' Dispersion measure from catalogue =  ', DM, ' pc / cm3 \n')
+    
+    # **************************************************************
+    #  ***                  Opening datafile                     ***
+    # **************************************************************
+
+    smd_filesize = os.stat(filepath).st_size       # Size of file
+    print(' File size: ', round(smd_filesize/1024/1024, 6), ' Mb')
+    
+    # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
+    result_path = result_path + 'SMD_results_' + filename
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    
+    # **************************************************************
+    #  ***              Reading data file header                 ***
+    # **************************************************************
+    
+    # Jumping to the end of the file to read the data file header with parameters of data record
+    
+    if filename[0:3] == 'ADR':
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_timeUTC,
+                ReceiverMode, adr_mode, sum_diff_mode, n_avr, TimeRes, fmin, fmax, df, frequency_list, fft_size,
+                s_line, width, block_size] = file_header_adr_read_old(filepath, smd_filesize - 1024 - 131096, 1)
+    
+        record_date_time_dt = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]),
+                                       int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]),
+                                       int(df_creation_timeUTC[6:8]), int(df_creation_timeUTC[9:12]) * 1000)
+        record_date_time = str(record_date_time_dt)
+        telescope = 'GURT'
+    
+    elif filename[0:3] == 'DSP':
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_timeUTC,
+         sp_in_file, ReceiverMode, mode, n_avr, TimeRes, fmin, fmax, df, frequency_list,
+         fft_size, block_size] = file_header_jds_read(filepath, smd_filesize - 1024, 1)
+        telescope = 'UTR-2'
+    
+        record_date_time_dt = datetime(int('20' + df_filename[5:7]), int(df_filename[3:5]), int(df_filename[1:3]),
+                                       int(df_creation_timeUTC[11:13]), int(df_creation_timeUTC[14:16]),
+                                       int(df_creation_timeUTC[17:19]), 0)
+        record_date_time = str(record_date_time_dt)
+    
+    else:
+        sys.exit('\n\n  Unidentified initial format! Program stopped.')
+    
+    df = df / pow(10, 6)
+    freq_num = len(frequency_list)
+    
+    file = open(filepath, 'rb')
+    
+    # Reading pulsar period and number of samples per period
+    pulsar_period = struct.unpack('d', file.read(8))[0]
+    samples_per_period = struct.unpack('h', file.read(2))[0]
+    
+    print(' Dispersion measure from catalogue = ', DM, ' pc / cm3')
+    print(' Pulsar period from file =           ', pulsar_period, ' s')
+    print(' Number of frequency channels =      ', freq_num)
+    print(' Number of samples in time =         ', samples_per_period)
+    
+    # **************************************************************
+    #  ***                Reading data matrix                    ***
+    # **************************************************************
+    
+    file.seek(12)   # Jump to 12 byte of the file, where matrix begins
+    
+    print('\n  * Reading data... \n')
+    initial_matrix = np.fromfile(file, dtype='f4', count=samples_per_period * freq_num)
+    initial_matrix = np.reshape(initial_matrix, [samples_per_period, freq_num])
+    initial_matrix = initial_matrix.transpose()
+    file.close()
+    print('    Matrix shape: ', initial_matrix.shape)
+    
+    # **************************************************************
+    #  ***   Calculations and figures plotting for specified DM  ***
+    # **************************************************************
+    
+    print('\n  * Calculations and figures... \n')
+    
+    # *** Preparing the phase of pulse sequence instead of time ***
+    
+    # phase_of_pulse = [0 for col in range(samples_per_period)]
+    # for i in range(samples_per_period):
+    #     if i > 0:
+    #         phase_of_pulse[i] = (i / float(samples_per_period)) * 360.
+    #     else:
+    #         phase_of_pulse[i] = 0
+
+    # *** Cutting the array inside frequency range specified by user ***
+    if specify_freq_range == 1:
+        frequency_list, initial_matrix, freq_num, fmin, fmax = \
+            choose_frequency_range(frequency_list, initial_matrix, freq_startArray, freq_stopArray, freq_num, fmin, fmax)
+    
+    # *** To save initial matrix for further processing with the same name with or without cut of frequencies
+    matrix = np.zeros((freq_num, samples_per_period))
+    matrix[:, :] = initial_matrix[:, :]
+    
+    # Plotting averaged profiles of initial data
+    if save_intermediate_data == 1:
+        plot_average_profiles(matrix, 'Raw', filename, result_path, frequency_list, colormap, custom_dpi)
+    
+    # Cleaning data if necessary
+    if cleaning_switch == 1:
+        matrix, mask = simple_mask_clean(np.rot90(matrix), rfi_std_const)
+        matrix = np.rot90(matrix, 3)
+    
+        # Plotting averaged profiles of initial cleaned data
+        if save_intermediate_data == 1:
+            plot_average_profiles(matrix, 'Cleaned', filename, result_path, frequency_list, colormap, custom_dpi)
+            plot2D(mask.transpose(), result_path + '/01.0 - RFI cleaning mask.png', frequency_list, colormap,
+                   'Mask \n File: '+filename, custom_dpi)
+    
+        del mask
+    
+    fmin = 16.5
+    
+    #  Calculation of shift in pixels to compensate dispersion
+    shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsar_period)
+    
+    # *******************************************************************************
+    #  ***                            Find optimal DM                             ***
+    # *******************************************************************************
+    
+    if auto_opt_DM_search == 1:
+        DM = averge_profile_analysis('first', matrix, initial_matrix, filename, result_path, freq_num, fmin, fmax, df,
+                                     frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps,
+                                     pulsar_period, save_intermediate_data, AverageChannelNumber,
+                                     record_date_time, pulsar_name, telescope, software_version,
+                                     software_name, current_time, current_date, df_filename,
+                                     df_obs_place, df_description, ReceiverMode, df_system_name)
+    
+    # *******************************************************************************
+    #  ***                      Analyze data with optimal DM                      ***
+    # *******************************************************************************
+    
+    DM = averge_profile_analysis('final', matrix, initial_matrix, filename, result_path, freq_num, fmin, fmax, df,
+                                 frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps,
+                                 pulsar_period, save_intermediate_data, AverageChannelNumber,
+                                 record_date_time, pulsar_name, telescope, software_version,
+                                 software_name, current_time, current_date, df_filename, df_obs_place,
+                                 df_description, ReceiverMode, df_system_name)
+    
+    '''
+    # Make the rolling of the data to make noise interval at the beginning
+    # ***   Calculation of number of points to roll the pulse   ***
+    roll_number = int((len(integrated_profile)*9/10) - np.argmax(integrated_profile))
+    
+    # ***   Rolling the pulse to the center of the plot  ***
+    integrated_profile = np.roll(integrated_profile, roll_number) # Rolling the vector to make the pulse in the center
+    '''
+    return 
 
 
 # ###############################################################################
@@ -659,191 +851,10 @@ print('\n\n\n\n\n\n\n\n   ******************************************************
 print('   *    ', software_name, ' v.', software_version, '     *      (c) YeS 2019')
 print('   ************************************************************** \n\n\n')
 
-startTime = time.time()
-previous_time = startTime
-current_time = time.strftime("%H:%M:%S")
-current_date = time.strftime("%d.%m.%Y")
-print('  Today is ', current_date, ' time is ', current_time, ' \n')
-
-filepath = source_path + filename
-
-pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
-
-
-print('\n  * Parameters of analysis: \n')
-print(' Path to folder:  ', source_path, '\n')
-print(' File name:  ', filename, '\n')
-print(' Number of DM analysis steps =        ', no_of_DM_steps)
-print(' Step of DM analysis =                ', DM_var_step)
-print(' Save intermediate data?              ', save_intermediate_data)
-print(' Number of channels to average =      ', AverageChannelNumber)
-print(' Number of time points to average =   ', AverageTPointsNumber)
-print(' Make cuts of frequency bands?        ', frequency_band_cut)
-print(' Specify particular frequency range?  ', specify_freq_range)
-print(' Frequencies to cut the range         ', frequency_cuts)
-print(' Color map =                          ', colormap)
-print(' DPI of plots =                       ', custom_dpi)
-print(' Lowest frequency of the band =       ', freq_startArray)
-print(' Highest frequency of the band =      ', freq_stopArray)
-print(' Dispersion measure from catalogue =  ', DM, ' pc / cm3 \n')
-
-# **************************************************************
-#  ***                  Opening datafile                     ***
-# **************************************************************
-
-
-smd_filesize = os.stat(filepath).st_size       # Size of file
-print(' File size: ', round(smd_filesize/1024/1024, 6), ' Mb')
-
-# *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-result_path = result_path + 'SMD_results_' + filename
-if not os.path.exists(result_path):
-    os.makedirs(result_path)
-
-
-# **************************************************************
-#  ***              Reading data file header                 ***
-# **************************************************************
-
-# Jumping to the end of the file to read the data file header with parameters of data record
-
-if filename[0:3] == 'ADR':
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-            F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode,
-            NAvr, TimeRes, fmin, fmax, df, frequency_list, FFTsize,
-            SLine, Width, BlockSize] = file_header_adr_read_old(filepath, smd_filesize - 1024 - 131096, 1)
-
-    record_date_time_dt = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]),
-                                   int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]),
-                                   int(df_creation_timeUTC[6:8]), int(df_creation_timeUTC[9:12]) * 1000)
-    record_date_time = str(record_date_time_dt)
-    telescope = 'GURT'
-
-elif filename[0:3] == 'DSP':
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC, SpInFile,
-     ReceiverMode, Mode, Navr, TimeRes, fmin, fmax, df, frequency_list,
-     FFTsize, BlockSize] = file_header_jds_read(filepath, smd_filesize - 1024, 1)
-    telescope = 'UTR-2'
-
-    record_date_time_dt = datetime(int('20' + df_filename[5:7]), int(df_filename[3:5]), int(df_filename[1:3]),
-                                   int(df_creation_timeUTC[11:13]), int(df_creation_timeUTC[14:16]),
-                                   int(df_creation_timeUTC[17:19]), 0)
-    record_date_time = str(record_date_time_dt)
-
-else:
-    sys.exit('\n\n  Unidentified initial format! Program stopped.')
-
-df = df / pow(10, 6)
-freq_num = len(frequency_list)
-
-file = open(filepath, 'rb')
-
-
-#   *** Reading pulsar period and number of samples per period ***
-print(' Dispersion measure from catalogue = ', DM, ' pc / cm3    ')
-pulsarPeriod = struct.unpack('d', file.read(8))[0]
-print(' Pulsar period from file =           ', pulsarPeriod, ' s')
-samples_per_period = struct.unpack('h', file.read(2))[0]
-print(' Number of frequency channels =      ', freq_num)
-print(' Number of samples in time =         ', samples_per_period)
-
-
-# **************************************************************
-#  ***                Reading data matrix                    ***
-# **************************************************************
-
-file.seek(12)   # Jump to 12 byte of the file, where matrix begins
-
-print('\n  * Reading data... \n')
-initial_matrix = np.fromfile(file, dtype='f4', count=samples_per_period * freq_num)
-initial_matrix = np.reshape(initial_matrix, [samples_per_period, freq_num])
-initial_matrix = initial_matrix.transpose()
-file.close()
-print('    Matrix shape: ', initial_matrix.shape)
-
-
-# **************************************************************
-#  ***   Calculations and figures plotting for specified DM  ***
-# **************************************************************
-
-print('\n  * Calculations and figures... \n')
-
-
-# *** Preparing the phase of pulse sequence instead of time ***
-
-phaseOfPulse = [0 for col in range(samples_per_period)]
-for i in range(samples_per_period):
-    if i > 0:
-        phaseOfPulse[i] = (i / float(samples_per_period)) * 360.
-    else:
-        phaseOfPulse[i] = 0
-
-
-# *** Cutting the array inside frequency range specified by user ***
-if specify_freq_range == 1:
-    frequency_list, initial_matrix, freq_num, fmin, fmax = \
-        choose_frequency_range(frequency_list, initial_matrix, freq_startArray, freq_stopArray, freq_num, fmin, fmax)
-
-
-# *** To save initial matrix for further processing with the same name with or without cut of frequencies
-matrix = np.zeros((freq_num, samples_per_period))
-matrix[:, :] = initial_matrix[:, :]
-
-
-# Plotting averaged profiles of initial data
-if save_intermediate_data == 1:
-    plot_average_profiles(matrix, 'Raw', filename, frequency_list, colormap, custom_dpi)
-
-# Cleaning data if necessary
-if cleaning_switch == 1:
-    matrix, mask = simple_mask_clean(np.rot90(matrix), rfi_std_const)
-    matrix = np.rot90(matrix, 3)
-
-    # Plotting averaged profiles of initial cleaned data
-    if save_intermediate_data == 1:
-        plot_average_profiles(matrix, 'Cleaned', filename, frequency_list, colormap, custom_dpi)
-        plot2D(mask.transpose(), result_path + '/01.0 - RFI cleaning mask.png', frequency_list, colormap,
-               'Mask \n File: '+filename, custom_dpi)
-
-    del mask
-
-fmin = 16.5
-
-#  Calculation of shift in pixels to compensate dispersion
-shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, TimeRes, DM, pulsarPeriod)
-
-
-# *******************************************************************************
-#  ***                            Find optimal DM                             ***
-# *******************************************************************************
-
-
-if auto_opt_DM_search == 1:
-    DM = averge_profile_analysis('first', matrix, filename, freq_num, min, fmax, df,
-                                 frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps,
-                                 pulsarPeriod, save_intermediate_data, AverageChannelNumber,
-                                 record_date_time, pulsar_name, telescope, software_version,
-                                 software_name, current_time, current_date, df_filename,
-                                 df_obs_place, df_description, ReceiverMode, df_system_name)
-
-# *******************************************************************************
-#  ***                      Analyze data with optimal DM                      ***
-# *******************************************************************************
-
-DM = averge_profile_analysis('final', matrix, filename, freq_num, min, fmax, df,
-                             frequency_list, TimeRes, samples_per_period, DM, no_of_DM_steps,
-                             pulsarPeriod, save_intermediate_data, AverageChannelNumber,
-                             record_date_time, pulsar_name, telescope, software_version,
-                             software_name, current_time, current_date, df_filename, df_obs_place,
-                             df_description, ReceiverMode, df_system_name)
-
-'''
-# Make the rolling of the data to make noise interval at the beginning
-# ***   Calculation of number of points to roll the pulse   ***
-roll_number = int((len(integrated_profile)*9/10) - np.argmax(integrated_profile))
-
-# ***   Rolling the pulse to the center of the plot  ***
-integrated_profile = np.roll(integrated_profile, roll_number) # Rolling the vector to make the pulse in the center
-'''
+smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_name, auto_opt_DM_search,
+                               no_of_DM_steps, DM_var_step, cleaning_switch, rfi_std_const,
+                               save_intermediate_data, AverageChannelNumber, AverageTPointsNumber,
+                               frequency_band_cut, specify_freq_range, frequency_cuts, colormap,
+                               custom_dpi, freq_startArray, freq_stopArray)
 
 print('\n\n\n\n       *** Program has finished! ***   \n\n\n')
