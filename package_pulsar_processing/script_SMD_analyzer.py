@@ -1,5 +1,5 @@
 # Python3
-software_version = '2020.01.13'
+software_version = '2022.10.15'
 software_name = 'Pulsar averaged pulse SMD analyzer'
 # Program intended to read, show and analyze averaged pulse data of pulsar observation from SMD files
 # SMD file is a result of data processing by the pipeline written in IDL by V. V. Zakharenko
@@ -7,16 +7,16 @@ software_name = 'Pulsar averaged pulse SMD analyzer'
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
-# folder_path = '../RA_DATA_ARCHIVE/SMD_pulsar_pulses_files/'
-folder_path = ''
+source_path = 'e:/RA_DATA_ARCHIVE/SMD_pulsar_pulses_files/'
+result_path = 'e:/RA_DATA_RESULTS/'
 
-# filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
-filename = 'DSPZ_B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat - folded pulses.smp'
-# pulsar_name = 'J0250+5854'
-pulsar_name = 'B0809+74'
+filename = 'DSPZ-D140219_111305-D140219_183011_PSRJ0250+5854_Sum.ucd.smd'
+
+# pulsar_name = 'B0809+74' 'B0834+06' 'B1133+16' 'J0250+5854'
+pulsar_name = 'J0250+5854'
 
 auto_opt_DM_search = 0           # Automatically search optimal DM (1 - auto, 2 - use predefined value)
-no_of_DM_steps = 181             # Number of DM steps to plot 361
+no_of_DM_steps = 361             # Number of DM steps to plot 361
 DM_var_step = 0.002              # Step of optimal DM finding
 cleaning_switch = 0              # Use cleaning? (1 - Yes, 0 - No)
 rfi_std_const = 1.0              # Standard deviation of integrated profile to clean channels
@@ -65,6 +65,7 @@ import pylab
 import time
 import sys
 import os
+import matplotlib.ticker as mticker   # <---- Added to suppress warning
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -75,7 +76,7 @@ from package_ra_data_files_formats.specify_frequency_range import specify_freque
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
-from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
+from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read_old
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_pulsar_processing.pulsar_DM_variation import pulsar_DM_variation
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
@@ -462,6 +463,10 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
         for i in range(len(text)-1):
             k = float(text[i])
             text[i] = k + DM
+
+        ticks_loc = ax2.get_xticks().tolist()                           # <---- Added to suppress warning
+        ax2.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))    # <---- Added to suppress warning
+
         ax2.set_xticklabels(np.round(text, 4))
         fig.subplots_adjust(top=0.90)
         fig.suptitle('Maxima of SNR profiles vs. DM variation \n File: ' + filename,
@@ -533,6 +538,10 @@ def averge_profile_analysis(type, matrix, filename, freq_num, min, fmax, df, fre
     for t in range(len(text)-1):
         k = float(text[t])
         text[t] = DM + k
+
+    ticks_loc = ax2.get_yticks().tolist()  # <---- Added to suppress warning
+    ax2.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))  # <---- Added to suppress warning
+
     ax2.set_yticklabels(np.round(text, 4))
     fig.colorbar(im1, ax=ax1, pad=0.1)
     fig.text(0.76, 0.89, 'Current SNR \n    ' + str(round(snr_init_max, 3)),
@@ -656,13 +665,13 @@ current_time = time.strftime("%H:%M:%S")
 current_date = time.strftime("%d.%m.%Y")
 print('  Today is ', current_date, ' time is ', current_time, ' \n')
 
-filepath = folder_path + filename
+filepath = source_path + filename
 
 pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
 
 print('\n  * Parameters of analysis: \n')
-print(' Path to folder:  ', folder_path, '\n')
+print(' Path to folder:  ', source_path, '\n')
 print(' File name:  ', filename, '\n')
 print(' Number of DM analysis steps =        ', no_of_DM_steps)
 print(' Step of DM analysis =                ', DM_var_step)
@@ -687,7 +696,7 @@ smd_filesize = os.stat(filepath).st_size       # Size of file
 print(' File size: ', round(smd_filesize/1024/1024, 6), ' Mb')
 
 # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-result_path = 'SMD_results_' + filename
+result_path = result_path + 'SMD_results_' + filename
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 
@@ -702,7 +711,7 @@ if filename[0:3] == 'ADR':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             F_ADC, df_creation_timeUTC, ReceiverMode, ADRmode, sumDifMode,
             NAvr, TimeRes, fmin, fmax, df, frequency_list, FFTsize,
-            SLine, Width, BlockSize] = file_header_adr_read(filepath, smd_filesize - 1024 - 131096, 1)
+            SLine, Width, BlockSize] = file_header_adr_read_old(filepath, smd_filesize - 1024 - 131096, 1)
 
     record_date_time_dt = datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]),
                                    int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]),
