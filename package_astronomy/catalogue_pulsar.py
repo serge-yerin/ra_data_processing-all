@@ -125,6 +125,7 @@ def catalogue_pulsar(pulsar_name, epoch_obs='2020-01-01 00:00:00.000000'):
 
     elif 'J2215+1538' in pulsar_name: pulsar_ra = '22h15m39.65s';   pulsar_dec = '+15d38m34.88s';  pulsar_DM = 0;        p_bar = 0.3741958930416
     elif 'B2217+47'   in pulsar_name: pulsar_ra = '22h19m48.139s';  pulsar_dec = '+47d54m53.93s';  pulsar_DM = 0;        p_bar = 0.5384688219194
+    elif 'B2224+65'   in pulsar_name: pulsar_ra = '22h25m52.8627s';  pulsar_dec = '+65d35m36.371s';  pulsar_DM = 36.44362;        p_bar = 0.682542497406
     elif 'J2248-0101' in pulsar_name: pulsar_ra = '22h48m26.904s';  pulsar_dec = '-01d01m48.1s';   pulsar_DM = 0;        p_bar = 0.477233119123
     elif 'J2253+1516' in pulsar_name: pulsar_ra = '22h53m14.533s';  pulsar_dec = '+15d16m37.83s';  pulsar_DM = 0;        p_bar = 0.792235920118
 
