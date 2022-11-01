@@ -6,9 +6,9 @@ software_name = 'Pulsar dynamic spectra folding'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to folder with the initial (source) data files (without file names)
-source_path = ''  # 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
+source_path = ''  # 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
 # Path where the result and temporary files will be stored
-result_path = ''  # 'h:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
+result_path = ''  # 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
 
 # File name of DAT file to be analyzed:
 filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
@@ -59,7 +59,17 @@ from package_plot_formats.plot_formats_for_pulsars import plot_pulsar_pulses_evo
 def save_integrated_pulse_to_file(array, file_header, pulsar_period, samples_per_period, file_name):
     """
     Saving .smd file with integrated pulsar pulse in a format by V. V. Zakharenko (IDL)
+    Args:
+        array: numpy array with data to save (np.array)
+        file_header: 1024 byte data file header (bytes)
+        pulsar_period: pulsar period used for folding (np.float64)
+        samples_per_period: number of samples per period (int)
+        file_name: path and name of the file to save (str)
+
+    Returns:
+        0 if success
     """
+
     integrated_pulse_file = open(file_name, 'wb')
     array = np.array(array, dtype=np.float32)
     integrated_pulse_file.write(np.float64(pulsar_period))
@@ -75,8 +85,28 @@ def save_integrated_pulse_to_file(array, file_header, pulsar_period, samples_per
 # *******************************************************************************
 
 
-def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor, spectrum_pic_min, spectrum_pic_max,
-                          periods_per_fig, custom_dpi, colormap, use_mask_file=False, save_pulse_evolution=True):
+def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor,
+                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap,
+                          use_mask_file=False, save_pulse_evolution=True):
+    """
+    Folds average pulsar pulse from a long DAT file
+    Args:
+        source_path: path to the source files
+        filename: file ane of the source DAT file
+        result_path: path where the results will be saved
+        pulsar_name: name of pulsar for catalogue values of its parameters
+        scale_factor: factor to scale the data while folding to make the remainder smaller (use 1 as default)
+        spectrum_pic_min: lower limit of spectrum figure scale
+        spectrum_pic_max: higher limit of spectrum figure scale
+        periods_per_fig: number of periods to obtain in the figure and file (use 1 as default)
+        custom_dpi: figure resolution (int)
+        colormap: colormap to display dynamic spectra (str)
+        use_mask_file: if the dat file has a file mask (.msk) use it to clean the data (bool)
+        save_pulse_evolution: save pulse evolution picture or not (bool)
+
+    Returns:
+        0 if success
+    """
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -102,16 +132,16 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     if df_filepath[-4:] == '.adr':
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq, df_creation_time_utc,
-                receiver_mode, mode, sum_diff_mode, n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
-                width, block_size] = file_header_adr_read(filepath, 0, 0)
+            receiver_mode, mode, sum_diff_mode, n_avr, time_resolution, fmin, fmax, df, frequency, fft_size, sline,
+            width, block_size] = file_header_adr_read(filepath, 0, 0)
 
         freq_points_num = len(frequency)
 
     elif df_filepath[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq, df_creation_time_utc,
-                sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
-                block_size] = file_header_jds_read(filepath, 0, 1)
+            sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
+            block_size] = file_header_jds_read(filepath, 0, 1)
     else:
         sys.exit(' Error! File type is unknown')
 
@@ -274,7 +304,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         # Make a figure of pulse evolution with time
         pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
         fig_suptitle = 'Pulsar ' + pulsar_name + ' profile evolution (DM: ' + str(pulsar_dm) + \
-                    r' $\mathrm{pc \cdot cm^{-3}}$' + ', Barycentric period: ' + str(p_bar) + ' s.)'
+                       r' $\mathrm{pc \cdot cm^{-3}}$' + ', Barycentric period: ' + str(p_bar) + ' s.)'
         fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '\nResolution: ' + \
                     str(np.round(df / 1000, 3)) + ' kHz and ' + str(np.round(time_resolution * 1000, 3)) + ' ms.' + \
                     ' scale factor: ' + str(scale_factor)
@@ -287,15 +317,13 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving integrated pulse data to a file
-    # save_integrated_pulse_to_file(data, file_header, p_bar, data.shape[1], result_path +
-    #                               'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp')
     save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1], result_path +
                                   'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp')
     print('\n SMP data file saved. \n')
 
     # Make a figure of pulses profiles and dynamic spectrum
     fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '   Resolution: ' + \
-                str(np.round(df/1000, 3)) + ' kHz and ' + str(np.round(time_resolution*1000, 3)) + ' ms.' + \
+                str(np.round(df/1000, 3)) + ' kHz and ' + str(np.round(time_resolution * 1000, 3)) + ' ms.' + \
                 '\n from ' + timeline[0][:19] + ' till ' + timeline[-1][:19] + ' UTC'
 
     fig_suptitle = 'Folded average pulses of ' + pulsar_name + ' (DM: ' + str(pulsar_dm) + \
