@@ -80,7 +80,7 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
     ax1.axis([0, len(profile), profile_pic_min, profile_pic_max])
     ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
     ax1.set_title('File: ' + filename + '  Description: ' + df_description + '  Averaging: ' +
-                  str(np.round(freq_resolution, 3)) + ' kHz and ' + str(np.round(time_resolution*1000, 3)) +
+                  str(np.round(freq_resolution, 3)) + ' kHz and ' + str(np.round(time_resolution * 1000, 3)) +
                   ' ms.  Max. shift: ' + str(np.round(max_time_shift, 3)) + ' s.', fontsize=5, fontweight='bold')
     ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     ax2 = fig.add_subplot(212)
@@ -98,13 +98,14 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
 
     ax2.set_xticklabels(text, fontsize=5, fontweight='bold')
     fig.subplots_adjust(hspace=0.05, top=0.91)  # top=0.92
-    fig.suptitle('Single pulses of ' + pulsar_name+' (DM = ' + str(pulsar_dm) + r' $\mathrm{pc \cdot cm^{-3}}$' +
-                 '), fig. ' + str(fig_no) + ' of ' + str(fig_num), fontsize=7, fontweight='bold')
+    fig.suptitle('Single pulses of ' + pulsar_name+' (DM = ' + str(np.round(pulsar_dm, 6)) +
+                 r' $\mathrm{pc \cdot cm^{-3}}$' + '), fig. ' + str(fig_no) + ' of ' + str(fig_num),
+                 fontsize=7, fontweight='bold')
     fig.text(0.80, 0.04, 'Processed ' + a_current_date + ' at ' + a_current_time,
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3,
              transform=plt.gcf().transFigure)
-    pylab.savefig(newpath + '/' + filename + ' fig. ' + str(block) + ' - Combined picture.png',
+    pylab.savefig(newpath + '/' + filename[:-4] + ' fig. ' + str(block) + ' spectrogram and profile.png',
                   bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
@@ -127,7 +128,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     data_filepath = common_path + filename
 
     # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-    newpath = result_path + 'RESULTS_pulsar_single_pulses_' + pulsar_name + '_' + filename[:-4]
+    # newpath = result_path + 'RESULTS_pulsar_single_pulses_' + pulsar_name + '_' + filename[:-4]
+    newpath = result_path + 'Pulsar_pulses_' + pulsar_name + '_DM_' + str(np.round(transient_dm, 6)) + \
+              '_' + filename[:-4]
     if save_pics:
         if not os.path.exists(newpath):
             os.makedirs(newpath)
@@ -147,7 +150,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         [time_res, fmin, fmax, df, frequency_list, fft_size, clc_freq, mode] = file_header_adr_read(data_filepath, 0, 1)
 
     elif receiver_type == '.jds':
-        [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc, 
+        [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc,
             sp_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency_list, fft_size,
             data_block_size] = file_header_jds_read(data_filepath, 0, 1)
     else:
@@ -355,13 +358,14 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
             array_compensated_pulsar_dm = array_compensated_pulsar_dm - np.mean(array_compensated_pulsar_dm)
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            masked_data_raw = np.ma.masked_where(mask_compensated_pulsar_dm, array_compensated_pulsar_dm)
-            data_raw_mean = np.mean(masked_data_raw)
-            del masked_data_raw
+            if use_mask_file:
+                masked_data_raw = np.ma.masked_where(mask_compensated_pulsar_dm, array_compensated_pulsar_dm)
+                data_raw_mean = np.mean(masked_data_raw)
+                del masked_data_raw
 
-            # Apply as mask to data (change masked data with mean values of data outside mask)
-            array_compensated_pulsar_dm = array_compensated_pulsar_dm * np.invert(mask_compensated_pulsar_dm)
-            array_compensated_pulsar_dm = array_compensated_pulsar_dm + mask_compensated_pulsar_dm * data_raw_mean
+                # Apply as mask to data (change masked data with mean values of data outside mask)
+                array_compensated_pulsar_dm = array_compensated_pulsar_dm * np.invert(mask_compensated_pulsar_dm)
+                array_compensated_pulsar_dm = array_compensated_pulsar_dm + mask_compensated_pulsar_dm * data_raw_mean
 
             # Preparing single averaged data profile for figure
             profile = array_compensated_pulsar_dm.mean(axis=0)[:]
