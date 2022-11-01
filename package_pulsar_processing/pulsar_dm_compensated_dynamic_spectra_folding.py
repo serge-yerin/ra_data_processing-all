@@ -105,7 +105,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         save_pulse_evolution: save pulse evolution picture or not (bool)
 
     Returns:
-        0 if success
+        smp_result_file_name: name of the SMP file saved (str)
     """
 
     current_time = time.strftime("%H:%M:%S")
@@ -317,8 +317,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving integrated pulse data to a file
-    save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1], result_path +
-                                  'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp')
+    smp_result_file_name = 'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp'
+    save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1], result_path + smp_result_file_name)
     print('\n SMP data file saved. \n')
 
     # Make a figure of pulses profiles and dynamic spectrum
@@ -339,7 +339,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
                                    pic_filename, current_date, current_time, software_version, custom_dpi,
                                    colormap, show=False, save=True)
 
-    return 0
+    return smp_result_file_name
 
 
 # *******************************************************************************
@@ -349,8 +349,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
 
 if __name__ == '__main__':
 
-    pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor,
-                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap,
-                          use_mask_file=use_mask_file)
+    smp_file_name = pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale_factor,
+                                          spectrum_pic_min, spectrum_pic_max, periods_per_fig, custom_dpi, colormap,
+                                          use_mask_file=use_mask_file)
 
     print('\n\n       *** Program has finished! ***   \n\n\n')
