@@ -5,7 +5,7 @@
 
 # Python3
 software_name = 'Pulses Incoherent Averaging Script'
-software_version = '2022.08.27'
+software_version = '2022.11.02'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -19,6 +19,7 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
 # Directory where all results will be stored:
 result_directory = ''  # 'e:/RA_DATA_RESULTS/'
+
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
@@ -42,6 +43,10 @@ DynSpecSaveCleaned = 0         # Save dynamic spectra pictures after cleaning (1
 CorrSpecSaveInitial = 0        # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0        # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 
+# SMD analysis parameters
+no_of_dm_steps = 721             # Number of DM steps to plot (361)
+dm_var_step = 0.001              # Step of optimal DM finding  (0.002)
+frequency_cuts = [18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0]  # UTR-2 16.5 - 33 MHz divided bands of 2 MHz or less
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -58,6 +63,7 @@ if __package__ is None:
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding import pulsar_period_folding
+from package_pulsar_processing.script_smd_integrated_pulses_analyzer import smd_integrated_pulses_analyzer
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
@@ -94,7 +100,7 @@ print('   *          ', software_name, ' v.', software_version, '            *  
 print('   *************************************************************************** \n')
 
 
-print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making dynamic spectra of the initial data')
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making  long dynamic spectra file of the initial data')
 
 # Find all files in folder once more:
 file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
@@ -259,8 +265,17 @@ if save_long_dyn_spectra:
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making averaged (folded) pulse profile... \n\n')
 
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name.split('/')[-1], path_to_dat_files, pulsar_name,
-                          scale_factor, -0.5, 3, periods_per_fig, custom_dpi, colormap, use_mask_file=True,
-                          save_pulse_evolution=True)
+    smp_file_name = pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name.split('/')[-1],
+                                          path_to_dat_files, pulsar_name, scale_factor, -0.5, 3, periods_per_fig,
+                                          custom_dpi, colormap, use_mask_file=True, save_pulse_evolution=True)
+
+
+# SMP file analysis
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * SMP file analysis... \n\n')
+
+smd_integrated_pulses_analyzer(path_to_dat_files, result_path, smp_file_name, pulsar_name, scale_factor,
+                               True, True, no_of_dm_steps, dm_var_step, 1, 1.0, 1, 128, 8, True, 0,
+                               frequency_cuts, colormap, custom_dpi, 16.5, 33.0)
+
 
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
