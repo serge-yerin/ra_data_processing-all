@@ -77,6 +77,7 @@ if __package__ is None:
 # My functions
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
+from package_astronomy.f_pulsar_visible_period import pulsar_visible_period
 from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read_old
@@ -357,7 +358,7 @@ def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_p
 
 
 def average_profile_analysis(type, matrix, initial_matrix, filename, result_path, dm_already_compensated,
-                             freq_num, fmin, fmax, df, frequency_list, time_res, samples_per_period,
+                             frequency_list, time_res, scale_factor, samples_per_period,
                              pulsar_dm, no_of_dm_steps, pulsar_period, save_intermediate_data,
                              average_channel_num, record_date_time, pulsar_name, telescope,
                              software_version, current_time, current_date, df_filename, df_obs_place,
@@ -400,14 +401,23 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
         dm_optimal:
     """
 
+    # print(freq_num, len(frequency_list), fmax, frequency_list[-1], df, frequency_list[1] - frequency_list[0])
+    # freq_num, fmin, fmax, df,
     fig_number = '0' if type == 'first' else '1'
     dm_type = 'initial' if type == 'first' else 'optimal'
+    freq_num = len(frequency_list)
+    df = frequency_list[1] - frequency_list[0]
+
+    # Find pulsar parameters from catalogue
+    pulsar_ra, pulsar_dec, catalogue_pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
+    # Calculating pulsar visible period for particular observation time
+    p_visible, jd = pulsar_visible_period(pulsar_name, record_date_time, print_or_not=False)
 
     # If target DM delay was compensated by previous processing, skip compensation here
     if not dm_already_compensated:
 
         #  Calculation of shift in pixels to compensate dispersion
-        shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, time_res,
+        shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df, time_res,
                                                              pulsar_dm, pulsar_period)
 
         #  Saving shift parameter for dispersion delay compensation vs. frequency to file and plot
@@ -415,7 +425,7 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
 
             shift_param_txt = open(result_path + '/Shift parameter (' + dm_type + ').txt', "w")
             for i in range(freq_num):
-                shift_param_txt.write(str(fmin + df * i) + '   ' + str(shift_param[i]) + ' \n')
+                shift_param_txt.write(str(frequency_list[0] + df * i) + '   ' + str(shift_param[i]) + ' \n')
             shift_param_txt.close()
 
             plot1D(shift_param, result_path + '/' + fig_number + '3.1 - Shift parameter (' + dm_type + ' DM).png',
@@ -427,11 +437,10 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
     else:
         # Anyway for the final (optimal) DM we need to compensate a difference between optimal and catalog DMs
         if type == 'final':
-            pulsar_ra, pulsar_dec, catalogue_pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
             delta_optimal_dm = pulsar_dm - catalogue_pulsar_dm
 
             #  Calculation of shift in pixels to compensate dispersion
-            shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, fmin, fmax, df, time_res,
+            shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df, time_res,
                                                                  delta_optimal_dm, pulsar_period)
 
             #  Compensation of dispersion delay
@@ -511,14 +520,14 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
     if not dm_already_compensated:
 
         # Integrated profiles with DM variation calculation (using DM)
-        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, fmin, fmax, df,
+        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, frequency_list[0], frequency_list[-1], df,
                                                          time_res, pulsar_period, samples_per_period, pulsar_dm,
                                                          noise_mean, noise_std, begin_index, end_index, dm_var_step,
                                                          roll_number)
     else:
 
         # Integrated profiles with DM variation calculation (delta_optimal_dm)
-        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, fmin, fmax, df,
+        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, frequency_list[0], frequency_list[-1], df,
                                                          time_res, pulsar_period, samples_per_period, delta_optimal_dm,
                                                          noise_mean, noise_std, begin_index, end_index, dm_var_step,
                                                          roll_number)
@@ -678,8 +687,8 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
 
         ax2 = fig.add_subplot(gs[1, 0])  # [1, :-1]
         ax2.imshow(np.flipud(reduced_array), aspect='auto',
-                   vmin=np.min(reduced_array), vmax=np.max(reduced_array)/10,
                    extent=[0, 1, reduced_frequency_list[0], reduced_frequency_list[-1]], cmap=colormap)
+        # vmin=np.min(reduced_array), vmax=np.max(reduced_array)/10,
         ax2.set_ylabel('Frequency, MHz', fontsize=7, fontweight='bold')
         ax2.set_xlabel('Phase of pulsar period', fontsize=7, fontweight='bold')
         ax2.set_title('Pulse profiles in ' + str(np.round(reduced_frequency_list[1] - reduced_frequency_list[0], 3)) +
@@ -716,29 +725,41 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.705, 'Duration: ', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.670, 'Period: ' + str(np.round(pulsar_period, 6)) + ' s.',
+        fig.text(0.72, 0.670, 'Julian day: ' + str(jd),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.640, 'Time resolution: ' + str(np.round(time_res * 1000, 4))+' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.610, 'Number of samples per period: ' + str(samples_per_period),
-                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.580, 'Catalogue DM: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.550, r'$\mathrm{RA_{J2000}}: $',
-                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.520, r'$\mathrm{DEC_{J2000}}: $',
+        fig.text(0.72, 0.610, 'Scale factor while folding: ' + str(scale_factor),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.490, 'Initial data file name: ' + df_filename,
+        fig.text(0.72, 0.580, 'Number of samples per period: ' + str(samples_per_period),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.460, 'Receiver mode: ' + str(receiver_mode),
+        fig.text(0.72, 0.550, 'Period from file: ' + str(pulsar_period) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.430, 'Receiver ID: ' + str(df_system_name),
+        fig.text(0.72, 0.520, 'Visible period:    ' + str(p_visible) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.400, 'Observation place: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.370, df_obs_place, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.340, 'Observation description: ',
+
+        fig.text(0.72, 0.490, 'Catalogue Pbar: ' + str(p_bar) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.310, df_description, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+
+        fig.text(0.72, 0.460, 'Catalogue DM: ' + str(catalogue_pulsar_dm) + r' $\mathrm{pc \cdot cm^{-3}}$',
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.430, r'$\mathrm{RA_{J2000}}: $' + pulsar_ra.replace('h', 'h ').replace('m', 'm '),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.400, r'$\mathrm{DEC_{J2000}}: $' + pulsar_dec.replace('d', r'$^\circ$ ').replace('m', 'm '),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+
+        fig.text(0.72, 0.370, 'First data file name: ' + df_filename,
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.340, 'Receiver mode: ' + str(receiver_mode),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.310, 'Receiver ID: ' + str(df_system_name),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.280, 'Observation place: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.250, df_obs_place, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.220, 'Observation description: ',
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.190, df_description, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.85, -0.015, 'Processed ' + current_date + ' at ' + current_time,
                  fontsize=6, transform=plt.gcf().transFigure)
@@ -928,18 +949,19 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
     if auto_optimal_dm_search:
 
         pulsar_dm = average_profile_analysis('first', matrix, initial_matrix, filename, result_path,
-                                             dm_already_compensated, freq_num, fmin, fmax, df, frequency_list,
-                                             time_res, samples_per_period, pulsar_dm, no_of_dm_steps, pulsar_period,
-                                             save_intermediate_data, average_channel_num, record_date_time,
-                                             pulsar_name, telescope, software_version, current_time, current_date,
-                                             df_filename, df_obs_place, df_description, receiver_mode, df_system_name)
+                                             dm_already_compensated, frequency_list,
+                                             time_res, scale_factor, samples_per_period, pulsar_dm, no_of_dm_steps,
+                                             pulsar_period, save_intermediate_data, average_channel_num,
+                                             record_date_time, pulsar_name, telescope, software_version,
+                                             current_time, current_date, df_filename, df_obs_place, df_description,
+                                             receiver_mode, df_system_name)
 
     # *******************************************************************************
     #  ***                      Analyze data with optimal DM                      ***
     # *******************************************************************************
 
     pulsar_dm = average_profile_analysis('final', matrix, initial_matrix, filename, result_path, dm_already_compensated,
-                                         freq_num, fmin, fmax, df, frequency_list, time_res, samples_per_period,
+                                         frequency_list, time_res, scale_factor, samples_per_period,
                                          pulsar_dm, no_of_dm_steps, pulsar_period, save_intermediate_data,
                                          average_channel_num, record_date_time, pulsar_name, telescope,
                                          software_version, current_time, current_date, df_filename, df_obs_place,
