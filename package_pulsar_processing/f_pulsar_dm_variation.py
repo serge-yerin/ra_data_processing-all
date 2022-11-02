@@ -4,8 +4,8 @@ from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes impor
 from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
 
 
-def pulsar_DM_variation(array, no_of_dm_steps, fft_size, fmin, fmax, df, time_res, pulsar_period, samples_per_period,
-                        pulsar_dm,  noise_mean, noise_std, begin_index, end_index, dm_var_step, roll_number):
+def pulsar_dm_variation(array, no_of_dm_steps, fft_size, fmin, fmax, df, time_res, pulsar_period, samples_per_period,
+                        pulsar_dm, noise_mean, noise_std, begin_index, end_index, dm_var_step, roll_number):
     """
     Variation of DM for average pulsar profile with defined step and number of steps
     """

@@ -81,7 +81,7 @@ from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read_old
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_pulsar_processing.f_pulsar_dm_variation import pulsar_DM_variation
+from package_pulsar_processing.f_pulsar_dm_variation import pulsar_dm_variation
 from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import \
     pulsar_DM_compensation_with_indices_changes
@@ -511,14 +511,14 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
     if not dm_already_compensated:
 
         # Integrated profiles with DM variation calculation (using DM)
-        profiles_var_dm, dm_vector = pulsar_DM_variation(initial_matrix, no_of_dm_steps, freq_num, fmin, fmax, df,
+        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, fmin, fmax, df,
                                                          time_res, pulsar_period, samples_per_period, pulsar_dm,
                                                          noise_mean, noise_std, begin_index, end_index, dm_var_step,
                                                          roll_number)
     else:
 
         # Integrated profiles with DM variation calculation (delta_optimal_dm)
-        profiles_var_dm, dm_vector = pulsar_DM_variation(initial_matrix, no_of_dm_steps, freq_num, fmin, fmax, df,
+        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, fmin, fmax, df,
                                                          time_res, pulsar_period, samples_per_period, delta_optimal_dm,
                                                          noise_mean, noise_std, begin_index, end_index, dm_var_step,
                                                          roll_number)
