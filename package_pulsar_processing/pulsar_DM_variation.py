@@ -24,10 +24,16 @@ def pulsar_DM_variation(array, no_of_dm_steps, fft_size, fmin, fmax, df, time_re
         matrix = np.zeros((fft_size, samples_per_period))
         matrix[:, :] = array[:, :]
 
-        # DM compensation
+        # Calculating the shifts to move each row of data to compensate dispersion delay
         shift_param = pulsar_dm_shift_calculation_aver_pulse(fft_size, fmin, fmax, df, time_res,
                                                              dm_vector[step], pulsar_period)
-        matrix = pulsar_DM_compensation_with_indices_changes(matrix, shift_param)
+
+        # Old version of dispersion delay removing:
+        # matrix = pulsar_DM_compensation_with_indices_changes(matrix, shift_param)
+
+        # New version of dispersion delay removing (is suitable for already compensated files):
+        for i in range(len(shift_param)):
+            matrix[i] = np.roll(matrix[i], shift_param[i])
 
         for i in range(fft_size):
             matrix[i, :] = matrix[i, :] - np.mean(matrix[i, begin_index: end_index])
