@@ -91,7 +91,7 @@ def plot_average_profiles(array, data_type, filename, result_path, frequency_lis
 
     n = '1' if data_type == 'Raw' else '2'
     plot2D(array, result_path + '/01.' + n + ' - ' + data_type + ' data.png', frequency_list, colormap,
-           data_type + ' pulsar pulse \n File: '+filename, custom_dpi)
+           data_type + ' pulsar pulse \n File: ' + filename, custom_dpi)
 
     integr_profile_0 = np.sum(array, axis=0)
     integr_profile_1 = np.sum(array, axis=1)
@@ -293,7 +293,7 @@ def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_p
 
     plt.figure(1, figsize=(10.0, 6.0))
     plt.subplots_adjust(left=None, bottom=0, right=None, top=0.86, wspace=None, hspace=None)
-    for band in range (no_of_freq_bands):
+    for band in range(no_of_freq_bands):
         plt.plot(profiles_var_in_band[band, :] - np.max(profiles_var_in_band[band, :]),
                  label=str(round(band_frequencies[band, 0], 3)) + ' - ' +
                        str(round(band_frequencies[band, 1], 3)) + ' MHz')
