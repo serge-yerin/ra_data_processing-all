@@ -18,14 +18,14 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 # Directory of files to be analyzed:
 source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
 # Directory where all results will be stored:
-result_directory = ''  # 'e:/RA_DATA_RESULTS/'
+result_directory = 'e:/RA_DATA_RESULTS/'
 
 # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA', 'C_m']
+data_types = ['chA']
 
 # Calibration file needed only if cross-spectra are involved
 phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
@@ -273,7 +273,7 @@ for dedispersed_data_file_name in dedispersed_data_file_list:
 # SMP file analysis
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * SMP file analysis... \n\n')
 
-smd_integrated_pulses_analyzer(path_to_dat_files, result_path, smp_file_name, pulsar_name, scale_factor,
+smd_integrated_pulses_analyzer(path_to_dat_files, path_to_dat_files, smp_file_name, pulsar_name, scale_factor,
                                True, True, no_of_dm_steps, dm_var_step, 1, 1.0, 1, 128, 8, True, 0,
                                frequency_cuts, colormap, custom_dpi, 16.5, 33.0)
 

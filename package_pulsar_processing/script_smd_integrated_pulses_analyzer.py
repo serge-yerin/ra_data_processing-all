@@ -82,6 +82,7 @@ from package_plot_formats.plot_formats import plot1D, plot2D
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read_old
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
+from package_ra_data_files_formats.f_check_duration_of_dat_file import check_duration_of_dat_file
 from package_pulsar_processing.f_pulsar_dm_variation import pulsar_dm_variation
 from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import \
@@ -360,9 +361,9 @@ def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_p
 def average_profile_analysis(type, matrix, initial_matrix, filename, result_path, dm_already_compensated,
                              frequency_list, time_res, scale_factor, samples_per_period,
                              pulsar_dm, no_of_dm_steps, pulsar_period, save_intermediate_data,
-                             average_channel_num, record_date_time, pulsar_name, telescope,
+                             average_channel_num, record_date_time, pulsar_name,
                              software_version, current_time, current_date, df_filename, df_obs_place,
-                             df_description, receiver_mode, df_system_name):
+                             df_description, receiver_mode, df_system_name, obs_duration):
 
     """
     Analyze average pulsar pulse profile with its time-frequency data
@@ -387,7 +388,6 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
         average_channel_num:
         record_date_time:
         pulsar_name:
-        telescope:
         software_version:
         current_time:
         current_date:
@@ -520,14 +520,16 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
     if not dm_already_compensated:
 
         # Integrated profiles with DM variation calculation (using DM)
-        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, frequency_list[0], frequency_list[-1], df,
+        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps,
+                                                         freq_num, frequency_list[0], frequency_list[-1], df,
                                                          time_res, pulsar_period, samples_per_period, pulsar_dm,
                                                          noise_mean, noise_std, begin_index, end_index, dm_var_step,
                                                          roll_number)
     else:
 
         # Integrated profiles with DM variation calculation (delta_optimal_dm)
-        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num, frequency_list[0], frequency_list[-1], df,
+        profiles_var_dm, dm_vector = pulsar_dm_variation(initial_matrix, no_of_dm_steps, freq_num,
+                                                         frequency_list[0], frequency_list[-1], df,
                                                          time_res, pulsar_period, samples_per_period, delta_optimal_dm,
                                                          noise_mean, noise_std, begin_index, end_index, dm_var_step,
                                                          roll_number)
@@ -709,7 +711,7 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
 
         fig.suptitle('Pulsar ' + pulsar_name + ' in band ' + str(round(frequency_list[0], 1)) + ' - ' +
                      str(round(frequency_list[-1], 1)) + ' MHz \n File: ' + filename, fontsize=10, fontweight='bold')
-        fig.text(0.03, 0.960, pulsar_name + '\n' + str(record_date_time[:10]) + ' ' + telescope,
+        fig.text(0.03, 0.960, pulsar_name + '\n' + str(record_date_time[:10]),
                  fontsize=10, transform=plt.gcf().transFigure)
 
         fig.text(0.72, 0.880, 'Pulsar name: ' + pulsar_name,
@@ -723,13 +725,14 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.740, 'Start time: ' + str(record_date_time[11:19]) + ' UTC',
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.705, 'Duration: ', fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.705, 'Duration: ' + str(obs_duration),
+                 fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.72, 0.670, 'Julian day: ' + str(jd),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.640, 'Time resolution: ' + str(np.round(time_res * 1000, 4))+' ms.',
+        fig.text(0.72, 0.640, 'Data time resolution: ' + str(np.round(time_res * 1000, 4)) + ' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.610, 'Scale factor while folding: ' + str(scale_factor),
+        fig.text(0.72, 0.610, 'Time resolution scaled: ' + str(np.round(time_res * 1000 * scale_factor, 4)) + ' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.72, 0.580, 'Number of samples per period: ' + str(samples_per_period),
@@ -860,14 +863,12 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
                                        int(df_creation_time_utc[0:2]), int(df_creation_time_utc[3:5]),
                                        int(df_creation_time_utc[6:8]), int(df_creation_time_utc[9:12]) * 1000)
         record_date_time = str(record_date_time_dt)
-        telescope = 'GURT'
-    
+
     elif filename[0:3] == 'DSP':
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc,
             sp_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency_list,
             fft_size, block_size] = file_header_jds_read(filepath, smd_filesize - 1024, 1)
-        telescope = 'UTR-2'
-    
+
         record_date_time_dt = datetime(int('20' + df_filename[5:7]), int(df_filename[3:5]), int(df_filename[1:3]),
                                        int(df_creation_time_utc[11:13]), int(df_creation_time_utc[14:16]),
                                        int(df_creation_time_utc[17:19]), 0)
@@ -879,7 +880,7 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
     # Scale the time resolution if it was scaled during pulse folding
     time_res = time_res / scale_factor
 
-    df = df / pow(10, 6)
+    # df = df / pow(10, 6)
     freq_num = len(frequency_list)
     
     file = open(filepath, 'rb')
@@ -940,7 +941,7 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
     
         del mask
     
-    fmin = 16.5
+    obs_start_time, obs_stop_time, obs_duration = check_duration_of_dat_file(source_path, filename[5:])
     
     # *******************************************************************************
     #  ***                            Find optimal DM                             ***
@@ -952,9 +953,9 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
                                              dm_already_compensated, frequency_list,
                                              time_res, scale_factor, samples_per_period, pulsar_dm, no_of_dm_steps,
                                              pulsar_period, save_intermediate_data, average_channel_num,
-                                             record_date_time, pulsar_name, telescope, software_version,
+                                             record_date_time, pulsar_name, software_version,
                                              current_time, current_date, df_filename, df_obs_place, df_description,
-                                             receiver_mode, df_system_name)
+                                             receiver_mode, df_system_name, obs_duration)
 
     # *******************************************************************************
     #  ***                      Analyze data with optimal DM                      ***
@@ -963,9 +964,9 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
     pulsar_dm = average_profile_analysis('final', matrix, initial_matrix, filename, result_path, dm_already_compensated,
                                          frequency_list, time_res, scale_factor, samples_per_period,
                                          pulsar_dm, no_of_dm_steps, pulsar_period, save_intermediate_data,
-                                         average_channel_num, record_date_time, pulsar_name, telescope,
+                                         average_channel_num, record_date_time, pulsar_name,
                                          software_version, current_time, current_date, df_filename, df_obs_place,
-                                         df_description, receiver_mode, df_system_name)
+                                         df_description, receiver_mode, df_system_name, obs_duration)
 
     '''
     # Make the rolling of the data to make noise interval at the beginning
