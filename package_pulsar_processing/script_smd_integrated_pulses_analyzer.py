@@ -725,14 +725,14 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.740, 'Start time: ' + str(record_date_time[11:19]) + ' UTC',
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.705, 'Duration: ' + str(obs_duration),
+        fig.text(0.72, 0.705, 'Duration (compensated): ' + str(obs_duration),
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.72, 0.670, 'Julian day: ' + str(jd),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.640, 'Data time resolution: ' + str(np.round(time_res * 1000, 4)) + ' ms.',
+        fig.text(0.72, 0.640, 'Data time resolution: ' + str(np.round(time_res * 1000 * scale_factor, 4)) + ' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.610, 'Time resolution scaled: ' + str(np.round(time_res * 1000 * scale_factor, 4)) + ' ms.',
+        fig.text(0.72, 0.610, 'Time resolution scaled: ' + str(np.round(time_res * 1000, 4)) + ' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.72, 0.580, 'Number of samples per period: ' + str(samples_per_period),
