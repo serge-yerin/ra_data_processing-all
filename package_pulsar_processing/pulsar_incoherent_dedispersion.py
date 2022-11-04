@@ -13,18 +13,18 @@ filename = 'E300117_180000.jds_Data_chA.dat'  # 'E220213_201439.jds_Data_chA.dat
 
 pulsar_name = 'B0809+74'  # 'B1919+21' #'B0809+74' #'B1133+16' #  'B1604-00' 'B0950+08'
 
-average_const = 512            # Number of frequency channels to appear in result picture
-profile_pic_min = -0.15        # Minimum limit of profile picture
-profile_pic_max = 0.55         # Maximum limit of profile picture
+average_const = 512             # Number of frequency channels to appear in result picture
+profile_pic_min = -0.15         # Minimum limit of profile picture
+profile_pic_max = 0.55          # Maximum limit of profile picture
 
-SpecFreqRange = 0              # Specify particular frequency range (1) or whole range (0)
-freqStart = 2.0                # Lower frequency of dynamic spectrum (MHz)
-freqStop = 8.0                 # Higher frequency of dynamic spectrum (MHz)
+spec_freq_range = False         # Specify particular frequency range (1) or whole range (0)
+freq_start = 2.0                # Lower frequency of dynamic spectrum (MHz)
+freq_stop = 8.0                 # Higher frequency of dynamic spectrum (MHz)
 
-save_profile_txt = True        # Save profile data to TXT file?
-save_compensated_data = True      # Save data with compensated DM to DAT file?
+save_profile_txt = True         # Save profile data to TXT file?
+save_compensated_data = True    # Save data with compensated DM to DAT file?
 custom_dpi = 300                # Resolution of images of dynamic spectra
-colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet' or 'Greys')
+colormap = 'Greys'              # Colormap of images of dynamic spectra ('jet' or 'Greys')
 # *******************************************************************************
 
 # *******************************************************************************
@@ -111,13 +111,34 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
 
 
 def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_const, profile_pic_min, profile_pic_max,
-                                   SpecFreqRange, freqStart, freqStop, save_profile_txt, save_compensated_data,
-                                   custom_dpi, colormap, use_mask_file=False, save_pics=True, transient_dm=0,
+                                   spec_freq_range, freq_start, freq_stop, save_profile_txt, save_compensated_data,
+                                   custom_dpi, colormap, use_mask_file=False, save_pics=True, source_dm=0,
                                    result_path='', make_fourier=False):
-
     """
     Makes incoherent compensation of time delays in each frequency channel with its shift
     It assumes we obtain raw dat files from ADR or JDS readers where for JDS the last channels are not deleted
+    Args:
+        common_path: path to initial data (str)
+        filename: name of file to process (str)
+        pulsar_name: name of the pulsar in catalogue (str)
+        average_const: average constant - the number of frequency channels to appear in result picture (int)
+        profile_pic_min: minimum limit of profile picture (float)
+        profile_pic_max: maximum limit of profile picture (float)
+        spec_freq_range: do we specify particular frequency range (bool)
+        freq_start: start frequency of the specified range (float)
+        freq_stop: finish frequency of the specified range (float)
+        save_profile_txt:
+        save_compensated_data:
+        custom_dpi:
+        colormap:
+        use_mask_file:
+        save_pics:
+        source_dm:
+        result_path:
+        make_fourier:
+
+    Returns:
+        new_data_file_name
     """
 
     a_previous_time = time.time()
@@ -127,9 +148,14 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     rc('font', size=6, weight='bold')
     data_filepath = common_path + filename
 
+    # Obtain pulsar parameters from catalogue
+    if 'Transient' in pulsar_name:
+        pulsar_dm = source_dm
+    else:
+        pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
+
     # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-    # newpath = result_path + 'RESULTS_pulsar_single_pulses_' + pulsar_name + '_' + filename[:-4]
-    newpath = result_path + 'Pulsar_pulses_' + pulsar_name + '_DM_' + str(np.round(transient_dm, 6)) + \
+    newpath = result_path + 'Pulsar_pulses_' + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + \
               '_' + filename[:-4]
     if save_pics:
         if not os.path.exists(newpath):
@@ -166,12 +192,6 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     # Number of spectra in the file   #   file size - 1024 bytes of header
     dat_sp_in_file = int(((df_filesize - 1024) / (len(frequency_list) * 8)))
 
-    # Obtain pulsar parameters from catalogue
-    if 'Transient' in pulsar_name:
-        pulsar_dm = transient_dm
-    else:
-        pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
-
     if save_profile_txt > 0:
         # *** Creating a name for long timeline TXT file ***
         profile_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + \
@@ -187,14 +207,16 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     timeline, dt_timeline = time_line_file_reader(time_line_file_name)
 
     # Selecting the frequency range of data to be analyzed
-    if SpecFreqRange == 1:
-        A = []
-        B = []
+    if spec_freq_range:
+        tmp_list_a = []
+        tmp_list_b = []
         for i in range(len(frequency_list)):
-            A.append(abs(frequency_list[i] - freqStart))
-            B.append(abs(frequency_list[i] - freqStop))
-        ifmin = A.index(min(A))
-        ifmax = B.index(min(B))
+            tmp_list_a.append(abs(frequency_list[i] - freq_start))
+            tmp_list_b.append(abs(frequency_list[i] - freq_stop))
+        ifmin = tmp_list_a.index(min(tmp_list_a))
+        ifmax = tmp_list_b.index(min(tmp_list_b))
+        del tmp_list_a, tmp_list_b
+
         shift_vector = DM_full_shift_calc(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10, 6),
                                           time_res, pulsar_dm, receiver_type)
         print(' Number of frequency channels:  ', ifmax - ifmin)
@@ -285,9 +307,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
             mask = mask[:num_frequencies_initial, :]
 
         # Cutting the array in predefined frequency range
-        if SpecFreqRange == 1:
+        if spec_freq_range:
             data, frequency_list, fi_start, fi_stop = specify_frequency_range(data, frequency_list_initial,
-                                                                              freqStart, freqStop)
+                                                                              freq_start, freq_stop)
             num_frequencies = len(frequency_list)
         else:
             num_frequencies = num_frequencies_initial  # + 4
@@ -346,7 +368,6 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
                     for i in range(max_shift):
                         new_tl_file.write((fig_date_time_scale[i][:]))  # str
 
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             # Logging the data
             with np.errstate(divide='ignore'):
                 array_compensated_pulsar_dm[:, :] = 10 * np.log10(array_compensated_pulsar_dm[:, :])
@@ -356,7 +377,6 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
             # Normalizing log data
             array_compensated_pulsar_dm = array_compensated_pulsar_dm - np.mean(array_compensated_pulsar_dm)
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             if use_mask_file:
                 masked_data_raw = np.ma.masked_where(mask_compensated_pulsar_dm, array_compensated_pulsar_dm)
@@ -380,8 +400,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
             if save_pics:
                 # Averaging of the array with pulses for figure
-                averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm, int(num_frequencies/average_const))
-                freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
+                averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm,
+                                                             int(num_frequencies / average_const))
+                freq_resolution = (df * int(num_frequencies / average_const)) / 1000.
                 max_time_shift = max_shift * time_res
 
                 averaged_array = averaged_array - np.mean(averaged_array)
@@ -418,8 +439,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
 if __name__ == '__main__':
 
-    print(' \n\n\n\n\n\n\n\n')
-    print('   *****************************************************************')
+    print('\n\n\n\n\n\n\n\n   *****************************************************************')
     print('   *   ', software_name, ' v.', software_version, '   *      (c) YeS 2020')
     print('   ***************************************************************** \n\n\n')
 
@@ -430,7 +450,7 @@ if __name__ == '__main__':
 
     data_file_name = pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_const,
                                         profile_pic_min, profile_pic_max,
-                                        SpecFreqRange, freqStart, freqStop, save_profile_txt,
+                                        spec_freq_range, freq_start, freq_stop, save_profile_txt,
                                         save_compensated_data, custom_dpi, colormap, use_mask_file=True)
 
     print('  Dedispersed data stored in:', data_file_name)
