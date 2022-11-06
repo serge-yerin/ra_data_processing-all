@@ -410,15 +410,21 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
 
     # Find pulsar parameters from catalogue
     pulsar_ra, pulsar_dec, catalogue_pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
-    # Calculating pulsar visible period for particular observation time
+    # Calculating pulsar visible period for particular observation time and julian day of observation
     p_visible, jd = pulsar_visible_period(pulsar_name, record_date_time, print_or_not=False)
+    #  Calculation of shift in pixels to compensate dispersion
+    shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df,
+                                                         time_res, pulsar_dm, pulsar_period)
+    max_shift_catalogue_dm = np.max(np.abs(shift_param))
+    max_time_shift_cat_dm = time_res * max_shift_catalogue_dm
+    del shift_param
 
     # If target DM delay was compensated by previous processing, skip compensation here
     if not dm_already_compensated:
 
         #  Calculation of shift in pixels to compensate dispersion
-        shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df, time_res,
-                                                             pulsar_dm, pulsar_period)
+        shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df,
+                                                             time_res, pulsar_dm, pulsar_period)
 
         #  Saving shift parameter for dispersion delay compensation vs. frequency to file and plot
         if save_intermediate_data == 1:
@@ -440,8 +446,8 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
             delta_optimal_dm = pulsar_dm - catalogue_pulsar_dm
 
             #  Calculation of shift in pixels to compensate dispersion
-            shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df, time_res,
-                                                                 delta_optimal_dm, pulsar_period)
+            shift_param = pulsar_dm_shift_calculation_aver_pulse(freq_num, frequency_list[0], frequency_list[-1], df,
+                                                                 time_res, delta_optimal_dm, pulsar_period)
 
             #  Compensation of dispersion delay
             matrix = pulsar_DM_compensation_with_indices_changes(matrix, shift_param)
@@ -725,51 +731,53 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
         fig.text(0.72, 0.740, 'Start time: ' + str(record_date_time[11:19]) + ' UTC',
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.705, 'Duration (compensated): ' + str(obs_duration),
+        fig.text(0.72, 0.705, 'Duration: ' + str(obs_duration),
                  fontsize=10, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.670, 'Julian day: ' + str(jd),
+        fig.text(0.72, 0.670, 'Max DM shift in range: ' + str(np.round(max_time_shift_cat_dm, 6)) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.640, 'Data time resolution: ' + str(np.round(time_res * 1000 * scale_factor, 4)) + ' ms.',
+        fig.text(0.72, 0.640, 'Julian day: ' + str(jd),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.610, 'Time resolution scaled: ' + str(np.round(time_res * 1000, 4)) + ' ms.',
+        fig.text(0.72, 0.610, 'Data time resolution: ' + str(np.round(time_res * 1000 * scale_factor, 4)) + ' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-
-        fig.text(0.72, 0.580, 'Number of samples per period: ' + str(samples_per_period),
-                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.550, 'Period from file: ' + str(pulsar_period) + ' s.',
-                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.520, 'Visible period:    ' + str(p_visible) + ' s.',
+        fig.text(0.72, 0.580, 'Time resolution scaled: ' + str(np.round(time_res * 1000, 4)) + ' ms.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.490, 'Catalogue Pbar: ' + str(p_bar) + ' s.',
+        fig.text(0.72, 0.550, 'Number of samples per period: ' + str(samples_per_period),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.520, 'Period from file: ' + str(pulsar_period) + ' s.',
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.490, 'Visible period:    ' + str(p_visible) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.460, 'Catalogue DM: ' + str(catalogue_pulsar_dm) + r' $\mathrm{pc \cdot cm^{-3}}$',
-                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.430, r'$\mathrm{RA_{J2000}}: $' + pulsar_ra.replace('h', 'h ').replace('m', 'm '),
-                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.400, r'$\mathrm{DEC_{J2000}}: $' + pulsar_dec.replace('d', r'$^\circ$ ').replace('m', 'm '),
+        fig.text(0.72, 0.460, 'Catalogue Pbar: ' + str(p_bar) + ' s.',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
-        fig.text(0.72, 0.370, 'First data file name: ' + df_filename,
+        fig.text(0.72, 0.430, 'Catalogue DM: ' + str(catalogue_pulsar_dm) + r' $\mathrm{pc \cdot cm^{-3}}$',
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.340, 'Receiver mode: ' + str(receiver_mode),
+        fig.text(0.72, 0.400, r'$\mathrm{RA_{J2000}}: $' + pulsar_ra.replace('h', 'h ').replace('m', 'm '),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.310, 'Receiver ID: ' + str(df_system_name),
+        fig.text(0.72, 0.370, r'$\mathrm{DEC_{J2000}}: $' + pulsar_dec.replace('d', r'$^\circ$ ').replace('m', 'm '),
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.280, 'Observation place: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.250, df_obs_place, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.220, 'Observation description: ',
+
+        fig.text(0.72, 0.340, 'First data file name: ' + df_filename,
                  fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
-        fig.text(0.72, 0.190, df_description, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.310, 'Receiver mode: ' + str(receiver_mode),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.280, 'Receiver ID: ' + str(df_system_name),
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.250, 'Observation place: ', fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.220, df_obs_place, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.190, 'Observation description: ',
+                 fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
+        fig.text(0.72, 0.160, df_description, fontsize=9, fontweight='bold', transform=plt.gcf().transFigure)
 
         fig.text(0.85, -0.015, 'Processed ' + current_date + ' at ' + current_time,
                  fontsize=6, transform=plt.gcf().transFigure)
         fig.text(0.02, -0.015, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
                  fontsize=6, transform=plt.gcf().transFigure)
 
-        pylab.savefig(result_path + '/Total result.png', bbox_inches='tight', dpi=custom_dpi)
+        pylab.savefig(result_path + '/' + filename[:-4] + ' result.png', bbox_inches='tight', dpi=custom_dpi)
         plt.show()
         plt.close('all')
 
