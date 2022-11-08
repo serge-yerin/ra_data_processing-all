@@ -20,7 +20,7 @@ source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
 # Directory where all results will be stored:
 result_directory = 'e:/RA_DATA_RESULTS/'
 
-# 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
+# 'B0329+54' 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
