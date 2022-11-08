@@ -53,7 +53,7 @@ from package_ra_data_files_formats.read_file_header_jds import file_header_jds_r
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range
 from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
-from package_pulsar_processing.pulsar_dm_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 from package_pulsar_processing.pulsar_pulses_time_profile_FFT import pulsar_pulses_time_profile_FFT
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
@@ -217,13 +217,13 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         ifmax = tmp_list_b.index(min(tmp_list_b))
         del tmp_list_a, tmp_list_b
 
-        shift_vector = DM_full_shift_calc(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10, 6),
-                                          time_res, pulsar_dm, receiver_type)
+        shift_vector = dm_full_shift_calculate(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10, 6),
+                                               time_res, pulsar_dm, receiver_type)
         print(' Number of frequency channels:  ', ifmax - ifmin)
 
     else:
-        shift_vector = DM_full_shift_calc(len(frequency_list) - 4, fmin, fmax, df / pow(10, 6),
-                                          time_res, pulsar_dm, receiver_type)
+        shift_vector = dm_full_shift_calculate(len(frequency_list) - 4, fmin, fmax, df / pow(10, 6),
+                                               time_res, pulsar_dm, receiver_type)
         print(' Number of frequency channels:  ', len(frequency_list) - 4)
         ifmin = int(fmin * 1e6 / df)
         ifmax = int(fmax * 1e6 / df) - 4

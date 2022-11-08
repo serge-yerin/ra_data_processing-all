@@ -85,7 +85,7 @@ from package_ra_data_files_formats.read_file_header_jds import file_header_jds_r
 from package_ra_data_files_formats.f_check_duration_of_dat_file import check_duration_of_dat_file
 from package_pulsar_processing.f_pulsar_dm_variation import pulsar_dm_variation
 from package_pulsar_processing.pulsar_dm_shift_calculation_aver_pulse import pulsar_dm_shift_calculation_aver_pulse
-from package_pulsar_processing.pulsar_dm_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import \
     pulsar_DM_compensation_with_indices_changes
 
@@ -410,7 +410,7 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
     # Find pulsar parameters from catalogue
     pulsar_ra, pulsar_dec, catalogue_pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
     #  Calculation of shift in pixels to compensate dispersion to display on result figure
-    shift_param = DM_full_shift_calc(freq_num, frequency_list[0], frequency_list[-1], df, time_res, pulsar_dm, '')
+    shift_param = dm_full_shift_calculate(freq_num, frequency_list[0], frequency_list[-1], df, time_res, pulsar_dm, '')
 
     # Calculation of maximal time shift to display on result figure
     max_time_shift_cat_dm = time_res * np.abs(shift_param[0])

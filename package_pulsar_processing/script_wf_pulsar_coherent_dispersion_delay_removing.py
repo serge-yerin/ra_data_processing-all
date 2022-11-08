@@ -62,7 +62,7 @@ from package_common_modules.text_manipulations import separate_filename_and_path
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 # from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
 from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat
-from package_pulsar_processing.pulsar_dm_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
 from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
 # from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
 from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_dat_to_txt
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     # Calculation of the maximal time shift for dispersion delay removing
-    shift_vector = DM_full_shift_calc(8192, 16.5, 33.0, 2014 / pow(10, 6), 0.000496, pulsar_dm, 'jds')
+    shift_vector = dm_full_shift_calculate(8192, 16.5, 33.0, 2014 / pow(10, 6), 0.000496, pulsar_dm, 'jds')
     max_shift = np.abs(shift_vector[0])
     print('  * Pulsar ', pulsar_name)
     print('                               Period: ', p_bar, 's.')

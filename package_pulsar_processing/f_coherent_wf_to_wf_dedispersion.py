@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from progress.bar import IncrementalBar
 
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_pulsar_processing.pulsar_dm_full_shift_calculation import DM_full_shift_calc
+from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
 from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 
 
@@ -73,8 +73,8 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
         new_tl_file.close()
 
         # Calculation of the time shifts
-        shift_vector = DM_full_shift_calc(freq_points_num, fmin, fmax, df / pow(10, 6),
-                                          time_resolution, pulsar_dm, 'jds')
+        shift_vector = dm_full_shift_calculate(freq_points_num, fmin, fmax, df / pow(10, 6),
+                                               time_resolution, pulsar_dm, 'jds')
         max_shift = np.abs(shift_vector[0])
 
         # Preparing buffer array

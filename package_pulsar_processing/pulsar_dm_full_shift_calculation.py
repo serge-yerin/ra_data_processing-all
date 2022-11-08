@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 
-def DM_full_shift_calc(freq_points, fmin, fmax, df, time_resolution, disp_meas, receiver_type):
+def dm_full_shift_calculate(freq_points, fmin, fmax, df, time_resolution, disp_meas, receiver_type):
     """
     !!!! To delete receiver type for this function as an input argument !!!
     Calculation of the number of time point to shift each frequency channel
