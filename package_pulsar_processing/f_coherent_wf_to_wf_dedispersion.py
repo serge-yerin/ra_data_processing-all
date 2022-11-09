@@ -7,7 +7,7 @@ from progress.bar import IncrementalBar
 
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
-from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
+from package_pulsar_processing.pulsar_dm_compensation_with_indices_changes import pulsar_DM_compensation_with_indices_changes
 
 
 # *******************************************************************************
