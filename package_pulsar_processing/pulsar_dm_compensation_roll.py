@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 
-def pulsar_DM_compensation_roll(data_array, freq_points, fmin, fmax, df, time_res, pulsar_period, pulsar_dm):
+def pulsar_dm_compensation_roll(data_array, freq_points, fmin, fmax, df, time_res, pulsar_period, pulsar_dm):
 
     """
     Function compensates dispersion delay with rolling each row of the array
