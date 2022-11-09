@@ -155,3 +155,47 @@ def plot_pulsar_ridgeline_profiles(data, pic_filename, custom_dpi, overlap=0.0, 
     if show:
         plt.show()
     plt.close('all')
+
+
+def plot_average_profiles(a_data_array, data_type, filename, result_path, custom_dpi):
+    """
+
+    Args:
+        a_data_array:
+        data_type:
+        filename:
+        result_path:
+        custom_dpi:
+
+    Returns:
+
+    """
+
+    n = '1' if data_type == 'Raw' else '2'
+
+    integr_profile_0 = np.sum(a_data_array, axis=0)
+    integr_profile_1 = np.sum(a_data_array, axis=1)
+
+    plt.figure(1, figsize=(10.0, 6.0))
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=0.86, wspace=None, hspace=0.3)
+    plt.subplot(2, 1, 1)
+    plt.title(data_type + ' data integrated over time and over frequency \n File: ' + filename,
+              fontsize=10, fontweight='bold', style='italic', y=1.025)
+    plt.plot(integr_profile_0)
+    plt.xlabel('Samples in time', fontsize=8, fontweight='bold')
+    plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
+    plt.xticks(fontsize=6, fontweight='bold')
+    plt.yticks(fontsize=6, fontweight='bold')
+    plt.subplot(2, 1, 2)
+    plt.plot(integr_profile_1)
+    plt.xlabel('Frequency points', fontsize=8, fontweight='bold')
+    plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
+    plt.xticks(fontsize=6, fontweight='bold')
+    plt.yticks(fontsize=6, fontweight='bold')
+    pylab.savefig(result_path + '/02.' + n + ' - ' + data_type + ' data integrated over time and over frequency.png',
+                  bbox_inches='tight', dpi=custom_dpi)  # 250
+    plt.close('all')
+
+    del integr_profile_0, integr_profile_1
+
+    return 0
