@@ -77,7 +77,7 @@ if __package__ is None:
 # My functions
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_astronomy.f_pulsar_visible_period import pulsar_visible_period
-from package_plot_formats.plot_formats import plot1D, plot2D
+from package_plot_formats.plot_formats import make_1d_plot, make_2d_plot
 from package_ra_data_processing.choose_frequency_range import choose_frequency_range  # Check if are the same
 from package_ra_data_files_formats.specify_frequency_range import specify_frequency_range  # Check if are the same
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read_old
@@ -93,8 +93,8 @@ from package_pulsar_processing.pulsar_DM_compensation_with_indices_changes impor
 def plot_average_profiles(a_data_array, data_type, filename, result_path, frequency_list, colormap, custom_dpi):
 
     n = '1' if data_type == 'Raw' else '2'
-    plot2D(a_data_array, result_path + '/01.' + n + ' - ' + data_type + ' data.png', frequency_list, colormap,
-           data_type + ' pulsar pulse \n File: ' + filename, custom_dpi)
+    make_2d_plot(a_data_array, result_path + '/01.' + n + ' - ' + data_type + ' data.png', frequency_list, colormap,
+                 data_type + ' pulsar pulse \n File: ' + filename, custom_dpi)
 
     integr_profile_0 = np.sum(a_data_array, axis=0)
     integr_profile_1 = np.sum(a_data_array, axis=1)
@@ -194,8 +194,8 @@ def averaging_in_frequency(matrix, freq_num, frequency_list, samples_per_period,
     # *** Plot of raw data with DM compensation and data reduction ***
 
     if save_intermediate_data == 1:
-        plot2D(reduced_matrix, result_path + '/03 - Dedispersed integrated data.png', reduced_frequency_list,
-               colormap, 'Dedispersed and averaged in frequency pulsar pulse \n File: ' + filename, custom_dpi)
+        make_2d_plot(reduced_matrix, result_path + '/03 - Dedispersed integrated data.png', reduced_frequency_list,
+                     colormap, 'Dedispersed and averaged in frequency pulsar pulse \n File: ' + filename, custom_dpi)
 
     return reduced_matrix, reduced_frequency_list
 
@@ -231,10 +231,10 @@ def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_p
             specify_frequency_range(array, frequency_list, freq_start, freq_stop)
 
         # Plot dedispersed data
-        plot2D(array_band_cut, result_path + '/12-' + str(band+1) + ' - Dedispersed data for subband ' +
-               str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz.png',
-               frequency_band_list, colormap, 'Dedispersed pulsar pulse in frequency range ' +
-               str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz \n File: ' + filename, custom_dpi)
+        make_2d_plot(array_band_cut, result_path + '/12-' + str(band + 1) + ' - Dedispersed data for subband ' +
+                     str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz.png',
+                     frequency_band_list, colormap, 'Dedispersed pulsar pulse in frequency range ' +
+                     str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz \n File: ' + filename, custom_dpi)
 
         # ***   Matrix sum in one dimension   ***
         for k in range(len(frequency_band_list)):
@@ -249,10 +249,10 @@ def analysis_in_frequency_bands(array, frequency_list, frequency_cuts, samples_p
         integr_band_profile = np.roll(integr_band_profile, roll_number)  # Roll to make the pulse in the center
 
         #  Plotting and saving the SNR curve
-        plot1D(integr_band_profile, result_path + '/14-' + str(band+1) + ' - SNR for subband ' +
-               str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz.png',
+        make_1d_plot(integr_band_profile, result_path + '/14-' + str(band + 1) + ' - SNR for subband ' +
+                     str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz.png',
                'Averaged profile', 'Pulsar average pulse profile in range ' +
-               str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz  \n File: ' + filename,
+                     str(round(freq_start, 3)) + '-' + str(round(freq_stop, 3)) + ' MHz  \n File: ' + filename,
                'SNR', 'Samples in pulsar period', custom_dpi)
 
         profiles_var_in_band[band, :] = integr_band_profile
@@ -431,7 +431,7 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
                 shift_param_txt.write(str(frequency_list[0] + df * i) + '   ' + str(shift_param[i]) + ' \n')
             shift_param_txt.close()
 
-            plot1D(shift_param, result_path + '/' + fig_number + '3.1 - Shift parameter (' + dm_type + ' DM).png',
+            make_1d_plot(shift_param, result_path + '/' + fig_number + '3.1 - Shift parameter (' + dm_type + ' DM).png',
                    'Shift parameter', 'Shift parameter', 'Shift parameter', 'Frequency channel number', custom_dpi)
 
         #  Compensation of dispersion delay
@@ -454,7 +454,7 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
 
     #  Plot of the data with DM compensation but without data reduction
     if save_intermediate_data == 1:
-        plot2D(matrix, result_path + '/' + fig_number + '1.3 - Dedispersed data.png', frequency_list, colormap,
+        make_2d_plot(matrix, result_path + '/' + fig_number + '1.3 - Dedispersed data.png', frequency_list, colormap,
                'Dedispersed pulsar pulse \n File: ' + filename, custom_dpi)
 
     #  Integrated over band pulsar profile in time (matrix sum in one dimension)
@@ -502,10 +502,10 @@ def average_profile_analysis(type, matrix, initial_matrix, filename, result_path
     # snr_init_max = np.max(integrated_profile)
 
     #  Plotting and saving the SNR curve
-    plot1D(integrated_profile, result_path + '/' + fig_number + '5 - SNR.png',
+    make_1d_plot(integrated_profile, result_path + '/' + fig_number + '5 - SNR.png',
            'Averaged profile for DM = ' + str(round(pulsar_dm, 3)),
            'Averaged pulse profile in band ' + str(round(frequency_list[0], 3)) + ' - ' +
-           str(round(frequency_list[len(frequency_list)-1], 3)) + ' MHz \n File: ' + filename,
+                 str(round(frequency_list[len(frequency_list)-1], 3)) + ' MHz \n File: ' + filename,
            'SNR', 'Phase of pulsar period', custom_dpi)
 
     #   Calculations of DM variation
@@ -956,8 +956,8 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
         # Plotting averaged profiles of initial cleaned data
         if save_intermediate_data == 1:
             plot_average_profiles(matrix, 'Cleaned', filename, result_path, frequency_list, colormap, custom_dpi)
-            plot2D(mask.transpose(), result_path + '/01.0 - RFI cleaning mask.png', frequency_list, colormap,
-                   'Mask \n File: '+filename, custom_dpi)
+            make_2d_plot(mask.transpose(), result_path + '/01.0 - RFI cleaning mask.png', frequency_list, colormap,
+                   'Mask \n File: ' + filename, custom_dpi)
     
         del mask
 

@@ -9,7 +9,7 @@ import pylab
 from matplotlib import rc
 
 
-def plot1D(data, fig_name, Label, Title, x_label, y_label, customDPI):
+def make_1d_plot(data, fig_name, Label, Title, x_label, y_label, customDPI):
     """
     Plots 1D plots of variable
     """
@@ -26,7 +26,7 @@ def plot1D(data, fig_name, Label, Title, x_label, y_label, customDPI):
     plt.close('all')
 
 
-def plot2D(data, fig_name, frequency_list, colormap, Title, customDPI):
+def make_2d_plot(data, fig_name, frequency_list, colormap, Title, customDPI):
     """
     Plots 2D plots of variable with automatic limits
     """
