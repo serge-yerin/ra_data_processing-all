@@ -317,7 +317,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving integrated pulse data to a file
-    smp_result_file_name = 'DSPZ_' + data_filename[:-4] + ' - folded pulses.smp'
+    smp_result_file_name = 'DSPZ_' + data_filename[:-4] + ' - folded pulses.smd'
     save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1], result_path + smp_result_file_name)
     print('\n SMP data file saved. \n')
 
