@@ -20,8 +20,8 @@ pulsar_name = 'B1919+21'
 scale_factor = 10                # Time resolution scaling factor, use 1 as default
 dm_already_compensated = True    # If data file has already compensated DM delay use True (new soft), False otherwise
 auto_optimal_dm_search = True    # Automatically search optimal DM (1 - auto, 2 - use predefined value)
-no_of_dm_steps = 181             # Number of DM steps to plot 361
-dm_var_step = 0.002              # Step of optimal DM finding  0.002
+no_of_dm_steps = 721             # Number of DM steps to plot 361
+dm_var_step = 0.001              # Step of optimal DM finding  0.002
 cleaning_switch = 1              # Use cleaning? (1 - Yes, 0 - No)
 rfi_std_const = 1.0              # Standard deviation of integrated profile to clean channels
 save_intermediate_data = 1       # Plot intermediate figures? (1 = Yes)
@@ -871,13 +871,13 @@ def smd_integrated_pulses_analyzer(source_path, result_path, filename, pulsar_na
     print(' Number of time points to average:    ', aver_time_points_num)
     print(' Number of frequency channels:        ', freq_num)
     print(' Number of channels to average:       ', average_channel_num)
-    print(' Make cuts of frequency bands?        ', frequency_band_cut)
     print(' Specify particular frequency range?  ', specify_freq_range)
+    print(' Lowest frequency of the band:        ', freq_start_array)
+    print(' Highest frequency of the band:       ', freq_stop_array)
+    print(' Make cuts of frequency bands?        ', frequency_band_cut)
     print(' Frequencies to cut the range:        ', frequency_cuts)
     print(' Color map:                           ', colormap)
     print(' DPI of plots:                        ', custom_dpi)
-    print(' Lowest frequency of the band:        ', freq_start_array)
-    print(' Highest frequency of the band:       ', freq_stop_array)
     print(' Pulsar period from file?             ', pulsar_period, ' s')
     print(' Dispersion measure from catalogue:   ', pulsar_dm, ' pc / cm3 \n')
     print(' Average pulse dynamic spectrum shape:', initial_pulse_array.shape)
