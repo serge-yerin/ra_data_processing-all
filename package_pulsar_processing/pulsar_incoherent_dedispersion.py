@@ -194,7 +194,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     if save_profile_txt > 0:
         # *** Creating a name for long timeline TXT file ***
-        profile_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + \
+        profile_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + \
                             filename[:-4] + '_time_profile.txt'
         profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
         profile_txt_file.close()
@@ -236,24 +236,24 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         file_header = jds_header_new_channels_numbers(file_header, ifmin, ifmax)
 
         # *** Creating a binary file with data for long data storage ***
-        new_data_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + filename
+        new_data_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + filename
         new_data_file = open(new_data_file_name, 'wb')
         new_data_file.write(file_header)
         new_data_file.close()
 
         if use_mask_file:
-            new_mask_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + filename[:-3] + 'msk'
+            new_mask_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + filename[:-3] + 'msk'
             new_mask_file = open(new_mask_file_name, 'wb')
             new_mask_file.write(file_header)
             new_mask_file.close()
 
-        # *** Creating a name for long timeline TXT file ***
-        data_filename = data_filepath.split('/')[-1]
-        new_tl_file_name = common_path + pulsar_name + '_DM_' + str(pulsar_dm) + '_' + \
-                           data_filename[:-13] + '_Timeline.txt'
-        new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
-        new_tl_file.close()
-        del file_header
+    # *** Creating a name for long timeline TXT file ***
+    data_filename = data_filepath.split('/')[-1]
+    new_tl_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + \
+                       data_filename[:-13] + '_Timeline.txt'
+    new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+    new_tl_file.close()
+    del file_header
 
     max_shift = np.abs(shift_vector[0])
 
@@ -349,7 +349,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
         if block > 0:
             # Saving data with compensated pulsar_dm to DAT file
-            if save_compensated_data > 0 and block > 0:
+            if save_compensated_data > 0:  # and block > 0
                 temp_to_write = np.transpose(array_compensated_pulsar_dm).copy(order='C')
                 new_data_file = open(new_data_file_name, 'ab')
                 new_data_file.write(temp_to_write)
@@ -363,10 +363,10 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
                     new_mask_file.close()
                     del temp_to_write
 
-                # Saving time data to ling timeline file
-                with open(new_tl_file_name, 'a') as new_tl_file:
-                    for i in range(max_shift):
-                        new_tl_file.write((fig_date_time_scale[i][:]))  # str
+            # Saving time data to ling timeline file
+            with open(new_tl_file_name, 'a') as new_tl_file:
+                for i in range(max_shift):
+                    new_tl_file.write((fig_date_time_scale[i][:]))  # str
 
             # Logging the data
             with np.errstate(divide='ignore'):
