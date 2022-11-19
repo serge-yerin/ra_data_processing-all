@@ -113,7 +113,7 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
 def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_const, profile_pic_min, profile_pic_max,
                                    spec_freq_range, freq_start, freq_stop, save_profile_txt, save_compensated_data,
                                    custom_dpi, colormap, use_mask_file=False, save_pics=True, source_dm=0,
-                                   result_path='', make_fourier=False):
+                                   result_path='', make_fourier=False, print_or_not=True):
     """
     Makes incoherent compensation of time delays in each frequency channel with its shift
     It assumes we obtain raw dat files from ADR or JDS readers where for JDS the last channels are not deleted
@@ -219,12 +219,14 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
         shift_vector = dm_full_shift_calculate(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10, 6),
                                                time_res, pulsar_dm, receiver_type)
-        print(' Number of frequency channels:  ', ifmax - ifmin)
+        if print_or_not:
+            print(' Number of frequency channels:  ', ifmax - ifmin)
 
     else:
         shift_vector = dm_full_shift_calculate(len(frequency_list) - 4, fmin, fmax, df / pow(10, 6),
                                                time_res, pulsar_dm, receiver_type)
-        print(' Number of frequency channels:  ', len(frequency_list) - 4)
+        if print_or_not:
+            print(' Number of frequency channels:  ', len(frequency_list) - 4)
         ifmin = int(fmin * 1e6 / df)
         ifmax = int(fmax * 1e6 / df) - 4
 
@@ -246,6 +248,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
             new_mask_file = open(new_mask_file_name, 'wb')
             new_mask_file.write(file_header)
             new_mask_file.close()
+        del file_header
 
     # *** Creating a name for long timeline TXT file ***
     data_filename = data_filepath.split('/')[-1]
@@ -253,8 +256,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
                        data_filename[:-13] + '_Timeline.txt'
     new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
     new_tl_file.close()
-    del file_header
 
+    # Maximal shift calculation
     max_shift = np.abs(shift_vector[0])
 
     buffer_array = np.zeros((ifmax - ifmin, 2 * max_shift))
@@ -263,11 +266,12 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     num_of_blocks = int(dat_sp_in_file / max_shift)
 
-    print(' Number of spectra in file:     ', dat_sp_in_file)
-    print(' Maximal shift is:              ', max_shift, ' pixels ')
-    print(' Number of blocks in file:      ', num_of_blocks)
-    print(' Pulsar name:                   ', pulsar_name)
-    print(' Dispersion measure:            ', pulsar_dm, ' pc / cm3 \n')
+    if print_or_not:
+        print(' Number of spectra in file:     ', dat_sp_in_file)
+        print(' Maximal shift is:              ', max_shift, ' pixels ')
+        print(' Number of blocks in file:      ', num_of_blocks)
+        print(' Pulsar name:                   ', pulsar_name)
+        print(' Dispersion measure:            ', pulsar_dm, ' pc / cm3 \n')
 
     if receiver_type == '.jds':
         num_frequencies_initial = len(frequency_list) - 4
@@ -284,8 +288,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     for block in range(num_of_blocks):   # main loop by number of blocks in file
 
-        print('\n * Data block # ', block + 1, ' of ', num_of_blocks,
-              '\n ******************************************************************')
+        if print_or_not:
+            print('\n * Data block # ', block + 1, ' of ', num_of_blocks,
+                  '\n ******************************************************************')
 
         # Timeline arrangements:
         fig_time_scale = []
@@ -293,7 +298,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         for i in range(block * max_shift, (block+1) * max_shift):  # Shows the time of pulse end (at lowest frequency)
             fig_time_scale.append(timeline[i][11:23])
             fig_date_time_scale.append(timeline[i][:])
-        print(' Time: ', fig_time_scale[0], ' - ', fig_time_scale[-1], ', number of points: ', len(fig_time_scale))
+        if print_or_not:
+            print(' Time: ', fig_time_scale[0], ' - ', fig_time_scale[-1], ', number of points: ', len(fig_time_scale))
 
         # Data block reading
         if receiver_type == '.jds':
@@ -318,7 +324,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         normalization_lin(data, num_frequencies, 1 * max_shift)
 
         now_time = time.time()
-        print('\n  *** Preparation of data took:              ', round((now_time - a_previous_time), 2), 'seconds ')
+        if print_or_not:
+            print('\n  *** Preparation of data took:              ', round((now_time - a_previous_time), 2), 'seconds ')
         a_previous_time = now_time
 
         # Dispersion delay removing
@@ -334,7 +341,8 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
             temp_mask_array = np.array(temp_mask_array, dtype=bool)
 
         now_time = time.time()
-        print('\n  *** Dispersion delay removing took:        ', round((now_time - a_previous_time), 2), 'seconds ')
+        if print_or_not:
+            print('\n  *** Dispersion delay removing took:        ', round((now_time - a_previous_time), 2), 'seconds ')
         a_previous_time = now_time
 
         # Adding the next data block
