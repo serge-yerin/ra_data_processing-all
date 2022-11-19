@@ -9,7 +9,7 @@ software_name = 'Pulsar single pulses processing pipeline'
 common_path = 'e:/RA_DATA_RESULTS/Transient_search_DSP_spectra_pulsar_UTR2_B0950+08/'
 
 # DAT file to be analyzed:
-filename = 'Transient_DM_2.472_C250122_214003.jds_Data_chA.dat'  # 'E220213_201439.jds_Data_chA.dat'
+filename = '_Transient_DM_2.472_C250122_214003.jds_Data_chA.dat'  # 'E220213_201439.jds_Data_chA.dat'
 
 source_name = 'Transient'  # 'B0809+74'  # 'B1919+21' #'B0809+74' #'B1133+16' #  'B1604-00' 'B0950+08'
 
@@ -73,7 +73,7 @@ from package_pulsar_processing.pulsar_incoherent_dedispersion import plot_integr
 def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, batch_factor, average_const,
                             profile_pic_min, profile_pic_max, SpecFreqRange, freqStart, freqStop, save_profile_txt,
                             save_compensated_data, custom_dpi, colormap,
-                            start_dm=0, use_mask_file=False, save_images=False, result_path=''):
+                            start_dm=0, use_mask_file=False, save_images=False, print_or_not=False, result_path=''):
 
     """
     Makes incoherent compensation of time delays in each frequency channel with its shift
@@ -88,17 +88,18 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
     if 'DM_' in filename:
         part_after_dm = filename.split('DM_')[1]
         prev_dm_str = part_after_dm.split('_')[0]
-        prev_dm = np.float32(prev_dm_str)
+        prev_dm = np.float(prev_dm_str)
         new_dm = prev_dm + current_add_dm
-        new_filename = filename.split('DM_'+prev_dm_str)[0] + 'DM_' + str(np.round(new_dm, 6)) + \
-                       filename.split('DM_'+prev_dm_str)[1]
+        new_filename = filename.split('DM_' + prev_dm_str)[0] + 'DM_' + str(np.round(new_dm, 6)) + \
+                       filename.split('DM_' + prev_dm_str)[1]
     else:
         new_filename = 'DM_' + str(np.round(current_add_dm + start_dm, 6)) + '_' + filename
         prev_dm = 0
         new_dm = current_add_dm + start_dm
 
-    print('From: ', filename)
-    print('To:   ', new_filename, '\n')
+    if print_or_not:
+        print('From: ', filename)
+        print('To:   ', new_filename, '\n')
 
     # rc('font', size=6, weight='bold')  # -----------------------------------------------------------
     data_filepath = common_path + filename
@@ -165,12 +166,14 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
         ifmax = B.index(min(B))
         shift_vector = dm_full_shift_calculate(ifmax - ifmin, frequency_list[ifmin], frequency_list[ifmax], df / pow(10, 6),
                                                time_res, current_add_dm, receiver_type)
-        print(' Number of frequency channels:  ', ifmax - ifmin)
+        if print_or_not:
+            print(' Number of frequency channels:  ', ifmax - ifmin)
 
     else:
         shift_vector = dm_full_shift_calculate(len(frequency_list) - 4, fmin, fmax, df / pow(10, 6),
                                                time_res, current_add_dm, receiver_type)
-        print(' Number of frequency channels:  ', len(frequency_list) - 4)
+        if print_or_not:
+            print(' Number of frequency channels:  ', len(frequency_list) - 4)
         ifmin = int(fmin * 1e6 / df)
         ifmax = int(fmax * 1e6 / df) - 4
 
@@ -209,13 +212,14 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
 
     num_of_blocks = int(dat_sp_in_file / max_shift)
 
-    print(' Number of spectra in file:     ', dat_sp_in_file)
-    print(' Maximal shift is:              ', max_shift, ' pixels ')
-    print(' Number of blocks in file:      ', num_of_blocks)
-    print(' Source name:                   ', source_name)
-    print(' Full dispersion measure:       ', np.round(prev_dm + current_add_dm, 6), ' pc / cm3')
-    print(' Start dispersion measure:      ', prev_dm, ' pc / cm3')
-    print(' Current add to start DM:       ', np.round(current_add_dm, 6), ' pc / cm3 \n')
+    if print_or_not:
+        print(' Number of spectra in file:     ', dat_sp_in_file)
+        print(' Maximal shift is:              ', max_shift, ' pixels ')
+        print(' Number of blocks in file:      ', num_of_blocks)
+        print(' Source name:                   ', source_name)
+        print(' Full dispersion measure:       ', np.round(prev_dm + current_add_dm, 6), ' pc / cm3')
+        print(' Start dispersion measure:      ', prev_dm, ' pc / cm3')
+        print(' Current add to start DM:       ', np.round(current_add_dm, 6), ' pc / cm3 \n')
 
     if receiver_type == '.jds':
         num_frequencies_initial = len(frequency_list) - 4
@@ -242,7 +246,6 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
         for i in range(block * max_shift, (block+1) * max_shift):  # Shows the time of pulse end (at lowest frequency)
             fig_time_scale.append(timeline[i][11:23])
             fig_date_time_scale.append(timeline[i][:])
-        # print(' Time: ', fig_time_scale[0], ' - ', fig_time_scale[-1], ', number of points: ', len(fig_time_scale))
 
         # Data block reading
         if receiver_type == '.jds':
@@ -307,7 +310,7 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
             # Saving time data to long timeline file
             with open(new_tl_file_name, 'a') as new_tl_file:
                 for i in range(max_shift):
-                   new_tl_file.write((fig_date_time_scale[i][:]))  # str
+                    new_tl_file.write((fig_date_time_scale[i][:]))  # str
 
             # Logging the data
             with np.errstate(divide='ignore'):
@@ -330,7 +333,6 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
 
             # Preparing single averaged data profile for figure
             profile = array_compensated_pulsar_dm.mean(axis=0)[:]
-            profile = profile - np.mean(profile)
 
             # Save full profile to TXT file
             if save_profile_txt > 0:
@@ -340,6 +342,7 @@ def incoherent_dedispersion(common_path, filename, current_add_dm, source_name, 
                 profile_txt_file.close()
 
             if save_images:
+                profile = profile - np.mean(profile)
                 # Averaging of the array with pulses for figure
                 averaged_array = average_some_lines_of_array(array_compensated_pulsar_dm, int(num_frequencies/average_const))
                 freq_resolution = (df * int(num_frequencies/average_const)) / 1000.
@@ -391,7 +394,7 @@ if __name__ == '__main__':
     data_file_name = incoherent_dedispersion(common_path, filename, current_add_dm, source_name, batch_factor,
                                              average_const, profile_pic_min, profile_pic_max, SpecFreqRange,
                                              freqStart, freqStop, save_profile_txt, save_compensated_data, custom_dpi,
-                                             colormap, use_mask_file=True)
+                                             colormap, use_mask_file=True, print_or_not=True)
 
     print('\n  Dedispersed data stored in:', data_file_name)
 
