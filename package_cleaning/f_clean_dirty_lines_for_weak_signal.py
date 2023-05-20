@@ -76,8 +76,9 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
 
         # Calculate statistics
         dirty_points = np.sum(new_mask)
-        print('   Iteration:', counter+1, ' StD:', np.round(data_std, 5), ' Masked:', dirty_points,
-              'pix of', total_points, 'or', np.round(dirty_points / total_points * 100, 5), '%')
+        print('   Iteration: {0:2.0f}   StD: {1:10.8f}   Masked: {2:10.0f}'
+              '   pix of {3:10.0f}  or  {4:5.2f} %'.format(counter+1, data_std, dirty_points, total_points,
+                                                           dirty_points / total_points * 100))
 
         if show_figures:
             # Show initial array and cleaned array
