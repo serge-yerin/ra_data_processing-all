@@ -3,21 +3,29 @@
 software_version = '2022.09.30'
 software_name = 'Transient Search Script'
 """
-The main goal to the script is to analyze of (cross)spectra transient or pulsar data to find anomalously intense 
+The main goal to the script is to analyze of (cross)spectra of transient or pulsar data to find anomalously intense 
 pulses during observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
-whole observation, than runs the incoherent dispersion delay removing for a rage of DM values, saves dynamic 
-spectra pics for each max DM delay time. 
+whole observation, than runs the incoherent dispersion delay removing for a rage of DM values, and save time profiles 
+of dedispersed data. All the time profiles for various DM values then are aligned in time and combined in a single 
+matrix. The matrix is plotted as a dynamic spectrum.
 """
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
-result_directory = '../../RA_DATA_RESULTS'
+# source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
+source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+result_directory = 'e:/RA_DATA_RESULTS/'
 
-central_dm = 2.972
-dm_range = 0.2
-dm_points = 51  # 41
+# central_dm = 2.972
+central_dm = 5.755
+# dm_range = 0.2
+dm_range = 0.5
+# dm_points = 51  # 41
+dm_points = 101  # 41
+
+time_res = 0.007944     # Time resolution, s
+fig_time = 30           # Time on one figure, s
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
@@ -58,11 +66,13 @@ if __package__ is None:
 
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
 from package_pulsar_processing.incoherent_dedispersion import incoherent_dedispersion
+from package_pulsar_processing.time_profiles_allignment import align_time_profiles, read_and_plot_var_dm_file
 from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
 from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding import pulsar_period_folding
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
+from package_common_modules.text_manipulations import separate_filename_and_path
 from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 from package_ra_data_processing.f_cross_spectra_phase_calibration import cross_spectra_phase_calibration
 # ###############################################################################
@@ -87,7 +97,6 @@ else:
     CorrelationProcess = 0
     long_file_save_im_re = 0
 
-#
 #
 #
 #
@@ -125,8 +134,19 @@ result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
 for file in range(len(file_name_list_current)):
     file_name_list_current[file] = source_directory + file_name_list_current[file]
 
-# Run JDS/ADR reader for the current folder
+# # Read data file header
+# with open(filepath, 'rb') as file:
+#     file_header = file.read(1024)
+#
+# # Create a small binary file with header
+# file_data = open(result_path + '/' + filename, 'wb')
+# file_data.write(file_header)
+# file_data.close()
+# del file_header
 
+
+# Run JDS/ADR reader for the current folder
+# '''
 done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
@@ -190,11 +210,11 @@ for i in range(len(data_types_to_process)):
     dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
                         1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
-
+# '''
 #
 #
 # data_types_to_process = ['chA']
-# dat_file_name = 'C250122_214003.jds'
+# dat_file_name = 'P130422_121607.jds'
 #
 #
 
@@ -205,19 +225,39 @@ amp_min = -0.15
 amp_max = 0.55
 dedispersed_data_file_list = []
 
-for i in range(len(data_types_to_process)):
+# for i in range(len(data_types_to_process)):
+#
+#     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', i+1, ' of ',
+#           dm_points-1, ' DM: ', np.round(dm_vector[i], 6), ' pc / cm3 ')
+#
+#     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
+#                                                                 data_types_to_process[i] + '.dat', 'Transient', 512,
+#                                                                 amp_min, amp_max, False, 16.5, 33.0, True, True, 300,
+#                                                                 'Greys', use_mask_file=True, save_pics=True,
+#                                                                 source_dm=dm_vector[0],
+#                                                                 result_path=path_to_dat_files)
+#
+#     dedispersed_data_file_list.append(dedispersed_data_file_name)
+
+for k in range(dm_points):
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
-          dm_points-1, ' DM: ', np.round(dm_vector[i], 6), ' pc / cm3 \n\n')
+          dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
 
     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
-                                                                data_types_to_process[i] + '.dat', 'Transient', 512,
-                                                                amp_min, amp_max, 0, 0.0, 16.5, True, True, 300,
-                                                                'Greys', use_mask_file=True, save_pics=True,
-                                                                transient_dm=dm_vector[0],
-                                                                result_path=path_to_dat_files)
+                                                                data_types_to_process[0] + '.dat', 'Transient', 512,
+                                                                amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
+                                                                'Greys', use_mask_file=True, save_pics=False,
+                                                                source_dm=dm_vector[k],
+                                                                result_path=path_to_dat_files, print_or_not=False)
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
+
+# dedispersed_data_file_list = ['Transient_DM_5.255_P130422_121607.jds_Data_chA.dat']
+
+'''
+dir_name, file_name = separate_filename_and_path(dedispersed_data_file_list[0])
+batch_factor = 1
 
 for k in range(dm_points-1):
 
@@ -226,17 +266,23 @@ for k in range(dm_points-1):
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
           ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
 
-    batch_factor = 1
-
-    from package_common_modules.text_manipulations import separate_filename_and_path
-
-    dir, file_name = separate_filename_and_path(dedispersed_data_file_list[0])
-
     dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, file_name,
                                                          current_add_dm, 'Transient', batch_factor,
                                                          512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
                                                          start_dm=0, use_mask_file=True, save_images=False,
                                                          result_path=path_to_dat_files)
 
+'''
+
+data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0],
+                                                   central_dm, dm_range, dm_points)
+
+# Separate file name and path
+data_path, data_file_name = separate_filename_and_path(data_file_name)
+data_path, tl_file_name = separate_filename_and_path(tl_file_name)
+
+
+read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
+                          time_res, fig_time, print_or_not=True)
 
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
