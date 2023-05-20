@@ -1,4 +1,7 @@
 # Python3
+
+# !!! Was created to be used for transients instead pulsar_incoherent_dedispersion.py but seems obsolete !!!
+
 software_version = '2022.06.08'
 software_name = 'Pulsar single pulses processing pipeline'
 # Program intended to read and show individual pulses of pulsars from DAT files
