@@ -136,6 +136,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         source_dm:
         result_path:
         make_fourier:
+        print_or_not: to print the current operation and file info into terminal
 
     Returns:
         new_data_file_name
@@ -178,7 +179,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     elif receiver_type == '.jds':
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc,
             sp_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency_list, fft_size,
-            data_block_size] = file_header_jds_read(data_filepath, 0, 1)
+            data_block_size] = file_header_jds_read(data_filepath, 0, print_or_not)
     else:
         sys.exit(' Error! Unknown data type!')
 
