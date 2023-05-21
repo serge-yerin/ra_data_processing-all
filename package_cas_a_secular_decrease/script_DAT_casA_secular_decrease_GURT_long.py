@@ -7,7 +7,7 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-path_to_data = 'DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
+path_to_data = '../DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'DATA/'
@@ -44,16 +44,16 @@ AmplitudeReIm_GURT = 20 * 10**(-12)
 
 
 # Begin and end frequency of dynamic spectrum (MHz)
-freqStart = 0.0
-freqStop = 10.0
+freq_start = 0.0
+freq_stop = 10.0
 
 # Begin and end time of dynamic spectrum ('yyyy-mm-dd hh:mm:ss')
 # dateTimeStart = '2019-07-19 00:00:00'
 # dateTimeStop =  '2019-07-23 04:00:00'
 
 # Begin and end frequency of TXT files to save (MHz)
-freqStartTXT = 8.0
-freqStopTXT = 80.0
+freq_start_txt = 8.0
+freq_stop_txt = 80.0
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -149,9 +149,10 @@ dt_period = dt_timeline[0].date() - dt_timeline[-1].date()
 no_of_days = int(abs(dt_period.days))
 
 
-# Find culminations of both sources within timeline of the file and check the 1 hour gap before and after
+# Find culminations of both sources within timeline of the file and check the 1-hour gap before and after
 culm_time_3C405 = []
 culm_time_3C461 = []
+
 # print('\n * Calculations of culminations time for all days of observations... \n')
 for day in range(no_of_days+1):
     currentTime = time.strftime("%H:%M:%S")
@@ -193,11 +194,11 @@ for i in range(len(culm_time_3C405)):
         file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C405)) + '_' + source
-    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], typesOfData, result_folder, averOrMin,
+    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], typesOfData, result_folder, 'folder', averOrMin,
                                   StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                   RFImeanConst, customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
-                                  AmplitudeReIm_GURT, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
-                                  freqStopTXT, freqList_GURT, 0)
+                                  AmplitudeReIm_GURT, freq_start, freq_stop, dateTimeStart, dateTimeStop, freq_start_txt,
+                                  freq_stop_txt, freqList_GURT, 0)
 
     # Saving TXT file with parameters from file header
     path = path_to_data + 'DAT_Results_' + result_folder + '/'
@@ -240,11 +241,11 @@ for i in range(len(culm_time_3C461)):
         file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C461)) + '_' + source
-    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], typesOfData, result_folder, averOrMin,
+    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], typesOfData, result_folder, 'folder_2', averOrMin,
                                   StartStopSwitch, SpecFreqRange, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                   RFImeanConst, customDPI, colormap, ChannelSaveTXT, ChannelSavePNG, ListOrAllFreq,
-                                  AmplitudeReIm_GURT, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
-                                  freqStopTXT, freqList_GURT, 0)
+                                  AmplitudeReIm_GURT, freq_start, freq_stop, dateTimeStart, dateTimeStop, freq_start_txt,
+                                  freq_stop_txt, freqList_GURT, 0)
 
     # Saving TXT file with parameters from file header
     path = path_to_data + 'DAT_Results_' + result_folder + '/'
