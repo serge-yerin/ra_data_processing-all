@@ -155,7 +155,7 @@ done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_curre
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                             print_or_not=0)
 
-# dat_file_list = ['chA', 'chB', 'CRe', 'CIm']
+# dat_file_list = ['chA']
 # dat_file_name = 'P130422_121607.jds'
 
 
@@ -197,9 +197,9 @@ print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean dat
 
 for i in range(len(data_types_to_process)):
     if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
-        delta_sigma = 0.05
-        n_sigma = 2
-        min_l = 30
+        delta_sigma = 0.005  # 0.05
+        n_sigma = 1.0  # 2
+        min_l = 20  # 30
     elif data_types_to_process[i] == 'C_m':
         delta_sigma = 0.1
         n_sigma = 5
