@@ -11,6 +11,15 @@ def find_between(string, start, stop):
         return "Error!"
 
 
+def read_one_value_txt_file(data_filename):
+    profile_txt_file = open(data_filename, 'r')
+    profile_data = []
+    for line in profile_txt_file:
+        profile_data.append(float(line))
+    profile_txt_file.close()
+    return profile_data
+
+
 def read_date_time_and_one_value_txt (filenamelist):
     """
     Reading txt files with time and date and one column data
