@@ -1,5 +1,5 @@
 # Python3
-Software_version = '2023.05.27'
+software_version = '2023.05.27'
 Software_name = 'Pulsar long time profile spectra calculation for various parts of files chunk'
 # Program intended to read and fold pulsar data from DAT files to obtain average pulse
 # *******************************************************************************
@@ -44,6 +44,97 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
+from package_common_modules.text_manipulations import read_one_value_txt_file
+
+
+def plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename, common_path,
+                      current_date, current_time, software_version, custom_dpi):
+    # Making result time profile
+    fig = plt.figure(figsize=(9.2, 4.5))
+    rc('font', size=5, weight='bold')
+    ax1 = fig.add_subplot(111)
+    ax1.plot(profile_data, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='Pulses time profile')
+    ax1.legend(loc='upper right', fontsize=5)
+    ax1.grid(visible=True, which='both', color='silver', linewidth='0.50', linestyle='-')
+    ax1.axis([0, len(profile_data), profile_pic_min, profile_pic_max])
+    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
+                  fontsize=5, fontweight='bold')
+    ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+    fig.suptitle('Single pulses of ' + pulsar_name + ' in time', fontsize=7, fontweight='bold')
+    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
+             fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU', fontsize=3,
+             transform=plt.gcf().transFigure)
+    pylab.savefig(common_path + '/' + filename[0:-4] + ' time profile.png', bbox_inches='tight', dpi=custom_dpi)
+    plt.close('all')
+    return
+
+
+def plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
+                               max_harmonics, spectrum_max, frequency_limit, common_path, filename,
+                               current_date, current_time, custom_dpi):
+    fig = plt.figure(figsize=(9.2, 4.5))
+    rc('font', size=5, weight='bold')
+    ax1 = fig.add_subplot(111)
+    # Plotting lines where fundamental and other harmonics are expected
+    ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.4, label='Frequency of pulses')
+    for i in range(n_harmonics):
+        ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
+    # Plotting the spectra
+    ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+             linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
+    # Adding calculated maximal point near harmonics as red dots
+    plt.scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=1.5)
+    ax1.axis([0, frequency_limit, 1, 1.5 * spectrum_max])
+    plt.yscale('log')
+    ax1.legend(loc='upper right', fontsize=5)
+    ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
+                  fontsize=5, fontweight='bold')
+    fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (logarithmic amplitude)',
+                 fontsize=7, fontweight='bold')
+    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
+             fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+             fontsize=3, transform=plt.gcf().transFigure)
+    pylab.savefig(common_path + '/' + filename[0:-4] + ' spectrum logarithmic.png', bbox_inches='tight', dpi=custom_dpi)
+    plt.close('all')
+    return
+
+
+def plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
+                               max_harmonics, spectrum_max, frequency_limit, common_path, filename,
+                               current_date, current_time, custom_dpi):
+    fig = plt.figure(figsize=(9.2, 4.5))
+    rc('font', size=5, weight='bold')
+    ax1 = fig.add_subplot(111)
+    # Plotting lines where fundamental and other harmonics are expected
+    ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.4, label='Frequency of pulses')
+    for i in range(n_harmonics):
+        ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-',
+                    linewidth=2.0, alpha=0.2)
+    # Plotting the spectra
+    ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+             linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
+    # Adding calculated maximal point near harmonics as red dots
+    plt.scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=1.5)
+    ax1.axis([0, frequency_limit, -10, 1.1 * spectrum_max])
+    ax1.legend(loc='upper right', fontsize=5)
+    ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
+                  fontsize=5, fontweight='bold')
+    fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (linear amplitude)',
+                 fontsize=7, fontweight='bold')
+    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
+             fontsize=3, transform=plt.gcf().transFigure)
+    fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+             fontsize=3, transform=plt.gcf().transFigure)
+    pylab.savefig(common_path + '/' + filename[0:-4] + ' spectrum linear.png', bbox_inches='tight', dpi=custom_dpi)
+    plt.close('all')
+    return
 
 # *******************************************************************************
 #                          M A I N    F U N C T I O N                           *
@@ -51,20 +142,15 @@ from package_astronomy.catalogue_pulsar import catalogue_pulsar
 
 
 def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, frequency_limit,
-                         profile_pic_min, profile_pic_max, custom_dpi, n_harmonics=50, max_interval=10):
+                         profile_pic_min, profile_pic_max, software_version, custom_dpi, n_harmonics=50, max_interval=10):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
 
     data_filename = common_path + filename
 
-    # Opening TXT file with pulsar observations long time profile
-    profile_txt_file = open(data_filename, 'r')
-    profile_data = []
-    for line in profile_txt_file:
-        profile_data.append(float(line))
-    profile_txt_file.close()
-
+    # Reading profile data from txt file
+    profile_data = read_one_value_txt_file(data_filename)
     print('\n  Number of samples in text file:  ', len(profile_data))
 
     # Getting pulsar parameters from catalogue
@@ -100,85 +186,19 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
     # Calculating the limit o vertical axis of the spectrum plot
     spectrum_max = np.max(max_harmonics)
 
-    # Making result time profile
-    fig = plt.figure(figsize=(9.2, 4.5))
-    rc('font', size=5, weight='bold')
-    ax1 = fig.add_subplot(111)
-    ax1.plot(profile_data, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='Pulses time profile')
-    ax1.legend(loc='upper right', fontsize=5)
-    ax1.grid(visible=True, which='both', color='silver', linewidth='0.50', linestyle='-')
-    ax1.axis([0, len(profile_data), profile_pic_min, profile_pic_max])
-    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
-                  fontsize=5, fontweight='bold')
-    ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
-    fig.suptitle('Single pulses of ' + pulsar_name + ' in time', fontsize=7, fontweight='bold')
-    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-             fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU', fontsize=3,
-             transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + '/' + filename[0:-4] + ' time profile.png', bbox_inches='tight', dpi=custom_dpi)
-    plt.close('all')
+    # # Making result time profile plot
+    plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename, common_path,
+                      current_date, current_time, software_version, custom_dpi)
 
-    # *** Plotting figure of result spectrum logarithmic
-    
-    fig = plt.figure(figsize=(9.2, 4.5))
-    rc('font', size=5, weight='bold')
-    ax1 = fig.add_subplot(111)
-    # Plotting lines where fundamental and other harmonics are expected
-    ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.4, label='Frequency of pulses')
-    for i in range(n_harmonics):
-        ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-    # Plotting the spectra
-    ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
-             linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
-    # Adding calculated maximal point near harmonics as red dots
-    plt.scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=0.6)
-    ax1.axis([0, frequency_limit, 1, 1.5 * spectrum_max])
-    plt.yscale('log')
-    ax1.legend(loc='upper right', fontsize=5)
-    ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
-    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
-                  fontsize=5, fontweight='bold')
-    fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (logarithmic amplitude)',
-                 fontsize=7, fontweight='bold')
-    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-             fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
-             fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + '/' + filename[0:-4] + ' spectrum logarithmic.png', bbox_inches='tight', dpi=custom_dpi)
-    plt.close('all')
+    # Plotting figure of result spectrum logarithmic
+    plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
+                               max_harmonics, spectrum_max, frequency_limit, common_path, filename,
+                               current_date, current_time, custom_dpi)
 
-    # *** Plotting figure of result spectrum linear
-
-    fig = plt.figure(figsize=(9.2, 4.5))
-    rc('font', size=5, weight='bold')
-    ax1 = fig.add_subplot(111)
-    # Plotting lines where fundamental and other harmonics are expected
-    ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.4, label='Frequency of pulses')
-    for i in range(n_harmonics):
-        ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-',
-                    linewidth=2.0, alpha=0.2)
-    # Plotting the spectra
-    ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
-             linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
-    # Adding calculated maximal point near harmonics as red dots
-    plt.scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=0.6)
-    ax1.axis([0, frequency_limit, -10, 1.1 * spectrum_max])
-    ax1.legend(loc='upper right', fontsize=5)
-    ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
-    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
-                  fontsize=5, fontweight='bold')
-    fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (linear amplitude)',
-                 fontsize=7, fontweight='bold')
-    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-             fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: ' + Software_version + ', yerin.serge@gmail.com, IRA NASU',
-             fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + '/' + filename[0:-4] + ' spectrum linear.png', bbox_inches='tight', dpi=custom_dpi)
-    plt.close('all')
+    # Plotting figure of result spectrum linear
+    plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
+                               max_harmonics, spectrum_max, frequency_limit, common_path, filename,
+                               current_date, current_time, custom_dpi)
 
     return
 
@@ -186,14 +206,14 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
 if __name__ == '__main__':
 
     print('\n\n\n\n\n\n   **********************************************************************')
-    print('   *   ', Software_name, ' v.', Software_version, '   *      (c) YeS 2023')
+    print('   *   ', Software_name, ' v.', software_version, '   *      (c) YeS 2023')
     print('   ********************************************************************** \n')
 
     start_time = time.time()
     previousTime = start_time
 
     time_profile_spectra(common_path, filename, pulsar_name, time_resolution, frequency_limit,
-                         profile_pic_min, profile_pic_max, custom_dpi, n_harmonics, max_interval)
+                         profile_pic_min, profile_pic_max, software_version, custom_dpi, n_harmonics, max_interval)
 
     end_time = time.time()    # Time of calculations
 
