@@ -7,18 +7,18 @@ software_name = 'DAT multifile data reader for CasA study'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-path_to_data = '../interferometer_dat/'  # 'DATA/'
+path_to_data = '../DATA/'
 
 # Types of data to get
-typesOfData = ['CRe', 'CIm']
+types_of_data = ['CRe', 'CIm']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
 freq_list_UTR2 = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0,
-                 28.0, 29.0, 30.0, 31.0, 32.0]
+                  28.0, 29.0, 30.0, 31.0, 32.0]
 freq_list_GURT = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0,
-                 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0,
-                 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0,
-                 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0]
+                  28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0,
+                  44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0,
+                  60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0]
 
 aver_or_min = 0                  # Use average value (0) per data block or minimum value (1)
 auto_start_stop = 1              # 1 - calculate depending on source in comment, 0 - use manual values
@@ -63,7 +63,7 @@ from package_ra_data_files_formats.read_file_header_jds import file_header_jds_r
 from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
 
 
-def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, freq_list_GURT, aver_or_min, 
+def cut_culmination_times_from_dat(path_to_data, types_of_data, freq_list_UTR2, freq_list_GURT, aver_or_min, 
                                    auto_start_stop, auto_source_switch, VminMan, VmaxMan, VminNormMan, VmaxNormMan, 
                                    rfi_mean_const, list_or_all_freq, ampl_re_im_UTR2, ampl_re_im_GURT,
                                    date_time_start, date_time_stop, freq_start_txt, freq_stop_txt):
@@ -85,7 +85,7 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
         data_files_name_list.append(timeline_file_name_list[i][-31:-13])
 
     # Loop by data types selected by user
-    for type_of_data in typesOfData:
+    for type_of_data in types_of_data:
         dat_files_list = []
         for i in range(len(data_files_name_list)):
             name = data_files_name_list[i] + '_Data_' + type_of_data + '.dat'
@@ -106,16 +106,16 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
 
                 freq_list = freq_list_GURT
                 ampl_re_im = ampl_re_im_GURT
-                [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
-                    receiver_mode, mode, sumDifmode, NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine, Width,
-                    block_size] = file_header_adr_read(path_to_data + dat_files_list[file_no], 0, 0)
+                [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc,
+                 receiver_mode, mode, sum_diff_mode, n_avr, time_res, fmin, fmax, df, frequency, fft_size, s_line, 
+                 width, block_size] = file_header_adr_read(path_to_data + dat_files_list[file_no], 0, 0)
 
             elif df_filename[-4:] == '.jds':  # If data obtained from DSPZ receiver
 
                 freq_list = freq_list_UTR2
                 ampl_re_im = ampl_re_im_UTR2
-                [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
-                    SpInFile, receiver_mode, mode, Navr, TimeRes, fmin, fmax, df, frequency, FreqPointsNum,
+                [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc,
+                    spec_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency, freq_points_num,
                     block_size] = file_header_jds_read(path_to_data + dat_files_list[file_no], 0, 0)
             
             else:
@@ -180,8 +180,8 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
 
                 culm_time = culmination_time_utc_astroplan(source, date, 0)
                 culm_time = Time(culm_time)
-                start_time = culm_time - TimeDelta(3600, format='sec')
-                end_time = culm_time + TimeDelta(3600, format='sec')
+                start_obs_time = culm_time - TimeDelta(3600, format='sec')
+                end_obs_time = culm_time + TimeDelta(3600, format='sec')
 
             # *** Reading timeline file ***
             name = path_to_data + data_files_name_list[file_no] + '_Timeline.txt'
@@ -196,35 +196,36 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
             for i in range(len(timeline)):  # converting text to ".datetime" format
 
                 # Check is the uS field is empty. If so it means it is equal to '000000'
-                uSecond = timeline[i][20:26]
-                if len(uSecond) < 2:
-                    uSecond = '000000'
+                u_second = timeline[i][20:26]
+                if len(u_second) < 2:
+                    u_second = '000000'
 
                 dt_timeline.append(datetime(int(timeline[i][0:4]), int(timeline[i][5:7]), int(timeline[i][8:10]),
                                             int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]),
-                                            int(uSecond)))
+                                            int(u_second)))
 
             if auto_start_stop == 0:  # If switch is off - use manually set time and date
-                start_time = datetime(int(date_time_start[0:4]), int(date_time_start[5:7]), int(date_time_start[8:10]),
-                                      int(date_time_start[11:13]), int(date_time_start[14:16]), int(date_time_start[17:19]),
-                                      0)
-                end_time = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]), int(date_time_stop[8:10]),
-                                    int(date_time_stop[11:13]), int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
+                start_obs_time = datetime(int(date_time_start[0:4]), int(date_time_start[5:7]), 
+                                          int(date_time_start[8:10]), int(date_time_start[11:13]), 
+                                          int(date_time_start[14:16]), int(date_time_start[17:19]), 0)
+                end_obs_time = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]), 
+                                        int(date_time_stop[8:10]), int(date_time_stop[11:13]), 
+                                        int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
             # *** Showing the time limits of file and time limits of chosen part
             print('\n                                Start                         End \n')
             print('   File time limits:   ', dt_timeline[0], ' ', dt_timeline[len(timeline)-1], '\n')
-            print('   Chosen time limits: ', start_time, '    ', end_time, '\n')
+            print('   Chosen time limits: ', start_obs_time, '    ', end_obs_time, '\n')
 
             # Verifying that chosen time limits are inside file and are correct
-            if (dt_timeline[len(timeline)-1] >= start_time > dt_timeline[0]) and \
-                    (dt_timeline[len(timeline)-1] > end_time >= dt_timeline[0]) and (end_time > start_time):
+            if (dt_timeline[len(timeline)-1] >= start_obs_time > dt_timeline[0]) and \
+                    (dt_timeline[len(timeline)-1] > end_obs_time >= dt_timeline[0]) and (end_obs_time > start_obs_time):
                 print('   Time is chosen correctly! \n\n')
-            elif(dt_timeline[len(timeline)-1] >= start_time + TimeDelta(86400, format='sec') > dt_timeline[0]) and \
-                    (dt_timeline[len(timeline)-1] > end_time + TimeDelta(86400, format='sec') >= dt_timeline[0]) and \
-                    (end_time > start_time):
-                start_time = start_time + TimeDelta(86400, format='sec')
-                end_time = end_time + TimeDelta(86400, format='sec')
+            elif(dt_timeline[len(timeline)-1] >= start_obs_time + TimeDelta(86400, format='sec') > dt_timeline[0]) and \
+                    (dt_timeline[len(timeline)-1] > end_obs_time + TimeDelta(86400, format='sec') >= dt_timeline[0]) and \
+                    (end_obs_time > start_obs_time):
+                start_obs_time = start_obs_time + TimeDelta(86400, format='sec')
+                end_obs_time = end_obs_time + TimeDelta(86400, format='sec')
                 culm_time = culm_time + TimeDelta(86400, format='sec')
                 print('   Time is chosen correctly but adjusted for 1 day ahead! \n')
             else:
@@ -233,8 +234,8 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
 
             # DAT_result_path = 'DAT_Results_' + data_files_name_list[file_no]
             if auto_start_stop == 1:
-                date_time_start = str(start_time)[0:19]
-                date_time_stop = str(end_time)[0:19]
+                date_time_start = str(start_obs_time)[0:19]
+                date_time_stop = str(end_obs_time)[0:19]
    
             done_or_not = DAT_file_reader(path_to_data, data_files_name_list[file_no], [type_of_data],
                                           path_to_data, data_files_name_list[file_no] + '_' + source,   
@@ -253,7 +254,7 @@ def cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, fr
             txt_file.write(' Source for processing: ' + source + '\n')
             txt_file.write(' Culmination time:      ' + str(culm_time) + '\n')
             txt_file.write(' Receiver mode:         ' + receiver_mode + '\n')
-            txt_file.write(' Time resolution:       ' + str(np.round(TimeRes, 6)) + ' s \n')
+            txt_file.write(' Time resolution:       ' + str(np.round(time_res, 6)) + ' s \n')
             txt_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax) + ' MHz \n')
             txt_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
             txt_file.close()
@@ -272,17 +273,17 @@ if __name__ == '__main__':
     print('   *    ', software_name, '  v.', software_version, '     *      (c) YeS 2019')
     print('   ********************************************************************* \n\n\n')
 
-    startTime = time.time()
+    start_time = time.time()
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
     print('   Today is ', current_date, ' time is ', current_time, '\n')
 
-    cut_culmination_times_from_dat(path_to_data, typesOfData, freq_list_UTR2, freq_list_GURT, aver_or_min,
+    cut_culmination_times_from_dat(path_to_data, types_of_data, freq_list_UTR2, freq_list_GURT, aver_or_min,
                                    auto_start_stop, auto_source_switch, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                    rfi_mean_const, list_or_all_freq, ampl_re_im_UTR2, ampl_re_im_GURT,
                                    date_time_start, date_time_stop, freq_start_txt, freq_stop_txt)
 
     end_time = time.time()
     print('\n\n\n  The program execution lasted for ',
-          round((end_time - startTime), 2), 'seconds (', round((end_time - startTime)/60, 2), 'min. ) \n')
+          round((end_time - start_time), 2), 'seconds (', round((end_time - start_time)/60, 2), 'min. ) \n')
     print('\n           *** Program ', software_name, ' has finished! *** \n\n\n')
