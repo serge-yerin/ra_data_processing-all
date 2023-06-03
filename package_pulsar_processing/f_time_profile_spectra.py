@@ -1,24 +1,25 @@
 # Python3
 software_version = '2023.05.27'
-Software_name = 'Pulsar long time profile spectra calculation for various parts of files chunk'
-# Program intended to read and fold pulsar data from DAT files to obtain average pulse
+Software_name = 'Pulsar long time profile spectra calculation (whole & chunks)'
 # *******************************************************************************
 #                     M A N U A L    P A R A M E T E R S                        *
 # *******************************************************************************
 # Path to initial and results files
-common_path = '../../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74/'
-# common_path = '../../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/'
+common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
 
 # Name of TXT file to be analyzed:
-filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
+# filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
+# filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
+filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
 # filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
 
-pulsar_name = 'B0809+74'
+# pulsar_name = 'B0329+54'
+# pulsar_name = 'B0809+74'
+pulsar_name = 'B0950+08'
 # pulsar_name = 'B1919+21'
 
-frequency_limit = 20  # MHz
-n_harmonics = 50
-analyze_parts = True
+frequency_limit = 40  # Hz - figure upper frequency (x-axis) limit
+analyze_parts = True  # To analyze the splitting the whole time series in 2, 4, 8, 16 parts
 
 time_resolution = (1 / 66000000) * 16384 * 32    # Data time resolution, s   # 0.007944
 
@@ -31,6 +32,7 @@ custom_dpi = 300               # Resolution of images of dynamic spectra
 # *******************************************************************************
 #                     I M P O R T   L I B R A R I E S                           *
 # *******************************************************************************
+import os
 import sys
 import time
 import pylab
@@ -72,7 +74,7 @@ def plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_per
 
 
 def plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
-                               max_harmonics, spectrum_max, frequency_limit, common_path, filename, add_text,
+                               max_harmonics, spectrum_max, frequency_limit, n_harmonics, common_path, filename, add_text,
                                current_date, current_time, software_version, custom_dpi):
     fig = plt.figure(figsize=(9.2, 4.5))
     rc('font', size=5, weight='bold')
@@ -106,7 +108,7 @@ def plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, 
 
 
 def plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
-                               max_harmonics, spectrum_max, frequency_limit, common_path, filename, add_text,
+                               max_harmonics, spectrum_max, frequency_limit, n_harmonics, common_path, filename, add_text,
                                current_date, current_time, software_version, custom_dpi):
     fig = plt.figure(figsize=(9.2, 4.5))
     rc('font', size=5, weight='bold')
@@ -144,13 +146,16 @@ def plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, 
 
 
 def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, frequency_limit,
-                         profile_pic_min, profile_pic_max, analyze_parts, software_version, custom_dpi,
-                         n_harmonics=50):
+                         profile_pic_min, profile_pic_max, analyze_parts, software_version, custom_dpi):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
 
     data_filename = common_path + filename
+
+    new_folder_name = filename[:-4] + "_analysis"
+    if not os.path.exists(common_path + new_folder_name):
+        os.makedirs(common_path + new_folder_name)
 
     # Reading profile data from txt file
     profile_data = read_one_value_txt_file(data_filename)
@@ -164,15 +169,19 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
 
     # Calculate pulsar harmonics frequency
     pulsar_frequency = 1 / pulsar_period  # frequency of pulses, Hz
-    pulsar_harmonics = pulsar_frequency * np.linspace(1, n_harmonics)
-    pulsar_harmonics_points = np.ceil(pulsar_harmonics / frequency_resolution).astype(int)
+
     freq_points_per_harmonic = np.ceil(pulsar_frequency / frequency_resolution).astype(int)
+    n_harmonics = int(np.floor(len(profile_data) / (2 * freq_points_per_harmonic)))
+
+    pulsar_harmonics = pulsar_frequency * np.linspace(1, n_harmonics, num=n_harmonics)
+    pulsar_harmonics_points = np.ceil(pulsar_harmonics / frequency_resolution).astype(int)
     max_interval = int(freq_points_per_harmonic / 5)
 
     print('  Pulsar frequency: ', pulsar_frequency, ' Hz')
     print('  Frequency resolution: ', frequency_resolution, ' s')
     print('  Time resolution: ', time_resolution, ' s')
     print('  Number of points per harmonic: ', freq_points_per_harmonic)
+    print('  Number harmonics to highlight: ', n_harmonics)
 
     # Calculating the spectrum
     profile_spectrum = np.power(np.real(np.fft.fft(profile_data[:])), 2)  # calculation of the spectrum
@@ -193,19 +202,21 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
     spectrum_max = np.max(max_harmonics)
 
     # # Making result time profile plot
-    plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename, common_path,
-                      current_date, current_time, software_version, custom_dpi)
+    plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename,
+                      common_path + new_folder_name, current_date, current_time, software_version, custom_dpi)
 
     add_text = ''
 
     # Plotting figure of result spectrum logarithmic
-    plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
-                               max_harmonics, spectrum_max, frequency_limit, common_path, filename, add_text,
-                               current_date, current_time, software_version, custom_dpi)
+    # plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
+    #                            max_harmonics, spectrum_max, frequency_limit, n_harmonics,
+    #                            common_path + new_folder_name, filename, add_text, current_date, current_time,
+    #                            software_version, custom_dpi)
 
     # Plotting figure of result spectrum linear
     plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
-                               max_harmonics, spectrum_max, frequency_limit, common_path, filename, add_text,
+                               max_harmonics, spectrum_max, frequency_limit, n_harmonics,
+                               common_path + new_folder_name, filename, add_text,
                                current_date, current_time, software_version, custom_dpi)
 
     # Analyze only parts of the time profile
@@ -221,7 +232,7 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
                 start = int((full_data_length / parts_num) * part)
                 stop = int((full_data_length / parts_num) * (part + 1))
                 add_text = ' part ' + str(part+1) + ' of ' + str(parts_num)
-                print('    Processing', add_text)
+                print('    Processing' + add_text)
                 new_profile_data = profile_data[start:stop]
 
                 # Data frequency resolution, Hz
@@ -251,20 +262,21 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
                 spectrum_max = np.max(max_harmonics)
 
                 # # Making result time profile plot
-                plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename, common_path,
-                                  current_date, current_time, software_version, custom_dpi)
+                plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename,
+                                  common_path + new_folder_name, current_date, current_time, software_version,
+                                  custom_dpi)
 
                 # Plotting figure of result spectrum logarithmic
-                plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency,
-                                           pulsar_harmonics, max_harmonics, spectrum_max, frequency_limit,
-                                           common_path, filename, add_text, current_date, current_time,
-                                           software_version, custom_dpi)
+                # plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency,
+                #                            pulsar_harmonics, max_harmonics, spectrum_max, frequency_limit,
+                #                            n_harmonics, common_path + new_folder_name, filename, add_text,
+                #                            current_date, current_time, software_version, custom_dpi)
 
                 # Plotting figure of result spectrum linear
                 plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency,
-                                           pulsar_harmonics, max_harmonics, spectrum_max, frequency_limit,
-                                           common_path, filename, add_text, current_date, current_time,
-                                           software_version, custom_dpi)
+                                           pulsar_harmonics, max_harmonics, spectrum_max, frequency_limit, n_harmonics,
+                                           common_path + new_folder_name, filename, add_text, current_date,
+                                           current_time, software_version, custom_dpi)
 
             spectrum_max = np.max(harmonics_amplitudes[:, :])
 
@@ -292,8 +304,8 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
                      fontsize=3, transform=plt.gcf().transFigure)
             fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
                      fontsize=3, transform=plt.gcf().transFigure)
-            pylab.savefig(common_path + '/' + filename[0:-4] + ' spectrum for ' + str(parts_num) + ' parts.png',
-                          bbox_inches='tight', dpi=custom_dpi)
+            pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' spectrum for ' +
+                          str(parts_num) + ' parts.png', bbox_inches='tight', dpi=custom_dpi)
             plt.close('all')
 
     return
@@ -301,16 +313,15 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, fr
 
 if __name__ == '__main__':
 
-    print('\n\n\n\n\n\n   **********************************************************************')
+    print('\n\n\n\n\n\n   *********************************************************************************')
     print('   *   ', Software_name, ' v.', software_version, '   *      (c) YeS 2023')
-    print('   ********************************************************************** \n')
+    print('   ********************************************************************************* \n')
 
     start_time = time.time()
     previousTime = start_time
 
     time_profile_spectra(common_path, filename, pulsar_name, time_resolution, frequency_limit,
-                         profile_pic_min, profile_pic_max, analyze_parts, software_version, custom_dpi,
-                         n_harmonics)
+                         profile_pic_min, profile_pic_max, analyze_parts, software_version, custom_dpi)
 
     end_time = time.time()    # Time of calculations
 
