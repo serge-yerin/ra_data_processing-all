@@ -7,8 +7,7 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-# path_to_data = '../DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
-path_to_data = 'e:/python/ra_data_processing-all/DATA/'  # '/media/data/PYTHON/ra_data_processing-all/'
+path_to_data = '../DATA/'
 
 # Path to intermediate data files and results
 path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'DATA/'
@@ -174,9 +173,6 @@ for i in range(len(culm_time_3C405)):
         file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + '_' + str(i+1) + '_of_' + str(len(culm_time_3C405)) + '_' + source
-    print(' Result folder:', result_folder)
-    print(' Data folder:', path_to_data)
-    print(' File name:', data_files_name_list[0])
 
     done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], types_of_data, path_to_data,
                                   result_folder, aver_or_min, start_stop_switch, spec_freq_range, VminMan, VmaxMan,
@@ -184,7 +180,7 @@ for i in range(len(culm_time_3C405)):
                                   channel_save_txt, channel_save_png, list_or_all_freq,
                                   AmplitudeReIm_GURT, freq_start, freq_stop,
                                   date_time_start, date_time_stop, freq_start_txt,
-                                  freq_stop_txt, freq_list_gurt, True)
+                                  freq_stop_txt, freq_list_gurt, False)
 
     # Saving TXT file with parameters from file header
     path = path_to_data + 'DAT_Results_' + result_folder + '/'
@@ -228,13 +224,14 @@ for i in range(len(culm_time_3C461)):
         file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C461)) + '_' + source
+
     done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], types_of_data, path_to_data,
                                   result_folder,  aver_or_min, start_stop_switch, spec_freq_range, VminMan, VmaxMan,
                                   VminNormMan, VmaxNormMan, rfi_mean_const, custom_dpi, colormap, 
                                   channel_save_txt, channel_save_png, list_or_all_freq,
                                   AmplitudeReIm_GURT, freq_start, freq_stop, 
                                   date_time_start, date_time_stop, freq_start_txt,
-                                  freq_stop_txt, freq_list_gurt, 0)
+                                  freq_stop_txt, freq_list_gurt, False)
 
     # Saving TXT file with parameters from file header
     path = path_to_data + 'DAT_Results_' + result_folder + '/'
