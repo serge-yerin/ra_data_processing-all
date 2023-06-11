@@ -17,10 +17,10 @@ path_to_results = os.path.dirname(os.path.realpath(__file__)) + '/'  # 'DATA/'
 types_of_data = ['CRe', 'CIm']
 
 # List of frequencies to build intensity changes vs. time and save to TXT file:
-freqList_GURT = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0,
-                 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0,
-                 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0,
-                 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0]
+freq_list_gurt = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0,
+                  28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0, 41.0, 42.0, 43.0,
+                  44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0,
+                  60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0]
 
 
 aver_or_min = 0              # Use average value (0) per data block or minimum value (1)
@@ -82,9 +82,9 @@ print('   *  ', Software_name, ' v.', Software_version, '  *  (c) YeS 2019')
 print('   ************************************************************************* \n\n\n')
 
 script_start_time = time.time()
-currentTime = time.strftime("%H:%M:%S")
+current_time = time.strftime("%H:%M:%S")
 currentDate = time.strftime("%d.%m.%Y")
-print('   Today is ', currentDate, ' time is ', currentTime, '\n')
+print('   Today is ', currentDate, ' time is ', current_time, '\n')
 
 # Search needed files in the directory and subdirectories
 file_name_list = find_files_only_in_current_folder(path_to_data, '.txt', 0)
@@ -129,10 +129,11 @@ no_of_days = int(abs(dt_period.days))
 culm_time_3C405 = []
 culm_time_3C461 = []
 
-# print('\n * Calculations of culminations time for all days of observations... \n')
+print('\n * Calculations of culminations time for all days of observations... \n')
+
 for day in range(no_of_days+1):
-    currentTime = time.strftime("%H:%M:%S")
-    # print (' Day # ', str(day+1), ' of ', str(no_of_days+1), '   started at: ', currentTime)
+    current_time = time.strftime("%H:%M:%S")
+    print(' Day # ', str(day+1), ' of ', str(no_of_days+1), '   started at: ', current_time)
 
     date = str((Time(dt_timeline[0]) + TimeDelta(day * 86400, format='sec')))[0:10]
     culm_time = Time(culmination_time_utc_astroplan('3C405', str(date), 0))
@@ -154,11 +155,12 @@ print('\n * Culminations number: ' + str(len(culm_time_3C405)) + ' for 3C405 and
 #                               3C405 Cygnus A                                 #
 ################################################################################
 print('\n * Saving responses for each culmination of 3C405... ')
+
 source = '3C405'
 for i in range(len(culm_time_3C405)):
-    currentTime = time.strftime("%H:%M:%S")
+    current_time = time.strftime("%H:%M:%S")
     print('\n Culmination ' + str(culm_time_3C405[i]) + ' # ', str(i+1), ' of ', str(len(culm_time_3C405)),
-          '       started at: ', currentTime)
+          '       started at: ', current_time)
 
     start_time = culm_time_3C405[i] - TimeDelta(3600, format='sec')
     end_time = culm_time_3C405[i] + TimeDelta(3600, format='sec')
@@ -166,24 +168,26 @@ for i in range(len(culm_time_3C405)):
     date_time_start = str(start_time)[0:19]
     date_time_stop = str(end_time)[0:19]
 
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
-        ReceiverMode, Mode, sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine, Width, BlockSize] = \
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq,
+        df_creation_time_utc, receiver_mode, mode, sum_diff_mode, n_avr, time_res,
+        fmin, fmax, df, frequency, fft_size, SLine, Width, BlockSize] = \
         file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
-    result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C405)) + '_' + source
-    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], types_of_data, result_folder, 'folder',
-                                  aver_or_min, start_stop_switch, spec_freq_range, VminMan, VmaxMan,
+    result_folder = data_files_name_list[0] + '_' + str(i+1) + '_of_' + str(len(culm_time_3C405)) + '_' + source
+    print(' Result folder:', result_folder)
+    print(' Data folder:', path_to_data)
+    print(' File name:', data_files_name_list[0])
+
+    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], types_of_data, path_to_data,
+                                  result_folder, aver_or_min, start_stop_switch, spec_freq_range, VminMan, VmaxMan,
                                   VminNormMan, VmaxNormMan, rfi_mean_const, custom_dpi, colormap,
                                   channel_save_txt, channel_save_png, list_or_all_freq,
                                   AmplitudeReIm_GURT, freq_start, freq_stop,
                                   date_time_start, date_time_stop, freq_start_txt,
-                                  freq_stop_txt, freqList_GURT, 0)
+                                  freq_stop_txt, freq_list_gurt, True)
 
     # Saving TXT file with parameters from file header
     path = path_to_data + 'DAT_Results_' + result_folder + '/'
-    if not os.path.exists(path):
-        os.makedirs(path)
-
     TXT_file = open(path + data_files_name_list[0] + '_' + source + '_header.info', "w")
     TXT_file.write(' Observatory:           ' + df_obs_place + '\n')
     TXT_file.write(' Receiver:              ' + df_system_name + '\n')
@@ -191,8 +195,8 @@ for i in range(len(culm_time_3C405)):
     TXT_file.write(' Description:           ' + df_description + '\n')
     TXT_file.write(' Source for processing: ' + source + '\n')
     TXT_file.write(' Culmination time:      ' + str(culm_time_3C405[i]) + '\n')
-    TXT_file.write(' Receiver mode:         ' + ReceiverMode + '\n')
-    TXT_file.write(' Time resolution:       ' + str(np.round(TimeRes, 6)) + ' s \n')
+    TXT_file.write(' Receiver mode:         ' + receiver_mode + '\n')
+    TXT_file.write(' Time resolution:       ' + str(np.round(time_res, 6)) + ' s \n')
     TXT_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax) + ' MHz \n')
     TXT_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
     TXT_file.close()
@@ -208,9 +212,9 @@ del start_time, end_time, date_time_start, date_time_stop
 print('\n\n\n * Saving responses for each culmination of 3C461... ')
 source = '3C461'
 for i in range(len(culm_time_3C461)):
-    currentTime = time.strftime("%H:%M:%S")
+    current_time = time.strftime("%H:%M:%S")
     print('\n Culmination ' + str(culm_time_3C461[i]) + ' # ', str(i+1), ' of ', str(len(culm_time_3C461)),
-          '       started at: ', currentTime)
+          '       started at: ', current_time)
 
     start_time = culm_time_3C461[i] - TimeDelta(3600, format='sec')
     end_time = culm_time_3C461[i] + TimeDelta(3600, format='sec')
@@ -218,18 +222,19 @@ for i in range(len(culm_time_3C461)):
     date_time_start = str(start_time)[0:19]
     date_time_stop = str(end_time)[0:19]
 
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, CLCfrq, df_creation_timeUTC,
-        ReceiverMode, Mode, sumDifMode, NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine, Width, BlockSize] = \
+    [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq,
+        df_creation_time_utc, receiver_mode, Mode, sum_diff_mode, n_avr, time_res,
+        fmin, fmax, df, frequency, fft_size, SLine, Width, BlockSize] = \
         file_header_adr_read(path_to_data + dat_files_list[0], 0, 0)
 
     result_folder = data_files_name_list[0] + "_" + str(i+1) + '_of_' + str(len(culm_time_3C461)) + '_' + source
-    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], types_of_data, result_folder, 'folder_2', 
-                                  aver_or_min, start_stop_switch, spec_freq_range, VminMan, VmaxMan, 
+    done_or_not = DAT_file_reader(path_to_data, data_files_name_list[0], types_of_data, path_to_data,
+                                  result_folder,  aver_or_min, start_stop_switch, spec_freq_range, VminMan, VmaxMan,
                                   VminNormMan, VmaxNormMan, rfi_mean_const, custom_dpi, colormap, 
                                   channel_save_txt, channel_save_png, list_or_all_freq,
                                   AmplitudeReIm_GURT, freq_start, freq_stop, 
                                   date_time_start, date_time_stop, freq_start_txt,
-                                  freq_stop_txt, freqList_GURT, 0)
+                                  freq_stop_txt, freq_list_gurt, 0)
 
     # Saving TXT file with parameters from file header
     path = path_to_data + 'DAT_Results_' + result_folder + '/'
@@ -240,8 +245,8 @@ for i in range(len(culm_time_3C461)):
     TXT_file.write(' Description:           ' + df_description + '\n')
     TXT_file.write(' Source for processing: ' + source + '\n')
     TXT_file.write(' Culmination time:      ' + str(culm_time_3C461[i]) + '\n')
-    TXT_file.write(' Receiver mode:         ' + ReceiverMode + '\n')
-    TXT_file.write(' Time resolution:       ' + str(np.round(TimeRes, 6)) + ' s \n')
+    TXT_file.write(' Receiver mode:         ' + receiver_mode + '\n')
+    TXT_file.write(' Time resolution:       ' + str(np.round(time_res, 6)) + ' s \n')
     TXT_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax) + ' MHz \n')
     TXT_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
     TXT_file.close()
