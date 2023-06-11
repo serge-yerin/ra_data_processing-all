@@ -22,6 +22,7 @@ if __package__ is None:
 # My functions
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
+from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_plot_formats.plot_formats import OneDynSpectraPlot, TwoOrOneValuePlot,  OneValueWithTimePlot
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 from package_cleaning.simple_channel_clean import simple_channel_clean
@@ -32,11 +33,12 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 # *******************************************************************************
 
 
-def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name, aver_or_min,
-                    start_stop_switch, freq_range_switch, v_min_man, v_max_man, v_min_norm_man, v_max_norm_man, rfi_mean_const,
-                    custom_dpi, colormap, channel_save_txt, channel_save_png, list_or_all_freqs, AmplitudeReIm,
-                    freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT, freqStopTXT, freq_list,
-                    print_or_not):
+def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name,
+                    aver_or_min, start_stop_switch, freq_range_switch, v_min_man, v_max_man,
+                    v_min_norm_man, v_max_norm_man, rfi_mean_const, custom_dpi, colormap,
+                    channel_save_txt, channel_save_png, list_or_all_freqs, amplitude_re_im,
+                    freq_start, freq_stop, date_time_start, date_time_stop, freq_start_txt, freq_stop_txt,
+                    freq_list, print_or_not):
     """
     Function intended to visualize long spectra '.dat' files of radio astronomy data
     Parameters:
@@ -58,18 +60,18 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
         channel_save_txt -
         channel_save_png -
         list_or_all_freqs -
-        AmplitudeReIm -
-        freqStart -
-        freqStop -
-        dateTimeStart -
-        dateTimeStop -
-        freqStartTXT -
-        freqStopTXT -
+        amplitude_re_im -
+        freq_start -
+        freq_stop -
+        date_time_start -
+        date_time_stop -
+        freq_start_txt -
+        freq_stop_txt -
         freq_list -
         print_or_not - if 1 - prints to console the detailed info, of 0 - does not print
 
     Returns:
-        ok - an integer indicating everythin went well
+        ok - an integer indicating everything went well
     """
 
     current_date = time.strftime("%d.%m.%Y")
@@ -104,6 +106,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
         # Print the type of data to be analyzed
         if print_or_not == 1: 
             print('\n\n   Processing data type: ', types_of_data[j], '\n')
+
         current_time = time.strftime("%H:%M:%S")
         print('   Processing file: ', only_file_name, '   started at: ', current_time)
         if print_or_not == 1: 
@@ -119,8 +122,8 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
         filename_to_add = ''
         filename_to_add_norm = ''
         filename_to_add_sp = ''
-        Vmin = v_min_man              # Switch once more to initial manual settings after changes in previous loop
-        Vmax = v_max_man
+        v_min = v_min_man              # Switch once more to initial manual settings after changes in previous loop
+        v_max = v_max_man
         v_min_norm = v_min_norm_man
         v_max_norm = v_max_norm_man
         if aver_or_min == 0: 
@@ -142,7 +145,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
         if types_of_data[j] == 'C_m':
             name_to_add = ' cross-spectra module'
-            Vmin = -160
+            v_min = -160
             v_max_norm = 2 * v_max_norm_man
             filename_to_add = ''
             filename_to_add_norm = '004_'
@@ -152,8 +155,8 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             name_to_add = ' cross-spectra phase'
             y_ax_name = 'Phase, rad'
             label = 'Phase'
-            Vmin = -3.5
-            Vmax = 3.5
+            v_min = -3.5
+            v_max = 3.5
             filename_to_add = '005_'
             filename_to_add_sp = '012_'
 
@@ -176,8 +179,8 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
         if types_of_data[j] == 'A-B':
             name_to_add = ' difference |A - B|'
-            Vmin = Vmin - 20
-            Vmax = Vmax - 20
+            v_min = v_min - 20
+            v_max = v_max - 20
             filename_to_add = ''
             filename_to_add_norm = '002_'
             filename_to_add_sp = '010_'
@@ -198,11 +201,9 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             os.makedirs(newpath)
 
         # *** Opening DAT datafile ***
-
         file = open(filename, 'rb')
 
         # *** Data file header read ***
-        df_filesize = os.stat(filename).st_size                         # Size of file
         df_filename = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
         file.close()
 
@@ -214,56 +215,42 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
             freq_points_num = len(frequency)
 
-        if df_filename[-4:] == '.jds':     # If data obrained from DSPZ receiver
+        elif df_filename[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
-            [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clock_freq, df_creation_timeUTC, 
+            [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clock_freq, df_creation_time_utc, 
                 sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax, df, frequency, freq_points_num,
                 data_block_size] = file_header_jds_read(filename, 0, 0)
 
             sum_diff_mode = ''
-
+        else:
+            sys.exit('  Unknown file format')
         # ************************************************************************************
         #                             R E A D I N G   D A T A                                *
         # ************************************************************************************
 
-        # Reading timeline file
-        tl_file = open(tl_file_name, 'r')
-        timeline = []
-        for line in tl_file:
-            timeline.append(str(line))
-        tl_file.close()
+        # # Reading timeline file
+        timeline, dt_timeline = time_line_file_reader(tl_file_name)
 
         if start_stop_switch == 1:  # If we read only specified time limits of files
 
-            # Converting text to ".datetime" format
-            dt_timeline = []
-            for i in range(len(timeline)):  # converting text to ".datetime" format
+            dt_date_time_start = datetime(int(date_time_start[0:4]), int(date_time_start[5:7]),
+                                          int(date_time_start[8:10]), int(date_time_start[11:13]),
+                                          int(date_time_start[14:16]), int(date_time_start[17:19]), 0)
 
-                # Check is the uS field is empty. If so it means it is equal to '000000'
-                u_second = timeline[i][20:26]
-                if len(u_second) < 2:
-                    u_second = '000000'
-
-                dt_timeline.append(datetime(int(timeline[i][0:4]), int(timeline[i][5:7]), int(timeline[i][8:10]),
-                                            int(timeline[i][11:13]), int(timeline[i][14:16]), int(timeline[i][17:19]),
-                                            int(u_second)))
-
-            dt_dateTimeStart = datetime(int(dateTimeStart[0:4]), int(dateTimeStart[5:7]), int(dateTimeStart[8:10]),
-                                        int(dateTimeStart[11:13]), int(dateTimeStart[14:16]), int(dateTimeStart[17:19]),
-                                        0)
-            dt_dateTimeStop = datetime(int(dateTimeStop[0:4]), int(dateTimeStop[5:7]), int(dateTimeStop[8:10]),
-                                       int(dateTimeStop[11:13]), int(dateTimeStop[14:16]), int(dateTimeStop[17:19]), 0)
+            dt_date_time_stop = datetime(int(date_time_stop[0:4]), int(date_time_stop[5:7]),
+                                         int(date_time_stop[8:10]), int(date_time_stop[11:13]),
+                                         int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
             # *** Showing the time limits of file and time limits of chosen part
             if print_or_not == 1:
                 print('\n\n                               Start                         End \n')
                 print('  File time limits:   ', dt_timeline[0], ' ', dt_timeline[len(timeline)-1], '\n')
-                print('  Chosen time limits: ', dt_dateTimeStart, '        ', dt_dateTimeStop, '\n')
+                print('  Chosen time limits: ', dt_date_time_start, '        ', dt_date_time_stop, '\n')
 
             # Verifying that chosen time limits are inside file and are correct
-            if (dt_timeline[len(timeline)-1] >= dt_dateTimeStart > dt_timeline[0]) and \
-                    (dt_timeline[len(timeline)-1] > dt_dateTimeStop >= dt_timeline[0]) and \
-                    (dt_dateTimeStop > dt_dateTimeStart):
+            if (dt_timeline[len(timeline)-1] >= dt_date_time_start > dt_timeline[0]) and \
+                    (dt_timeline[len(timeline)-1] > dt_date_time_stop >= dt_timeline[0]) and \
+                    (dt_date_time_stop > dt_date_time_start):
                 if print_or_not == 1:  
                     print('  Time is chosen correctly! \n\n')
             else:
@@ -271,35 +258,39 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
                 sys.exit('           Program stopped')
 
             # Finding the closest spectra to the chosen time limits
-            A = []
-            B = []
+            limit_a = []
+            limit_b = []
             for i in range(len(timeline)):
-                dt_diff_start = dt_timeline[i] - dt_dateTimeStart
-                dt_diff_stop  = dt_timeline[i] - dt_dateTimeStop
-                A.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0]*60 +
+                dt_diff_start = dt_timeline[i] - dt_date_time_start
+                dt_diff_stop  = dt_timeline[i] - dt_date_time_stop
+                limit_a.append(abs(divmod(dt_diff_start.total_seconds(), 60)[0] * 60 +
                              divmod(dt_diff_start.total_seconds(), 60)[1]))
-                B.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0]*60 +
+                limit_b.append(abs(divmod(dt_diff_stop.total_seconds(), 60)[0] * 60 +
                              divmod(dt_diff_stop.total_seconds(), 60)[1]))
 
-            istart = A.index(min(A))
-            istop = B.index(min(B))
+            istart = limit_a.index(min(limit_a))
+            istop = limit_b.index(min(limit_b))
+            del limit_a, limit_b
             if print_or_not == 1:
-                print('\n Start spectrum number is:         ', istart)
-                print('\n Stop spectrum number is:          ', istop)
-                print('\n Total number of spectra to read:  ', istop - istart)
+                print(' Start spectrum number is:         ', istart)
+                print(' Stop spectrum number is:          ', istop)
+                print(' Total number of spectra to read:  ', istop - istart)
+        else:
+            istart = 0
+            istop = len(timeline)
 
         # Calculation of the dimensions of arrays to read
         nx = len(frequency)                  # the first dimension of the array
         if start_stop_switch == 1:             # If we read only specified time limits of files
             ny = int(istop - istart)         # the second dimension of the array: number of spectra to read
         else:
-            ny = int(((df_filesize-1024)/(nx*8))) # the second dimension of the array: file size - 1024 bytes
-            istart = 0
-            istop = len(timeline)
+            ny = int(((df_filesize-1024)/(nx*8)))  # the second dimension of the array: file size - 1024 bytes
+            # istart = 0
+            # istop = len(timeline)
 
         if print_or_not == 1:
-            print('\n Number of frequency channels:     ', nx, '\n')
-            print(' Number of spectra:                ', ny, '\n')
+            print(' Number of frequency channels:     ', nx)
+            print(' Number of spectra:                ', ny)
             print(' Recommended spectra number for averaging is: ', int(ny/1024))
         # average_const = raw_input('\n Enter number of spectra to be averaged:       ')
 
@@ -324,8 +315,8 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             file2.seek(1024+istart*8*nx, os.SEEK_SET)   
 
         array = np.empty((nx, 0), float)
-        numOfBlocks = int(ny/average_const)
-        for block in range(numOfBlocks):
+        num_of_blocks = int(ny/average_const)
+        for block in range(num_of_blocks):
 
             data1 = np.fromfile(file1, dtype=np.float64, count=nx * average_const)
             if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': 
@@ -345,52 +336,53 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
             data = np.reshape(data, [nx, average_const], order='F')
 
-            dataApp = np.empty((nx, 1), float)
+            data_append = np.empty((nx, 1), float)
 
             if types_of_data[j] == 'chA' or types_of_data[j] == 'chB' or \
                     types_of_data[j] == 'A+B' or types_of_data[j] == 'wfA+B':
                 # If analyzing intensity - average and log data
                 if aver_or_min == 0:
                     with np.errstate(invalid='ignore'):
-                        dataApp[:, 0] = 10*np.log10(data.mean(axis=1)[:])
+                        data_append[:, 0] = 10 * np.log10(data.mean(axis=1)[:])
                 elif aver_or_min == 1:
                     with np.errstate(invalid='ignore'):
-                        dataApp[:, 0] = 10*np.log10(np.amin(data, axis=1)[:])
+                        data_append[:, 0] = 10 * np.log10(np.amin(data, axis=1)[:])
                 else:
                     print('\n\n Error!!! Wrong value of parameters!')
-                array = np.append(array, dataApp, axis=1)
+                array = np.append(array, data_append, axis=1)
                 array[np.isnan(array)] = -120
 
             if types_of_data[j] == 'A-B':
                 # If analyzing intensity - average and log absolute values of data
                 with np.errstate(invalid='ignore'):
-                    dataApp[:, 0] = 10 * np.log10(np.abs(data.mean(axis=1)[:]))
-                array = np.append(array, dataApp, axis=1)
+                    data_append[:, 0] = 10 * np.log10(np.abs(data.mean(axis=1)[:]))
+                array = np.append(array, data_append, axis=1)
                 array[np.isnan(array)] = -120
 
             if types_of_data[j] == 'C_p' or types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
                 # If analyzing phase of Re/Im we do not log data, only averaging
-                dataApp[:, 0] = (data.mean(axis=1)[:])
-                array = np.append(array, dataApp, axis=1)
+                data_append[:, 0] = (data.mean(axis=1)[:])
+                array = np.append(array, data_append, axis=1)
                 array[np.isnan(array)] = 0
 
             if types_of_data[j] == 'C_m':
-                dataApp[:,0] = (data.mean(axis=1)[:])
-                array = np.append(array, dataApp, axis=1)
+                data_append[:, 0] = (data.mean(axis=1)[:])
+                array = np.append(array, data_append, axis=1)
                 # array[np.isinf(array)] = -120
 
-            del dataApp, data
+            del data_append, data
         file1.close()
-        if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': file2.close()
+        if types_of_data[j] == 'A+B' or types_of_data[j] == 'A-B': 
+            file2.close()
 
         if print_or_not == 1:
             print('\n Array shape is now             ', array.shape)
 
         # *** Cutting timeline to time limits ***
-        dateTimeNew = timeline[istart:istop:average_const]
-        del dateTimeNew[numOfBlocks:]
+        date_time_new = timeline[istart:istop:average_const]
+        del date_time_new[num_of_blocks:]
         if print_or_not == 1:
-            print('\n TimeLine length is now:        ', len(dateTimeNew))
+            print('\n TimeLine length is now:        ', len(date_time_new))
 
     # *******************************************************************************
     #                                 F I G U R E S                                 *
@@ -400,24 +392,24 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             print('\n\n\n  *** Building images *** \n\n')
 
         # Exact string timescales to show on plots
-        time_scale_fig = np.empty_like(dateTimeNew)
-        for i in range (len(dateTimeNew)):
-            time_scale_fig[i] = str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23])
+        time_scale_fig = np.empty_like(date_time_new)
+        for i in range(len(date_time_new)):
+            time_scale_fig[i] = str(date_time_new[i][0:11] + '\n' + date_time_new[i][11:23])
 
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
         if types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
-            Vmin = 0 - AmplitudeReIm
-            Vmax = 0 + AmplitudeReIm
+            v_min = 0 - amplitude_re_im
+            v_max = 0 + amplitude_re_im
 
         # *** Immediate spectrum ***
 
-        Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + name_to_add)
-        Title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' + str(round(df/1000, 3)) +
-                 ' kHz ' + sum_diff_mode + 'Processing: ' + reducing_type + str(average_const) +
-                 ' spectra (' + str(round(average_const * time_resolution, 3)) + ' sec.)')
+        plot_suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + name_to_add)
+        plot_title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' +
+                      str(round(df/1000, 3)) + ' kHz ' + sum_diff_mode + 'Processing: ' + reducing_type +
+                      str(average_const) + ' spectra (' + str(round(average_const * time_resolution, 3)) + ' sec.)')
 
-        TwoOrOneValuePlot(1, frequency, array[:,[1]], [], 'Spectrum', ' ', frequency[0], frequency[-1], Vmin, Vmax,
-                          Vmin, Vmax, 'Frequency, MHz', y_ax_name, ' ', Suptitle, Title,
+        TwoOrOneValuePlot(1, frequency, array[:,[1]], [], 'Spectrum', ' ', frequency[0], frequency[-1], v_min, v_max,
+                          v_min, v_max, 'Frequency, MHz', y_ax_name, ' ', plot_suptitle, plot_title,
                           newpath + '/' + filename_to_add_sp + df_filename[0:14] + '_'+types_of_data[j] +
                           ' Immediate Spectrum full.png', current_date, current_time, Software_version)
 
@@ -429,59 +421,62 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
 
         # *** Finding frequency most close to specified by user ***
         for fc in range(len(freq_list)):
-            if (freq_list[fc] > freqStartTXT) and (freq_list[fc] < freqStopTXT):
-                newFreq = np.array(frequency)
-                newFreq = np.absolute(newFreq - freq_list[fc])
-                index = np.argmin(newFreq)+1
-                # tempArr1 = np.arange(0, len(dateTimeNew), 1)
+            if (freq_list[fc] > freq_start_txt) and (freq_list[fc] < freq_stop_txt):
+                new_freq = np.array(frequency)
+                new_freq = np.absolute(new_freq - freq_list[fc])
+                index = np.argmin(new_freq) + 1
+                # tempArr1 = np.arrange(0, len(date_time_new), 1)
 
                 if channel_save_png == 1 or types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
                     if types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
-                        Vmin = 0 - AmplitudeReIm
-                        Vmax = 0 + AmplitudeReIm
+                        v_min = 0 - amplitude_re_im
+                        v_max = 0 + amplitude_re_im
 
                     # *** Plotting intensity changes at particular frequency ***
                     timeline = []
-                    for i in range(len(dateTimeNew)):
-                        timeline.append(str(dateTimeNew[i][0:11] + '\n' + dateTimeNew[i][11:23]))
+                    for i in range(len(date_time_new)):
+                        timeline.append(str(date_time_new[i][0:11] + '\n' + date_time_new[i][11:23]))
 
-                    Suptitle = 'Intensity variation ' + str(df_filename[0:18]) + ' ' + name_to_add
-                    Title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' +
-                             str(round(df/1000, 3)) + ' kHz, Frequency = ' + str(round(frequency[index], 3)) +
-                             ' MHz ' + sum_diff_mode + ' Processing: ' + reducing_type + str(average_const) +
-                             ' spectra (' + str(round(average_const*time_resolution, 3)) + ' sec.)')
+                    plot_suptitle = 'Intensity variation ' + str(df_filename[0:18]) + ' ' + name_to_add
+                    plot_title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' +
+                                  str(round(df/1000, 3)) + ' kHz, Frequency = ' + str(round(frequency[index], 3)) +
+                                  ' MHz ' + sum_diff_mode + ' Processing: ' + reducing_type + str(average_const) +
+                                  ' spectra (' + str(round(average_const*time_resolution, 3)) + ' sec.)')
 
                     file_name = (newpath + '/' + df_filename[0:14] + '_' + types_of_data[j] + df_filename[-4:] +
                                  ' variation at ' + str(round(frequency[index], 3)) + ' MHz.png')
 
-                    OneValueWithTimePlot(timeline, array[[index],:].transpose(), label, 0, len(dateTimeNew),
-                                         Vmin, Vmax, 0, 0, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', y_ax_name,
-                                         Suptitle, Title, file_name, current_date, current_time, Software_version)
+                    OneValueWithTimePlot(timeline, array[[index],:].transpose(), label, 0, len(date_time_new),
+                                         v_min, v_max, 0, 0, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.ms', y_ax_name,
+                                         plot_suptitle, plot_title, file_name, current_date, current_time,
+                                         Software_version)
 
                 # Saving value changes at particular frequency to TXT file
                 if channel_save_txt == 1:
-                    SingleChannelData = open(newpath + '/' + df_filename[0:14] + '_' + filename[-7:-4:]
-                                             + df_filename[-4:] + ' variation at ' + str(round(frequency[index], 3)) +
-                                             ' MHz.txt', "w")
-                    for i in range(len(dateTimeNew)):
-                        SingleChannelData.write(str(dateTimeNew[i]).rstrip() + '   ' +
-                                                str(array.transpose()[i, index]) + ' \n')
-                    SingleChannelData.close()
+                    single_channel_data = open(newpath + '/' + df_filename[0:14] + '_' + filename[-7:-4:]
+                                               + df_filename[-4:] + ' variation at ' + str(round(frequency[index], 3)) +
+                                               ' MHz.txt', "w")
+                    for i in range(len(date_time_new)):
+                        single_channel_data.write(str(date_time_new[i]).rstrip() + '   ' +
+                                                  str(array.transpose()[i, index]) + ' \n')
+                    single_channel_data.close()
 
         # Cutting the array inside frequency range specified by user
-        if freq_range_switch == 1 and (frequency[0] <= freqStart <= frequency[freq_points_num-1]) and \
-                (frequency[0] <= freqStop <= frequency[freq_points_num-1]) and (freqStart < freqStop):
-            print('\n You have chosen the frequency range', freqStart, '-', freqStop, 'MHz')
-            A = []
-            B = []
+        if freq_range_switch == 1 and (frequency[0] <= freq_start <= frequency[freq_points_num-1]) and \
+                (frequency[0] <= freq_stop <= frequency[freq_points_num-1]) and (freq_start < freq_stop):
+
+            print('\n You have chosen the frequency range', freq_start, '-', freq_stop, 'MHz')
+            limit_a = []
+            limit_b = []
             for i in range(len(frequency)):
-                A.append(abs(frequency[i] - freqStart))
-                B.append(abs(frequency[i] - freqStop))
-            ifmin = A.index(min(A))
-            ifmax = B.index(min(B))
+                limit_a.append(abs(frequency[i] - freq_start))
+                limit_b.append(abs(frequency[i] - freq_stop))
+            ifmin = limit_a.index(min(limit_a))
+            ifmax = limit_b.index(min(limit_b))
             array = array[ifmin:ifmax, :]
             print('\n New data array shape is: ', array.shape)
             freq_line = frequency[ifmin:ifmax]
+            del limit_a, limit_b
         else:
             freq_line = frequency
 
@@ -489,73 +484,78 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
         if freq_range_switch == 1:
             # *** Immediate spectrum in narrow frequency range ***
 
-            Suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + name_to_add)
-            Title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' + str(
-                round(df / 1000, 3)) +
-                     ' kHz ' + sum_diff_mode + 'Processing: ' + reducing_type + str(average_const) +
-                     ' spectra (' + str(round(average_const * time_resolution, 3)) + ' sec.)')
+            plot_suptitle = ('Immediate spectrum ' + str(df_filename[0:18]) + ' ' + name_to_add)
+            plot_title = ('Initial parameters: dt = ' + str(round(time_resolution, 3)) + ' Sec, df = ' +
+                          str(round(df / 1000, 3)) +
+                          ' kHz ' + sum_diff_mode + 'Processing: ' + reducing_type + str(average_const) +
+                          ' spectra (' + str(round(average_const * time_resolution, 3)) + ' sec.)')
 
             TwoOrOneValuePlot(1, freq_line, array[:, [1]], [],
-                              'Spectrum', ' ', freq_line[0], freq_line[-1], Vmin, Vmax, Vmin, Vmax, 'Frequency, MHz',
-                              y_ax_name, ' ', Suptitle, Title,
-                              newpath + '/' + filename_to_add_sp + df_filename[0:14] + '_' + types_of_data[
-                                  j] + ' Immediate Spectrum narrow range.png',
+                              'Spectrum', ' ', freq_line[0], freq_line[-1], v_min, v_max, v_min, v_max,
+                              'Frequency, MHz', y_ax_name, ' ', plot_suptitle, plot_title,
+                              newpath + '/' + filename_to_add_sp + df_filename[0:14] + '_' +
+                              types_of_data[j] + ' Immediate Spectrum narrow range.png',
                               current_date, current_time, Software_version)
         #####################################################################################
 
         # Limits of figures for common case or for Re/Im parts to show the interferometric picture
-        Vmin = np.min(array)
-        Vmax = np.max(array)
+        v_min = np.min(array)
+        v_max = np.max(array)
         if types_of_data[j] == 'CRe' or types_of_data[j] == 'CIm':
-            Vmin = 0 - AmplitudeReIm
-            Vmax = 0 + AmplitudeReIm
+            v_min = 0 - amplitude_re_im
+            v_max = 0 + amplitude_re_im
 
         # Dynamic spectrum of initial signal
 
-        Suptitle = ('Dynamic spectrum starting from file ' + str(df_filename[0:18]) + ' ' + name_to_add +
-                    '\n Initial parameters: dt = ' + str(round(time_resolution, 3)) +
-                    ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sum_diff_mode +
-                    ' Processing: ' + reducing_type + str(average_const) + ' spectra (' +
-                    str(round(average_const * time_resolution, 3)) + ' sec.)\n' +
-                    ' Receiver: ' + str(df_system_name) + ', Place: ' + str(df_obs_place) +
-                    ', Description: ' + str(df_description))
-        fig_file_name = (newpath + '/' + filename_to_add + df_filename[0:14]+'_' + types_of_data[j] + ' Dynamic spectrum.png')
+        plot_suptitle = ('Dynamic spectrum starting from file ' + str(df_filename[0:18]) + ' ' + name_to_add +
+                         '\n Initial parameters: dt = ' + str(round(time_resolution, 3)) +
+                         ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sum_diff_mode +
+                         ' Processing: ' + reducing_type + str(average_const) + ' spectra (' +
+                         str(round(average_const * time_resolution, 3)) + ' sec.)\n' +
+                         ' Receiver: ' + str(df_system_name) + ', Place: ' + str(df_obs_place) +
+                         ', Description: ' + str(df_description))
+        
+        fig_file_name = (newpath + '/' + filename_to_add + df_filename[0:14]+'_' + 
+                         types_of_data[j] + ' Dynamic spectrum.png')
 
-        OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), time_scale_fig, freq_line,
-                        len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
-                        current_date, current_time, Software_version, custom_dpi)
+        OneDynSpectraPlot(array, v_min, v_max, plot_suptitle, 'Intensity, dB', len(date_time_new), time_scale_fig,
+                          freq_line, len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', 
+                          fig_file_name, current_date, current_time, Software_version, custom_dpi)
 
         if types_of_data[j] != 'C_p' and types_of_data[j] != 'CRe' and types_of_data[j] != 'CIm':
             # Normalization and cleaning of dynamic spectra 
-            normalization_db(array.transpose(), len(freq_line), len(dateTimeNew))
+            normalization_db(array.transpose(), len(freq_line), len(date_time_new))
             simple_channel_clean(array.transpose(), rfi_mean_const)
 
             # *** Dynamic spectra of cleaned and normalized signal ***
 
-            Suptitle = ('Dynamic spectrum cleaned and normalized starting from file ' + str(df_filename[0:18]) +
-                        ' ' + name_to_add + '\n Initial parameters: dt = ' + str(round(time_resolution, 3)) +
-                        ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sum_diff_mode +
-                        ' Processing: ' + reducing_type + str(average_const) + ' spectra (' +
-                        str(round(average_const * time_resolution, 3)) +
-                        ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
-                        ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
-            fig_file_name = (newpath + '/' + filename_to_add_norm + df_filename[0:14] + '_'+types_of_data[j] +
+            plot_suptitle = ('Dynamic spectrum cleaned and normalized starting from file ' + str(df_filename[0:18]) +
+                             ' ' + name_to_add + '\n Initial parameters: dt = ' + str(round(time_resolution, 3)) +
+                             ' Sec, df = ' + str(round(df/1000, 3)) + ' kHz, ' + sum_diff_mode +
+                             ' Processing: ' + reducing_type + str(average_const) + ' spectra (' +
+                             str(round(average_const * time_resolution, 3)) +
+                             ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
+                             ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
+            fig_file_name = (newpath + '/' + filename_to_add_norm + df_filename[0:14] + '_' + types_of_data[j] +
                              ' Dynamic spectrum cleaned and normalized' + '.png')
 
-            OneDynSpectraPlot(array, v_min_norm, v_max_norm, Suptitle, 'Intensity, dB', len(dateTimeNew), time_scale_fig,
-                             freq_line, len(freq_line), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
-                             fig_file_name, current_date, current_time, Software_version, custom_dpi)
+            OneDynSpectraPlot(array, v_min_norm, v_max_norm, plot_suptitle, 'Intensity, dB', len(date_time_new), 
+                              time_scale_fig, freq_line, len(freq_line), colormap, 
+                              'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec',
+                              fig_file_name, current_date, current_time, Software_version, custom_dpi)
 
             '''
             # *** TEMPLATE FOR JOURNLS Dynamic spectra of cleaned and normalized signal ***
             plt.figure(2, figsize=(16.0, 7.0))
-            ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(dateTimeNew),freq_line[0],
+            ImA = plt.imshow(np.flipud(array), aspect='auto', extent=[0,len(date_time_new),freq_line[0],
                              freq_line[len(freq_line)-1]], vmin=v_min_norm, vmax=v_max_norm, cmap=colormap) #
             plt.ylabel('Frequency, MHz', fontsize=12, fontweight='bold')
-            #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file '+str(df_filename[0:18])+' '+name_to_add+
+            #plt.suptitle('Dynamic spectrum cleaned and normalized starting from file ' + str(df_filename[0:18]) + 
+            #            ' ' + name_to_add +
             #            '\n Initial parameters: dt = '+str(round(time_resolution,3))+
             #            ' Sec, df = '+str(round(df/1000,3))+' kHz, '+sum_diff_mode+
-            #            ' Processing: ' + reducing_type + str(average_const)+' spectra ('+str(round(average_const*time_resolution,3))+' sec.)\n'+
+            #            ' Processing: ' + reducing_type + str(average_const) + 
+            #            ' spectra ('+str(round(average_const*time_resolution,3))+' sec.)\n'+
             #            ' Receiver: '+str(df_system_name)+
             #            ', Place: '+str(df_obs_place) +
             #            ', Description: '+str(df_description),
@@ -569,17 +569,17 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
             a = ax1.get_xticks().tolist()
             for i in range(len(a)-1):   #a-1
                 k = int(a[i])
-                #a[i] = str(dateTimeNew[k][0:11]+'\n'+dateTimeNew[k][11:23])
-                a[i] = str(dateTimeNew[k][11:19])
+                #a[i] = str(date_time_new[k][0:11]+'\n'+date_time_new[k][11:23])
+                a[i] = str(date_time_new[k][11:19])
             ax1.set_xticklabels(a)
             plt.xticks(fontsize=12, fontweight='bold')
             plt.xlabel('UTC time, HH:MM:SS', fontsize=12, fontweight='bold')
             #plt.text(0.72, 0.04,'Processed '+current_date+ ' at '+current_time, fontsize=6, 
             transform=plt.gcf().transFigure)
             pylab.savefig('DAT_Results/' + filename_to_add_norm + df_filename[0:14]+'_'+types_of_data[j]+
-            ' Dynamic spectrum cleanned and normalized'+'.png', bbox_inches='tight', dpi = custom_dpi)
+            ' Dynamic spectrum cleaned and normalized'+'.png', bbox_inches='tight', dpi = custom_dpi)
             #pylab.savefig('DAT_Results/' +filename_to_add_norm+ df_filename[0:14]+'_'+types_of_data[j]+ 
-            ' Dynamic spectrum cleanned and normalized'+'.eps', bbox_inches='tight', dpi = custom_dpi)
+            ' Dynamic spectrum cleaned and normalized'+'.eps', bbox_inches='tight', dpi = custom_dpi)
                                                                                  #filename[-7:-4:]
             plt.close('all')
             '''
@@ -602,31 +602,30 @@ if __name__ == '__main__':
     start_stop_switch = 0
     freq_range_switch = 0
     rfi_mean_const = 8  # Constant of RFI mitigation (usually 8)
-    VminCorrMag = -150  # Lower limit of figure dynamic range for correlation magnitude spectra
-    VmaxCorrMag = -30  # Upper limit of figure dynamic range for correlation magnitude spectra
     aver_or_min = 0  # Use average value (0) per data block or minimum value (1)
     v_min_man = -120  # Manual lower limit of immediate spectrum figure color range
     v_max_man = -10  # Manual upper limit of immediate spectrum figure color range
     v_min_norm_man = 0  # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
     v_max_norm_man = 12  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
-    AmplitudeReIm = 1 * 10 ** (-12)  # Color range of Re and Im dynamic spectra
+    amplitude_re_im = 1 * 10 ** (-12)  # Color range of Re and Im dynamic spectra
     # 10 * 10**(-12) is typical value enough for CasA for interferometer of 2 GURT subarrays
     custom_dpi = 200  # Resolution of images of dynamic spectra
     colormap = 'jet'  # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
     channel_save_txt = 0
     channel_save_png = 0
     list_or_all_freqs = 0
-    freqStart = 0
-    freqStop = 0
-    dateTimeStart = ''
-    dateTimeStop = ''
-    freqStartTXT = 0
-    freqStopTXT = 0
+    freq_start = 0
+    freq_stop = 0
+    date_time_start = ''
+    date_time_stop = ''
+    freq_start_txt = 0
+    freq_stop_txt = 0
     freq_list = []
     print_or_not = 1
 
     ok = DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path, result_folder_name,
-                         aver_or_min, start_stop_switch, freq_range_switch, v_min_man, v_max_man, v_min_norm_man, v_max_norm_man,
-                         rfi_mean_const, custom_dpi, colormap, channel_save_txt, channel_save_png, list_or_all_freqs,
-                         AmplitudeReIm, freqStart, freqStop, dateTimeStart, dateTimeStop, freqStartTXT,
-                         freqStopTXT, freq_list, print_or_not)
+                         aver_or_min, start_stop_switch, freq_range_switch, v_min_man, v_max_man,
+                         v_min_norm_man, v_max_norm_man, rfi_mean_const, custom_dpi, colormap,
+                         channel_save_txt, channel_save_png, list_or_all_freqs,
+                         amplitude_re_im, freq_start, freq_stop, date_time_start, date_time_stop,
+                         freq_start_txt, freq_stop_txt, freq_list, print_or_not)
