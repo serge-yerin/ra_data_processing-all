@@ -30,7 +30,7 @@ def ADR_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
                     VminCorrMag, VmaxCorrMag, custom_dpi, colormap, CorrelationProcess, Sum_Diff_Calculate,
                     longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-                    SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not):
+                    SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not, dat_file_path=''):
 
     current_date = time.strftime("%d.%m.%Y")
 
@@ -94,7 +94,7 @@ def ADR_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
                 file_header = file.read(1024)
 
                 # *** Creating a name for long timeline TXT file ***
-                tl_file_name = df_filename + '_Timeline.txt'
+                tl_file_name = dat_file_path + df_filename + '_Timeline.txt'
                 tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
                 tl_file.close()
 
@@ -103,45 +103,45 @@ def ADR_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
 
                 # *** Creating a binary file with data for long data storage ***
                 if longFileSaveAch == 1 and (adr_mode == 3 or adr_mode == 5 or adr_mode == 6):
-                    fileData_A_name = df_filename + '_Data_chA.dat'
+                    fileData_A_name = dat_file_path + df_filename + '_Data_chA.dat'
                     fileData_A = open(fileData_A_name, 'wb')
                     fileData_A.write(file_header)
                     fileData_A.close()
                     DAT_file_list.append('chA')
                 if longFileSaveBch == 1 and (adr_mode == 4 or adr_mode == 5 or adr_mode == 6):
-                    fileData_B_name = df_filename + '_Data_chB.dat'
+                    fileData_B_name = dat_file_path + df_filename + '_Data_chB.dat'
                     fileData_B = open(fileData_B_name, 'wb')
                     fileData_B.write(file_header)
                     fileData_B.close()
                     DAT_file_list.append('chB')
                 if CorrelationProcess == 1 and longFileSaveCRI == 1 and adr_mode == 6:
-                    fileData_CRe_name = df_filename + '_Data_CRe.dat'
+                    fileData_CRe_name = dat_file_path + df_filename + '_Data_CRe.dat'
                     fileData_C_Re = open(fileData_CRe_name, 'wb')
                     fileData_C_Re.write(file_header)
                     fileData_C_Re.close()
                     DAT_file_list.append('CRe')
-                    fileData_CIm_name = df_filename + '_Data_CIm.dat'
+                    fileData_CIm_name = dat_file_path + df_filename + '_Data_CIm.dat'
                     fileData_C_Im = open(fileData_CIm_name, 'wb')
                     fileData_C_Im.write(file_header)
                     fileData_C_Im.close()
                     DAT_file_list.append('CIm')
                 if CorrelationProcess == 1 and longFileSaveCMP == 1 and adr_mode == 6:
-                    fileData_CM_name = df_filename + '_Data_C_m.dat'
+                    fileData_CM_name = dat_file_path + df_filename + '_Data_C_m.dat'
                     fileData_C_M = open(fileData_CM_name, 'wb')
                     fileData_C_M.write(file_header)
                     fileData_C_M.close()
                     DAT_file_list.append('C_m')
-                    fileData_CP_name = df_filename + '_Data_C_p.dat'
+                    fileData_CP_name = dat_file_path + df_filename + '_Data_C_p.dat'
                     fileData_C_P = open(fileData_CP_name, 'wb')
                     fileData_C_P.write(file_header)
                     fileData_C_P.close()
                     DAT_file_list.append('C_p')
                 if Sum_Diff_Calculate == 1 and longFileSaveSSD == 1 and (adr_mode == 5 or adr_mode == 6):
-                    fileData_Sum_name = df_filename+'_Data_Sum.dat'
+                    fileData_Sum_name = dat_file_path + df_filename+'_Data_Sum.dat'
                     fileData_Sum = open(fileData_Sum_name, 'wb')
                     fileData_Sum.write(file_header)
                     fileData_Sum.close()
-                    fileData_Dif_name = df_filename+'_Data_Dif.dat'
+                    fileData_Dif_name = dat_file_path + df_filename+'_Data_Dif.dat'
                     fileData_Dif = open(fileData_Dif_name, 'wb')
                     fileData_Dif.write(file_header)
                     fileData_Dif.close()
