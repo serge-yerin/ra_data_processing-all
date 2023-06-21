@@ -17,7 +17,7 @@ def file_header_njds_read(filepath, start_byte, print_or_not):
         time_res - temporal resolution of data in the file in seconds
         fmin - minimal frequency of observations in MHz
         fmax - minimal frequency of observations in MHz
-        df / pow(10,6) - frequyency resolution in MHz
+        df / pow(10,6) - frequency resolution in MHz
         frequency - list of channels frequencies in MHz
         Wb - number of frequency points i.e. ( len(frequency) )
     """
@@ -146,7 +146,7 @@ def file_header_njds_read(filepath, start_byte, print_or_not):
 
     if print_or_not == 1:
         if mode == 0:
-            print('\n mode:                           Waveform')
+            print('\n Receiver mode:                  Waveform')
             if Wch == 0:
                 print(' Channel:                        A')
             if Wch == 1:
@@ -154,9 +154,9 @@ def file_header_njds_read(filepath, start_byte, print_or_not):
             if Wch == 2:
                 print(' Channels                        A & B')
         elif mode == 1:
-            print('\n mode:                           Spectra A & B')
+            print('\n Receiver mode:                  Spectra A & B')
         elif mode == 2:
-            print('\n mode:                           Correlation A & B')
+            print('\n Receiver mode:                  Correlation A & B')
         else:
             sys.exit(' DSPZ mode is wrong!')
 
@@ -229,7 +229,7 @@ def file_header_njds_read(filepath, start_byte, print_or_not):
 
     # *** Temporal and frequency resolutions ***
     if fft_size < 1:
-        fft_size = 16384.0
+        fft_size = 4 * 16384.0
 
     time_res = np.float64(Navr * (fft_size / clock_freq / 2))
     df = float((float(clock_freq) / 2) / float(fft_size / 2))
