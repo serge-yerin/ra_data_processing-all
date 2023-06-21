@@ -1,4 +1,8 @@
 # Python3
+# Errors found while analyzing data from the receiver
+# 1 - wrong FFT size value (zero instead of )
+# 2 - something wrong is with second of the day and phase of the second
+
 Software_version = '2019.05.09'
 # Program intended to read, show and analyze data from DSPZ receivers
 # *******************************************************************************
@@ -64,7 +68,7 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             clc_freq, df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resol, fmin, fmax,
-            df, frequency, freq_points_num, data_block_size] = file_header_jds_read(fname, 0, 0)
+            df, frequency, freq_points_num, data_block_size] = file_header_njds_read(fname, 0, 0)
 
         # Initial time line settings
         time_scale_start_date = datetime(int(df_creation_time_utc[0:4]), int(df_creation_time_utc[5:7]), 
@@ -193,15 +197,15 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                     # ftCount = np.uint32(np.bitwise_and(counter_a2, A))        # number of specter since record started
 
                     tmp = np.uint64(int('00000111111111111111111111111111', 2))
-                    phase_of_sec = np.uint32(np.bitwise_and(counter_a1, tmp))        # phase of second for the spectr
+                    phase_of_sec = np.uint32(np.bitwise_and(counter_a1, tmp))     # phase of second for the specter
                     tmp = np.uint64(int('00000000000000011111111111111111', 2))
-                    sec_of_day = np.uint32(np.bitwise_and(counter_b1, tmp))        # second of the day for the specter
+                    sec_of_day = np.uint32(np.bitwise_and(counter_b1, tmp))       # second of the day for the specter
 
                     # *** Time line arranging ***
 
                     # Preparing/cleaning matrices for time scales
                     TimeScale = []              # New for each file
-                    TimeFigureScale = []        # Timelime (new) for each figure (n_sp)
+                    TimeFigureScale = []        # Timeline (new) for each figure (n_sp)
                     # Calculations
                     FigStartTime = timedelta(0, int(sec_of_day[0]), int(1000000 * phase_of_sec[0] / clc_freq))
                     for i in range(n_sp):
