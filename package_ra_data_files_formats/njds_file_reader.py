@@ -74,8 +74,6 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
         time_scale_start_date = datetime(int(df_creation_time_utc[0:4]), int(df_creation_time_utc[5:7]), 
                                          int(df_creation_time_utc[8:10]), 0, 0, 0, 0)
 
-        # timeLineMS = np.zeros(int(sp_in_file))  # List of ms values from ends of spectra
-
         # *** Creating a name for long timeline TXT file ***
         if file_no == 0 and (long_file_save_ch_a == 1 or long_file_save_ch_b == 1 or 
                              long_file_save_cri == 1 or long_file_save_cmp == 1):
@@ -156,18 +154,18 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                     else:
                         n_sp = max_sp_num
 
-                    # *** Preparing empty matrices ***
-                    if mode == 1 or mode == 2:
-                        data_cha = np.zeros((n_sp, freq_points_num))
-
-                    if mode == 1 or mode == 2:
-                        data_chb = np.zeros((n_sp, freq_points_num))
-
-                    if mode == 2:
-                        data_cre = np.zeros((n_sp, freq_points_num))
-                        data_cim = np.zeros((n_sp, freq_points_num))
-                        corr_module = np.zeros((n_sp, freq_points_num))
-                        corr_phase = np.zeros((n_sp, freq_points_num))
+                    # # *** Preparing empty matrices ***
+                    # if mode == 1 or mode == 2:
+                    #     data_cha = np.zeros((n_sp, freq_points_num))
+                    #
+                    # if mode == 1 or mode == 2:
+                    #     data_chb = np.zeros((n_sp, freq_points_num))
+                    #
+                    # if mode == 2:
+                    #     data_cre = np.zeros((n_sp, freq_points_num))
+                    #     data_cim = np.zeros((n_sp, freq_points_num))
+                    #     corr_module = np.zeros((n_sp, freq_points_num))
+                    #     corr_phase = np.zeros((n_sp, freq_points_num))
 
                     # *** Reading and reshaping all data for figure ***
                     if mode == 1:
@@ -192,9 +190,9 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                     counter_a1 = np.uint64(data_cha[:, -2])
                     counter_b1 = np.uint64(data_chb[:, -2])
 
-                    # A = np.uint64(int('01111111111111111111111111111111', 2))
-                    # msCount = np.uint32(np.bitwise_and(counter_b2, A))        # number of ms since record started
-                    # ftCount = np.uint32(np.bitwise_and(counter_a2, A))        # number of specter since record started
+                    # tmp = np.uint64(int('00111111111111111111111111111111', 2))
+                    # ms_count = np.uint32(np.bitwise_and(counter_b2, tmp))    # number of us since record started
+                    # sp_count = np.uint32(np.bitwise_and(counter_a2, tmp))    # number of specter since record started
 
                     tmp = np.uint64(int('00000111111111111111111111111111', 2))
                     phase_of_sec = np.uint32(np.bitwise_and(counter_a1, tmp))     # phase of second for the specter
@@ -206,6 +204,7 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                     # Preparing/cleaning matrices for time scales
                     TimeScale = []              # New for each file
                     TimeFigureScale = []        # Timeline (new) for each figure (n_sp)
+
                     # Calculations
                     FigStartTime = timedelta(0, int(sec_of_day[0]), int(1000000 * phase_of_sec[0] / clc_freq))
                     for i in range(n_sp):
@@ -213,19 +212,37 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                         TimeScale.append(str(str(time_scale_start_date + TimeAdd)))
                         TimeFigureScale.append(str((TimeAdd - FigStartTime)))
 
+                    # ### New ###
+                    #
+                    # time_scale_start_date = datetime(int(df_creation_time_utc[0:4]),
+                    #                                  int(df_creation_time_utc[5:7]),
+                    #                                  int(df_creation_time_utc[8:10]), 0, 0, 0, 0)
+                    #
+                    # FigStartTime = time_scale_start_date + timedelta(0, 0, ms_count)
+                    # for i in range(n_sp):
+                    #     TimeAdd = timedelta(0, int(sec_of_day[i]), int(1000000 * phase_of_sec[i] / clc_freq))
+                    #     TimeScale.append(str(time_scale_start_date + TimeAdd))
+                    #     TimeFigureScale.append(str((TimeAdd - FigStartTime)))
+                    #
+                    # ### End of New ###
+
                     TimeFigureScaleFig = np.empty_like(TimeFigureScale)
                     TimeScaleFig = np.empty_like(TimeScale)
                     for i in range(len(TimeFigureScale)):
                         TimeFigureScaleFig[i] = TimeFigureScale[i][0:11]
                         TimeScaleFig[i] = TimeScale[i][11:23]
 
-                    # *** Converting from FPGA to PC float format ***
-                    if mode == 1 or mode == 2:
-                        data_cha = FPGAtoPCarrayJDS(data_cha, n_avr)
-                        data_chb = FPGAtoPCarrayJDS(data_chb, n_avr)
-                    if mode == 2 and corr_process == 1:
-                        data_cre = FPGAtoPCarrayJDS(data_cre, n_avr)
-                        data_cim = FPGAtoPCarrayJDS(data_cim, n_avr)
+                    # # *** Converting from FPGA to PC float format ***
+                    # if mode == 1 or mode == 2:
+                    #     data_cha = FPGAtoPCarrayJDS(data_cha, n_avr)
+                    #     data_chb = FPGAtoPCarrayJDS(data_chb, n_avr)
+                    # if mode == 2 and corr_process == 1:
+                    #     data_cre = FPGAtoPCarrayJDS(data_cre, n_avr)
+                    #     data_cim = FPGAtoPCarrayJDS(data_cim, n_avr)
+                    data_cha = np.float64(data_cha / 1000000)
+                    data_chb = np.float64(data_chb / 1000000)
+                    data_cre = np.float64(data_cre / 1000000)
+                    data_cim = np.float64(data_cim / 1000000)
 
                     '''
                     # *** Absolute correlation specter plot ***
@@ -261,19 +278,21 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                             for i in range(n_sp):
                                 tl_file.write((TimeScale[i][:]+' \n'))  # str.encode
 
-                    # *** Converting to logarithmic scale matrices ***
-                    if mode == 1 or mode == 2:
-                        with np.errstate(invalid='ignore'):
-                            data_cha = 10 * np.log10(data_cha)
-                            data_chb = 10 * np.log10(data_chb)
-                        data_cha[np.isnan(data_cha)] = -120
-                        data_chb[np.isnan(data_chb)] = -120
-                    if mode == 2 and corr_process == 1:
-                        with np.errstate(invalid='ignore', divide='ignore'):
-                            corr_module = 10 * np.log10((data_cre ** 2 + data_cim ** 2) ** 0.5)
-                            corr_phase = np.arctan2(data_cim, data_cre)
-                        corr_phase[np.isnan(corr_phase)] = 0
-                        corr_module[np.isinf(corr_module)] = -135.5
+                    # # *** Converting to logarithmic scale matrices ***
+                    # if mode == 1 or mode == 2:
+                    #     with np.errstate(invalid='ignore'):
+                    #         data_cha = 10 * np.log10(data_cha)
+                    #         data_chb = 10 * np.log10(data_chb)
+                    #     data_cha[np.isnan(data_cha)] = -120
+                    #     data_chb[np.isnan(data_chb)] = -120
+                    # if mode == 2 and corr_process == 1:
+                    #     with np.errstate(invalid='ignore', divide='ignore'):
+                    #         corr_module = 10 * np.log10((data_cre ** 2 + data_cim ** 2) ** 0.5)
+                    #         corr_phase = np.arctan2(data_cim, data_cre)
+                    #     corr_phase[np.isnan(corr_phase)] = 0
+                    #     corr_module[np.isinf(corr_module)] = -135.5
+                    corr_module = data_cre
+                    corr_phase = data_cim
 
                     # *** Saving correlation data to a long-term module and phase files ***
                     if mode == 2 and corr_process == 1 and long_file_save_cmp == 1:
@@ -317,23 +336,34 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
 
                         TwoOrOneValuePlot(2, frequency,  data_cha[0][:], data_chb[0][:],
                                           'Channel A', 'Channel B', frequency[0], frequency[freq_points_num-1],
-                                          -120, -20, -120, -20, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
+                                          v_min, v_max, v_min, v_max, 'Frequency, MHz', 'Intensity, dB', 'Intensity, dB',
                                           suptitle, title, Filename,
                                           current_date, current_time, Software_version)
+
+                    import matplotlib.pyplot as plt
+                    import pylab
+                    plt.plot(frequency, data_cha[0][:])
+                    pylab.savefig('result_a.png', bbox_inches='tight', dpi=250)
+                    plt.plot(frequency, data_chb[0][:])
+                    pylab.savefig('result_b.png', bbox_inches='tight', dpi=250)
+                    plt.plot(frequency, data_cre[0][:])
+                    pylab.savefig('result_c.png', bbox_inches='tight', dpi=250)
+                    plt.plot(frequency, data_cim[0][:])
+                    pylab.savefig('result_d.png', bbox_inches='tight', dpi=250)
 
                     if mode == 2 and corr_process == 1 and fig_id == 0:
 
                         suptitle = ('Immediate correlation spectrum ' + str(df_filename[0:18]) + ' channels A & B')
-                        title = ('Place: '+str(df_obs_place)+', Receiver: '+str(df_system_name) +
+                        title = ('Place: ' + str(df_obs_place) + ', Receiver: ' + str(df_system_name) +
                                  '. Initial parameters: dt = ' + str(round(time_resol, 3)) + ' Sec, df = ' +
                                  str(round(df/1000, 3)) + ' kHz ' + 'Description: ' + str(df_description))
                         Filename = (result_path + '/Service/' + df_filename[0:14] +
-                                    ' Channels A and B Correlation' +
-                                    'Immedaiate Spectrum before cleaning and normalizing.png')
+                                    ' Channels A and B Correlation ' +
+                                    'Immediate Spectrum before cleaning and normalizing.png')
 
                         TwoOrOneValuePlot(2, frequency,  corr_module[0][:], corr_phase[0][:],
                                           'Correlation module', 'Correlation phase', frequency[0],
-                                          frequency[freq_points_num-1], v_min_corr_mag, v_max_corr_mag, -4, 4,
+                                          frequency[freq_points_num-1], v_min_corr_mag, v_max_corr_mag, v_min_corr_mag, v_max_corr_mag,
                                           'Frequency, MHz', 'Amplitude, dB', 'Phase, deg',
                                           suptitle, title, Filename,
                                           current_date, current_time, Software_version)
@@ -370,7 +400,7 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                                          ' Correlation dynamic spectrum fig.' + str(fig_id+1) + '.png')
 
                         TwoDynSpectraPlot(corr_module.transpose(), corr_phase.transpose(), 
-                                          v_min_corr_mag, v_max_corr_mag, -3.15, 3.15, suptitle, 
+                                          v_min_corr_mag, v_max_corr_mag, v_min_corr_mag, v_max_corr_mag, suptitle,
                                           'Intensity, dB', 'Phase, rad', n_sp, TimeFigureScaleFig, TimeScaleFig, 
                                           frequency, freq_points_num, colormap, 
                                           'Correlation module', 'Correlation phase',
@@ -437,7 +467,7 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
                         fig_file_name = (result_path + '/Correlation_spectra/' + df_filename[0:14] +
                                          ' Correlation dynamic spectra cleaned fig.' + str(fig_id+1) + '.png')
                         TwoDynSpectraPlot(corr_module.transpose(), corr_phase.transpose(), 2*v_min_norm, 2*v_max_norm, 
-                                          -3.15, 3.15, suptitle, 'Intensity, dB', 'Phase, rad', n_sp,
+                                          2*v_min_norm, 2*v_max_norm, suptitle, 'Intensity, dB', 'Phase, rad', n_sp,
                                           TimeFigureScaleFig, TimeScaleFig, frequency, freq_points_num, colormap, 
                                           'Normalized correlation module', 'Correlation phase',
                                           fig_file_name, current_date, current_time, Software_version, custom_dpi)
@@ -471,45 +501,45 @@ def njds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const
 #                           M A I N    P R O G R A M                            *
 # *******************************************************************************
 
+#
+# if __name__ == '__main__':
 
-if __name__ == '__main__':
+    # directory = 'DATA/'
+    # result_path = ''
+    # MaxNsp = 2048  # Number of spectra to read for one figure
+    # spSkip = 0  # Number of chunks to skip from data beginning
+    # rfi_mean_const = 8  # Constant of RFI mitigation (usually 8)
+    # v_min = -100  # Lower limit of figure dynamic range
+    # v_max = -40  # Upper limit of figure dynamic range
+    # v_min_norm = 0  # Lower limit of figure dynamic range for normalized spectra
+    # v_max_norm = 20  # Upper limit of figure dynamic range for normalized spectra
+    # v_min_corr_mag = -150  # Lower limit of figure dynamic range for correlation magnitude spectra
+    # v_max_corr_mag = -30  # Upper limit of figure dynamic range for correlation magnitude spectra
+    # colormap = 'jet'  # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
+    # custom_dpi = 300  # Resolution of images of dynamic spectra
+    # corr_process = 1  # Process correlation data or save time?  (1 = process, 0 = save)
+    # long_file_save_ch_a = 1  # Save data A to long file? (1 = yes, 0 = no)
+    # long_file_save_ch_b = 1  # Save data B to long file? (1 = yes, 0 = no)
+    # long_file_save_cri = 1  # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
+    # long_file_save_cmp = 1  # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
+    # dyn_spec_save_initial = 0  # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+    # dyn_spec_save_cleaned = 1  # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
+    # corr_spectr_save_initial = 0  # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+    # corr_spectr_save_cleaned = 1  # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
+    # spectra_file_save_switch = 0  # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
+    # immediate_sp_no = 0  # Number of immediate specter to save to TXT file
+    # where_save_pics = 1  # Where to save result pictures? (0 - to script folder, 1 - to data folder)
+    # Sum_Diff_Calculate = False
+    # longFileSaveSSD = False
 
-    directory = 'DATA/'
-    result_path = ''
-    MaxNsp = 2048  # Number of spectra to read for one figure
-    spSkip = 0  # Number of chunks to skip from data beginning
-    rfi_mean_const = 8  # Constant of RFI mitigation (usually 8)
-    v_min = -100  # Lower limit of figure dynamic range
-    v_max = -40  # Upper limit of figure dynamic range
-    v_min_norm = 0  # Lower limit of figure dynamic range for normalized spectra
-    v_max_norm = 20  # Upper limit of figure dynamic range for normalized spectra
-    v_min_corr_mag = -150  # Lower limit of figure dynamic range for correlation magnitude spectra
-    v_max_corr_mag = -30  # Upper limit of figure dynamic range for correlation magnitude spectra
-    colormap = 'jet'  # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-    custom_dpi = 300  # Resolution of images of dynamic spectra
-    corr_process = 1  # Process correlation data or save time?  (1 = process, 0 = save)
-    long_file_save_ch_a = 1  # Save data A to long file? (1 = yes, 0 = no)
-    long_file_save_ch_b = 1  # Save data B to long file? (1 = yes, 0 = no)
-    long_file_save_cri = 1  # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-    long_file_save_cmp = 1  # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-    dyn_spec_save_initial = 0  # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
-    dyn_spec_save_cleaned = 1  # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
-    corr_spectr_save_initial = 0  # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
-    corr_spectr_save_cleaned = 1  # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
-    spectra_file_save_switch = 0  # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-    immediate_sp_no = 0  # Number of immediate specter to save to TXT file
-    where_save_pics = 1  # Where to save result pictures? (0 - to script folder, 1 - to data folder)
-    Sum_Diff_Calculate = False
-    longFileSaveSSD = False
-
-    done_or_not, dat_file_name, dat_file_list = njds_file_reader(directory, result_path, MaxNsp, rfi_mean_const,
-                                                                 v_min, v_max, v_min_norm, v_max_norm,
-                                                                 v_min_corr_mag, v_max_corr_mag,
-                                                                 custom_dpi, colormap,
-                                                                 corr_process, Sum_Diff_Calculate,
-                                                                 long_file_save_ch_a, long_file_save_ch_b,
-                                                                 long_file_save_cmp, long_file_save_cri,
-                                                                 longFileSaveSSD,
-                                                                 dyn_spec_save_initial, dyn_spec_save_cleaned,
-                                                                 corr_spectr_save_initial, corr_spectr_save_cleaned,
-                                                                 spectra_file_save_switch, immediate_sp_no)
+    # done_or_not, dat_file_name, dat_file_list = njds_file_reader(directory, result_path, MaxNsp, rfi_mean_const,
+    #                                                              v_min, v_max, v_min_norm, v_max_norm,
+    #                                                              v_min_corr_mag, v_max_corr_mag,
+    #                                                              custom_dpi, colormap,
+    #                                                              corr_process, Sum_Diff_Calculate,
+    #                                                              long_file_save_ch_a, long_file_save_ch_b,
+    #                                                              long_file_save_cmp, long_file_save_cri,
+    #                                                              longFileSaveSSD,
+    #                                                              dyn_spec_save_initial, dyn_spec_save_cleaned,
+    #                                                              corr_spectr_save_initial, corr_spectr_save_cleaned,
+    #                                                              spectra_file_save_switch, immediate_sp_no)

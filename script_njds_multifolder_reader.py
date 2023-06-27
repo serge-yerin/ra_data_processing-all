@@ -13,12 +13,16 @@ path_to_data = '../../RA_DATA_ARCHIVE/NJDS_cross_spectra_new_DSP_receiver/'
 MaxNsp = 2048                 # Number of spectra to read for one figure
 spSkip = 0                    # Number of chunks to skip from data beginning
 RFImeanConst = 8              # Constant of RFI mitigation (usually 8)
-Vmin = -100                   # Lower limit of figure dynamic range
-Vmax = -40                    # Upper limit of figure dynamic range
+# Vmin = -100                   # Lower limit of figure dynamic range
+Vmin = 1100                   # Lower limit of figure dynamic range
+# Vmax = -40                    # Upper limit of figure dynamic range
+Vmax = 1600                    # Upper limit of figure dynamic range
 VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
 VmaxNorm = 20                 # Upper limit of figure dynamic range for normalized spectra
-VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
-VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
+# VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
+VminCorrMag = 1100            # Lower limit of figure dynamic range for correlation magnitude spectra
+# VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
+VmaxCorrMag = 3200             # Upper limit of figure dynamic range for correlation magnitude spectra
 colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 customDPI = 300               # Resolution of images of dynamic spectra
 CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
@@ -26,17 +30,19 @@ longFileSaveAch = 1           # Save data A to long file? (1 = yes, 0 = no)
 longFileSaveBch = 1           # Save data B to long file? (1 = yes, 0 = no)
 longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
 longFileSaveCMP = 1           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-DynSpecSaveInitial = 0        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
+DynSpecSaveInitial = 1        # Save dynamic spectra pictures before cleaning (1 = yes, 0 = no) ?
 DynSpecSaveCleaned = 1        # Save dynamic spectra pictures after cleaning (1 = yes, 0 = no) ?
-CorrSpecSaveInitial = 0       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
+CorrSpecSaveInitial = 1       # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 1       # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
 ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
 where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
 
 averOrMin = 0                     # Use average value (0) per data block or minimum value (1)
-VminMan = -120                    # Manual lower limit of immediate spectrum figure color range
-VmaxMan = -10                     # Manual upper limit of immediate spectrum figure color range
+# VminMan = -120                    # Manual lower limit of immediate spectrum figure color range
+VminMan = 1.2                    # Manual lower limit of immediate spectrum figure color range
+# VmaxMan = -10                     # Manual upper limit of immediate spectrum figure color range
+VmaxMan = 1.6                     # Manual upper limit of immediate spectrum figure color range
 VminNormMan = 0                   # Manual lower limit of normalized dynamic spectrum figure color range (usually = 0)
 VmaxNormMan = 20                  # Manual upper limit of normalized dynamic spectrum figure color range (usually = 15)
 AmplitudeReIm = 20000 * 10**(-12) # Colour range of Re and Im dynamic spectra
@@ -54,7 +60,7 @@ from package_common_modules.check_if_all_files_of_same_size import check_if_all_
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.check_if_JDS_files_of_equal_parameters import check_if_JDS_files_of_equal_parameters
 from package_ra_data_files_formats.njds_file_reader import njds_file_reader
-from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
+from package_ra_data_files_formats.njds_dat_file_reader import njds_dat_file_reader
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -171,7 +177,7 @@ for folder_no in range(num_of_folders):
         DAT_result_path = list_of_folder_names[folder_no]
 
     # Run DAT reader for the results of current folder
-    done_or_not = DAT_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
+    done_or_not = njds_dat_file_reader(path_to_DAT_files, DAT_file_name, DAT_file_list, DAT_result_path, result_folder_name,
                                   averOrMin, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                   RFImeanConst, customDPI, colormap, 0, 0, 0, AmplitudeReIm, 0, 0, '', '', 0, 0, [], 0)
 
