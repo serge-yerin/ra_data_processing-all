@@ -1,6 +1,6 @@
 # Python3
 
-Software_version = '2023.06.18'  # !!! Not finished !!!
+Software_version = '2023.06.18'
 Software_name = 'ADR multifile data reader for CasA study long data'
 # Program intended to read and show data from DAT files
 import os
@@ -8,11 +8,9 @@ import os
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-# path_to_adr_data = '../DATA/'
-path_to_adr_data = 'e:/RA_DATA_ARCHIVE/ADR_interferometric_data_CasA_GURT_long/'
-# path_to_store_dat = '../DATA/'
-path_to_store_dat = 'TMP_DATA/'
-path_to_results = 'TMP_DATA/'
+path_to_adr_data = 'f:/2019.07.29_GURT_int_sun_405_461_R_part/'
+path_to_store_dat = 'e:/RA_DATA_RESULTS/2019.07.29_GURT_int_sun_405_461_R_part/'
+path_to_results = 'e:/RA_DATA_RESULTS/2019.07.29_GURT_int_sun_405_461_R_part/'
 
 # Types of data to get
 types_of_data = ['CRe', 'CIm']
@@ -41,6 +39,11 @@ AmplitudeReIm = 20 * 10**(-12)   # Color range of Re and Im dynamic spectra
                                  # 10 * 10**(-12) is typical value for CasA for interferometer of 2 GURT subarrays
 AmplitudeReIm_UTR2 = 20000 * 10**(-12)
 AmplitudeReIm_GURT = 20 * 10**(-12)
+
+y_auto = 1
+v_min = -1500 * 10**(-12)
+v_max =  1500 * 10**(-12)
+interferometer_base = 0  # 400  # 900
 
 # Begin and end frequency of dynamic spectrum (MHz)
 freq_start = 0.0
@@ -73,7 +76,8 @@ from package_ra_data_files_formats.read_file_header_adr import file_header_adr_r
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_astronomy.culmination_time_utc_astroplan import culmination_time_utc_astroplan
-
+from package_cas_a_secular_decrease.f_cas_syg_filter_response_calculate_ratio import \
+    filter_interf_response_and_calculate_ratio
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
@@ -271,6 +275,9 @@ for i in range(len(culm_time_3C461)):
     TXT_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
     TXT_file.close()
 
+
+filter_interf_response_and_calculate_ratio(path_to_store_dat, y_auto, v_min, v_max, interferometer_base,
+                                               160, False)
 
 script_end_time = time.time()
 print('\n\n\n  The program execution lasted for ',
