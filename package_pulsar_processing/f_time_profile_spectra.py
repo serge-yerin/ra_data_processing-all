@@ -10,16 +10,16 @@ common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
 # Name of TXT file to be analyzed:
 # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
 # filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
-# filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
-filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
+filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
+# filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
 
 # pulsar_name = 'B0329+54'
 # pulsar_name = 'B0809+74'
-# pulsar_name = 'B0950+08'
-pulsar_name = 'B1919+21'
+pulsar_name = 'B0950+08'
+# pulsar_name = 'B1919+21'
 
-harmonics_to_show = 10  # Figure upper frequency (x-axis) limit in number of pulse harmonics to show
-analyze_parts = False  # To analyze the splitting the whole time series in 2, 4, 8, 16 parts
+harmonics_to_show = 15  # Figure upper frequency (x-axis) limit in number of pulse harmonics to show
+analyze_parts = True  # To analyze the splitting the whole time series in 2, 4, 8, 16 parts
 
 time_resolution = (1 / 66000000) * 16384 * 32    # Data time resolution, s   # 0.007944
 
@@ -225,8 +225,8 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, ha
     spectrum_max = np.max(max_harmonics)
 
     # # Making result time profile plot
-    plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename,
-                      common_path + new_folder_name, current_date, current_time, software_version, custom_dpi)
+    # plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename,
+    #                   common_path + new_folder_name, current_date, current_time, software_version, custom_dpi)
 
     add_text = ''
 
@@ -237,77 +237,100 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, ha
     #                            software_version, custom_dpi)
 
     # Plotting figure of result spectrum linear
-    plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
-                               max_harmonics, spectrum_max, frequency_limit, n_harmonics,
-                               common_path + new_folder_name, filename, add_text,
-                               current_date, current_time, software_version, custom_dpi)
+    # plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency, pulsar_harmonics,
+    #                            max_harmonics, spectrum_max, frequency_limit, n_harmonics,
+    #                            common_path + new_folder_name, filename, add_text,
+    #                            current_date, current_time, software_version, custom_dpi)
 
-    fig = plt.figure(figsize=(9.2, 4.5))
+    # fig = plt.figure(figsize=(9.2, 4.5))
+    # rc('font', size=5, weight='bold')
+    # ax1 = fig.add_subplot(111)
+    # # Plotting lines where fundamental and other harmonics are expected
+    # ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.4, label='Frequency of pulses')
+    # for i in range(n_harmonics):
+    #     ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-',
+    #                 linewidth=2.0, alpha=0.2)
+    # # Plotting the spectra
+    # ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+    #          linestyle='-', alpha=0.3, linewidth='0.60', label='Time series spectrum')
+    # # Adding calculated maximal point near harmonics as red dots
+    # plt.scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=5.0, label='Harmonics amplitudes')
+    #
+    # plt.errorbar(pulsar_harmonics, noise_mean, noise_std, color='orange', fmt='o', ecolor='darkviolet', elinewidth=1,
+    #              capsize=3, markersize=2.0, label='Noise Mean + 3 StD')
+    #
+    # ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+    # ax1.legend(loc='upper right', fontsize=5)
+    # ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+    # ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+    # ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
+    #               fontsize=5, fontweight='bold')
+    # fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (linear amplitude)' + add_text,
+    #              fontsize=7, fontweight='bold')
+    # fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
+    #          fontsize=3, transform=plt.gcf().transFigure)
+    # fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+    #          fontsize=3, transform=plt.gcf().transFigure)
+    # pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' harmonics' + add_text + '.png',
+    #               bbox_inches='tight', dpi=custom_dpi)
+    # plt.close('all')
+
+    # # Signal-to-noise ratio barplot
+    # fig = plt.figure(figsize=(9.2, 4.5))
+    # rc('font', size=5, weight='bold')
+    # ax1 = fig.add_subplot(111)
+    # plt.bar(np.linspace(0, n_harmonics-1, num=n_harmonics), signal_to_noise, width=0.8, bottom=None)
+    # ax1.legend(loc='upper right', fontsize=5)
+    # ax1.set_xlabel('Harmonic number', fontsize=6, fontweight='bold')
+    # ax1.set_ylabel('SNR', fontsize=6, fontweight='bold')
+    # ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
+    #               fontsize=5, fontweight='bold')
+    # fig.suptitle('Signal-to-noise ratio of ' + pulsar_name + ' pulses spectra ' + add_text,
+    #              fontsize=7, fontweight='bold')
+    # fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
+    #          fontsize=3, transform=plt.gcf().transFigure)
+    # fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+    #          fontsize=3, transform=plt.gcf().transFigure)
+    # pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' Signal to Noise ratio' + add_text + '.png',
+    #               bbox_inches='tight', dpi=custom_dpi)
+    # plt.close('all')
+
     rc('font', size=5, weight='bold')
-    ax1 = fig.add_subplot(111)
-    # Plotting lines where fundamental and other harmonics are expected
-    ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.4, label='Frequency of pulses')
+    fig, axs = plt.subplots(nrows=4, ncols=4, figsize=(18, 9))
+    axs[0, 0].axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0,
+                      alpha=0.4, label='Frequency of pulses')
     for i in range(n_harmonics):
-        ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-',
-                    linewidth=2.0, alpha=0.2)
+        axs[0, 0].axvline(x=pulsar_harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
     # Plotting the spectra
-    ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
-             linestyle='-', alpha=0.3, linewidth='0.60', label='Time series spectrum')
+    axs[0, 0].plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+             linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
     # Adding calculated maximal point near harmonics as red dots
-    plt.scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=5.0, label='Harmonics amplitudes')
-
-    plt.errorbar(pulsar_harmonics, noise_mean, noise_std, color='orange', fmt='o', ecolor='darkviolet', elinewidth=1,
-                 capsize=3, markersize=2.0, label='Noise Mean + 3 StD')
-
-    ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
-    ax1.legend(loc='upper right', fontsize=5)
-    ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
-    ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
-                  fontsize=5, fontweight='bold')
-    fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (linear amplitude)' + add_text,
-                 fontsize=7, fontweight='bold')
-    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-             fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
-             fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' harmonics' + add_text + '.png',
-                  bbox_inches='tight', dpi=custom_dpi)
-    plt.close('all')
-
-    # Signal-to-noise ratio barplot
-    fig = plt.figure(figsize=(9.2, 4.5))
-    rc('font', size=5, weight='bold')
-    ax1 = fig.add_subplot(111)
-    plt.bar(np.linspace(0, n_harmonics-1, num=n_harmonics), signal_to_noise, width=0.8, bottom=None)
-    ax1.legend(loc='upper right', fontsize=5)
-    ax1.set_xlabel('Harmonic number', fontsize=6, fontweight='bold')
-    ax1.set_ylabel('SNR', fontsize=6, fontweight='bold')
-    ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
-                  fontsize=5, fontweight='bold')
-    fig.suptitle('Signal-to-noise ratio of ' + pulsar_name + ' pulses spectra ' + add_text,
-                 fontsize=7, fontweight='bold')
-    fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-             fontsize=3, transform=plt.gcf().transFigure)
-    fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
-             fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' Signal to Noise ratio' + add_text + '.png',
-                  bbox_inches='tight', dpi=custom_dpi)
-    plt.close('all')
+    axs[0, 0].scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=6.0, label='Harmonics amplitudes')
+    axs[0, 0].axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+    axs[0, 0].legend(loc='upper right', fontsize=5)
+    axs[0, 0].set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+    axs[0, 0].set_title('Full data length', fontsize=5, fontweight='bold')
 
     # Analyze only parts of the time profile
+    v_ind = [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+    h_ind = [1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 3, 3,3,3,3,3,3,3,3,3,3,3,3,3]
+    index = 0
+
     if analyze_parts:
         print('\n  Processing parts of the full profile:')
         full_data_length = len(profile_data)
 
-        for step in range(4):
+        for step in range(3):  # 4
             parts_num = 2 ** (step + 1)
             harmonics_amplitudes = np.empty(shape=[parts_num, n_harmonics])
 
             for part in range(parts_num):
+
+                print(index, v_ind[index], h_ind[index])
+
                 start = int((full_data_length / parts_num) * part)
                 stop = int((full_data_length / parts_num) * (part + 1))
-                add_text = ' part ' + str(part+1) + ' of ' + str(parts_num)
+                add_text = ' Part ' + str(part+1) + ' of ' + str(parts_num)
                 print('    Processing' + add_text)
                 new_profile_data = profile_data[start:stop]
 
@@ -338,9 +361,9 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, ha
                 spectrum_max = np.max(max_harmonics)
 
                 # # Making result time profile plot
-                plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename,
-                                  common_path + new_folder_name, current_date, current_time, software_version,
-                                  custom_dpi)
+                # plot_time_profile(profile_data, profile_pic_min, profile_pic_max, pulsar_period, filename,
+                                  # common_path + new_folder_name, current_date, current_time, software_version,
+                                  # custom_dpi)
 
                 # Plotting figure of result spectrum logarithmic
                 # plot_spectra_log_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency,
@@ -349,40 +372,68 @@ def time_profile_spectra(common_path, filename, pulsar_name, time_resolution, ha
                 #                            current_date, current_time, software_version, custom_dpi)
 
                 # Plotting figure of result spectrum linear
-                plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency,
-                                           pulsar_harmonics, max_harmonics, spectrum_max, frequency_limit, n_harmonics,
-                                           common_path + new_folder_name, filename, add_text, current_date,
-                                           current_time, software_version, custom_dpi)
+                # plot_spectra_lin_amplitude(frequency_axis, profile_spectrum, pulsar_period, pulsar_frequency,
+                #                            pulsar_harmonics, max_harmonics, spectrum_max, frequency_limit, n_harmonics,
+                #                            common_path + new_folder_name, filename, add_text, current_date,
+                #                            current_time, software_version, custom_dpi)
+
+                axs[v_ind[index], h_ind[index]].axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0,
+                                                        alpha=0.4, label='Frequency of pulses')
+                for i in range(n_harmonics):
+                    axs[v_ind[index], h_ind[index]].axvline(x=pulsar_harmonics[i], color='C1', linestyle='-',
+                                                            linewidth=2.0, alpha=0.2)
+                # Plotting the spectra
+                axs[v_ind[index], h_ind[index]].plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+                                                     linestyle='-', alpha=1.0, linewidth='0.60',
+                                                     label='Time series spectrum')
+                # Adding calculated maximal point near harmonics as red dots
+                axs[v_ind[index], h_ind[index]].scatter(pulsar_harmonics, max_harmonics, marker='o', color='red', s=6.0,
+                                                        label='Harmonics amplitudes')
+                axs[v_ind[index], h_ind[index]].axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                axs[v_ind[index], h_ind[index]].legend(loc='upper right', fontsize=5)
+                if v_ind[index] == 3:
+                    axs[v_ind[index], h_ind[index]].set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+                if h_ind[index] == 0:
+                    axs[v_ind[index], h_ind[index]].set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+                axs[v_ind[index], h_ind[index]].set_title(add_text, fontsize=5, fontweight='bold')
+                index += 1
 
             spectrum_max = np.max(harmonics_amplitudes[:, :])
 
-            fig = plt.figure(figsize=(9.2, 4.5))
-            rc('font', size=5, weight='bold')
-            ax1 = fig.add_subplot(111)
+            # fig = plt.figure(figsize=(9.2, 4.5))
+            # rc('font', size=5, weight='bold')
+            # ax1 = fig.add_subplot(111)
+            #
+            # # Plotting lines where fundamental and other harmonics are expected
+            # ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.2)
+            # for i in range(n_harmonics):
+            #     ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.1)
+            #
+            # # Adding calculated maximal point near harmonics as red dots
+            # for i in range(parts_num):
+            #     plt.scatter(pulsar_harmonics, harmonics_amplitudes[i, :], marker='o', s=6.0, label='Part ' + str(i+1))
+            # ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+            # ax1.legend(loc='upper right', fontsize=5)
+            # ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+            # ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+            # ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
+            #               fontsize=5, fontweight='bold')
+            # fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (linear amplitude) for ' +
+            #              str(parts_num) + ' parts', fontsize=7, fontweight='bold')
+            # fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
+            #          fontsize=3, transform=plt.gcf().transFigure)
+            # fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+            #          fontsize=3, transform=plt.gcf().transFigure)
+            # pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' spectrum for ' +
+            #               str(parts_num) + ' parts.png', bbox_inches='tight', dpi=custom_dpi)
+            # plt.close('all')
 
-            # Plotting lines where fundamental and other harmonics are expected
-            ax1.axvline(x=pulsar_frequency, color='red', linestyle='-', linewidth=2.0, alpha=0.2)
-            for i in range(n_harmonics):
-                ax1.axvline(x=pulsar_harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.1)
-
-            # Adding calculated maximal point near harmonics as red dots
-            for i in range(parts_num):
-                plt.scatter(pulsar_harmonics, harmonics_amplitudes[i, :], marker='o', s=6.0, label='Part ' + str(i+1))
-            ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
-            ax1.legend(loc='upper right', fontsize=5)
-            ax1.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
-            ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-            ax1.set_title('File: ' + filename + '  Pulsar period: ' + str(np.round(pulsar_period, 3)) + ' s.',
-                          fontsize=5, fontweight='bold')
-            fig.suptitle('Single pulses of ' + pulsar_name + ' in frequency domain (linear amplitude) for ' +
-                         str(parts_num) + ' parts', fontsize=7, fontweight='bold')
-            fig.text(0.80, 0.04, 'Processed ' + current_date + ' at ' + current_time,
-                     fontsize=3, transform=plt.gcf().transFigure)
-            fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
-                     fontsize=3, transform=plt.gcf().transFigure)
-            pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' spectrum for ' +
-                          str(parts_num) + ' parts.png', bbox_inches='tight', dpi=custom_dpi)
-            plt.close('all')
+    axs[0, 3].axis('off')
+    fig.subplots_adjust(hspace=0.25, top=0.93)
+    fig.suptitle('Big-bit title of the figure', fontsize=8, fontweight='bold')
+    pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' big picture.png',
+                  bbox_inches='tight', dpi=300)
+    plt.close('all')
 
     return
 
