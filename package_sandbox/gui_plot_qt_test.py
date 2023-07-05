@@ -50,18 +50,23 @@ class Window(QDialog):
         self.setLayout(layout)
 
     # action called by the push button
-    def plot(self):
+    def plot(self, *args, **kwargs):
         # random data
-        data = [random.random() for i in range(100)]
+        data_0 = [random.random() for i in range(100)]
+        data_1 = [random.random() for i in range(100)]
 
         # clearing old figure
         self.figure.clear()
 
-        # create an axis
-        ax = self.figure.add_subplot(111)
+        ax0 = self.figure.add_subplot(211)
+        ax0.plot(data_0, 'o-')
+        ax0.set_ylim([0, 1])
+        ax0.set_title('Title')
 
-        # plot data
-        ax.plot(data, '*-')
+        ax1 = self.figure.add_subplot(212)
+        ax1.plot(data_1, 'o-')
+        ax1.set_ylim([0, 1])
+        ax1.set_title('Title')
 
         # refresh canvas
         self.canvas.draw()
