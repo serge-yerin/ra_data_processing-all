@@ -1,6 +1,7 @@
 import os
 import sys
-from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QWidget, QDoubleSpinBox
+from PyQt5.QtCore import QSize
 import PyQt5
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -89,16 +90,27 @@ def read_and_prepare_data(common_path, filename):
 
 
 # main window which inherits QDialog
-class Window(QDialog):
+class Window(QMainWindow):
 
     # constructor
-    def __init__(self, parent=None):
-        super(Window, self).__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        # self.setWindowFlag(PyQt5.WindowMinimizeButtonHint, True)
-        # self.setWindowFlag(PyQt5.WindowMaximizeButtonHint, True)
+        self.setGeometry(100, 100, 800, 600)
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu('&File')
 
         self.setWindowTitle('Pulsar profiles analysis')  # Window title
+
+        page_layout = QVBoxLayout()
+        input_controls_layout = QHBoxLayout()
+
+        self.low_limit_input = QDoubleSpinBox()
+        self.low_limit_input.setFixedSize(QSize(100, 30))
+
+        self.high_limit_input = QDoubleSpinBox()
+        self.high_limit_input.setFixedSize(QSize(100, 30))
+
         self.figure = plt.figure()  # a figure instance to plot on
 
         # this is the Canvas Widget that displays the 'figure' it takes the 'figure' instance as a parameter to __init__
@@ -109,28 +121,40 @@ class Window(QDialog):
 
         # Just some button connected to 'plot' method
         self.button = QPushButton('Plot')
+        self.button.clicked.connect(self.plot)  # adding action to the button
+        self.button.setFixedSize(QSize(100, 30))
 
-        # adding action to the button
-        self.button.clicked.connect(self.plot)
+        # Packing layouts
+        input_controls_layout.addWidget(self.button)
+        input_controls_layout.addWidget(self.low_limit_input)
+        input_controls_layout.addWidget(self.high_limit_input)
 
-        # Just some button connected to 'Calc' method
-        self.button2 = QPushButton('Calc')
+        page_layout.addLayout(input_controls_layout)
+        page_layout.addWidget(self.toolbar)
+        page_layout.addWidget(self.canvas)
+
+        widget = QWidget()
+        widget.setLayout(page_layout)
+        self.setCentralWidget(widget)  # Set the central widget of the Window.
+
+
+
 
         # creating a Vertical Box layout
-        layout = QVBoxLayout()
+        # layout = QVBoxLayout()
 
         # adding tool bar to the layout
-        layout.addWidget(self.toolbar)
+        # layout.addWidget(self.toolbar)
 
         # adding canvas to the layout
-        layout.addWidget(self.canvas)
+        # layout.addWidget(self.canvas)
 
         # adding push button to the layout
-        layout.addWidget(self.button)
-        layout.addWidget(self.button2)
+        # layout.addWidget(self.button)
+        # layout.addWidget(self.button2)
 
         # setting layout to the main window
-        self.setLayout(layout)
+        # self.setLayout(layout)
 
     # action called by the push button
     def plot(self):
@@ -139,7 +163,7 @@ class Window(QDialog):
 
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
-        ax0.plot(data_0, 'o-')
+        ax0.plot(data_0)
         ax0.set_xlim([0, len(data_0)])
         ax0.set_ylim([-0.2, 0.2])
         ax0.set_title('Time series')
