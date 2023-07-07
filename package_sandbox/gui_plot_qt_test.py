@@ -11,7 +11,7 @@ import numpy.ma as ma
 
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_common_modules.text_manipulations import read_one_value_txt_file
-
+from package_ra_data_processing.filtering import median_filter
 
 def read_and_prepare_data(common_path, filename):
     data_filename = common_path + filename
@@ -23,6 +23,9 @@ def read_and_prepare_data(common_path, filename):
     # Reading profile data from txt file
     profile_data = read_one_value_txt_file(data_filename)
     print('\n  Number of samples in text file:  ', len(profile_data))
+
+    median = median_filter(profile_data, 100)
+    profile_data = profile_data - median
 
     # Getting pulsar parameters from catalogue
     pulsar_ra, pulsar_dec, source_dm, pulsar_period = catalogue_pulsar(pulsar_name)
