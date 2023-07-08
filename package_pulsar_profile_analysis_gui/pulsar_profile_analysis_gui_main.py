@@ -5,6 +5,7 @@ from PyQt5.QtCore import QSize
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
+import numpy as np
 
 from package_pulsar_profile_analysis_gui.f_read_initial_data import read_and_prepare_data
 from package_pulsar_profile_analysis_gui.f_subtract_median_from_data import subtract_median_from_data
@@ -40,13 +41,15 @@ class Window(QMainWindow):
 
         self.low_limit_input = QDoubleSpinBox()
         self.low_limit_input.setStepType(step_type)
-        self.low_limit_input.setMinimum(-3.0)
+        self.low_limit_input.setMinimum(-10.0)
         self.low_limit_input.setFixedSize(QSize(100, 30))
+        self.low_limit_input.setValue(-3)
 
         self.high_limit_input = QDoubleSpinBox()
         self.high_limit_input.setStepType(step_type)
-        self.high_limit_input.setMinimum(-3.0)
+        self.high_limit_input.setMinimum(-10.0)
         self.high_limit_input.setFixedSize(QSize(100, 30))
+        self.high_limit_input.setValue(3)
 
         self.figure = plt.figure()  # a figure instance to plot on
 
@@ -61,10 +64,16 @@ class Window(QMainWindow):
         self.button_read.clicked.connect(self.read_initial_data)  # adding action to the button
         self.button_read.setFixedSize(QSize(100, 30))
 
-        # Button "Read data"
-        self.button_filter = QPushButton('Median filter')
-        self.button_filter.clicked.connect(self.subtract_median)  # adding action to the button (pulsar_data_in_time)
-        self.button_filter.setFixedSize(QSize(120, 30))
+        # Button "Subtract median"
+        self.button_filter = QPushButton('Subtract median')
+        self.button_filter.clicked.connect(self.subtract_median)  # adding action to the button
+        self.button_filter.setFixedSize(QSize(140, 30))
+
+        # Button "Crop data"
+        self.button_crop = QPushButton('Crop data')
+        self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
+        self.button_crop.setFixedSize(QSize(140, 30))
+
 
         # Packing layouts in the window
         input_controls_layout.addWidget(self.button_read)
@@ -73,6 +82,7 @@ class Window(QMainWindow):
         input_controls_layout.addWidget(self.low_limit_input)
         input_controls_layout.addWidget(self.label_high_limit_input)
         input_controls_layout.addWidget(self.high_limit_input)
+        input_controls_layout.addWidget(self.button_crop)
 
         page_layout.addLayout(input_controls_layout)
         page_layout.addWidget(self.toolbar)
@@ -88,6 +98,7 @@ class Window(QMainWindow):
         # Reading profile data from txt file
         data_filename = common_path + filename
         pulsar_data_in_time = read_one_value_txt_file(data_filename)
+        self.p_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
         pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
@@ -110,9 +121,13 @@ class Window(QMainWindow):
         return pulsar_data_in_time
 
     # action called by the push button
-    def subtract_median(self, pulsar_data_in_time):
+    def subtract_median(self):
 
-        pulsar_data_in_time = subtract_median_from_data(pulsar_data_in_time)
+        pulsar_data_in_time = subtract_median_from_data(self.p_data_in_time)
+
+        pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
+
+        self.prepared_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
         pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
@@ -122,7 +137,33 @@ class Window(QMainWindow):
         ax0 = self.figure.add_subplot(211)
         ax0.plot(pulsar_data_in_time)
         ax0.set_xlim([0, len(pulsar_data_in_time)])
-        ax0.set_ylim([-0.2, 0.2])
+        ax0.set_ylim([-5.0, 5.0])
+        ax0.set_title('Time series')
+        ax1 = self.figure.add_subplot(212)
+        # Adding the plots for parts of data to the big result picture
+        ax1.plot(frequency_axis, pulses_spectra)
+        ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        self.figure.subplots_adjust(hspace=0.25, top=0.945)
+        ax1.set_title('Spectrum')
+        self.canvas.draw()  # refresh canvas
+
+
+    def crop_and_show_spectrum(self):
+        # getting current value
+        min_limit = self.low_limit_input.value()
+        max_limit = self.high_limit_input.value()
+
+        cropped_data_in_time = np.clip(self.prepared_data_in_time, min_limit, max_limit)
+
+        # Calculating the spectrum
+        pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
+            frequency_limit = read_and_prepare_data(cropped_data_in_time, pulsar_name,
+                                                    time_resolution, harmonics_to_show)
+        self.figure.clear()  # clearing old figure
+        ax0 = self.figure.add_subplot(211)
+        ax0.plot(pulsar_data_in_time)
+        ax0.set_xlim([0, len(pulsar_data_in_time)])
+        ax0.set_ylim([-5.0, 5.0])
         ax0.set_title('Time series')
         ax1 = self.figure.add_subplot(212)
         # Adding the plots for parts of data to the big result picture
