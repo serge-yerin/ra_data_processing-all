@@ -11,19 +11,21 @@ from package_pulsar_profile_analysis_gui.f_read_initial_data import read_and_pre
 from package_pulsar_profile_analysis_gui.f_subtract_median_from_data import subtract_median_from_data
 from package_common_modules.text_manipulations import read_one_value_txt_file
 
-# Main window which inherits QDialog
+
+# Main window
 class Window(QMainWindow):
 
     # constructor
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Window geometry and hierarchy
+        self.setWindowTitle('Pulsar profiles analysis')  # Window title
         self.setGeometry(100, 100, 800, 600)
         # menu_bar = self.menuBar()
         # file_menu = menu_bar.addMenu('&File')
 
-        self.setWindowTitle('Pulsar profiles analysis')  # Window title
-
+        # Layouts in the main window
         page_layout = QVBoxLayout()
         input_controls_layout = QHBoxLayout()
 
@@ -51,12 +53,11 @@ class Window(QMainWindow):
         self.high_limit_input.setFixedSize(QSize(100, 30))
         self.high_limit_input.setValue(3)
 
+        # Main plot window
         self.figure = plt.figure()  # a figure instance to plot on
+        self.canvas = FigureCanvas(self.figure) # takes the 'figure' instance as a parameter to __init__
 
-        # this is the Canvas Widget that displays the 'figure' it takes the 'figure' instance as a parameter to __init__
-        self.canvas = FigureCanvas(self.figure)
-
-        # this is the Navigation widget it takes the Canvas widget and a parent
+        # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Button "Read data"
@@ -73,7 +74,6 @@ class Window(QMainWindow):
         self.button_crop = QPushButton('Crop data')
         self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
         self.button_crop.setFixedSize(QSize(140, 30))
-
 
         # Packing layouts in the window
         input_controls_layout.addWidget(self.button_read)
@@ -104,6 +104,7 @@ class Window(QMainWindow):
         pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
             frequency_limit = read_and_prepare_data(pulsar_data_in_time, pulsar_name,
                                                     time_resolution, harmonics_to_show)
+        # Update the plot
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
         ax0.plot(pulsar_data_in_time)
@@ -123,16 +124,16 @@ class Window(QMainWindow):
     # action called by the push button
     def subtract_median(self):
 
+        # Subtract median and normalize data
         pulsar_data_in_time = subtract_median_from_data(self.p_data_in_time)
-
         pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-
         self.prepared_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
         pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
             frequency_limit = read_and_prepare_data(pulsar_data_in_time, pulsar_name,
                                                     time_resolution, harmonics_to_show)
+        # Update the plot
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
         ax0.plot(pulsar_data_in_time)
@@ -147,18 +148,20 @@ class Window(QMainWindow):
         ax1.set_title('Spectrum')
         self.canvas.draw()  # refresh canvas
 
-
     def crop_and_show_spectrum(self):
-        # getting current value
+
+        # Getting current values from spinboxes
         min_limit = self.low_limit_input.value()
         max_limit = self.high_limit_input.value()
 
+        # Clip data
         cropped_data_in_time = np.clip(self.prepared_data_in_time, min_limit, max_limit)
 
         # Calculating the spectrum
         pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
             frequency_limit = read_and_prepare_data(cropped_data_in_time, pulsar_name,
                                                     time_resolution, harmonics_to_show)
+        # Update the plot
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
         ax0.plot(pulsar_data_in_time)
