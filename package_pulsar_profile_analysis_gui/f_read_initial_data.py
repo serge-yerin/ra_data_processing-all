@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def read_and_prepare_data(profile_data, time_resolution):
+def calculate_spectrum_of_profile(profile_data, time_resolution):
 
     # Data frequency resolution, Hz
     frequency_resolution = 1 / (time_resolution * len(profile_data))

@@ -7,7 +7,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_pulsar_profile_analysis_gui.f_read_initial_data import read_and_prepare_data
+from package_pulsar_profile_analysis_gui.f_read_initial_data import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_subtract_median_from_data import subtract_median_from_data
 from package_common_modules.text_manipulations import read_one_value_txt_file
 
@@ -102,7 +102,7 @@ class Window(QMainWindow):
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            read_and_prepare_data(pulsar_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
 
         # Update the plot
         self.figure.clear()  # clearing old figure
@@ -129,7 +129,7 @@ class Window(QMainWindow):
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            read_and_prepare_data(pulsar_data_in_time, time_resolution)  #pulsar_data_in_time
+            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)  #pulsar_data_in_time
 
         # Update the plot
         self.figure.clear()  # clearing old figure
@@ -156,7 +156,7 @@ class Window(QMainWindow):
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            read_and_prepare_data(cropped_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(cropped_data_in_time, time_resolution)
 
         def mouse_event(event):
             x = event.xdata
