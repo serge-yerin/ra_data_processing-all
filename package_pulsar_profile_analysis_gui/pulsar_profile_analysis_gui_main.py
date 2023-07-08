@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QWidget, QDoubleSpinBox
-from PyQt5.QtWidgets import QAbstractSpinBox, QLabel
+from PyQt5.QtWidgets import QAbstractSpinBox, QLabel, QTabWidget
 from PyQt5.QtCore import QSize
 from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -26,9 +26,45 @@ class Window(QMainWindow):
         # menu_bar = self.menuBar()
         # file_menu = menu_bar.addMenu('&File')
 
-        # Layouts in the main window
-        page_layout = QVBoxLayout()
-        input_controls_layout = QHBoxLayout()
+        self.table_widget = MyTableWidget(self)
+        self.setCentralWidget(self.table_widget)
+
+
+class MyTableWidget(QWidget):
+
+    def __init__(self, parent):
+        super(QWidget, self).__init__(parent)
+        self.layout = QVBoxLayout(self)
+
+        # Initialize tab screen
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tab3 = QWidget()
+        # self.tabs.resize(300, 200)
+
+        # Add tabs
+        self.tabs.addTab(self.tab1, "Process DSP data")
+        self.tabs.addTab(self.tab2, "Analyze profile")
+        self.tabs.addTab(self.tab3, "Analyze parts")
+
+        ##############################
+        #         First tab          #
+        ##############################
+
+        # First tab
+        self.tab1.layout = QVBoxLayout(self)
+        self.pushButton1 = QPushButton("PyQt5 button")
+        self.tab1.layout.addWidget(self.pushButton1)
+        self.tab1.setLayout(self.tab1.layout)
+
+        ##############################
+        #         Second tab         #
+        ##############################
+
+        # Layouts in the second tab
+        self.tab2.layout = QVBoxLayout(self)
+        self.input_controls_layout = QHBoxLayout()
 
         # Creating labels near spinboxes to describe the input
         self.label_median_win = QLabel("Median window:", self)
@@ -90,23 +126,43 @@ class Window(QMainWindow):
         self.button_crop.setFixedSize(QSize(140, 30))
 
         # Packing layouts in the window
-        input_controls_layout.addWidget(self.button_read)
-        input_controls_layout.addWidget(self.label_median_win)
-        input_controls_layout.addWidget(self.filter_win_input)
-        input_controls_layout.addWidget(self.button_filter)
-        input_controls_layout.addWidget(self.label_low_limit_input)
-        input_controls_layout.addWidget(self.low_limit_input)
-        input_controls_layout.addWidget(self.label_high_limit_input)
-        input_controls_layout.addWidget(self.high_limit_input)
-        input_controls_layout.addWidget(self.button_crop)
+        self.input_controls_layout.addWidget(self.button_read)
+        self.input_controls_layout.addWidget(self.label_median_win)
+        self.input_controls_layout.addWidget(self.filter_win_input)
+        self.input_controls_layout.addWidget(self.button_filter)
+        self.input_controls_layout.addWidget(self.label_low_limit_input)
+        self.input_controls_layout.addWidget(self.low_limit_input)
+        self.input_controls_layout.addWidget(self.label_high_limit_input)
+        self.input_controls_layout.addWidget(self.high_limit_input)
+        self.input_controls_layout.addWidget(self.button_crop)
 
-        page_layout.addLayout(input_controls_layout)
-        page_layout.addWidget(self.toolbar)
-        page_layout.addWidget(self.canvas)
+        self.tab2.layout.addLayout(self.input_controls_layout)
+        self.tab2.layout.addWidget(self.toolbar)
+        self.tab2.layout.addWidget(self.canvas)
+        #
+        # widget = QWidget()
+        # widget.setLayout(self.tab2.layout)
+        # self.setCentralWidget(widget)  # Set the central widget of the Window.
 
-        widget = QWidget()
-        widget.setLayout(page_layout)
-        self.setCentralWidget(widget)  # Set the central widget of the Window.
+        self.tab2.setLayout(self.tab2.layout)
+
+        ##############################
+        #         Third tab         #
+        ##############################
+
+        # Third tab
+        self.tab3.layout = QVBoxLayout(self)
+        self.pushButton1 = QPushButton("PyQt5 button")
+        self.tab3.layout.addWidget(self.pushButton1)
+        self.tab3.setLayout(self.tab3.layout)
+
+        ##############################
+        #         Pack tabs          #
+        ##############################
+
+        # Add tabs to widget
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
 
     # action called by the push button
     def read_initial_data(self):
