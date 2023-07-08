@@ -101,9 +101,9 @@ class Window(QMainWindow):
         self.p_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
-        pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
-            frequency_limit = read_and_prepare_data(pulsar_data_in_time, pulsar_name,
-                                                    time_resolution, harmonics_to_show)
+        frequency_axis, pulses_spectra, spectrum_max = \
+            read_and_prepare_data(pulsar_data_in_time, time_resolution)
+
         # Update the plot
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
@@ -119,8 +119,6 @@ class Window(QMainWindow):
         ax1.set_title('Spectrum')
         self.canvas.draw()  # refresh canvas
 
-        return pulsar_data_in_time
-
     # action called by the push button
     def subtract_median(self):
 
@@ -130,9 +128,9 @@ class Window(QMainWindow):
         self.prepared_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
-        pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
-            frequency_limit = read_and_prepare_data(pulsar_data_in_time, pulsar_name,
-                                                    time_resolution, harmonics_to_show)
+        frequency_axis, pulses_spectra, spectrum_max = \
+            read_and_prepare_data(pulsar_data_in_time, time_resolution)  #pulsar_data_in_time
+
         # Update the plot
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
@@ -141,7 +139,6 @@ class Window(QMainWindow):
         ax0.set_ylim([-5.0, 5.0])
         ax0.set_title('Time series')
         ax1 = self.figure.add_subplot(212)
-        # Adding the plots for parts of data to the big result picture
         ax1.plot(frequency_axis, pulses_spectra)
         ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
@@ -158,14 +155,37 @@ class Window(QMainWindow):
         cropped_data_in_time = np.clip(self.prepared_data_in_time, min_limit, max_limit)
 
         # Calculating the spectrum
-        pulsar_data_in_time, frequency_axis, pulses_spectra, spectrum_max, \
-            frequency_limit = read_and_prepare_data(cropped_data_in_time, pulsar_name,
-                                                    time_resolution, harmonics_to_show)
+        frequency_axis, pulses_spectra, spectrum_max = \
+            read_and_prepare_data(cropped_data_in_time, time_resolution)
+
+        def mouse_event(event):
+            x = event.xdata
+            self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x, 11*x,
+                                        12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x]
+
+            self.figure.clear()  # clearing old figure
+            ax0 = self.figure.add_subplot(211)
+            ax0.plot(cropped_data_in_time)
+            ax0.set_xlim([0, len(cropped_data_in_time)])
+            ax0.set_ylim([-5.0, 5.0])
+            ax0.set_title('Time series')
+            ax1 = self.figure.add_subplot(212)
+            plt.text(x, spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + '  $Hz$  $or$ $P$ = ' +
+                     str(np.round(1/x, 3)) + ' $s$', fontsize=14, color='C3')
+            for harmonic in self.harmonics_highlight:
+                ax1.axvline(x=harmonic, color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
+            ax1.plot(frequency_axis, pulses_spectra)
+            ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+            self.figure.subplots_adjust(hspace=0.25, top=0.945)
+            ax1.set_title('Spectrum')
+            self.canvas.draw()  # refresh canvas
+
         # Update the plot
+        cid = self.figure.canvas.mpl_connect('button_press_event', mouse_event)
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
-        ax0.plot(pulsar_data_in_time)
-        ax0.set_xlim([0, len(pulsar_data_in_time)])
+        ax0.plot(cropped_data_in_time)
+        ax0.set_xlim([0, len(cropped_data_in_time)])
         ax0.set_ylim([-5.0, 5.0])
         ax0.set_title('Time series')
         ax1 = self.figure.add_subplot(212)
@@ -185,9 +205,13 @@ if __name__ == '__main__':
 
     # Parameters
     common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+
     filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
-    pulsar_name = 'B0329+54'
-    harmonics_to_show = 15  # Figure upper frequency (x-axis) limit in number of pulse harmonics to show
+    # filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
+    # filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
+    # filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
+
+    frequency_limit = 10
     time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
 
     sys.exit(app.exec_())  # loop
