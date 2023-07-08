@@ -2,14 +2,15 @@ import sys
 from PyQt5.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QWidget, QDoubleSpinBox
 from PyQt5.QtWidgets import QAbstractSpinBox, QLabel
 from PyQt5.QtCore import QSize
+from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 import numpy as np
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
-from package_pulsar_profile_analysis_gui.f_subtract_median_from_data import subtract_median_from_data
 from package_common_modules.text_manipulations import read_one_value_txt_file
+from package_ra_data_processing.filtering import median_filter
 
 
 # Main window
@@ -29,16 +30,29 @@ class Window(QMainWindow):
         page_layout = QVBoxLayout()
         input_controls_layout = QHBoxLayout()
 
-        # Creating labels for spinboxes
+        # Creating labels near spinboxes to describe the input
+        self.label_median_win = QLabel("Median window:", self)
+        self.label_median_win.setFixedSize(QSize(100, 30))
+        self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
+
         self.label_low_limit_input = QLabel("Lower limit", self)
         self.label_low_limit_input.setFixedSize(QSize(100, 30))
         self.label_low_limit_input.setWordWrap(True)  # making label multi line
+        self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
         self.label_high_limit_input = QLabel("Higher limit", self)
         self.label_high_limit_input.setFixedSize(QSize(100, 30))
         self.label_high_limit_input.setWordWrap(True)  # making label multi line
+        self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
         # Selection of limits with spinboxes
+
+        self.filter_win_input = QDoubleSpinBox()
+        self.filter_win_input.setFixedSize(QSize(100, 30))
+        self.filter_win_input.setMinimum(0)
+        self.filter_win_input.setMaximum(100000)
+        self.filter_win_input.setValue(100)
+
         step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
         self.low_limit_input = QDoubleSpinBox()
@@ -55,7 +69,7 @@ class Window(QMainWindow):
 
         # Main plot window
         self.figure = plt.figure()  # a figure instance to plot on
-        self.canvas = FigureCanvas(self.figure) # takes the 'figure' instance as a parameter to __init__
+        self.canvas = FigureCanvas(self.figure)  # takes the 'figure' instance as a parameter to __init__
 
         # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
         self.toolbar = NavigationToolbar(self.canvas, self)
@@ -77,6 +91,8 @@ class Window(QMainWindow):
 
         # Packing layouts in the window
         input_controls_layout.addWidget(self.button_read)
+        input_controls_layout.addWidget(self.label_median_win)
+        input_controls_layout.addWidget(self.filter_win_input)
         input_controls_layout.addWidget(self.button_filter)
         input_controls_layout.addWidget(self.label_low_limit_input)
         input_controls_layout.addWidget(self.low_limit_input)
@@ -110,20 +126,22 @@ class Window(QMainWindow):
         ax0.plot(pulsar_data_in_time)
         ax0.set_xlim([0, len(pulsar_data_in_time)])
         ax0.set_ylim([-0.2, 0.2])
-        ax0.set_title('Time series')
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
         ax1 = self.figure.add_subplot(212)
         # Adding the plots for parts of data to the big result picture
         ax1.plot(frequency_axis, pulses_spectra)
         ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum')
+        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
         self.canvas.draw()  # refresh canvas
 
     # action called by the push button
     def subtract_median(self):
 
         # Subtract median and normalize data
-        pulsar_data_in_time = subtract_median_from_data(self.p_data_in_time)
+        median = median_filter(self.p_data_in_time, int(self.filter_win_input.value()))
+        pulsar_data_in_time = self.p_data_in_time - median
         pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
         self.prepared_data_in_time = pulsar_data_in_time
 
@@ -137,12 +155,13 @@ class Window(QMainWindow):
         ax0.plot(pulsar_data_in_time)
         ax0.set_xlim([0, len(pulsar_data_in_time)])
         ax0.set_ylim([-5.0, 5.0])
-        ax0.set_title('Time series')
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
         ax1 = self.figure.add_subplot(212)
         ax1.plot(frequency_axis, pulses_spectra)
         ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum')
+        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
         self.canvas.draw()  # refresh canvas
 
     def crop_and_show_spectrum(self):
@@ -168,16 +187,17 @@ class Window(QMainWindow):
             ax0.plot(cropped_data_in_time)
             ax0.set_xlim([0, len(cropped_data_in_time)])
             ax0.set_ylim([-5.0, 5.0])
-            ax0.set_title('Time series')
+            ax0.set_title('Time series', fontsize=10, fontweight='bold')
             ax1 = self.figure.add_subplot(212)
-            plt.text(x, spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + '  $Hz$  $or$ $P$ = ' +
+            plt.text(x, spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + ' $Hz$ $or$ $P$ = ' +
                      str(np.round(1/x, 3)) + ' $s$', fontsize=14, color='C3')
             for harmonic in self.harmonics_highlight:
                 ax1.axvline(x=harmonic, color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
             ax1.plot(frequency_axis, pulses_spectra)
             ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+            ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
             self.figure.subplots_adjust(hspace=0.25, top=0.945)
-            ax1.set_title('Spectrum')
+            ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
             self.canvas.draw()  # refresh canvas
 
         # Update the plot
@@ -187,13 +207,14 @@ class Window(QMainWindow):
         ax0.plot(cropped_data_in_time)
         ax0.set_xlim([0, len(cropped_data_in_time)])
         ax0.set_ylim([-5.0, 5.0])
-        ax0.set_title('Time series')
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
         ax1 = self.figure.add_subplot(212)
         # Adding the plots for parts of data to the big result picture
         ax1.plot(frequency_axis, pulses_spectra)
         ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum')
+        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
         self.canvas.draw()  # refresh canvas
 
 
