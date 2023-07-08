@@ -1,8 +1,8 @@
 import os
 import sys
-from PyQt5.QtWidgets import QDialog, QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QWidget, QDoubleSpinBox
+from PyQt5.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QWidget, QDoubleSpinBox
+from PyQt5.QtWidgets import QAbstractSpinBox, QLabel
 from PyQt5.QtCore import QSize
-import PyQt5
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
@@ -12,6 +12,7 @@ import numpy.ma as ma
 from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_ra_data_processing.filtering import median_filter
+
 
 def read_and_prepare_data(common_path, filename):
     data_filename = common_path + filename
@@ -57,9 +58,6 @@ def read_and_prepare_data(common_path, filename):
     profile_spectrum = np.power(np.real(np.fft.fft(profile_data[:])), 2)  # calculation of the spectrum
     profile_spectrum = profile_spectrum[0:int(len(profile_spectrum) / 2)]  # delete second part of the spectrum
 
-    # Nulling of lowest harmonics if necessary
-    # profile_spectrum[0:100] = 0.0
-
     frequency_axis = [frequency_resolution * i for i in range(len(profile_spectrum))]
 
     # Finding the maximal spectrum amplitudes near expected harmonics
@@ -100,18 +98,34 @@ class Window(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.setGeometry(100, 100, 800, 600)
-        menu_bar = self.menuBar()
-        file_menu = menu_bar.addMenu('&File')
+        # menu_bar = self.menuBar()
+        # file_menu = menu_bar.addMenu('&File')
 
         self.setWindowTitle('Pulsar profiles analysis')  # Window title
 
         page_layout = QVBoxLayout()
         input_controls_layout = QHBoxLayout()
 
+        # Creating labels for spinboxes
+        self.label_low_limit_input = QLabel("Lower limit", self)
+        self.label_low_limit_input.setFixedSize(QSize(100, 30))
+        self.label_low_limit_input.setWordWrap(True)  # making label multi line
+
+        self.label_high_limit_input = QLabel("Higher limit", self)
+        self.label_high_limit_input.setFixedSize(QSize(100, 30))
+        self.label_high_limit_input.setWordWrap(True)  # making label multi line
+
+        # Selection of limits with spinboxes
+        step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
+
         self.low_limit_input = QDoubleSpinBox()
+        self.low_limit_input.setStepType(step_type)
+        self.low_limit_input.setMinimum(-3.0)
         self.low_limit_input.setFixedSize(QSize(100, 30))
 
         self.high_limit_input = QDoubleSpinBox()
+        self.high_limit_input.setStepType(step_type)
+        self.high_limit_input.setMinimum(-3.0)
         self.high_limit_input.setFixedSize(QSize(100, 30))
 
         self.figure = plt.figure()  # a figure instance to plot on
@@ -123,13 +137,15 @@ class Window(QMainWindow):
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Just some button connected to 'plot' method
-        self.button = QPushButton('Plot')
-        self.button.clicked.connect(self.plot)  # adding action to the button
+        self.button = QPushButton('Read data')
+        self.button.clicked.connect(self.read_initial_data)  # adding action to the button
         self.button.setFixedSize(QSize(100, 30))
 
-        # Packing layouts
+        # Packing layouts in the window
         input_controls_layout.addWidget(self.button)
+        input_controls_layout.addWidget(self.label_low_limit_input)
         input_controls_layout.addWidget(self.low_limit_input)
+        input_controls_layout.addWidget(self.label_high_limit_input)
         input_controls_layout.addWidget(self.high_limit_input)
 
         page_layout.addLayout(input_controls_layout)
@@ -140,27 +156,8 @@ class Window(QMainWindow):
         widget.setLayout(page_layout)
         self.setCentralWidget(widget)  # Set the central widget of the Window.
 
-
-
-
-        # creating a Vertical Box layout
-        # layout = QVBoxLayout()
-
-        # adding tool bar to the layout
-        # layout.addWidget(self.toolbar)
-
-        # adding canvas to the layout
-        # layout.addWidget(self.canvas)
-
-        # adding push button to the layout
-        # layout.addWidget(self.button)
-        # layout.addWidget(self.button2)
-
-        # setting layout to the main window
-        # self.setLayout(layout)
-
     # action called by the push button
-    def plot(self):
+    def read_initial_data(self):
         # random data
         data_0, x_line_1, data_1, spectrum_max, frequency_limit = read_and_prepare_data(common_path, filename)
 
