@@ -126,8 +126,8 @@ class MyTableWidget(QWidget):
         # Nested horizontal layout for DM entry
         self.dm_entry_layout = QHBoxLayout()
 
-        self.label_dm_entry = QLabel("Source dispersion measure (DM)", self)
-        self.label_dm_entry.setFixedSize(QSize(200, 30))
+        self.label_dm_entry = QLabel("Source dispersion measure (DM):", self)
+        self.label_dm_entry.setFixedSize(QSize(160, 30))
         self.dm_entry_layout.addWidget(self.label_dm_entry)
 
         # Path to txt file line
@@ -137,7 +137,7 @@ class MyTableWidget(QWidget):
         self.dm_entry_layout.addWidget(self.line_dm_entry)
 
         self.label_dm_units = QLabel("pc * cm^-3", self)
-        self.label_dm_units.setFixedSize(QSize(200, 30))
+        self.label_dm_units.setFixedSize(QSize(490, 30))
         self.dm_entry_layout.addWidget(self.label_dm_units)
 
         # Add nested horizontal layout to the main one
