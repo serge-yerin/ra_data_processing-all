@@ -12,6 +12,7 @@ import numpy as np
 import sys
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
+from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
 from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_ra_data_processing.filtering import median_filter
 from package_common_modules.text_manipulations import separate_filename_and_path
@@ -89,32 +90,64 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
 
         self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
-                                       'the second tab "Analyze profile" and begin analysis', self)
+                                              'the second tab "Analyze profile" and begin analysis', self)
         self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
 
         # Added empty label to separate workflows
         self.label_txt_file_selected = QLabel(' ', self)
         self.tab1.layout.addWidget(self.label_txt_file_selected, 2, 1)
 
-
         # First tab second part
-        self.radiobutton = QRadioButton("Raw .jds files")
+        self.radiobutton = QRadioButton("Raw .jds files preprocess:")
         self.radiobutton.process_type = "raw jds files"
         self.radiobutton.toggled.connect(self.rb_on_click)
         self.tab1.layout.addWidget(self.radiobutton, 3, 0, Qt.AlignTop)
 
-        # self.jds_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
         self.jds_file_path_line = QPlainTextEdit()  # self, placeholderText='Enter a keyword to search...'
-
-        # self.jds_file_path_line.setReadOnly(read_only)
-        # self.txt_file_path_line.setText(common_path + filename)
+        # self.jds_file_path_line.setReadOnly(read only)
         self.tab1.layout.addWidget(self.jds_file_path_line, 3, 1)
 
-        # Button "Open txt file"
+        # Button "Open jds file"
         self.button_open_jds = QPushButton('Open jds files to preprocess')
         self.button_open_jds.clicked.connect(self.jds_files_open_dialog)  # adding action to the button
         self.button_open_jds.setFixedSize(QSize(150, 30))
         self.tab1.layout.addWidget(self.button_open_jds, 3, 2, Qt.AlignTop)
+
+        # Path to result folder line
+        self.result_path_line = QLineEdit()
+        self.tab1.layout.addWidget(self.result_path_line, 4, 1)
+
+        # Button "Specify result folder"
+        self.button_select_result_path = QPushButton('Specify result folder')
+        self.button_select_result_path.clicked.connect(self.specify_result_folder_dialog)  # adding action to the button
+        self.button_select_result_path.setFixedSize(QSize(150, 30))
+        self.tab1.layout.addWidget(self.button_select_result_path, 4, 2)
+
+        # Nested horizontal layout for DM entry
+        self.dm_entry_layout = QHBoxLayout()
+
+        self.label_dm_entry = QLabel("Source dispersion measure (DM)", self)
+        self.label_dm_entry.setFixedSize(QSize(200, 30))
+        self.dm_entry_layout.addWidget(self.label_dm_entry)
+
+        # Path to txt file line
+        self.line_dm_entry = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
+        # self.line_dm_entry.setFixedSize(QSize(400, 30))
+        self.line_dm_entry.setText('5.755')
+        self.dm_entry_layout.addWidget(self.line_dm_entry)
+
+        self.label_dm_units = QLabel("pc * cm^-3", self)
+        self.label_dm_units.setFixedSize(QSize(200, 30))
+        self.dm_entry_layout.addWidget(self.label_dm_units)
+
+        # Add nested horizontal layout to the main one
+        self.tab1.layout.addLayout(self.dm_entry_layout, 5, 1)
+
+        # Button "Preprocess jds files"
+        self.button_process_jds = QPushButton('Preprocess jds files')
+        self.button_process_jds.clicked.connect(self.preprocess_jds_files)  # adding action to the button
+        # self.button_process_jds.setFixedSize(QSize(150, 30))
+        self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
 
         # Adding stretch lines to get all elements magnetted to top
         self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
@@ -224,10 +257,17 @@ class MyTableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
+    def preprocess_jds_files(self):
+        self.profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+                                                                     self.jds_analysis_list, 0, 0)
+        pass
+
+    def specify_result_folder_dialog(self):
+        pass
+
     def jds_files_open_dialog(self):
         files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()",
                                                     "", "JDS files (*.jds)")
-
         file_names = []
         self.jds_file_path_line.clear()  # Cleat the text input to add new file paths
         if check:
