@@ -1,17 +1,23 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
-from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtCore import QSize
-from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
+from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
+from PyQt5.QtCore import QSize, Qt
+from PyQt5 import QtCore
+
+from os import path
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_ra_data_processing.filtering import median_filter
+
+# To change system path to the directory where script is running:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 
 # Main window
@@ -81,11 +87,37 @@ class MyTableWidget(QWidget):
         self.button_open_txt.setFixedSize(QSize(100, 30))
         self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
 
-        # First tab second raw
+        self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
+                                       'the second tab "Analyze profile" and begin analysis', self)
+        self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
+
+        # Added empty label to separate workflows
+        self.label_txt_file_selected = QLabel(' ', self)
+        self.tab1.layout.addWidget(self.label_txt_file_selected, 2, 1)
+
+
+        # First tab second part
         self.radiobutton = QRadioButton("Raw .jds files")
         self.radiobutton.process_type = "raw jds files"
         self.radiobutton.toggled.connect(self.rb_on_click)
-        self.tab1.layout.addWidget(self.radiobutton, 1, 0)
+        self.tab1.layout.addWidget(self.radiobutton, 3, 0, Qt.AlignTop)
+
+        # self.jds_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
+        self.jds_file_path_line = QPlainTextEdit()  # self, placeholderText='Enter a keyword to search...'
+
+        # self.jds_file_path_line.setReadOnly(read_only)
+        # self.txt_file_path_line.setText(common_path + filename)
+        self.tab1.layout.addWidget(self.jds_file_path_line, 3, 1)
+
+        # Button "Open txt file"
+        self.button_open_jds = QPushButton('Open jds files to preprocess')
+        self.button_open_jds.clicked.connect(self.jds_files_open_dialog)  # adding action to the button
+        self.button_open_jds.setFixedSize(QSize(150, 30))
+        self.tab1.layout.addWidget(self.button_open_jds, 3, 2, Qt.AlignTop)
+
+        # Adding stretch lines to get all elements magnetted to top
+        self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
+        # self.tab1.layout.setColumnStretch(self.tab1.layout.columnCount(), 1)
 
         self.tab1.setLayout(self.tab1.layout)
 
@@ -170,10 +202,6 @@ class MyTableWidget(QWidget):
         self.tab2.layout.addLayout(self.input_controls_layout)
         self.tab2.layout.addWidget(self.toolbar)
         self.tab2.layout.addWidget(self.canvas)
-        #
-        # widget = QWidget()
-        # widget.setLayout(self.tab2.layout)
-        # self.setCentralWidget(widget)  # Set the central widget of the Window.
 
         self.tab2.setLayout(self.tab2.layout)
 
@@ -195,6 +223,13 @@ class MyTableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
+    def jds_files_open_dialog(self):
+        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()",
+                                                    "", "JDS files (*.jds)")
+        self.jds_file_path_line.clear()
+        if check:
+            for i in range(len(files)):
+                self.jds_file_path_line.appendPlainText(files[i])
 
     def one_txt_file_dialog(self):
         file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
