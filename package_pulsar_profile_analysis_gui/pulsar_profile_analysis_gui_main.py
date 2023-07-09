@@ -14,6 +14,7 @@ import sys
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_ra_data_processing.filtering import median_filter
+from package_common_modules.text_manipulations import separate_filename_and_path
 
 # To change system path to the directory where script is running:
 if __package__ is None:
@@ -84,7 +85,7 @@ class MyTableWidget(QWidget):
         # Button "Open txt file"
         self.button_open_txt = QPushButton('Open txt file')
         self.button_open_txt.clicked.connect(self.one_txt_file_dialog)  # adding action to the button
-        self.button_open_txt.setFixedSize(QSize(100, 30))
+        self.button_open_txt.setFixedSize(QSize(150, 30))
         self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
 
         self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
@@ -226,10 +227,16 @@ class MyTableWidget(QWidget):
     def jds_files_open_dialog(self):
         files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()",
                                                     "", "JDS files (*.jds)")
-        self.jds_file_path_line.clear()
+
+        file_names = []
+        self.jds_file_path_line.clear()  # Cleat the text input to add new file paths
         if check:
             for i in range(len(files)):
                 self.jds_file_path_line.appendPlainText(files[i])
+                directory, file_name = separate_filename_and_path(files[i])
+                file_names.append(file_name)
+            self.jds_analysis_directory = directory
+            self.jds_analysis_list = file_names
 
     def one_txt_file_dialog(self):
         file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
