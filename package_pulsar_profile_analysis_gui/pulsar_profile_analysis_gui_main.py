@@ -1,6 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QWidget, QDoubleSpinBox
-from PyQt5.QtWidgets import QAbstractSpinBox, QLabel, QTabWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QSize
 from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -53,10 +54,33 @@ class MyTableWidget(QWidget):
         ##############################
 
         # First tab
-        self.tab1.layout = QVBoxLayout(self)
-        self.pushButton1 = QPushButton("PyQt5 button")
-        self.tab1.layout.addWidget(self.pushButton1)
+        self.tab1.layout = QGridLayout(self)  # QVBoxLayout
+
+        # First tab raw one
+        self.radiobutton = QRadioButton("Ready profile .txt file: ")
+        self.radiobutton.setChecked(True)
+        self.radiobutton.process_type = "txt file only"
+        self.radiobutton.toggled.connect(self.rb_on_click)
+        self.tab1.layout.addWidget(self.radiobutton, 0, 0)
+
+        # Path to txt file line
+        self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
+        # self.txt_file_path_line.setFixedSize(QSize(400, 30))
+        self.tab1.layout.addWidget(self.txt_file_path_line, 0, 1)
+
+        # Button "Open txt file"
+        self.button_open_txt = QPushButton('Open txt file')
+        self.button_open_txt.clicked.connect(self.one_txt_file_dialog)  # adding action to the button
+        self.button_open_txt.setFixedSize(QSize(100, 30))
+        self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
+
+        self.radiobutton = QRadioButton("Raw .jds files")
+        self.radiobutton.process_type = "raw jds files"
+        self.radiobutton.toggled.connect(self.rb_on_click)
+        self.tab1.layout.addWidget(self.radiobutton, 1, 0)
+
         self.tab1.setLayout(self.tab1.layout)
+
 
         ##############################
         #         Second tab         #
@@ -163,6 +187,19 @@ class MyTableWidget(QWidget):
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
+
+
+    def one_txt_file_dialog(self):
+        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
+                                                  "", "Text Files (*.txt)")
+        if check:
+            self.txt_file_path_line.setText(file)
+
+    # action called by radio button switch
+    def rb_on_click(self):
+        self.radioButton = self.sender()
+        if self.radioButton.isChecked():
+            print("Process is %s" % (self.radioButton.process_type))
 
     # action called by the push button
     def read_initial_data(self):
