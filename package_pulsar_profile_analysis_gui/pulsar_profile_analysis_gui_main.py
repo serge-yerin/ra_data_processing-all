@@ -42,7 +42,6 @@ class MyTableWidget(QWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
-        # self.tabs.resize(300, 200)
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Process DSP data")
@@ -66,6 +65,14 @@ class MyTableWidget(QWidget):
         # Path to txt file line
         self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
         # self.txt_file_path_line.setFixedSize(QSize(400, 30))
+
+        common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+        filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
+        # filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
+        # filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
+        # filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
+
+        self.txt_file_path_line.setText(common_path + filename)
         self.tab1.layout.addWidget(self.txt_file_path_line, 0, 1)
 
         # Button "Open txt file"
@@ -74,13 +81,13 @@ class MyTableWidget(QWidget):
         self.button_open_txt.setFixedSize(QSize(100, 30))
         self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
 
+        # First tab second raw
         self.radiobutton = QRadioButton("Raw .jds files")
         self.radiobutton.process_type = "raw jds files"
         self.radiobutton.toggled.connect(self.rb_on_click)
         self.tab1.layout.addWidget(self.radiobutton, 1, 0)
 
         self.tab1.setLayout(self.tab1.layout)
-
 
         ##############################
         #         Second tab         #
@@ -205,8 +212,8 @@ class MyTableWidget(QWidget):
     def read_initial_data(self):
 
         # Reading profile data from txt file
-        data_filename = common_path + filename
-        pulsar_data_in_time = read_one_value_txt_file(data_filename)
+        data_filepath = self.txt_file_path_line.text()
+        pulsar_data_in_time = read_one_value_txt_file(data_filepath)
         self.p_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
@@ -318,9 +325,9 @@ if __name__ == '__main__':
     main.show()  # showing the window
 
     # Parameters
-    common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+    # common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
 
-    filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
+    # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
     # filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
     # filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
     # filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
