@@ -4,8 +4,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
 from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
 from PyQt5.QtCore import QSize, Qt
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 
+from pathlib import Path
 from os import path
 import matplotlib.pyplot as plt
 import numpy as np
@@ -149,6 +150,10 @@ class MyTableWidget(QWidget):
         # self.button_process_jds.setFixedSize(QSize(150, 30))
         self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
 
+        # JDS processing status label
+        self.label_processing_status = QLabel('', self)
+        self.tab1.layout.addWidget(self.label_txt_file_selected, 7, 1)
+
         # Adding stretch lines to get all elements magnetted to top
         self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
         # self.tab1.layout.setColumnStretch(self.tab1.layout.columnCount(), 1)
@@ -258,11 +263,27 @@ class MyTableWidget(QWidget):
         self.setLayout(self.layout)
 
     def preprocess_jds_files(self):
-        self.profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
-                                                                     self.jds_analysis_list, 0, 0)
-        pass
+        try:
+            source_dm = float(self.line_dm_entry.text().replace(',', '.'))
+        except ValueError:
+            print(' Wrong source DM value! Unable to convert into float number.')
+
+        self.label_processing_status.setText("Processing")
+        # self.label_processing_status.setFont(QtGui.QFont(self, 20))  # "Sanserif"
+        # self.label_processing_status.setStyleSheet('color:red')
+
+        profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+                                                                self.jds_analysis_list,
+                                                                self.path_to_result_folder,
+                                                                source_dm)
+        self.txt_file_path_line.setText(profile_txt_file_path)
+        self.label_processing_status.setText("Processing finished")
 
     def specify_result_folder_dialog(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
+        if dir_name:
+            self.path_to_result_folder = dir_name     # Path(dir_name)
+            self.result_path_line.setText(str(dir_name))
         pass
 
     def jds_files_open_dialog(self):
