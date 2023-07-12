@@ -3,7 +3,8 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
 from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, QObject, QThread, pyqtSignal
+
 from PyQt5 import QtCore, QtGui
 
 from pathlib import Path
@@ -21,6 +22,24 @@ from package_common_modules.text_manipulations import separate_filename_and_path
 # To change system path to the directory where script is running:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+# https://realpython.com/python-pyqt-qthread/
+# # Step 1: Create a worker class
+# class Worker(QObject):
+#     finished = pyqtSignal()
+#     progress = pyqtSignal(int)
+#
+#     def run(self):
+#         """Long-running task."""
+#         # for i in range(5):
+#         #     sleep(1)
+#         #     self.progress.emit(i + 1)
+#         # self.finished.emit()
+#         profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+#                                                                 self.jds_analysis_list,
+#                                                                 self.path_to_result_folder,
+#                                                                 self.source_dm)
+#         self.txt_file_path_line.setText(profile_txt_file_path)
 
 
 # Main window
@@ -65,11 +84,11 @@ class MyTableWidget(QWidget):
         self.tab1.layout = QGridLayout(self)  # QVBoxLayout
 
         # First tab raw one
-        self.radiobutton = QRadioButton("Ready profile .txt file: ")
-        self.radiobutton.setChecked(True)
-        self.radiobutton.process_type = "txt file only"
-        self.radiobutton.toggled.connect(self.rb_on_click)
-        self.tab1.layout.addWidget(self.radiobutton, 0, 0)
+        self.radiobutton_txt = QRadioButton("Ready profile .txt file: ")
+        self.radiobutton_txt.setChecked(True)
+        self.radiobutton_txt.process_type = "txt file only"
+        self.radiobutton_txt.toggled.connect(self.rb_txt_on_click)
+        self.tab1.layout.addWidget(self.radiobutton_txt, 0, 0)
 
         # Path to txt file line
         self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
@@ -99,10 +118,10 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addWidget(self.label_txt_file_selected, 2, 1)
 
         # First tab second part
-        self.radiobutton = QRadioButton("Raw .jds files preprocess:")
-        self.radiobutton.process_type = "raw jds files"
-        self.radiobutton.toggled.connect(self.rb_on_click)
-        self.tab1.layout.addWidget(self.radiobutton, 3, 0, Qt.AlignTop)
+        self.radiobutton_jds = QRadioButton("Raw .jds files preprocess:")
+        self.radiobutton_jds.process_type = "raw jds files"
+        self.radiobutton_jds.toggled.connect(self.rb_jds_on_click)
+        self.tab1.layout.addWidget(self.radiobutton_jds, 3, 0, Qt.AlignTop)
 
         self.jds_file_path_line = QPlainTextEdit()  # self, placeholderText='Enter a keyword to search...'
         # self.jds_file_path_line.setReadOnly(read only)
@@ -112,6 +131,7 @@ class MyTableWidget(QWidget):
         self.button_open_jds = QPushButton('Open jds files to preprocess')
         self.button_open_jds.clicked.connect(self.jds_files_open_dialog)  # adding action to the button
         self.button_open_jds.setFixedSize(QSize(150, 30))
+        self.button_open_jds.setEnabled(False)
         self.tab1.layout.addWidget(self.button_open_jds, 3, 2, Qt.AlignTop)
 
         # Path to result folder line
@@ -122,6 +142,7 @@ class MyTableWidget(QWidget):
         self.button_select_result_path = QPushButton('Specify result folder')
         self.button_select_result_path.clicked.connect(self.specify_result_folder_dialog)  # adding action to the button
         self.button_select_result_path.setFixedSize(QSize(150, 30))
+        self.button_select_result_path.setEnabled(False)
         self.tab1.layout.addWidget(self.button_select_result_path, 4, 2)
 
         # Nested horizontal layout for DM entry
@@ -147,12 +168,12 @@ class MyTableWidget(QWidget):
         # Button "Preprocess jds files"
         self.button_process_jds = QPushButton('Preprocess jds files')
         self.button_process_jds.clicked.connect(self.preprocess_jds_files)  # adding action to the button
-        # self.button_process_jds.setFixedSize(QSize(150, 30))
+        self.button_process_jds.setEnabled(False)
         self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
 
         # JDS processing status label
         self.label_processing_status = QLabel('', self)
-        self.tab1.layout.addWidget(self.label_txt_file_selected, 7, 1)
+        self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
 
         # Adding stretch lines to get all elements magnetted to top
         self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
@@ -264,7 +285,7 @@ class MyTableWidget(QWidget):
 
     def preprocess_jds_files(self):
         try:
-            source_dm = float(self.line_dm_entry.text().replace(',', '.'))
+            self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
         except ValueError:
             print(' Wrong source DM value! Unable to convert into float number.')
 
@@ -272,10 +293,25 @@ class MyTableWidget(QWidget):
         # self.label_processing_status.setFont(QtGui.QFont(self, 20))  # "Sanserif"
         # self.label_processing_status.setStyleSheet('color:red')
 
+        # # Step 2: Create a QThread object
+        # self.thread = QThread()
+        # # Step 3: Create a worker object
+        # self.worker = Worker()
+        # # Step 4: Move worker to the thread
+        # self.worker.moveToThread(self.thread)
+        # # Step 5: Connect signals and slots
+        # self.thread.started.connect(self.worker.run)
+        # self.worker.finished.connect(self.thread.quit)
+        # self.worker.finished.connect(self.worker.deleteLater)
+        # self.thread.finished.connect(self.thread.deleteLater)
+        # self.worker.progress.connect(self.reportProgress)
+        # # Step 6: Start the thread
+        # self.thread.start()
+
         profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
                                                                 self.jds_analysis_list,
                                                                 self.path_to_result_folder,
-                                                                source_dm)
+                                                                self.source_dm)
         self.txt_file_path_line.setText(profile_txt_file_path)
         self.label_processing_status.setText("Processing finished")
 
@@ -305,11 +341,26 @@ class MyTableWidget(QWidget):
         if check:
             self.txt_file_path_line.setText(file)
 
-    # action called by radio button switch
-    def rb_on_click(self):
+    # action called by radio button switch txt
+    def rb_txt_on_click(self):
         self.radioButton = self.sender()
         if self.radioButton.isChecked():
-            print("Process is %s" % (self.radioButton.process_type))
+            # print("Process is %s" % (self.radioButton.process_type))
+            self.button_open_txt.setEnabled(True)
+            self.button_open_jds.setEnabled(False)
+            self.button_select_result_path.setEnabled(False)
+            self.button_process_jds.setEnabled(False)
+
+
+    # action called by radio button switch jds
+    def rb_jds_on_click(self):
+        self.radioButton = self.sender()
+        if self.radioButton.isChecked():
+            # print("Process is %s" % (self.radioButton.process_type))
+            self.button_open_txt.setEnabled(False)
+            self.button_open_jds.setEnabled(True)
+            self.button_select_result_path.setEnabled(True)
+            self.button_process_jds.setEnabled(True)
 
     # action called by the push button
     def read_initial_data(self):
@@ -426,14 +477,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)  # creating apyqt5 application
     main = Window()  # creating a window object
     main.show()  # showing the window
-
-    # Parameters
-    # common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
-
-    # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
-    # filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
-    # filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
-    # filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
 
     frequency_limit = 10
     time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
