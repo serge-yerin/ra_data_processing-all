@@ -1,5 +1,4 @@
 import sys
-import datetime
 import numpy as np
 from os import path
 
@@ -7,17 +6,15 @@ from os import path
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
 from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
 
 
 def make_transient_profile_from_jds(source_directory, file_name_list_current, result_directory, source_dm):
-    # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
 
+    # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
     data_types = ['chA']
-    save_long_dyn_spectra = False  # Save figures of the whole observation spectrogram?
 
     colormap = 'Greys'  # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
     custom_dpi = 300  # Resolution of images of dynamic spectra
@@ -38,7 +35,6 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
         longFileSaveBch = 0
 
     longFileSaveCMP = 0
-
     CorrelationProcess = 0
     long_file_save_im_re = 0
 
@@ -87,12 +83,9 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
                             1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l,
                             print_or_not=False)
 
-    amp_min = -0.15
-    amp_max = 0.55
-
     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
                                                                 data_types_to_process[0] + '.dat', 'Transient', 512,
-                                                                amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
+                                                                -0.15,  0.55, False, 16.5, 33.0, True, False, 300,
                                                                 'Greys', use_mask_file=True, save_pics=False,
                                                                 source_dm=source_dm,
                                                                 result_path=path_to_dat_files, print_or_not=False)
@@ -104,8 +97,6 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
                             data_filename[:-13] + '_Timeline.txt'
 
     profile_txt_file_path = profile_txt_file_path.replace('//', '/')
-
-    # profile_txt_file_path = 'e:/Transient_search_DSP_spectra_pulsar_UTR2_B0809+74/Transient_DM_5.755_E300117_180000.jds_Data_chA_time_profile.txt'
 
     print(profile_txt_file_path)
     print('Processing finished!')
