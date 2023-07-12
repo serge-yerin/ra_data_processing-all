@@ -10,7 +10,8 @@ import cv2 as cv
 filepath = 'P250322_082507.jds_Data_chA.dat'
 
 
-def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=30, lin_data=True, show_figures=False):
+def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=30, lin_data=True, show_figures=False,
+                                      print_or_not=True):
     """
     Takes the array, makes log of it ib necessary, counts std and in a loop^
     - masks lines of data which exceed std in a row of min_l pixels horizontally and vertically
@@ -28,8 +29,10 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
         normalization_db(array.transpose(), a, b)
         array = array - np.mean(array)
 
-    print('   Bunch shape :', array.shape, ', Max: ', np.round(np.max(array), 5), ', Min: ', np.round(np.min(array), 5),
-          ', Mean: ', np.round(np.mean(array), 5), ', StD: ', np.round(np.std(array), 2))
+    if print_or_not:
+        print('   Bunch shape :', array.shape,
+              ', Max: ', np.round(np.max(array), 5), ', Min: ', np.round(np.min(array), 5),
+              ', Mean: ', np.round(np.mean(array), 5), ', StD: ', np.round(np.std(array), 2))
 
     # Set arrays and numbers for the while loop begin and for case when no loop iteration needed
     new_mask = np.zeros_like(array, dtype=bool)
@@ -76,9 +79,11 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
 
         # Calculate statistics
         dirty_points = np.sum(new_mask)
-        print('   Iteration: {0:2.0f}   StD: {1:10.8f}   Masked: {2:10.0f}'
-              '   pix of {3:10.0f}  or  {4:5.2f} %'.format(counter+1, data_std, dirty_points, total_points,
-                                                           dirty_points / total_points * 100))
+
+        if print_or_not:
+            print('   Iteration: {0:2.0f}   StD: {1:10.8f}   Masked: {2:10.0f}'
+                  '   pix of {3:10.0f}  or  {4:5.2f} %'.format(counter+1, data_std, dirty_points,
+                                                               total_points, dirty_points / total_points * 100))
 
         if show_figures:
             # Show initial array and cleaned array

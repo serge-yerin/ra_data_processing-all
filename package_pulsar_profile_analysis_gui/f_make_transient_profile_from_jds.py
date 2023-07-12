@@ -84,7 +84,8 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
             sys.exit('            Type error!')
 
         dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
-                            1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
+                            1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l,
+                            print_or_not=False)
 
     amp_min = -0.15
     amp_max = 0.55
