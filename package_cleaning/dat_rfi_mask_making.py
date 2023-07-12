@@ -43,7 +43,8 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delt
     new_data_file.write(file_header)
     del file_header
     new_data_file.close()
-    print(' Making mask to clean data...')
+    if print_or_not:
+        print(' Making mask to clean data...')
 
     for chunk in range(chunks_in_file):
 
@@ -52,7 +53,9 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delt
         data = np.reshape(data, [len(frequency), spectra_to_read_per_bunch], order='F')
 
         # Make mask
-        print('\n * Chunk', chunk+1, 'of', chunks_in_file, 'time:', str(datetime.datetime.now())[:19])
+        if print_or_not:
+            print('\n * Chunk', chunk+1, 'of', chunks_in_file, 'time:', str(datetime.datetime.now())[:19])
+
         cleaned_array, mask, dirty_points = clean_dirty_lines_for_weak_signal(data, delta_sigma=delta_sigma,
                                                                               n_sigma=n_sigma, min_l=min_l,
                                                                               lin_data=lin_data, show_figures=False,
