@@ -8,8 +8,11 @@ from PyQt5 import QtCore  # , QtGui
 
 from os import path
 import matplotlib.pyplot as plt
+from matplotlib import rc
+import pylab
 import numpy as np
 import sys
+import time
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
@@ -72,11 +75,13 @@ class MyTableWidget(QWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
+        self.tab4 = QWidget()
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Process DSP data")
         self.tabs.addTab(self.tab2, "Analyze profile")
-        self.tabs.addTab(self.tab3, "Analyze parts")
+        self.tabs.addTab(self.tab3, "Analyze parts 1-8")
+        self.tabs.addTab(self.tab4, "Analyze parts 16")
 
         ##############################
         #         First tab          #
@@ -273,9 +278,28 @@ class MyTableWidget(QWidget):
 
         # Third tab
         self.tab3.layout = QVBoxLayout(self)
-        self.pushButton1 = QPushButton("PyQt5 button")
-        self.tab3.layout.addWidget(self.pushButton1)
+
+        # Button "Read data"
+        self.button_plot_1_8 = QPushButton('Plot parts of data from 1 to 8')
+        self.button_plot_1_8.clicked.connect(self.plot_spectra_1_8)  # adding action to the button
+        self.button_plot_1_8.setFixedSize(QSize(250, 30))
+        self.tab3.layout.addWidget(self.button_plot_1_8)
+
+        # Main plot window
+        self.figure_1_8 = plt.figure()  # a figure instance to plot on
+        self.canvas_1_8 = FigureCanvas(self.figure_1_8)  # takes the 'figure' instance as a parameter to __init__
+        self.tab3.layout.addWidget(self.canvas_1_8)
+
         self.tab3.setLayout(self.tab3.layout)
+
+        ##############################
+        #         Fourth tab         #
+        ##############################
+
+        # Third tab
+        self.tab4.layout = QVBoxLayout(self)
+
+        self.tab4.setLayout(self.tab4.layout)
 
         ##############################
         #         Pack tabs          #
@@ -284,6 +308,83 @@ class MyTableWidget(QWidget):
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
+
+    def plot_spectra_1_8(self):
+
+        current_time = time.strftime("%H:%M:%S")
+        current_date = time.strftime("%d.%m.%Y")
+
+        pulsar_data_in_time = self.cropped_data_in_time
+        print('Calculating the spectrum')
+        # Calculating the spectrum
+        frequency_axis, profile_spectrum, spectrum_max = \
+            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+
+        print('Update the plot')
+        # Update the plot
+        self.figure_1_8.clear()  # clearing old figure
+
+        rc('font', size=5, weight='bold')
+        # self.figure_1_8, axs = plt.subplots(nrows=4, ncols=4)  # , figsize=(18, 9)
+        ax1 = self.figure_1_8.add_subplot(1, 1, 1)
+
+        ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+                       linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
+        # Adding calculated maximal point near harmonics as red dots
+        ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.legend(loc='upper right', fontsize=5)
+        ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+        ax1.set_title('Full data length', fontsize=5, fontweight='bold')
+
+        # Analyze only parts of the time profile (Creating indexes for plots positioning on the big result figure)
+        v_ind = [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
+        h_ind = [1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+        index = 0
+
+        full_data_length = len(pulsar_data_in_time)
+
+        for step in range(3):
+            parts_num = 2 ** (step + 1)
+
+            for part in range(parts_num):
+                start = int((full_data_length / parts_num) * part)
+                stop = int((full_data_length / parts_num) * (part + 1))
+                add_text = ' Part ' + str(part + 1) + ' of ' + str(parts_num)
+                new_profile_data = pulsar_data_in_time[start:stop]
+
+                # Calculating the spectrum
+                frequency_axis, profile_spectrum, spectrum_max = \
+                    calculate_spectrum_of_profile(new_profile_data, time_resolution)
+
+                ax = self.figure_1_8.add_subplot(4, 4, index+2)
+                ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
+                                                     linestyle='-', alpha=1.0, linewidth='0.60',
+                                                     label='Time series spectrum')
+                ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                ax.legend(loc='upper right', fontsize=5)
+                if v_ind[index] == 3:
+                    ax.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+                if h_ind[index] == 0:
+                    ax.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+                ax.set_title(add_text, fontsize=5, fontweight='bold')
+                index += 1
+
+            # Finishing and saving the big results figure with 15 plots
+            # axs[0, 3].axis('off')
+            self.figure_1_8.subplots_adjust(hspace=0.25, top=0.945)
+            self.figure_1_8.suptitle('Time profile in frequency domain from file: ',
+                         fontsize=8, fontweight='bold')
+            self.figure_1_8.text(0.82, 0.06, 'Processed ' + current_date + ' at ' + current_time,
+                     fontsize=5, transform=plt.gcf().transFigure)
+            software_version = '1'
+            self.figure_1_8.text(0.11, 0.06, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
+                     fontsize=5, transform=plt.gcf().transFigure)
+            # pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' big picture up to 8 parts.png',
+            #               bbox_inches='tight', dpi=custom_dpi)
+            # plt.close('all')
+
+        self.canvas_1_8.draw()  # refresh canvas
+
 
     def preprocess_jds_files(self):
         try:
@@ -352,7 +453,6 @@ class MyTableWidget(QWidget):
             self.button_open_jds.setEnabled(False)
             self.button_select_result_path.setEnabled(False)
             self.button_process_jds.setEnabled(False)
-
 
     # action called by radio button switch jds
     def rb_jds_on_click(self):
@@ -427,11 +527,11 @@ class MyTableWidget(QWidget):
         max_limit = self.high_limit_input.value()
 
         # Clip data
-        cropped_data_in_time = np.clip(self.prepared_data_in_time, min_limit, max_limit)
+        self.cropped_data_in_time = np.clip(self.prepared_data_in_time, min_limit, max_limit)
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(cropped_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(self.cropped_data_in_time, time_resolution)
 
         def mouse_event(event):
             x = event.xdata
@@ -440,8 +540,8 @@ class MyTableWidget(QWidget):
 
             self.figure.clear()  # clearing old figure
             ax0 = self.figure.add_subplot(211)
-            ax0.plot(cropped_data_in_time)
-            ax0.set_xlim([0, len(cropped_data_in_time)])
+            ax0.plot(self.cropped_data_in_time)
+            ax0.set_xlim([0, len(self.cropped_data_in_time)])
             ax0.set_ylim([-5.0, 5.0])
             ax0.set_title('Time series', fontsize=10, fontweight='bold')
             ax1 = self.figure.add_subplot(212)
@@ -460,8 +560,8 @@ class MyTableWidget(QWidget):
         cid = self.figure.canvas.mpl_connect('button_press_event', mouse_event)
         self.figure.clear()  # clearing old figure
         ax0 = self.figure.add_subplot(211)
-        ax0.plot(cropped_data_in_time)
-        ax0.set_xlim([0, len(cropped_data_in_time)])
+        ax0.plot(self.cropped_data_in_time)
+        ax0.set_xlim([0, len(self.cropped_data_in_time)])
         ax0.set_ylim([-5.0, 5.0])
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
         ax1 = self.figure.add_subplot(212)
