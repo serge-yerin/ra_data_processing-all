@@ -4,10 +4,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
 from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
 from PyQt5.QtCore import QSize, Qt, QObject, QThread, pyqtSignal
+from PyQt5 import QtCore  # , QtGui
 
-from PyQt5 import QtCore, QtGui
-
-from pathlib import Path
 from os import path
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +20,10 @@ from package_common_modules.text_manipulations import separate_filename_and_path
 # To change system path to the directory where script is running:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+# Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opncv:
+# pip uninstall opencv-python
+# pip install opencv-python-headless
 
 # https://realpython.com/python-pyqt-qthread/
 # # Step 1: Create a worker class

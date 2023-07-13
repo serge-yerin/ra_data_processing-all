@@ -93,8 +93,11 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
     data_filepath = path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[0] + '.dat'
     data_filename = data_filepath.split('/')[-1]
 
+    # profile_txt_file_path = path_to_dat_files + 'Transient_DM_' + str(np.round(source_dm, 6)) + '_' + \
+    #                         data_filename[:-13] + '_Timeline.txt'
+
     profile_txt_file_path = path_to_dat_files + 'Transient_DM_' + str(np.round(source_dm, 6)) + '_' + \
-                            data_filename[:-13] + '_Timeline.txt'
+        data_filename[:-4] + '_time_profile.txt'
 
     profile_txt_file_path = profile_txt_file_path.replace('//', '/')
 
