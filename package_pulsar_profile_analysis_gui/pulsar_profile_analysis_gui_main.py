@@ -308,9 +308,29 @@ class MyTableWidget(QWidget):
         #         Fourth tab         #
         ##############################
 
-        # Third tab
+        # Fourth tab
         self.tab4.layout = QVBoxLayout(self)
+        self.input_controls_layout_t4 = QHBoxLayout()
 
+        # Button "Plot data 16"
+        self.button_plot_16 = QPushButton('Plot parts of data 16 of 16')
+        self.button_plot_16.clicked.connect(self.plot_spectra_16)  # adding action to the button
+        self.button_plot_16.setFixedSize(QSize(250, 30))
+        self.input_controls_layout_t4.addWidget(self.button_plot_16)
+
+        # Button "Save data 16"
+        self.button_save_16 = QPushButton('Save image of data 16 of 16')
+        self.button_save_16.clicked.connect(self.save_spectra_1_8)  # adding action to the button
+        self.button_save_16.setFixedSize(QSize(250, 30))
+        self.input_controls_layout_t4.addWidget(self.button_save_16)
+
+        # Main plot window
+        self.figure_16 = plt.figure()  # a figure instance to plot on
+        self.canvas_16 = FigureCanvas(self.figure_16)  # takes the 'figure' instance as a parameter to __init__
+
+        # Packing into layouts
+        self.tab4.layout.addLayout(self.input_controls_layout_t4)
+        self.tab4.layout.addWidget(self.canvas_16)
         self.tab4.setLayout(self.tab4.layout)
 
         ##############################
@@ -320,6 +340,16 @@ class MyTableWidget(QWidget):
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
+
+    def save_spectra_16(self):
+        # Run function to make and save bit plot
+        # time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
+        #                                  frequency_limit, self.txt_filepath, self.txt_filename,
+        #                                  software_version, 300)
+        pass
+
+    def plot_spectra_16(self):
+        pass
 
     def save_spectra_1_8(self):
         # Run function to make and save bit plot
