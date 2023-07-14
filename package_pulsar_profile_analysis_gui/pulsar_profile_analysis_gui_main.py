@@ -315,22 +315,18 @@ class MyTableWidget(QWidget):
         current_date = time.strftime("%d.%m.%Y")
 
         pulsar_data_in_time = self.cropped_data_in_time
-        print('Calculating the spectrum')
         # Calculating the spectrum
         frequency_axis, profile_spectrum, spectrum_max = \
             calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
 
-        print('Update the plot')
         # Update the plot
         self.figure_1_8.clear()  # clearing old figure
+        rc('font', size=6, weight='bold')
 
-        rc('font', size=5, weight='bold')
-        # self.figure_1_8, axs = plt.subplots(nrows=4, ncols=4)  # , figsize=(18, 9)
-        ax1 = self.figure_1_8.add_subplot(1, 1, 1)
-
-        ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
-                       linestyle='-', alpha=1.0, linewidth='0.60', label='Time series spectrum')
-        # Adding calculated maximal point near harmonics as red dots
+        # Adding the plot # 1 of 16
+        ax1 = self.figure_1_8.add_subplot(4, 4, 1)
+        ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
+                 linewidth='0.60', label='Time series spectrum')
         ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
         ax1.legend(loc='upper right', fontsize=5)
         ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
@@ -339,6 +335,7 @@ class MyTableWidget(QWidget):
         # Analyze only parts of the time profile (Creating indexes for plots positioning on the big result figure)
         v_ind = [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
         h_ind = [1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+        fig_num = [2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
         index = 0
 
         full_data_length = len(pulsar_data_in_time)
@@ -356,35 +353,35 @@ class MyTableWidget(QWidget):
                 frequency_axis, profile_spectrum, spectrum_max = \
                     calculate_spectrum_of_profile(new_profile_data, time_resolution)
 
-                ax = self.figure_1_8.add_subplot(4, 4, index+2)
-                ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4',
-                                                     linestyle='-', alpha=1.0, linewidth='0.60',
-                                                     label='Time series spectrum')
+                ax = self.figure_1_8.add_subplot(4, 4, fig_num[index])
+                ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
+                        linewidth='0.60', label='Time series spectrum')
                 ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
                 ax.legend(loc='upper right', fontsize=5)
                 if v_ind[index] == 3:
-                    ax.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
+                    ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
                 if h_ind[index] == 0:
-                    ax.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-                ax.set_title(add_text, fontsize=5, fontweight='bold')
+                    ax.set_ylabel('Amplitude, AU', fontsize=7, fontweight='bold')
+                ax.set_title(add_text, fontsize=7, fontweight='bold')
                 index += 1
+            # Adding empty place on 4,4 position
+            ax = self.figure_1_8.add_subplot(4, 4, 4)
+            ax.axis('off')
 
             # Finishing and saving the big results figure with 15 plots
-            # axs[0, 3].axis('off')
-            self.figure_1_8.subplots_adjust(hspace=0.25, top=0.945)
+            self.figure_1_8.subplots_adjust(hspace=0.25, top=0.930)
             self.figure_1_8.suptitle('Time profile in frequency domain from file: ',
-                         fontsize=8, fontweight='bold')
+                                     fontsize=10, fontweight='bold')
             self.figure_1_8.text(0.82, 0.06, 'Processed ' + current_date + ' at ' + current_time,
-                     fontsize=5, transform=plt.gcf().transFigure)
+                                 fontsize=5, transform=plt.gcf().transFigure)
             software_version = '1'
-            self.figure_1_8.text(0.11, 0.06, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
-                     fontsize=5, transform=plt.gcf().transFigure)
+            self.figure_1_8.text(0.11, 0.06, 'Software version: ' + software_version +
+                                 ', yerin.serge@gmail.com, IRA NASU', fontsize=5, transform=plt.gcf().transFigure)
             # pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' big picture up to 8 parts.png',
             #               bbox_inches='tight', dpi=custom_dpi)
             # plt.close('all')
 
         self.canvas_1_8.draw()  # refresh canvas
-
 
     def preprocess_jds_files(self):
         try:
