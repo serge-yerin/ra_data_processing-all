@@ -135,7 +135,7 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addWidget(self.jds_file_path_line, 3, 1)
 
         # Button "Open jds file"
-        self.button_open_jds = QPushButton('Open jds files to preprocess')
+        self.button_open_jds = QPushButton('Open jds files')
         self.button_open_jds.clicked.connect(self.jds_files_open_dialog)  # adding action to the button
         self.button_open_jds.setFixedSize(QSize(150, 30))
         self.button_open_jds.setEnabled(False)
