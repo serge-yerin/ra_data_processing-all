@@ -323,16 +323,9 @@ class MyTableWidget(QWidget):
 
     def save_spectra_1_8(self):
         # Run function to make and save bit plot
-        print('Hello')
-        data = self.cropped_data_in_time
-        harmonics = self.harmonics_highlight
-        path = self.txt_filepath
-        print(path)
-        filename = self.txt_filename
-        print(filename)
-        print(harmonics, path, filename, software_version)
-
-        time_profile_spectra_for_gui_1_8(data, time_resolution, harmonics, frequency_limit, path, filename, software_version, 300)
+        time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
+                                         frequency_limit, self.txt_filepath, self.txt_filename,
+                                         software_version, 300)
 
     def plot_spectra_1_8(self):
 
