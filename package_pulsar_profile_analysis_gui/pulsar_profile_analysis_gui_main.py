@@ -596,7 +596,7 @@ class MyTableWidget(QWidget):
             ax0.set_ylim([-5.0, 5.0])
             ax0.set_title('Time series', fontsize=10, fontweight='bold')
             ax1 = self.figure.add_subplot(212)
-            plt.text(x, spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + ' $Hz$ $or$ $P$ = ' +
+            plt.text(x, 0.8 * spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + ' $Hz$ $or$ $P$ = ' +
                      str(np.round(1/x, 3)) + ' $s$', fontsize=14, color='C3')
             for harmonic in self.harmonics_highlight:
                 ax1.axvline(x=harmonic, color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
