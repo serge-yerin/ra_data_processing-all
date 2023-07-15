@@ -356,61 +356,6 @@ class MyTableWidget(QWidget):
         self.figure_16.clear()  # clearing old figure
         rc('font', size=6, weight='bold')
 
-        # # Adding the plot # 1 of 16
-        # ax1 = self.figure_16.add_subplot(4, 4, 1)
-        # # Add vertical lines on harmonics of selected frequency
-        # if self.harmonics_highlight is not None:
-        #     harmonics = self.harmonics_highlight
-        #     for i in range(len(harmonics)):
-        #         ax1.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-        # # Plot spectrum itself
-        # ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
-        #          linewidth='0.60', label='Time series spectrum')
-        # ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
-        # ax1.legend(loc='upper right', fontsize=5)
-        # ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-        # ax1.set_title('Full data length', fontsize=5, fontweight='bold')
-        #
-        # # Analyze only parts of the time profile (Creating indexes for plots positioning on the big result figure)
-        # v_ind = [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
-        # h_ind = [1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
-        # fig_num = [2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-        # index = 0
-        #
-        # full_data_length = len(pulsar_data_in_time)
-        #
-        # for step in range(3):
-        #     parts_num = 2 ** (step + 1)
-        #
-        #     for part in range(parts_num):
-        #         start = int((full_data_length / parts_num) * part)
-        #         stop = int((full_data_length / parts_num) * (part + 1))
-        #         add_text = ' Part ' + str(part + 1) + ' of ' + str(parts_num)
-        #         new_profile_data = pulsar_data_in_time[start:stop]
-        #
-        #         # Calculating the spectrum
-        #         frequency_axis, profile_spectrum, spectrum_max = \
-        #             calculate_spectrum_of_profile(new_profile_data, time_resolution)
-        #
-        #         # Plot N of 16
-        #         ax = self.figure_1_8.add_subplot(4, 4, fig_num[index])
-        #         # Add vertical lines on harmonics of selected frequency
-        #         if self.harmonics_highlight is not None:
-        #             harmonics = self.harmonics_highlight
-        #             for i in range(len(harmonics)):
-        #                 ax.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-        #         # Plot spectrum itself
-        #         ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
-        #                 linewidth='0.60', label='Time series spectrum')
-        #         ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
-        #         ax.legend(loc='upper right', fontsize=5)
-        #         if v_ind[index] == 3:
-        #             ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
-        #         if h_ind[index] == 0:
-        #             ax.set_ylabel('Amplitude, AU', fontsize=7, fontweight='bold')
-        #         ax.set_title(add_text, fontsize=7, fontweight='bold')
-        #         index += 1
-
         full_data_length = len(pulsar_data_in_time)
         parts_num = 16
         v_ind = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
