@@ -25,7 +25,7 @@ def dat_rfi_mask_making(filepath, spectra_to_read_per_bunch, lin_data=True, delt
 
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
          df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
-         df, frequency, freq_points_num, data_block_size] = file_header_jds_read(filepath, 0, 1)
+         df, frequency, freq_points_num, data_block_size] = file_header_jds_read(filepath, 0, print_or_not)
     else:
         sys.exit('Error file format')
 
