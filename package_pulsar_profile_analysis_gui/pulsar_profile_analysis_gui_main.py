@@ -16,9 +16,10 @@ import time
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
+from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
 from package_common_modules.text_manipulations import read_one_value_txt_file
-from package_ra_data_processing.filtering import median_filter
 from package_common_modules.text_manipulations import separate_filename_and_path
+from package_ra_data_processing.filtering import median_filter
 
 # To change system path to the directory where script is running:
 if __package__ is None:
@@ -27,6 +28,8 @@ if __package__ is None:
 # Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opncv:
 # pip uninstall opencv-python
 # pip install opencv-python-headless
+
+software_version = '2023.07.14'
 
 # https://realpython.com/python-pyqt-qthread/
 # # Step 1: Create a worker class
@@ -103,9 +106,8 @@ class MyTableWidget(QWidget):
 
         common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
         filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
-        # filename = 'B0809+74_DM_5.755_P130422_121607.jds_Data_chA_time_profile.txt'
-        # filename = 'B0950+08_DM_2.972_C250122_214003.jds_Data_chA_time_profile.txt'
-        # filename = 'B1919+21_DM_12.4449_C040420_020109.jds_Data_chA_time_profile.txt'
+
+        self.txt_filepath, self.txt_filename = common_path, filename
 
         self.txt_file_path_line.setText(common_path + filename)
         self.tab1.layout.addWidget(self.txt_file_path_line, 0, 1)
@@ -278,16 +280,26 @@ class MyTableWidget(QWidget):
 
         # Third tab
         self.tab3.layout = QVBoxLayout(self)
+        self.input_controls_layout_t3 = QHBoxLayout()
 
-        # Button "Read data"
+        # Button "Plot data 1-8"
         self.button_plot_1_8 = QPushButton('Plot parts of data from 1 to 8')
         self.button_plot_1_8.clicked.connect(self.plot_spectra_1_8)  # adding action to the button
         self.button_plot_1_8.setFixedSize(QSize(250, 30))
-        self.tab3.layout.addWidget(self.button_plot_1_8)
+        self.input_controls_layout_t3.addWidget(self.button_plot_1_8)
+
+        # Button "Save data 1-8"
+        self.button_save_1_8 = QPushButton('Save image of data from 1 to 8')
+        self.button_save_1_8.clicked.connect(self.save_spectra_1_8)  # adding action to the button
+        self.button_save_1_8.setFixedSize(QSize(250, 30))
+        self.input_controls_layout_t3.addWidget(self.button_save_1_8)
 
         # Main plot window
         self.figure_1_8 = plt.figure()  # a figure instance to plot on
         self.canvas_1_8 = FigureCanvas(self.figure_1_8)  # takes the 'figure' instance as a parameter to __init__
+
+        # Packing into layouts
+        self.tab3.layout.addLayout(self.input_controls_layout_t3)
         self.tab3.layout.addWidget(self.canvas_1_8)
 
         self.tab3.setLayout(self.tab3.layout)
@@ -296,9 +308,29 @@ class MyTableWidget(QWidget):
         #         Fourth tab         #
         ##############################
 
-        # Third tab
+        # Fourth tab
         self.tab4.layout = QVBoxLayout(self)
+        self.input_controls_layout_t4 = QHBoxLayout()
 
+        # Button "Plot data 16"
+        self.button_plot_16 = QPushButton('Plot parts of data 16 of 16')
+        self.button_plot_16.clicked.connect(self.plot_spectra_16)  # adding action to the button
+        self.button_plot_16.setFixedSize(QSize(250, 30))
+        self.input_controls_layout_t4.addWidget(self.button_plot_16)
+
+        # Button "Save data 16"
+        self.button_save_16 = QPushButton('Save image of data 16 of 16')
+        self.button_save_16.clicked.connect(self.save_spectra_1_8)  # adding action to the button
+        self.button_save_16.setFixedSize(QSize(250, 30))
+        self.input_controls_layout_t4.addWidget(self.button_save_16)
+
+        # Main plot window
+        self.figure_16 = plt.figure()  # a figure instance to plot on
+        self.canvas_16 = FigureCanvas(self.figure_16)  # takes the 'figure' instance as a parameter to __init__
+
+        # Packing into layouts
+        self.tab4.layout.addLayout(self.input_controls_layout_t4)
+        self.tab4.layout.addWidget(self.canvas_16)
         self.tab4.setLayout(self.tab4.layout)
 
         ##############################
@@ -309,10 +341,23 @@ class MyTableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
-    def plot_spectra_1_8(self):
+    def save_spectra_16(self):
+        # Run function to make and save bit plot
+        # time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
+        #                                  frequency_limit, self.txt_filepath, self.txt_filename,
+        #                                  software_version, 300)
+        pass
 
-        current_time = time.strftime("%H:%M:%S")
-        current_date = time.strftime("%d.%m.%Y")
+    def plot_spectra_16(self):
+        pass
+
+    def save_spectra_1_8(self):
+        # Run function to make and save bit plot
+        time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
+                                         frequency_limit, self.txt_filepath, self.txt_filename,
+                                         software_version, 300)
+
+    def plot_spectra_1_8(self):
 
         pulsar_data_in_time = self.cropped_data_in_time
         # Calculating the spectrum
@@ -325,6 +370,12 @@ class MyTableWidget(QWidget):
 
         # Adding the plot # 1 of 16
         ax1 = self.figure_1_8.add_subplot(4, 4, 1)
+        # Add vertical lines on harmonics of selected frequency
+        if self.harmonics_highlight is not None:
+            harmonics = self.harmonics_highlight
+            for i in range(len(harmonics)):
+                ax1.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
+        # Plot spectrum itself
         ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
                  linewidth='0.60', label='Time series spectrum')
         ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
@@ -353,7 +404,14 @@ class MyTableWidget(QWidget):
                 frequency_axis, profile_spectrum, spectrum_max = \
                     calculate_spectrum_of_profile(new_profile_data, time_resolution)
 
+                # Plot N of 16
                 ax = self.figure_1_8.add_subplot(4, 4, fig_num[index])
+                # Add vertical lines on harmonics of selected frequency
+                if self.harmonics_highlight is not None:
+                    harmonics = self.harmonics_highlight
+                    for i in range(len(harmonics)):
+                        ax.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
+                # Plot spectrum itself
                 ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
                         linewidth='0.60', label='Time series spectrum')
                 ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
@@ -370,16 +428,8 @@ class MyTableWidget(QWidget):
 
             # Finishing and saving the big results figure with 15 plots
             self.figure_1_8.subplots_adjust(hspace=0.25, top=0.930)
-            self.figure_1_8.suptitle('Time profile in frequency domain from file: ',
+            self.figure_1_8.suptitle('Time profile in frequency domain from file: ' + self.data_filename,
                                      fontsize=10, fontweight='bold')
-            self.figure_1_8.text(0.82, 0.06, 'Processed ' + current_date + ' at ' + current_time,
-                                 fontsize=5, transform=plt.gcf().transFigure)
-            software_version = '1'
-            self.figure_1_8.text(0.11, 0.06, 'Software version: ' + software_version +
-                                 ', yerin.serge@gmail.com, IRA NASU', fontsize=5, transform=plt.gcf().transFigure)
-            # pylab.savefig(common_path + new_folder_name + '/' + filename[0:-4] + ' big picture up to 8 parts.png',
-            #               bbox_inches='tight', dpi=custom_dpi)
-            # plt.close('all')
 
         self.canvas_1_8.draw()  # refresh canvas
 
@@ -439,6 +489,7 @@ class MyTableWidget(QWidget):
         file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
                                                   "", "Text Files (*.txt)")
         if check:
+            self.txt_filepath, self.txt_filename = separate_filename_and_path(file)
             self.txt_file_path_line.setText(file)
 
     # action called by radio button switch txt
@@ -466,6 +517,7 @@ class MyTableWidget(QWidget):
 
         # Reading profile data from txt file
         data_filepath = self.txt_file_path_line.text()
+        directory, self.data_filename = separate_filename_and_path(data_filepath)
         pulsar_data_in_time = read_one_value_txt_file(data_filepath)
         self.p_data_in_time = pulsar_data_in_time
 
@@ -529,6 +581,8 @@ class MyTableWidget(QWidget):
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
             calculate_spectrum_of_profile(self.cropped_data_in_time, time_resolution)
+
+        self.harmonics_highlight = None
 
         def mouse_event(event):
             x = event.xdata
