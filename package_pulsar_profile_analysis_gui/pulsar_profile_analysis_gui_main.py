@@ -3,16 +3,15 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
 from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
-from PyQt5.QtCore import QSize, Qt, QObject, QThread, pyqtSignal
-from PyQt5 import QtCore  # , QtGui
+from PyQt5.QtCore import QSize, Qt
+from PyQt5 import QtCore
 
-from os import path
+from threading import *
 import matplotlib.pyplot as plt
 from matplotlib import rc
-import pylab
+from os import path
 import numpy as np
 import sys
-import time
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
@@ -31,24 +30,6 @@ if __package__ is None:
 # pip install opencv-python-headless
 
 software_version = '2023.07.14'
-
-# https://realpython.com/python-pyqt-qthread/
-# # Step 1: Create a worker class
-# class Worker(QObject):
-#     finished = pyqtSignal()
-#     progress = pyqtSignal(int)
-#
-#     def run(self):
-#         """Long-running task."""
-#         # for i in range(5):
-#         #     sleep(1)
-#         #     self.progress.emit(i + 1)
-#         # self.finished.emit()
-#         profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
-#                                                                 self.jds_analysis_list,
-#                                                                 self.path_to_result_folder,
-#                                                                 self.source_dm)
-#         self.txt_file_path_line.setText(profile_txt_file_path)
 
 
 # Main window
@@ -175,7 +156,7 @@ class MyTableWidget(QWidget):
 
         # Button "Preprocess jds files"
         self.button_process_jds = QPushButton('Preprocess jds files')
-        self.button_process_jds.clicked.connect(self.preprocess_jds_files)  # adding action to the button
+        self.button_process_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
         self.button_process_jds.setEnabled(False)
         self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
 
@@ -481,35 +462,29 @@ class MyTableWidget(QWidget):
 
         self.canvas_1_8.draw()  # refresh canvas
 
+    def thread_preprocess_jds_files(self):
+        t1 = Thread(target=self.preprocess_jds_files)
+        t1.start()
+
     def preprocess_jds_files(self):
         try:
             self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
         except ValueError:
             print(' Wrong source DM value! Unable to convert into float number.')
 
-        self.label_processing_status.setText("Processing")
-
-        # # Step 2: Create a QThread object
-        # self.thread = QThread()
-        # # Step 3: Create a worker object
-        # self.worker = Worker()
-        # # Step 4: Move worker to the thread
-        # self.worker.moveToThread(self.thread)
-        # # Step 5: Connect signals and slots
-        # self.thread.started.connect(self.worker.run)
-        # self.worker.finished.connect(self.thread.quit)
-        # self.worker.finished.connect(self.worker.deleteLater)
-        # self.thread.finished.connect(self.thread.deleteLater)
-        # self.worker.progress.connect(self.reportProgress)
-        # # Step 6: Start the thread
-        # self.thread.start()
+        self.label_processing_status.setText("JDS data are being processed...")
+        self.label_processing_status.setStyleSheet("background-color: yellow;")
 
         profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
                                                                 self.jds_analysis_list,
                                                                 self.path_to_result_folder,
                                                                 self.source_dm)
+
         self.txt_file_path_line.setText(profile_txt_file_path)
-        self.label_processing_status.setText("Processing finished")
+        self.label_processing_status.setText("JDS preprocessing finished! "
+                                             "You can now open next tab and process the profile")
+        self.label_processing_status.setStyleSheet("background-color: lightgreen;")
+
 
     def specify_result_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
