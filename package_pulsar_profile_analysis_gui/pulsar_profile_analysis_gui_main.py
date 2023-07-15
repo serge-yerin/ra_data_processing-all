@@ -84,8 +84,8 @@ class MyTableWidget(QWidget):
         # Add tabs
         self.tabs.addTab(self.tab1, "Process DSP data")
         self.tabs.addTab(self.tab2, "Analyze profile")
-        self.tabs.addTab(self.tab3, "Analyze parts 1-8")
-        self.tabs.addTab(self.tab4, "Analyze parts 16")
+        self.tabs.addTab(self.tab3, "Analyze 1-8 parts")
+        self.tabs.addTab(self.tab4, "Analyze 16 parts")
 
         ##############################
         #         First tab          #
@@ -103,11 +103,9 @@ class MyTableWidget(QWidget):
 
         # Path to txt file line
         self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
-        # self.txt_file_path_line.setFixedSize(QSize(400, 30))
 
         common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
         filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
-
         self.txt_filepath, self.txt_filename = common_path, filename
 
         self.txt_file_path_line.setText(common_path + filename)
@@ -119,6 +117,7 @@ class MyTableWidget(QWidget):
         self.button_open_txt.setFixedSize(QSize(150, 30))
         self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
 
+        # Label with further instructions
         self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
                                               'the second tab "Analyze profile" and begin analysis', self)
         self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
@@ -133,8 +132,8 @@ class MyTableWidget(QWidget):
         self.radiobutton_jds.toggled.connect(self.rb_jds_on_click)
         self.tab1.layout.addWidget(self.radiobutton_jds, 3, 0, Qt.AlignTop)
 
-        self.jds_file_path_line = QPlainTextEdit()  # self, placeholderText='Enter a keyword to search...'
-        # self.jds_file_path_line.setReadOnly(read only)
+        # Line for txt file path
+        self.jds_file_path_line = QPlainTextEdit()
         self.tab1.layout.addWidget(self.jds_file_path_line, 3, 1)
 
         # Button "Open jds file"
@@ -162,13 +161,12 @@ class MyTableWidget(QWidget):
         self.label_dm_entry.setFixedSize(QSize(160, 30))
         self.dm_entry_layout.addWidget(self.label_dm_entry)
 
-        # Path to txt file line
-        self.line_dm_entry = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
-        # self.line_dm_entry.setFixedSize(QSize(400, 30))
+        # Entry of DM value
+        self.line_dm_entry = QLineEdit()
         self.line_dm_entry.setText('5.755')
         self.dm_entry_layout.addWidget(self.line_dm_entry)
 
-        self.label_dm_units = QLabel("pc * cm^-3", self)
+        self.label_dm_units = QLabel(f' pc/cm\N{SUPERSCRIPT THREE}', self)
         self.label_dm_units.setFixedSize(QSize(490, 30))
         self.dm_entry_layout.addWidget(self.label_dm_units)
 
@@ -185,7 +183,7 @@ class MyTableWidget(QWidget):
         self.label_processing_status = QLabel('', self)
         self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
 
-        # Adding stretch lines to get all elements magnetted to top
+        # Adding stretch lines to get all elements pulled to top
         self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
         # self.tab1.layout.setColumnStretch(self.tab1.layout.columnCount(), 1)
 
@@ -397,10 +395,9 @@ class MyTableWidget(QWidget):
         # Finishing and saving the big results figure with 15 plots
         self.figure_16.subplots_adjust(hspace=0.25, top=0.930)
         self.figure_16.suptitle('Time profile in frequency domain (16 parts) from file: ' + self.data_filename,
-                                     fontsize=10, fontweight='bold')
+                                fontsize=10, fontweight='bold')
 
         self.canvas_16.draw()  # refresh canvas
-
 
     def save_spectra_1_8(self):
         # Run function to make and save bit plot
@@ -491,8 +488,6 @@ class MyTableWidget(QWidget):
             print(' Wrong source DM value! Unable to convert into float number.')
 
         self.label_processing_status.setText("Processing")
-        # self.label_processing_status.setFont(QtGui.QFont(self, 20))  # "Sanserif"
-        # self.label_processing_status.setStyleSheet('color:red')
 
         # # Step 2: Create a QThread object
         # self.thread = QThread()
@@ -519,13 +514,12 @@ class MyTableWidget(QWidget):
     def specify_result_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
         if dir_name:
-            self.path_to_result_folder = dir_name     # Path(dir_name)
+            self.path_to_result_folder = dir_name
             self.result_path_line.setText(str(dir_name))
         pass
 
     def jds_files_open_dialog(self):
-        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()",
-                                                    "", "JDS files (*.jds)")
+        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
         file_names = []
         self.jds_file_path_line.clear()  # Cleat the text input to add new file paths
         if check:
@@ -537,8 +531,7 @@ class MyTableWidget(QWidget):
             self.jds_analysis_list = file_names
 
     def one_txt_file_dialog(self):
-        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
-                                                  "", "Text Files (*.txt)")
+        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "Text Files (*.txt)")
         if check:
             self.txt_filepath, self.txt_filename = separate_filename_and_path(file)
             self.txt_file_path_line.setText(file)
@@ -603,7 +596,7 @@ class MyTableWidget(QWidget):
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)  #pulsar_data_in_time
+            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
 
         # Update the plot
         self.figure.clear()  # clearing old figure
@@ -637,8 +630,8 @@ class MyTableWidget(QWidget):
 
         def mouse_event(event):
             x = event.xdata
-            self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x, 11*x,
-                                        12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x]
+            self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x,
+                                        11*x, 12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x]
 
             self.figure.clear()  # clearing old figure
             ax0 = self.figure.add_subplot(211)
