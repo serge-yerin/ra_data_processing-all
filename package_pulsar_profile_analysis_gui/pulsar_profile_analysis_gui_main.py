@@ -17,6 +17,7 @@ import time
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
 from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
+from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_16
 from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_common_modules.text_manipulations import separate_filename_and_path
 from package_ra_data_processing.filtering import median_filter
@@ -320,7 +321,7 @@ class MyTableWidget(QWidget):
 
         # Button "Save data 16"
         self.button_save_16 = QPushButton('Save image of data 16 of 16')
-        self.button_save_16.clicked.connect(self.save_spectra_1_8)  # adding action to the button
+        self.button_save_16.clicked.connect(self.save_spectra_16)  # adding action to the button
         self.button_save_16.setFixedSize(QSize(250, 30))
         self.input_controls_layout_t4.addWidget(self.button_save_16)
 
@@ -343,10 +344,9 @@ class MyTableWidget(QWidget):
 
     def save_spectra_16(self):
         # Run function to make and save bit plot
-        # time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
-        #                                  frequency_limit, self.txt_filepath, self.txt_filename,
-        #                                  software_version, 300)
-        pass
+        time_profile_spectra_for_gui_16(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
+                                        frequency_limit, self.txt_filepath, self.txt_filename,
+                                        software_version, 300)
 
     def plot_spectra_16(self):
         pass
