@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSp
 from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
 from PyQt5.QtCore import QSize, Qt
 from PyQt5 import QtCore
+from PyQt5.QtGui import *
 
 from threading import *
 import matplotlib.pyplot as plt
@@ -12,6 +13,10 @@ from matplotlib import rc
 from os import path
 import numpy as np
 import sys
+
+# To change system path to the directory where script is running:
+if __package__ is None:
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
@@ -21,9 +26,6 @@ from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_common_modules.text_manipulations import separate_filename_and_path
 from package_ra_data_processing.filtering import median_filter
 
-# To change system path to the directory where script is running:
-if __package__ is None:
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opncv:
 # pip uninstall opencv-python
@@ -104,8 +106,8 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
 
         # Added empty label to separate workflows
-        self.label_txt_file_selected = QLabel(' ', self)
-        self.tab1.layout.addWidget(self.label_txt_file_selected, 2, 1)
+        self.empty_label = QLabel(' ', self)
+        self.tab1.layout.addWidget(self.empty_label, 2, 1)
 
         # First tab second part
         self.radiobutton_jds = QRadioButton("Raw .jds files preprocess:")
@@ -115,6 +117,7 @@ class MyTableWidget(QWidget):
 
         # Line for txt file path
         self.jds_file_path_line = QPlainTextEdit()
+        self.jds_file_path_line.setEnabled(False)
         self.tab1.layout.addWidget(self.jds_file_path_line, 3, 1)
 
         # Button "Open jds file"
@@ -126,6 +129,7 @@ class MyTableWidget(QWidget):
 
         # Path to result folder line
         self.result_path_line = QLineEdit()
+        self.result_path_line.setEnabled(False)
         self.tab1.layout.addWidget(self.result_path_line, 4, 1)
 
         # Button "Specify result folder"
@@ -139,16 +143,19 @@ class MyTableWidget(QWidget):
         self.dm_entry_layout = QHBoxLayout()
 
         self.label_dm_entry = QLabel("Source dispersion measure (DM):", self)
+        self.label_dm_entry.setEnabled(False)
         self.label_dm_entry.setFixedSize(QSize(160, 30))
         self.dm_entry_layout.addWidget(self.label_dm_entry)
 
         # Entry of DM value
         self.line_dm_entry = QLineEdit()
         self.line_dm_entry.setText('5.755')
+        self.line_dm_entry.setEnabled(False)
         self.dm_entry_layout.addWidget(self.line_dm_entry)
 
         self.label_dm_units = QLabel(f' pc/cm\N{SUPERSCRIPT THREE}', self)
         self.label_dm_units.setFixedSize(QSize(490, 30))
+        self.label_dm_units.setEnabled(False)
         self.dm_entry_layout.addWidget(self.label_dm_units)
 
         # Add nested horizontal layout to the main one
@@ -162,6 +169,8 @@ class MyTableWidget(QWidget):
 
         # JDS processing status label
         self.label_processing_status = QLabel('', self)
+        self.label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_processing_status.setFont(QFont('Arial', 14))
         self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
 
         # Adding stretch lines to get all elements pulled to top
@@ -471,20 +480,44 @@ class MyTableWidget(QWidget):
             self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
         except ValueError:
             print(' Wrong source DM value! Unable to convert into float number.')
+            self.label_processing_status.setText("Wrong DM value!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
 
+        try:
+            jds_result_folder = str(self.path_to_result_folder)
+        except AttributeError:
+            self.label_processing_status.setText("Wrong Result directory specified!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_analysis_files = self.jds_analysis_list
+        except AttributeError:
+            self.label_processing_status.setText("Wrong JDS files specified!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # Only if parameters are good, run processing
         self.label_processing_status.setText("JDS data are being processed...")
         self.label_processing_status.setStyleSheet("background-color: yellow;")
 
-        profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
-                                                                self.jds_analysis_list,
-                                                                self.path_to_result_folder,
-                                                                self.source_dm)
+        try:
+            profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+                                                                    jds_analysis_files,
+                                                                    jds_result_folder,
+                                                                    self.source_dm)
+        except:
+            self.label_processing_status.setText("Something wrong happened during calculations!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
 
+        # After the processing is finished,
         self.txt_file_path_line.setText(profile_txt_file_path)
+        self.txt_filepath, self.txt_filename = separate_filename_and_path(profile_txt_file_path)
         self.label_processing_status.setText("JDS preprocessing finished! "
                                              "You can now open next tab and process the profile")
         self.label_processing_status.setStyleSheet("background-color: lightgreen;")
-
 
     def specify_result_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
@@ -516,20 +549,35 @@ class MyTableWidget(QWidget):
         self.radioButton = self.sender()
         if self.radioButton.isChecked():
             # print("Process is %s" % (self.radioButton.process_type))
+            self.label_txt_file_selected.setEnabled(True)
             self.button_open_txt.setEnabled(True)
+            self.txt_file_path_line.setEnabled(True)
+
             self.button_open_jds.setEnabled(False)
             self.button_select_result_path.setEnabled(False)
             self.button_process_jds.setEnabled(False)
-
+            self.jds_file_path_line.setEnabled(False)
+            self.result_path_line.setEnabled(False)
+            self.line_dm_entry.setEnabled(False)
+            self.label_dm_entry.setEnabled(False)
+            self.label_dm_units.setEnabled(False)
     # action called by radio button switch jds
     def rb_jds_on_click(self):
         self.radioButton = self.sender()
         if self.radioButton.isChecked():
             # print("Process is %s" % (self.radioButton.process_type))
+            self.label_txt_file_selected.setEnabled(False)
+            self.txt_file_path_line.setEnabled(False)
             self.button_open_txt.setEnabled(False)
+
             self.button_open_jds.setEnabled(True)
             self.button_select_result_path.setEnabled(True)
             self.button_process_jds.setEnabled(True)
+            self.jds_file_path_line.setEnabled(True)
+            self.result_path_line.setEnabled(True)
+            self.line_dm_entry.setEnabled(True)
+            self.label_dm_entry.setEnabled(True)
+            self.label_dm_units.setEnabled(True)
 
     # action called by the push button
     def read_initial_data(self):
