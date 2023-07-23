@@ -10,7 +10,7 @@ from package_astronomy.catalogue_sources import catalogue_sources
 
 ################################################################################
 
-def culmination_time_utc_astroplan(source_name, date, print_or_not):
+def culmination_time_utc_astroplan(source_name, date, print_or_not, culm_type='next'):
     """
     Calculates culmination time in UTC with astroplan library
     """
@@ -35,10 +35,10 @@ def culmination_time_utc_astroplan(source_name, date, print_or_not):
 
     target = FixedTarget(coord=coordinates, name="target")
     date_of_obs = Time(date, scale='utc')
-    culmination = observer.target_meridian_transit_time(date_of_obs, target, which='next')
+    culmination = observer.target_meridian_transit_time(date_of_obs, target, which=culm_type)  # next, 'previous'
     culm_time = culmination.to_datetime().time()
 
-    culm_time = date + ' ' + str(culm_time)[0:8]
+    culm_time = date[0:10] + ' ' + str(culm_time)[0:8]
 
     if print_or_not == 1:
         print('  Culmination time:', culm_time, ' UTC \n')
