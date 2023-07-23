@@ -66,7 +66,6 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
         data_types_to_process.append('C_m')
 
     # RFI mask making
-
     for i in range(len(data_types_to_process)):
         if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
             delta_sigma = 0.005  # 0.05
@@ -93,16 +92,14 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
     data_filepath = path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[0] + '.dat'
     data_filename = data_filepath.split('/')[-1]
 
-    # profile_txt_file_path = path_to_dat_files + 'Transient_DM_' + str(np.round(source_dm, 6)) + '_' + \
-    #                         data_filename[:-13] + '_Timeline.txt'
-
     profile_txt_file_path = path_to_dat_files + 'Transient_DM_' + str(np.round(source_dm, 6)) + '_' + \
         data_filename[:-4] + '_time_profile.txt'
 
     profile_txt_file_path = profile_txt_file_path.replace('//', '/')
 
-    print(profile_txt_file_path)
-    print('Processing finished!')
+    # common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+    # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
+    # profile_txt_file_path = common_path + filename
 
     return profile_txt_file_path
 

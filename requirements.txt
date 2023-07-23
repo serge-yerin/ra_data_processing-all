@@ -9,6 +9,6 @@ progress
 requests
 scipy
 wakeonlan
-opencv-python
+opencv-python-headless
 PyAstronomy
 PyQt5

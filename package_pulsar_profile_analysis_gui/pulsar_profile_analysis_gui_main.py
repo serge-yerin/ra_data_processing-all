@@ -3,51 +3,35 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
 from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
-from PyQt5.QtCore import QSize, Qt, QObject, QThread, pyqtSignal
-from PyQt5 import QtCore  # , QtGui
+from PyQt5.QtCore import QSize, Qt
+from PyQt5 import QtCore
+from PyQt5.QtGui import *
 
-from os import path
+from threading import *
 import matplotlib.pyplot as plt
 from matplotlib import rc
-import pylab
+from os import path
 import numpy as np
 import sys
-import time
-
-from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
-from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
-from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
-from package_common_modules.text_manipulations import read_one_value_txt_file
-from package_common_modules.text_manipulations import separate_filename_and_path
-from package_ra_data_processing.filtering import median_filter
 
 # To change system path to the directory where script is running:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
+from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
+from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
+from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_16
+from package_common_modules.text_manipulations import read_one_value_txt_file
+from package_common_modules.text_manipulations import separate_filename_and_path
+from package_ra_data_processing.filtering import median_filter
+
 
 # Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opncv:
 # pip uninstall opencv-python
 # pip install opencv-python-headless
 
 software_version = '2023.07.14'
-
-# https://realpython.com/python-pyqt-qthread/
-# # Step 1: Create a worker class
-# class Worker(QObject):
-#     finished = pyqtSignal()
-#     progress = pyqtSignal(int)
-#
-#     def run(self):
-#         """Long-running task."""
-#         # for i in range(5):
-#         #     sleep(1)
-#         #     self.progress.emit(i + 1)
-#         # self.finished.emit()
-#         profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
-#                                                                 self.jds_analysis_list,
-#                                                                 self.path_to_result_folder,
-#                                                                 self.source_dm)
-#         self.txt_file_path_line.setText(profile_txt_file_path)
 
 
 # Main window
@@ -83,8 +67,8 @@ class MyTableWidget(QWidget):
         # Add tabs
         self.tabs.addTab(self.tab1, "Process DSP data")
         self.tabs.addTab(self.tab2, "Analyze profile")
-        self.tabs.addTab(self.tab3, "Analyze parts 1-8")
-        self.tabs.addTab(self.tab4, "Analyze parts 16")
+        self.tabs.addTab(self.tab3, "Analyze 1-8 parts")
+        self.tabs.addTab(self.tab4, "Analyze 16 parts")
 
         ##############################
         #         First tab          #
@@ -102,11 +86,9 @@ class MyTableWidget(QWidget):
 
         # Path to txt file line
         self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
-        # self.txt_file_path_line.setFixedSize(QSize(400, 30))
 
         common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
         filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
-
         self.txt_filepath, self.txt_filename = common_path, filename
 
         self.txt_file_path_line.setText(common_path + filename)
@@ -118,13 +100,14 @@ class MyTableWidget(QWidget):
         self.button_open_txt.setFixedSize(QSize(150, 30))
         self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
 
+        # Label with further instructions
         self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
                                               'the second tab "Analyze profile" and begin analysis', self)
         self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
 
         # Added empty label to separate workflows
-        self.label_txt_file_selected = QLabel(' ', self)
-        self.tab1.layout.addWidget(self.label_txt_file_selected, 2, 1)
+        self.empty_label = QLabel(' ', self)
+        self.tab1.layout.addWidget(self.empty_label, 2, 1)
 
         # First tab second part
         self.radiobutton_jds = QRadioButton("Raw .jds files preprocess:")
@@ -132,8 +115,9 @@ class MyTableWidget(QWidget):
         self.radiobutton_jds.toggled.connect(self.rb_jds_on_click)
         self.tab1.layout.addWidget(self.radiobutton_jds, 3, 0, Qt.AlignTop)
 
-        self.jds_file_path_line = QPlainTextEdit()  # self, placeholderText='Enter a keyword to search...'
-        # self.jds_file_path_line.setReadOnly(read only)
+        # Line for txt file path
+        self.jds_file_path_line = QPlainTextEdit()
+        self.jds_file_path_line.setEnabled(False)
         self.tab1.layout.addWidget(self.jds_file_path_line, 3, 1)
 
         # Button "Open jds file"
@@ -145,6 +129,7 @@ class MyTableWidget(QWidget):
 
         # Path to result folder line
         self.result_path_line = QLineEdit()
+        self.result_path_line.setEnabled(False)
         self.tab1.layout.addWidget(self.result_path_line, 4, 1)
 
         # Button "Specify result folder"
@@ -158,17 +143,19 @@ class MyTableWidget(QWidget):
         self.dm_entry_layout = QHBoxLayout()
 
         self.label_dm_entry = QLabel("Source dispersion measure (DM):", self)
+        self.label_dm_entry.setEnabled(False)
         self.label_dm_entry.setFixedSize(QSize(160, 30))
         self.dm_entry_layout.addWidget(self.label_dm_entry)
 
-        # Path to txt file line
-        self.line_dm_entry = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
-        # self.line_dm_entry.setFixedSize(QSize(400, 30))
+        # Entry of DM value
+        self.line_dm_entry = QLineEdit()
         self.line_dm_entry.setText('5.755')
+        self.line_dm_entry.setEnabled(False)
         self.dm_entry_layout.addWidget(self.line_dm_entry)
 
-        self.label_dm_units = QLabel("pc * cm^-3", self)
+        self.label_dm_units = QLabel(f' pc/cm\N{SUPERSCRIPT THREE}', self)
         self.label_dm_units.setFixedSize(QSize(490, 30))
+        self.label_dm_units.setEnabled(False)
         self.dm_entry_layout.addWidget(self.label_dm_units)
 
         # Add nested horizontal layout to the main one
@@ -176,15 +163,17 @@ class MyTableWidget(QWidget):
 
         # Button "Preprocess jds files"
         self.button_process_jds = QPushButton('Preprocess jds files')
-        self.button_process_jds.clicked.connect(self.preprocess_jds_files)  # adding action to the button
+        self.button_process_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
         self.button_process_jds.setEnabled(False)
         self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
 
         # JDS processing status label
         self.label_processing_status = QLabel('', self)
+        self.label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_processing_status.setFont(QFont('Arial', 14))
         self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
 
-        # Adding stretch lines to get all elements magnetted to top
+        # Adding stretch lines to get all elements pulled to top
         self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
         # self.tab1.layout.setColumnStretch(self.tab1.layout.columnCount(), 1)
 
@@ -320,7 +309,7 @@ class MyTableWidget(QWidget):
 
         # Button "Save data 16"
         self.button_save_16 = QPushButton('Save image of data 16 of 16')
-        self.button_save_16.clicked.connect(self.save_spectra_1_8)  # adding action to the button
+        self.button_save_16.clicked.connect(self.save_spectra_16)  # adding action to the button
         self.button_save_16.setFixedSize(QSize(250, 30))
         self.input_controls_layout_t4.addWidget(self.button_save_16)
 
@@ -343,13 +332,62 @@ class MyTableWidget(QWidget):
 
     def save_spectra_16(self):
         # Run function to make and save bit plot
-        # time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
-        #                                  frequency_limit, self.txt_filepath, self.txt_filename,
-        #                                  software_version, 300)
-        pass
+        time_profile_spectra_for_gui_16(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
+                                        frequency_limit, self.txt_filepath, self.txt_filename,
+                                        software_version, 300)
 
     def plot_spectra_16(self):
-        pass
+
+        pulsar_data_in_time = self.cropped_data_in_time
+
+        # Update the plot
+        self.figure_16.clear()  # clearing old figure
+        rc('font', size=6, weight='bold')
+
+        full_data_length = len(pulsar_data_in_time)
+        parts_num = 16
+        v_ind = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
+        h_ind = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+        index = 0
+
+        # Creating the plot with the 16-16 data
+        rc('font', size=5, weight='bold')
+
+        for part in range(parts_num):
+
+            start = int((full_data_length / parts_num) * part)
+            stop = int((full_data_length / parts_num) * (part + 1))
+            add_text = ' Part ' + str(part + 1) + ' of ' + str(parts_num)
+            new_profile_data = pulsar_data_in_time[start:stop]
+
+            # # Calculating the spectrum
+            frequency_axis, profile_spectrum, spectrum_max = calculate_spectrum_of_profile(new_profile_data,
+                                                                                           time_resolution)
+
+            # Adding the plots for parts of data to the big result picture
+            ax = self.figure_16.add_subplot(4, 4, part+1)
+            if self.harmonics_highlight is not None:
+                harmonics = self.harmonics_highlight
+                for i in range(len(harmonics)):
+                    ax.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
+            # Plotting the spectra
+            ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60',
+                    label='Time series spectrum')
+            ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+            ax.legend(loc='upper right', fontsize=5)
+            if v_ind[index] == 3:
+                ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
+            if h_ind[index] == 0:
+                ax.set_ylabel('Amplitude, AU', fontsize=7, fontweight='bold')
+            ax.set_title(add_text, fontsize=7, fontweight='bold')
+            index += 1
+
+        # Finishing and saving the big results figure with 15 plots
+        self.figure_16.subplots_adjust(hspace=0.25, top=0.930)
+        self.figure_16.suptitle('Time profile in frequency domain (16 parts) from file: ' + self.data_filename,
+                                fontsize=10, fontweight='bold')
+
+        self.canvas_16.draw()  # refresh canvas
 
     def save_spectra_1_8(self):
         # Run function to make and save bit plot
@@ -433,48 +471,63 @@ class MyTableWidget(QWidget):
 
         self.canvas_1_8.draw()  # refresh canvas
 
+    def thread_preprocess_jds_files(self):
+        t1 = Thread(target=self.preprocess_jds_files)
+        t1.start()
+
     def preprocess_jds_files(self):
         try:
             self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
         except ValueError:
             print(' Wrong source DM value! Unable to convert into float number.')
+            self.label_processing_status.setText("Wrong DM value!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
 
-        self.label_processing_status.setText("Processing")
-        # self.label_processing_status.setFont(QtGui.QFont(self, 20))  # "Sanserif"
-        # self.label_processing_status.setStyleSheet('color:red')
+        try:
+            jds_result_folder = str(self.path_to_result_folder)
+        except AttributeError:
+            self.label_processing_status.setText("Wrong Result directory specified!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
 
-        # # Step 2: Create a QThread object
-        # self.thread = QThread()
-        # # Step 3: Create a worker object
-        # self.worker = Worker()
-        # # Step 4: Move worker to the thread
-        # self.worker.moveToThread(self.thread)
-        # # Step 5: Connect signals and slots
-        # self.thread.started.connect(self.worker.run)
-        # self.worker.finished.connect(self.thread.quit)
-        # self.worker.finished.connect(self.worker.deleteLater)
-        # self.thread.finished.connect(self.thread.deleteLater)
-        # self.worker.progress.connect(self.reportProgress)
-        # # Step 6: Start the thread
-        # self.thread.start()
+        try:
+            jds_analysis_files = self.jds_analysis_list
+        except AttributeError:
+            self.label_processing_status.setText("Wrong JDS files specified!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
 
-        profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
-                                                                self.jds_analysis_list,
-                                                                self.path_to_result_folder,
-                                                                self.source_dm)
+        # Only if parameters are good, run processing
+        self.label_processing_status.setText("JDS data are being processed...")
+        self.label_processing_status.setStyleSheet("background-color: yellow;")
+
+        try:
+            profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+                                                                    jds_analysis_files,
+                                                                    jds_result_folder,
+                                                                    self.source_dm)
+        except:
+            self.label_processing_status.setText("Something wrong happened during calculations!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # After the processing is finished,
         self.txt_file_path_line.setText(profile_txt_file_path)
-        self.label_processing_status.setText("Processing finished")
+        self.txt_filepath, self.txt_filename = separate_filename_and_path(profile_txt_file_path)
+        self.label_processing_status.setText("JDS preprocessing finished! "
+                                             "You can now open next tab and process the profile")
+        self.label_processing_status.setStyleSheet("background-color: lightgreen;")
 
     def specify_result_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
         if dir_name:
-            self.path_to_result_folder = dir_name     # Path(dir_name)
+            self.path_to_result_folder = dir_name
             self.result_path_line.setText(str(dir_name))
         pass
 
     def jds_files_open_dialog(self):
-        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()",
-                                                    "", "JDS files (*.jds)")
+        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
         file_names = []
         self.jds_file_path_line.clear()  # Cleat the text input to add new file paths
         if check:
@@ -486,8 +539,7 @@ class MyTableWidget(QWidget):
             self.jds_analysis_list = file_names
 
     def one_txt_file_dialog(self):
-        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
-                                                  "", "Text Files (*.txt)")
+        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "Text Files (*.txt)")
         if check:
             self.txt_filepath, self.txt_filename = separate_filename_and_path(file)
             self.txt_file_path_line.setText(file)
@@ -497,20 +549,35 @@ class MyTableWidget(QWidget):
         self.radioButton = self.sender()
         if self.radioButton.isChecked():
             # print("Process is %s" % (self.radioButton.process_type))
+            self.label_txt_file_selected.setEnabled(True)
             self.button_open_txt.setEnabled(True)
+            self.txt_file_path_line.setEnabled(True)
+
             self.button_open_jds.setEnabled(False)
             self.button_select_result_path.setEnabled(False)
             self.button_process_jds.setEnabled(False)
-
+            self.jds_file_path_line.setEnabled(False)
+            self.result_path_line.setEnabled(False)
+            self.line_dm_entry.setEnabled(False)
+            self.label_dm_entry.setEnabled(False)
+            self.label_dm_units.setEnabled(False)
     # action called by radio button switch jds
     def rb_jds_on_click(self):
         self.radioButton = self.sender()
         if self.radioButton.isChecked():
             # print("Process is %s" % (self.radioButton.process_type))
+            self.label_txt_file_selected.setEnabled(False)
+            self.txt_file_path_line.setEnabled(False)
             self.button_open_txt.setEnabled(False)
+
             self.button_open_jds.setEnabled(True)
             self.button_select_result_path.setEnabled(True)
             self.button_process_jds.setEnabled(True)
+            self.jds_file_path_line.setEnabled(True)
+            self.result_path_line.setEnabled(True)
+            self.line_dm_entry.setEnabled(True)
+            self.label_dm_entry.setEnabled(True)
+            self.label_dm_units.setEnabled(True)
 
     # action called by the push button
     def read_initial_data(self):
@@ -552,7 +619,7 @@ class MyTableWidget(QWidget):
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)  #pulsar_data_in_time
+            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
 
         # Update the plot
         self.figure.clear()  # clearing old figure
@@ -586,8 +653,8 @@ class MyTableWidget(QWidget):
 
         def mouse_event(event):
             x = event.xdata
-            self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x, 11*x,
-                                        12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x]
+            self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x,
+                                        11*x, 12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x]
 
             self.figure.clear()  # clearing old figure
             ax0 = self.figure.add_subplot(211)
@@ -596,7 +663,7 @@ class MyTableWidget(QWidget):
             ax0.set_ylim([-5.0, 5.0])
             ax0.set_title('Time series', fontsize=10, fontweight='bold')
             ax1 = self.figure.add_subplot(212)
-            plt.text(x, spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + ' $Hz$ $or$ $P$ = ' +
+            plt.text(x, 0.8 * spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + ' $Hz$ $or$ $P$ = ' +
                      str(np.round(1/x, 3)) + ' $s$', fontsize=14, color='C3')
             for harmonic in self.harmonics_highlight:
                 ax1.axvline(x=harmonic, color='C1', linestyle='-', linewidth=2.0, alpha=0.2)

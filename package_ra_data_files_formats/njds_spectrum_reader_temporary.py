@@ -34,15 +34,16 @@ from package_cleaning.simple_channel_clean import simple_channel_clean
 # *********************************************************************************
 
 # *** Opening datafile ***
-fname = 'e:/RA_DATA_ARCHIVE/NJDS_cross_spectra_new_DSP_receiver/A230620_134825.jds'
+# fname = 'e:/RA_DATA_ARCHIVE/NJDS_cross_spectra_new_DSP_receiver/A230620_134825.jds'
+fname = 'e:/RA_DATA_ARCHIVE/NJDS_cross_spectra_new_DSP_receiver/A230710_114837.jds'
 # fname = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/P130422_121607.jds'
+# fname = 'e:/RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74/E300117_180000.jds'
 corr_process = True
 
 # *** Data file header read ***
 [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
     clc_freq, df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resol, fmin, fmax,
     df, frequency, freq_points_num, data_block_size] = file_header_njds_read(fname, 0, 1)
-
 
 with open(fname, 'rb') as file:
     file.seek(1024)  # Jumping to 1024 byte from file beginning
