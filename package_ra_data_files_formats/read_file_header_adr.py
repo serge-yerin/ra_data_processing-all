@@ -52,7 +52,10 @@ def file_header_adr_read(filepath, start_byte, print_or_not):
     df_creation_time_utc = header_bytes[64:96].decode('utf-8').rstrip('\x00')   # Creation time in UTC time
     df_system_name = header_bytes[96:128].decode('utf-8').rstrip('\x00')        # System (receiver) name
     df_obs_place = header_bytes[128:256].decode('utf-8').rstrip('\x00')         # place of observations
-    df_description = header_bytes[256:512].decode('utf-8').rstrip('\x00')       # File description
+    try:
+        df_description = header_bytes[256:512].decode('utf-8').rstrip('\x00')       # File description
+    except UnicodeDecodeError:
+        df_description = 'unreadable'
 
     # reading FHEADER PP ADRS_PAR
     adr_mode = struct.unpack('i', header_bytes[512:516])[0]
