@@ -2,8 +2,11 @@
 Scripts and functions for visualizing and processing of radio astronomy data,
 mainly from Ukrainian low-frequency radio telescopes UTR-2, URAN, GURT.
 
-Additional libraries needed: 
-numpy, matplotlib, astropy, scipy, progress, requests, wakeonlan, pandas, pexpect, PIL (or Pillow)
+Additional libraries needed are listed in requirements.txt. 
+On Linux you may have to install tkinter if the error 'No module named 'Tkinter'' appears with the command:
+
+*sudo apt-get install python3-tk*
+
 
 Each script has a so-called header, several lines in the beginning of the script
 with all variables to be defined by user, so user does not need to search needed
