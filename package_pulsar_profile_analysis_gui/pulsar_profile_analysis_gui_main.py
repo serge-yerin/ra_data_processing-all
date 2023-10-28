@@ -109,6 +109,10 @@ class MyTableWidget(QWidget):
         self.empty_label = QLabel(' ', self)
         self.tab1.layout.addWidget(self.empty_label, 2, 1)
 
+
+
+
+
         # First tab second part
         self.radiobutton_jds = QRadioButton("Raw .jds files preprocess:")
         self.radiobutton_jds.process_type = "raw jds files"
@@ -172,6 +176,75 @@ class MyTableWidget(QWidget):
         self.label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status.setFont(QFont('Arial', 14))
         self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
+
+        # First tab third part
+        self.radiobutton_pairs = QRadioButton("Raw .jds pairs preprocess:")
+        self.radiobutton_pairs.process_type = "raw jds pairs files"
+        self.radiobutton_pairs.toggled.connect(self.rb_pairs_on_click)
+        self.tab1.layout.addWidget(self.radiobutton_pairs, 8, 0, Qt.AlignTop)
+
+        # Path to source folder line
+        self.source_pairs_path_line = QLineEdit()
+        self.source_pairs_path_line.setEnabled(False)
+        self.tab1.layout.addWidget(self.source_pairs_path_line, 8, 1)
+
+        # Button "Specify result folder"
+        self.button_select_pairs_result_path = QPushButton('Specify result folder')
+        self.button_select_pairs_result_path.clicked.connect(self.specify_source_pairs_folder_dialog)  # add new action!!!
+        self.button_select_pairs_result_path.setFixedSize(QSize(150, 30))
+        self.button_select_pairs_result_path.setEnabled(False)
+        self.tab1.layout.addWidget(self.button_select_pairs_result_path, 8, 2)
+
+
+        # Path to result folder line
+        self.source_pairs_path_line = QLineEdit()
+        self.source_pairs_path_line.setEnabled(False)
+        self.tab1.layout.addWidget(self.source_pairs_path_line, 9, 1)
+
+        # Button "Specify result folder"
+        self.button_select_pairs_result_path = QPushButton('Specify result folder')
+        self.button_select_pairs_result_path.clicked.connect(self.specify_result_pairs_folder_dialog)  # adding action
+        self.button_select_pairs_result_path.setFixedSize(QSize(150, 30))
+        self.button_select_pairs_result_path.setEnabled(False)
+        self.tab1.layout.addWidget(self.button_select_pairs_result_path, 9, 2)
+
+        # # Nested horizontal layout for DM entry
+        # self.dm_entry_layout = QHBoxLayout()
+        #
+        # self.label_dm_entry = QLabel("Source dispersion measure (DM):", self)
+        # self.label_dm_entry.setEnabled(False)
+        # self.label_dm_entry.setFixedSize(QSize(160, 30))
+        # self.dm_entry_layout.addWidget(self.label_dm_entry)
+        #
+        # # Entry of DM value
+        # self.line_dm_entry = QLineEdit()
+        # self.line_dm_entry.setText('5.755')
+        # self.line_dm_entry.setEnabled(False)
+        # self.dm_entry_layout.addWidget(self.line_dm_entry)
+        #
+        # self.label_dm_units = QLabel(f' pc/cm\N{SUPERSCRIPT THREE}', self)
+        # self.label_dm_units.setFixedSize(QSize(490, 30))
+        # self.label_dm_units.setEnabled(False)
+        # self.dm_entry_layout.addWidget(self.label_dm_units)
+        #
+        # # Add nested horizontal layout to the main one
+        # self.tab1.layout.addLayout(self.dm_entry_layout, 5, 1)
+        #
+        # # Button "Preprocess jds files"
+        # self.button_process_jds = QPushButton('Preprocess jds files')
+        # self.button_process_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
+        # self.button_process_jds.setEnabled(False)
+        # self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
+        #
+        # # JDS processing status label
+        # self.label_processing_status = QLabel('', self)
+        # self.label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
+        # self.label_processing_status.setFont(QFont('Arial', 14))
+        # self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
+
+
+
+
 
         # Adding stretch lines to get all elements pulled to top
         self.tab1.layout.setRowStretch(self.tab1.layout.rowCount(), 1)
@@ -526,6 +599,22 @@ class MyTableWidget(QWidget):
             self.result_path_line.setText(str(dir_name))
         pass
 
+    def specify_source_pairs_folder_dialog(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
+        if dir_name:
+            self.path_to_source_pairs_folder = dir_name
+            self.source_pairs_path_line.setText(str(dir_name))
+        pass
+
+    def specify_result_pairs_folder_dialog(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
+        if dir_name:
+            self.path_to_result_pairs_folder = dir_name
+            self.result_pairs_path_line.setText(str(dir_name))
+        pass
+
+
+
     def jds_files_open_dialog(self):
         files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
         file_names = []
@@ -578,6 +667,25 @@ class MyTableWidget(QWidget):
             self.line_dm_entry.setEnabled(True)
             self.label_dm_entry.setEnabled(True)
             self.label_dm_units.setEnabled(True)
+
+    def rb_pairs_on_click(self):
+        self.radioButton = self.sender()
+        if self.radioButton.isChecked():
+            # print("Process is %s" % (self.radioButton.process_type))
+            self.label_txt_file_selected.setEnabled(False)
+            self.txt_file_path_line.setEnabled(False)
+            self.button_open_txt.setEnabled(False)
+
+            self.button_open_jds.setEnabled(False)
+            self.button_select_result_path.setEnabled(False)
+            self.button_process_jds.setEnabled(False)
+            self.jds_file_path_line.setEnabled(False)
+            self.result_path_line.setEnabled(False)
+            self.line_dm_entry.setEnabled(False)
+            self.label_dm_entry.setEnabled(False)
+            self.label_dm_units.setEnabled(False)
+
+
 
     # action called by the push button
     def read_initial_data(self):
