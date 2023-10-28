@@ -44,7 +44,7 @@ class Window(QMainWindow):
         super().__init__(*args, **kwargs)
 
         # Window geometry and hierarchy
-        self.setWindowTitle('Pulsar profiles analysis    v.' + software_version + '    IRA NASU vs Serge Yerin')  # Win title
+        self.setWindowTitle('Pulsar profiles analysis    v.' + software_version + '    Serge Yerin @ IRA NASU')  # Win title
         self.setGeometry(100, 100, 800, 600)
         # menu_bar = self.menuBar()
         # file_menu = menu_bar.addMenu('&File')
@@ -621,7 +621,7 @@ class MyTableWidget(QWidget):
             return
 
         # Only if parameters are good, run processing
-        self.label_pairs_processing_status.setText("JDS data are being processed...")
+        self.label_pairs_processing_status.setText("JDS file pairs are being processed...")
         self.label_pairs_processing_status.setStyleSheet("background-color: yellow;")
 
         try:
@@ -634,7 +634,7 @@ class MyTableWidget(QWidget):
             return
 
         # After the processing is finished,
-        self.label_pairs_processing_status.setText("JDS pairs preprocessing finished! "
+        self.label_pairs_processing_status.setText("JDS file pairs preprocessing finished! "
                                              "Please select the first option and pick a file to process the profile")
         self.label_pairs_processing_status.setStyleSheet("background-color: lightgreen;")
 
