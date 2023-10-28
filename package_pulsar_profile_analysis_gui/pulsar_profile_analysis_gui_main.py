@@ -29,11 +29,11 @@ from package_common_modules.text_manipulations import separate_filename_and_path
 from package_ra_data_processing.filtering import median_filter
 
 
-# Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opncv:
+# Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opencv:
 # pip uninstall opencv-python
 # pip install opencv-python-headless
 
-software_version = '2023.07.14'
+software_version = '2023.10.28'
 
 
 # Main window
@@ -44,7 +44,7 @@ class Window(QMainWindow):
         super().__init__(*args, **kwargs)
 
         # Window geometry and hierarchy
-        self.setWindowTitle('Pulsar profiles analysis')  # Window title
+        self.setWindowTitle('Pulsar profiles analysis    v.' + software_version + '    IRA NASU vs Serge Yerin')  # Win title
         self.setGeometry(100, 100, 800, 600)
         # menu_bar = self.menuBar()
         # file_menu = menu_bar.addMenu('&File')
@@ -67,7 +67,7 @@ class MyTableWidget(QWidget):
         self.tab4 = QWidget()
 
         # Add tabs
-        self.tabs.addTab(self.tab1, "Process DSP data")
+        self.tabs.addTab(self.tab1, "Process JDS data")
         self.tabs.addTab(self.tab2, "Analyze profile")
         self.tabs.addTab(self.tab3, "Analyze 1-8 parts")
         self.tabs.addTab(self.tab4, "Analyze 16 parts")
@@ -235,7 +235,7 @@ class MyTableWidget(QWidget):
 
         # Button "Preprocess pairs of jds files"
         self.button_process_pairs_jds = QPushButton('Preprocess pairs of jds files from specified folder')
-        self.button_process_pairs_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
+        self.button_process_pairs_jds.clicked.connect(self.thread_preprocess_pairs_jds_files)  # adding action
         self.button_process_pairs_jds.setEnabled(False)
         self.tab1.layout.addWidget(self.button_process_pairs_jds, 11, 1, Qt.AlignTop)
 
@@ -565,7 +565,7 @@ class MyTableWidget(QWidget):
         try:
             jds_result_folder = str(self.path_to_result_folder)
         except AttributeError:
-            self.label_processing_status.setText("Wrong Result directory specified!")
+            self.label_processing_status.setText("Wrong result directory specified!")
             self.label_processing_status.setStyleSheet("background-color: red;")
             return
 
@@ -597,7 +597,7 @@ class MyTableWidget(QWidget):
                                              "You can now open next tab and process the profile")
         self.label_processing_status.setStyleSheet("background-color: lightgreen;")
 
-    def preprocess_jds_pairs_files(self):
+    def preprocess_pairs_jds_files(self):
         try:
             self.source_pairs_dm = float(self.line_pairs_dm_entry.text().replace(',', '.'))
         except ValueError:
@@ -620,13 +620,6 @@ class MyTableWidget(QWidget):
             self.label_pairs_processing_status.setStyleSheet("background-color: red;")
             return
 
-        # try:
-        #     jds_analysis_files = self.jds_analysis_list
-        # except AttributeError:
-        #     self.label_pairs_processing_status.setText("Wrong JDS files specified!")
-        #     self.label_pairs_processing_status.setStyleSheet("background-color: red;")
-        #     return
-
         # Only if parameters are good, run processing
         self.label_pairs_processing_status.setText("JDS data are being processed...")
         self.label_pairs_processing_status.setStyleSheet("background-color: yellow;")
@@ -634,7 +627,7 @@ class MyTableWidget(QWidget):
         try:
             profile_txt_file_path = f_make_transient_profile_from_jds_file_pairs(jds_pairs_source_folder,
                                                                                  jds_pairs_result_folder,
-                                                                                 self.source_dm)
+                                                                                 self.source_pairs_dm)
         except:
             self.label_pairs_processing_status.setText("Something wrong happened during calculations!")
             self.label_pairs_processing_status.setStyleSheet("background-color: red;")
@@ -644,7 +637,6 @@ class MyTableWidget(QWidget):
         self.label_pairs_processing_status.setText("JDS pairs preprocessing finished! "
                                              "Please select the first option and pick a file to process the profile")
         self.label_pairs_processing_status.setStyleSheet("background-color: lightgreen;")
-
 
     def specify_result_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
