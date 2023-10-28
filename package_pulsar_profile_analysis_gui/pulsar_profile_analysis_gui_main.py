@@ -20,6 +20,8 @@ if __package__ is None:
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
+from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds_file_pairs import (
+    f_make_transient_profile_from_jds_file_pairs)
 from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
 from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_16
 from package_common_modules.text_manipulations import read_one_value_txt_file
@@ -177,11 +179,13 @@ class MyTableWidget(QWidget):
         self.label_processing_status.setFont(QFont('Arial', 14))
         self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
 
+
+
         # First tab third part
         self.radiobutton_pairs = QRadioButton("Raw .jds pairs preprocess:")
         self.radiobutton_pairs.process_type = "raw jds pairs files"
         self.radiobutton_pairs.toggled.connect(self.rb_pairs_on_click)
-        self.tab1.layout.addWidget(self.radiobutton_pairs, 8, 0, Qt.AlignTop)
+        self.tab1.layout.addWidget(self.radiobutton_pairs, 8, 0)  # , Qt.AlignTop
 
         # Path to source folder line
         self.source_pairs_path_line = QLineEdit()
@@ -189,17 +193,16 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addWidget(self.source_pairs_path_line, 8, 1)
 
         # Button "Specify result folder"
-        self.button_select_pairs_result_path = QPushButton('Specify result folder')
-        self.button_select_pairs_result_path.clicked.connect(self.specify_source_pairs_folder_dialog)  # add new action!!!
-        self.button_select_pairs_result_path.setFixedSize(QSize(150, 30))
-        self.button_select_pairs_result_path.setEnabled(False)
-        self.tab1.layout.addWidget(self.button_select_pairs_result_path, 8, 2)
-
+        self.button_select_pairs_source_path = QPushButton('Specify source folder')
+        self.button_select_pairs_source_path.clicked.connect(self.specify_source_pairs_folder_dialog)  # add new action!!!
+        self.button_select_pairs_source_path.setFixedSize(QSize(150, 30))
+        self.button_select_pairs_source_path.setEnabled(False)
+        self.tab1.layout.addWidget(self.button_select_pairs_source_path, 8, 2)
 
         # Path to result folder line
-        self.source_pairs_path_line = QLineEdit()
-        self.source_pairs_path_line.setEnabled(False)
-        self.tab1.layout.addWidget(self.source_pairs_path_line, 9, 1)
+        self.result_pairs_path_line = QLineEdit()
+        self.result_pairs_path_line.setEnabled(False)
+        self.tab1.layout.addWidget(self.result_pairs_path_line, 9, 1)
 
         # Button "Specify result folder"
         self.button_select_pairs_result_path = QPushButton('Specify result folder')
@@ -208,41 +211,39 @@ class MyTableWidget(QWidget):
         self.button_select_pairs_result_path.setEnabled(False)
         self.tab1.layout.addWidget(self.button_select_pairs_result_path, 9, 2)
 
-        # # Nested horizontal layout for DM entry
-        # self.dm_entry_layout = QHBoxLayout()
-        #
-        # self.label_dm_entry = QLabel("Source dispersion measure (DM):", self)
-        # self.label_dm_entry.setEnabled(False)
-        # self.label_dm_entry.setFixedSize(QSize(160, 30))
-        # self.dm_entry_layout.addWidget(self.label_dm_entry)
-        #
-        # # Entry of DM value
-        # self.line_dm_entry = QLineEdit()
-        # self.line_dm_entry.setText('5.755')
-        # self.line_dm_entry.setEnabled(False)
-        # self.dm_entry_layout.addWidget(self.line_dm_entry)
-        #
-        # self.label_dm_units = QLabel(f' pc/cm\N{SUPERSCRIPT THREE}', self)
-        # self.label_dm_units.setFixedSize(QSize(490, 30))
-        # self.label_dm_units.setEnabled(False)
-        # self.dm_entry_layout.addWidget(self.label_dm_units)
-        #
-        # # Add nested horizontal layout to the main one
-        # self.tab1.layout.addLayout(self.dm_entry_layout, 5, 1)
-        #
-        # # Button "Preprocess jds files"
-        # self.button_process_jds = QPushButton('Preprocess jds files')
-        # self.button_process_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
-        # self.button_process_jds.setEnabled(False)
-        # self.tab1.layout.addWidget(self.button_process_jds, 6, 1, Qt.AlignTop)
-        #
-        # # JDS processing status label
-        # self.label_processing_status = QLabel('', self)
-        # self.label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
-        # self.label_processing_status.setFont(QFont('Arial', 14))
-        # self.tab1.layout.addWidget(self.label_processing_status, 7, 1)
+        # Nested horizontal layout for DM entry
+        self.pairs_dm_entry_layout = QHBoxLayout()
 
+        self.label_pairs_dm_entry = QLabel("Source dispersion measure (DM):", self)
+        self.label_pairs_dm_entry.setEnabled(False)
+        self.label_pairs_dm_entry.setFixedSize(QSize(160, 30))
+        self.pairs_dm_entry_layout.addWidget(self.label_pairs_dm_entry)
 
+        # Entry of DM value
+        self.line_pairs_dm_entry = QLineEdit()
+        self.line_pairs_dm_entry.setText('5.755')
+        self.line_pairs_dm_entry.setEnabled(False)
+        self.pairs_dm_entry_layout.addWidget(self.line_pairs_dm_entry)
+
+        self.label_pairs_dm_units = QLabel(f' pc/cm\N{SUPERSCRIPT THREE}', self)
+        self.label_pairs_dm_units.setFixedSize(QSize(490, 30))
+        self.label_pairs_dm_units.setEnabled(False)
+        self.pairs_dm_entry_layout.addWidget(self.label_pairs_dm_units)
+
+        # Add nested horizontal layout to the main one
+        self.tab1.layout.addLayout(self.pairs_dm_entry_layout, 10, 1)
+
+        # Button "Preprocess pairs of jds files"
+        self.button_process_pairs_jds = QPushButton('Preprocess pairs of jds files from specified folder')
+        self.button_process_pairs_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
+        self.button_process_pairs_jds.setEnabled(False)
+        self.tab1.layout.addWidget(self.button_process_pairs_jds, 11, 1, Qt.AlignTop)
+
+        # JDS pairs processing status label
+        self.label_pairs_processing_status = QLabel('', self)
+        self.label_pairs_processing_status.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_pairs_processing_status.setFont(QFont('Arial', 14))
+        self.tab1.layout.addWidget(self.label_pairs_processing_status, 12, 1)
 
 
 
@@ -548,6 +549,10 @@ class MyTableWidget(QWidget):
         t1 = Thread(target=self.preprocess_jds_files)
         t1.start()
 
+    def thread_preprocess_pairs_jds_files(self):
+        t2 = Thread(target=self.preprocess_pairs_jds_files)
+        t2.start()
+
     def preprocess_jds_files(self):
         try:
             self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
@@ -592,6 +597,55 @@ class MyTableWidget(QWidget):
                                              "You can now open next tab and process the profile")
         self.label_processing_status.setStyleSheet("background-color: lightgreen;")
 
+    def preprocess_jds_pairs_files(self):
+        try:
+            self.source_pairs_dm = float(self.line_pairs_dm_entry.text().replace(',', '.'))
+        except ValueError:
+            print(' Wrong source DM value! Unable to convert into float number.')
+            self.label_pairs_processing_status.setText("Wrong DM value!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_pairs_source_folder = str(self.path_to_source_pairs_folder)
+        except AttributeError:
+            self.label_pairs_processing_status.setText("Wrong source directory specified!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_pairs_result_folder = str(self.path_to_result_pairs_folder)
+        except AttributeError:
+            self.label_pairs_processing_status.setText("Wrong result directory specified!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # try:
+        #     jds_analysis_files = self.jds_analysis_list
+        # except AttributeError:
+        #     self.label_pairs_processing_status.setText("Wrong JDS files specified!")
+        #     self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+        #     return
+
+        # Only if parameters are good, run processing
+        self.label_pairs_processing_status.setText("JDS data are being processed...")
+        self.label_pairs_processing_status.setStyleSheet("background-color: yellow;")
+
+        try:
+            profile_txt_file_path = f_make_transient_profile_from_jds_file_pairs(jds_pairs_source_folder,
+                                                                                 jds_pairs_result_folder,
+                                                                                 self.source_dm)
+        except:
+            self.label_pairs_processing_status.setText("Something wrong happened during calculations!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # After the processing is finished,
+        self.label_pairs_processing_status.setText("JDS pairs preprocessing finished! "
+                                             "Please select the first option and pick a file to process the profile")
+        self.label_pairs_processing_status.setStyleSheet("background-color: lightgreen;")
+
+
     def specify_result_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
         if dir_name:
@@ -612,8 +666,6 @@ class MyTableWidget(QWidget):
             self.path_to_result_pairs_folder = dir_name
             self.result_pairs_path_line.setText(str(dir_name))
         pass
-
-
 
     def jds_files_open_dialog(self):
         files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
@@ -650,6 +702,16 @@ class MyTableWidget(QWidget):
             self.line_dm_entry.setEnabled(False)
             self.label_dm_entry.setEnabled(False)
             self.label_dm_units.setEnabled(False)
+
+            self.button_select_pairs_source_path.setEnabled(False)
+            self.button_select_pairs_result_path.setEnabled(False)
+            self.button_process_pairs_jds.setEnabled(False)
+            self.source_pairs_path_line.setEnabled(False)
+            self.result_pairs_path_line.setEnabled(False)
+            self.line_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_units.setEnabled(False)
+
     # action called by radio button switch jds
     def rb_jds_on_click(self):
         self.radioButton = self.sender()
@@ -668,6 +730,15 @@ class MyTableWidget(QWidget):
             self.label_dm_entry.setEnabled(True)
             self.label_dm_units.setEnabled(True)
 
+            self.button_select_pairs_source_path.setEnabled(False)
+            self.button_select_pairs_result_path.setEnabled(False)
+            self.button_process_pairs_jds.setEnabled(False)
+            self.source_pairs_path_line.setEnabled(False)
+            self.result_pairs_path_line.setEnabled(False)
+            self.line_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_units.setEnabled(False)
+
     def rb_pairs_on_click(self):
         self.radioButton = self.sender()
         if self.radioButton.isChecked():
@@ -685,6 +756,14 @@ class MyTableWidget(QWidget):
             self.label_dm_entry.setEnabled(False)
             self.label_dm_units.setEnabled(False)
 
+            self.button_select_pairs_source_path.setEnabled(True)
+            self.button_select_pairs_result_path.setEnabled(True)
+            self.button_process_pairs_jds.setEnabled(True)
+            self.source_pairs_path_line.setEnabled(True)
+            self.result_pairs_path_line.setEnabled(True)
+            self.line_pairs_dm_entry.setEnabled(True)
+            self.label_pairs_dm_entry.setEnabled(True)
+            self.label_pairs_dm_units.setEnabled(True)
 
 
     # action called by the push button
