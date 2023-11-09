@@ -93,47 +93,47 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
 
                 # *** Creating a binary file with data for long data storage ***
                 if(mode == 1 or mode == 2) and long_file_save_ch_a == 1:
-                    data_a_file_name = dat_files_path + df_filename+'_Data_chA.dat'
+                    data_a_file_name = os.path.join(dat_files_path, df_filename + '_Data_chA.dat')
                     data_a_file = open(data_a_file_name, 'wb')
                     data_a_file.write(file_header)
                     data_a_file.close()
                     dat_file_list.append('chA')
                 if long_file_save_ch_b == 1 and (mode == 1 or mode == 2):
-                    data_b_file_name = dat_files_path + df_filename+'_Data_chB.dat'
+                    data_b_file_name = os.path.join(dat_files_path, df_filename+'_Data_chB.dat')
                     data_b_file = open(data_b_file_name, 'wb')
                     data_b_file.write(file_header)
                     data_b_file.close()
                     dat_file_list.append('chB')
                 if long_file_save_channels_sum is True and (mode == 1 or mode == 2):
-                    data_sum_file_name = dat_files_path + df_filename+'_Data_A+B.dat'
+                    data_sum_file_name = os.path.join(dat_files_path, df_filename+'_Data_A+B.dat')
                     data_sum_file = open(data_sum_file_name, 'wb')
                     data_sum_file.write(file_header)
                     data_sum_file.close()
                     dat_file_list.append('A+B')
                 if long_file_save_channels_diff is True and (mode == 1 or mode == 2):
-                    data_diff_file_name = dat_files_path + df_filename+'_Data_A-B.dat'
+                    data_diff_file_name = os.path.join(dat_files_path, df_filename+'_Data_A-B.dat')
                     data_diff_file = open(data_diff_file_name, 'wb')
                     data_diff_file.write(file_header)
                     data_diff_file.close()
                     dat_file_list.append('A-B')
                 if long_file_save_cri == 1 and corr_process == 1 and mode == 2:
-                    data_cre_name = dat_files_path + df_filename+'_Data_CRe.dat'
+                    data_cre_name = os.path.join(dat_files_path, df_filename+'_Data_CRe.dat')
                     data_cre_file = open(data_cre_name, 'wb')
                     data_cre_file.write(file_header)
                     data_cre_file.close()
                     dat_file_list.append('CRe')
-                    data_cim_name = dat_files_path + df_filename+'_Data_CIm.dat'
+                    data_cim_name = os.path.join(dat_files_path, df_filename+'_Data_CIm.dat')
                     data_cim_file = open(data_cim_name, 'wb')
                     data_cim_file.write(file_header)
                     data_cim_file.close()
                     dat_file_list.append('CIm')
                 if long_file_save_cmp == 1 and corr_process == 1 and mode == 2:
-                    data_cm_name = dat_files_path + df_filename+'_Data_C_m.dat'
+                    data_cm_name = os.path.join(dat_files_path, df_filename+'_Data_C_m.dat')
                     data_cm_file = open(data_cm_name, 'wb')
                     data_cm_file.write(file_header)
                     data_cm_file.close()
                     dat_file_list.append('C_m')
-                    data_cp_name = dat_files_path + df_filename+'_Data_C_p.dat'
+                    data_cp_name = os.path.join(dat_files_path, df_filename+'_Data_C_p.dat')
                     data_cp_file = open(data_cp_name, 'wb')
                     data_cp_file.write(file_header)
                     data_cp_file.close()
