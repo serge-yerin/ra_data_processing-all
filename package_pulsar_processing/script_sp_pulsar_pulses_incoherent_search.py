@@ -16,24 +16,25 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2'
 # Directory where all results will be stored:
-result_directory = 'e:/RA_DATA_RESULTS/'
+# result_directory = 'e:/RA_DATA_RESULTS/'
+result_directory = 'e:/TEMP'
 
 # 'B0329+54' 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA']
+data_types = ['chA', 'A+B']
 
 # Calibration file needed only if cross-spectra are involved
 phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-save_long_dyn_spectra = True   # Save figures of the whole observation spectrogram?
-save_n_period_pics = True      # Save n-period pictures?
+save_long_dyn_spectra = False   # Save figures of the whole observation spectrogram?
+save_n_period_pics = False      # Save n-period pictures?
 threshold = 0.25               # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -85,6 +86,9 @@ else:
 if 'A+B' in data_types:
     longFileSaveAch = 1
     longFileSaveBch = 1
+    long_file_sum = True
+else:
+    long_file_sum = False
 
 longFileSaveCMP = 0
 
@@ -109,45 +113,38 @@ print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making  long dynamic sp
 # Find all files in folder once more:
 file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
 
-result_folder_name = source_directory.split('/')[-2]
+source_directory = os.path.normpath(source_directory)
+result_folder_name = source_directory.split(os.sep)[-1]
 
 # Path to intermediate data files and results
 if result_directory == '':
     result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
 
+result_directory = os.path.normpath(result_directory)
 path_to_dat_files = os.path.join(result_directory, pulsar_name + '_' + result_folder_name)
 
 result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
 
 for file in range(len(file_name_list_current)):
-    file_name_list_current[file] = source_directory + file_name_list_current[file]
+    file_name_list_current[file] = os.path.join(source_directory, file_name_list_current[file])
 
 # Run JDS/ADR reader for the current folder
 
 done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
-                                                            8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
-                                                            CorrelationProcess, longFileSaveAch, longFileSaveBch,
+                                                            8, -100, -40, 0, 6, -150, -30,
+                                                            colormap, custom_dpi, CorrelationProcess,
+                                                            longFileSaveAch, longFileSaveBch,
                                                             long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
-                                                            DynSpecSaveCleaned, CorrSpecSaveInitial,
-                                                            CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
-                                                            print_or_not=0)
+                                                            DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
+                                                            0, 0,
+                                                            dat_files_path=path_to_dat_files,
+                                                            long_file_save_channels_sum=long_file_sum,
+                                                            long_file_save_channels_diff=False, print_or_not=False)
+
+print(dat_file_name,dat_file_list )
 
 # dat_file_list = ['chA', 'chB']
 # dat_file_name = 'E300117_180000.jds'
-#
-# # Trying to implement summation of two channels
-#
-# dat_file_a_plus_b_done = False
-# if 'A+B' in data_types:
-#     print('A+B started')
-#     dat_file_a_plus_b_done = DAT_file_reader(path_to_dat_files, dat_file_name, ['A+B'], path_to_dat_files, result_folder_name,
-#                         False, False, False, -120, -10,
-#                         0, 10, 8, custom_dpi, colormap,
-#                         False, False, False, 1 * 10 ** (-12),
-#                         0, 80, 'date_time_start', 'date_time_stop',
-#                         0, 80,
-#                         [], False)
-
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
 data_types_to_process = []
@@ -155,9 +152,8 @@ if 'chA' in dat_file_list and 'chA' in data_types:
     data_types_to_process.append('chA')
 if 'chB' in dat_file_list and 'chB' in data_types:
     data_types_to_process.append('chB')
-# if dat_file_a_plus_b_done and 'A+B' in data_types:
-#     data_types_to_process.append('A+B')
-
+if 'A+B' in dat_file_list and 'A+B' in data_types:
+    data_types_to_process.append('A+B')
 if 'CRe' in dat_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
 
@@ -174,7 +170,8 @@ if save_long_dyn_spectra:
     print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
           dat_file_name, ', of types:', data_types_to_process, '\n')
 
-    result_folder_name = source_directory.split('/')[-2] + '_initial'
+    # result_folder_name = source_directory.split('/')[-2] + '_initial'
+    result_folder_name = source_directory.split(os.sep)[-2] + '_initial'
 
     ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
@@ -192,7 +189,7 @@ if save_long_dyn_spectra:
 print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
 
 for i in range(len(data_types_to_process)):
-    if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
+    if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB' or data_types_to_process[i] == 'A+B':
         delta_sigma = 0.05
         n_sigma = 2
         min_l = 30
@@ -202,9 +199,9 @@ for i in range(len(data_types_to_process)):
         min_l = 30
     else:
         sys.exit('            Type error!')
-
-    dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
-                        1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
+    file_name = os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat')
+    dat_rfi_mask_making(file_name, 1024, lin_data=True,
+                        delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
 
 #
@@ -263,7 +260,9 @@ if save_n_period_pics:
 if save_long_dyn_spectra:
 
     # Making another long dynamic spectra
-    result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
+    # result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
+    result_folder_name = source_directory.split(os.sep)[-2] + '_dedispersed'
+
     print('\n\n  * ', str(datetime.datetime.now())[:19],
           ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
@@ -284,18 +283,26 @@ if save_long_dyn_spectra:
 # Averaging the pulse
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making averaged (folded) pulse profile... \n\n')
 
+smp_file_name_list = []
+
+# file_name = dedispersed_data_file_name.split('/')[-1]
+file_name = dedispersed_data_file_name.split(os.sep)[-1]
+
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    smp_file_name = pulsar_period_folding(path_to_dat_files, dedispersed_data_file_name.split('/')[-1],
+    smp_file_name = pulsar_period_folding(path_to_dat_files, file_name,
                                           path_to_dat_files, pulsar_name, scale_factor, -0.5, 3, periods_per_fig,
                                           custom_dpi, colormap, use_mask_file=True, save_pulse_evolution=True)
-
+    smp_file_name_list.append(smp_file_name)
 
 # SMP file analysis
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * SMP file analysis... \n\n')
 
-smd_integrated_pulses_analyzer(path_to_dat_files, path_to_dat_files, smp_file_name, pulsar_name, scale_factor,
-                               True, True, no_of_dm_steps, dm_var_step, 1, 1.0, 1, 128, 8, True, 0,
-                               frequency_cuts, colormap, custom_dpi, 16.5, 33.0)
+for smp_file_name in smp_file_name_list:
+    smd_integrated_pulses_analyzer(path_to_dat_files, path_to_dat_files, smp_file_name, pulsar_name, scale_factor,
+                                   True, True, no_of_dm_steps, dm_var_step,
+                                   1, 1.0, 1, 128,
+                                   8, True, 0,
+                                   frequency_cuts, colormap, custom_dpi, 16.5, 33.0)
 
 
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
