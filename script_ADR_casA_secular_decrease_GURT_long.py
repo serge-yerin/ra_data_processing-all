@@ -92,23 +92,26 @@ current_date = time.strftime("%d.%m.%Y")
 print('   Today is ', current_date, ' time is ', current_time, '\n')
 
 
-# Find all files in folder once more:
-file_name_list_current = find_files_only_in_current_folder(path_to_adr_data, '.adr', 0)
-file_name_list_current.sort()
-
-# Making a name of folder for storing the result figures and txt files
-result_folder_name = path_to_adr_data.split('/')[-2]
-result_path = path_to_store_dat + 'ADR_Results_' + result_folder_name
-
-for file in range(len(file_name_list_current)):
-    file_name_list_current[file] = path_to_adr_data + file_name_list_current[file]
+# # Find all files in folder once more:
+# file_name_list_current = find_files_only_in_current_folder(path_to_adr_data, '.adr', 0)
+# file_name_list_current.sort()
+#
+# # Making a name of folder for storing the result figures and txt files
+# result_folder_name = path_to_adr_data.split('/')[-2]
+# result_path = path_to_store_dat + 'ADR_Results_' + result_folder_name
+#
+# for file in range(len(file_name_list_current)):
+#     file_name_list_current[file] = path_to_adr_data + file_name_list_current[file]
 
 # Run ADR reader for the current folder
-done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, 2048,
-                                                            8, -120, -50, 0, 10, -150, -30, 200, 'jet',
-                                                            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-                                                            0, 0, print_or_not, dat_file_path=path_to_store_dat)
+# done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, 2048,
+#                                                             8, -120, -50, 0, 10, -150, -30, 200, 'jet',
+#                                                             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+#                                                             0, 0, print_or_not, dat_file_path=path_to_store_dat)
 
+
+DAT_file_name = 'A190804_071924.adr'
+DAT_file_list = ['CRe', 'CIm']
 
 # Search needed files in the directory and subdirectories
 file_name_list = find_files_only_in_current_folder(path_to_store_dat, '.txt', 0)
@@ -159,23 +162,61 @@ print('\n * Calculations of culminations time for all days of observations... \n
 
 for day in range(no_of_days+1):
     current_time = time.strftime("%H:%M:%S")
-    print(' Day # ', str(day+1), ' of ', str(no_of_days+1), '   started at: ', current_time)
+    print('\n Day # ', str(day+1), ' of ', str(no_of_days+1), '   started at: ', current_time)
 
+    # Calculate current date in the timeline of the file
     date = str((Time(dt_timeline[0]) + TimeDelta(day * 86400, format='sec')))[0:10]
-    culm_time = Time(culmination_time_utc_astroplan('3C405', str(date), 0))
+
+    # Calculate the culmination of 3C405
+    culm_time_txt = culmination_time_utc_astroplan('3C405', str(date), 0)
+    culm_time = Time(culm_time_txt)
+
+    # End of the date of the 3C405 culmination
+    end_of_day = Time(str(date) + ' 23:59:59.999999')
+
+    # Check if the calculated culmination time lays in the file time limits
     if (culm_time > Time(dt_timeline[0]) + TimeDelta(3600, format='sec')) and \
             (culm_time < Time(dt_timeline[-1]) - TimeDelta(3600, format='sec')):
         culm_time_3C405.append(culm_time)
+        print(' Added:')
 
-    culm_time = Time(culmination_time_utc_astroplan('3C461', str(date), 0))
+    print('   Culm 3C405: ', culm_time)
+    print('   Between:    ', Time(dt_timeline[0]) + TimeDelta(3600, format='sec'), '\n   &           ',
+          Time(dt_timeline[-1]) - TimeDelta(3600, format='sec'))
+
+
+    # print(end_of_day - culm_time)
+    # print(TimeDelta(end_of_day - culm_time, format='sec'))
+    # print(TimeDelta(11954, format='sec') < TimeDelta(end_of_day - culm_time, format='sec') <= TimeDelta(12190, format='sec'))
+
+    # Diff of culminations is 3h 23m 10s (12190 s) - if CygA culminates after 20h 36m 50s - we use the next date
+    if TimeDelta(11954, format='sec') < end_of_day - culm_time <= TimeDelta(12190, format='sec'):
+        # 3 minutes 56 sec of the date where there could be 2 culminations
+        date = str((Time(dt_timeline[0]) + TimeDelta((day + 1) * 86400, format='sec')))[0:10]
+        culm_time = Time(culmination_time_utc_astroplan('3C461', date, 0, culm_type='previous'))
+        print('Note: We are in the day of 2 culminations of 3C461')
+
+    elif end_of_day - culm_time < TimeDelta(11954, format='sec'):
+        # Definitely 1 culmination after midnight
+        date = str((Time(dt_timeline[0]) + TimeDelta((day + 1) * 86400, format='sec')))[0:10]
+        culm_time = Time(culmination_time_utc_astroplan('3C461', date, 0))
+        print('Note: We are in the day where 3C461 culminates next date')
+
+    # Check if the calculated culmination time lays in the file time limits
     if (culm_time > Time(dt_timeline[0]) + TimeDelta(3600, format='sec')) and \
             (culm_time < Time(dt_timeline[-1]) - TimeDelta(3600, format='sec')):
         culm_time_3C461.append(culm_time)
+        print(' Added:')
+
+    print('   Culm 3C461: ', culm_time)
+    print('   Between:    ', Time(dt_timeline[0]) + TimeDelta(3600, format='sec'), '\n   &           ',
+          Time(dt_timeline[-1]) - TimeDelta(3600, format='sec'))
+
 
 print('\n * Culminations number: ' + str(len(culm_time_3C405)) + ' for 3C405 and ' +
       str(len(culm_time_3C461)) + ' for 3C461 \n')
 
-
+input()
 # In a loop take a two-hour fragments of data and make text files with responses
 ################################################################################
 #                               3C405 Cygnus A                                 #
