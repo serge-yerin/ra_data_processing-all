@@ -147,7 +147,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     a_current_date = time.strftime("%d.%m.%Y")
 
     rc('font', size=6, weight='bold')
-    data_filepath = common_path + filename
+    data_filepath = os.path.join(common_path, filename)
 
     # Obtain pulsar parameters from catalogue
     if 'Transient' in pulsar_name:
@@ -156,14 +156,14 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         pulsar_ra, pulsar_dec, pulsar_dm, p_bar = catalogue_pulsar(pulsar_name)
 
     # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-    newpath = result_path + 'Pulsar_pulses_' + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + \
-              '_' + filename[:-4]
+    newpath = os.path.join(result_path, 'Pulsar_pulses_' + pulsar_name + '_DM_' +
+                           str(np.round(pulsar_dm, 6)) + '_' + filename[:-4])
     if save_pics:
         if not os.path.exists(newpath):
             os.makedirs(newpath)
 
     # Path to timeline file to be analyzed:
-    time_line_file_name = common_path + filename[-31:-13] + '_Timeline.txt'
+    time_line_file_name = os.path.join(common_path, filename[-31:-13] + '_Timeline.txt')
 
     # *** Opening DAT datafile to check the initial file type ***
     file = open(data_filepath, 'rb')
@@ -195,8 +195,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
 
     if save_profile_txt > 0:
         # *** Creating a name for long timeline TXT file ***
-        profile_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + \
-                            filename[:-4] + '_time_profile.txt'
+        profile_file_name = os.path.join(common_path, pulsar_name + '_DM_' +
+                                         str(np.round(pulsar_dm, 6)) + '_' +
+                                         filename[:-4] + '_time_profile.txt')
         profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
         profile_txt_file.close()
 
@@ -252,9 +253,10 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         del file_header
 
     # *** Creating a name for long timeline TXT file ***
-    data_filename = data_filepath.split('/')[-1]
-    new_tl_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + \
-                       data_filename[:-13] + '_Timeline.txt'
+    # data_filename = data_filepath.split('/')[-1]
+    data_filename = data_filepath.split(os.sep)[-1]
+    new_tl_file_name = os.path.join(common_path, pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' +
+                                    data_filename[:-13] + '_Timeline.txt')
     new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
     new_tl_file.close()
 
