@@ -82,6 +82,10 @@ if 'chB' in data_types:
 else:
     longFileSaveBch = 0
 
+if 'A+B' in data_types:
+    longFileSaveAch = 1
+    longFileSaveBch = 1
+
 longFileSaveCMP = 0
 
 if 'C_m' in data_types:
@@ -111,9 +115,9 @@ result_folder_name = source_directory.split('/')[-2]
 if result_directory == '':
     result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
 
-path_to_dat_files = result_directory + '/' + pulsar_name + '_' + result_folder_name + '/'
+path_to_dat_files = os.path.join(result_directory, pulsar_name + '_' + result_folder_name)
 
-result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
+result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
 
 for file in range(len(file_name_list_current)):
     file_name_list_current[file] = source_directory + file_name_list_current[file]
@@ -128,8 +132,21 @@ done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_curre
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                             print_or_not=0)
 
-# dat_file_list = ['chA', 'chB', 'CRe', 'CIm']
-# dat_file_name = 'P130422_121607.jds'
+# dat_file_list = ['chA', 'chB']
+# dat_file_name = 'E300117_180000.jds'
+#
+# # Trying to implement summation of two channels
+#
+# dat_file_a_plus_b_done = False
+# if 'A+B' in data_types:
+#     print('A+B started')
+#     dat_file_a_plus_b_done = DAT_file_reader(path_to_dat_files, dat_file_name, ['A+B'], path_to_dat_files, result_folder_name,
+#                         False, False, False, -120, -10,
+#                         0, 10, 8, custom_dpi, colormap,
+#                         False, False, False, 1 * 10 ** (-12),
+#                         0, 80, 'date_time_start', 'date_time_stop',
+#                         0, 80,
+#                         [], False)
 
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
@@ -138,6 +155,9 @@ if 'chA' in dat_file_list and 'chA' in data_types:
     data_types_to_process.append('chA')
 if 'chB' in dat_file_list and 'chB' in data_types:
     data_types_to_process.append('chB')
+# if dat_file_a_plus_b_done and 'A+B' in data_types:
+#     data_types_to_process.append('A+B')
+
 if 'CRe' in dat_file_list and 'C_m' in data_types:
     data_types_to_process.append('C_m')
 
