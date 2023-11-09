@@ -240,13 +240,15 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         file_header = jds_header_new_channels_numbers(file_header, ifmin, ifmax)
 
         # *** Creating a binary file with data for long data storage ***
-        new_data_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + filename
+        new_data_file_name = os.path.join(common_path, pulsar_name + '_DM_' +
+                                          str(np.round(pulsar_dm, 6)) + '_' + filename)
         new_data_file = open(new_data_file_name, 'wb')
         new_data_file.write(file_header)
         new_data_file.close()
 
         if use_mask_file:
-            new_mask_file_name = common_path + pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' + filename[:-3] + 'msk'
+            new_mask_file_name = os.path.join(common_path, pulsar_name + '_DM_' +
+                                              str(np.round(pulsar_dm, 6)) + '_' + filename[:-3] + 'msk')
             new_mask_file = open(new_mask_file_name, 'wb')
             new_mask_file.write(file_header)
             new_mask_file.close()
