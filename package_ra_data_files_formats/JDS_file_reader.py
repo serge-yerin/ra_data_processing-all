@@ -76,7 +76,7 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
         # *** Creating a name for long timeline TXT file ***
         if file_no == 0 and (long_file_save_ch_a == 1 or long_file_save_ch_b == 1 or 
                              long_file_save_cri == 1 or long_file_save_cmp == 1):
-            tl_file_name = dat_files_path + df_filename + '_Timeline.txt'
+            tl_file_name = os.path.join(dat_files_path, df_filename + '_Timeline.txt')
             tl_file = open(tl_file_name, 'wb')  # Open and close to delete the file with the same name
             tl_file.close()
 
