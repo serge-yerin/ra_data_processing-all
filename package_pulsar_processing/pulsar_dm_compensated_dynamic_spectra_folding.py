@@ -120,7 +120,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
     filepath = os.path.join(source_path, filename)
 
     # Timeline file to be analyzed:
-    timeline_filepath = source_path + filename.split('_Data_')[0] + '_Timeline.txt'
+    timeline_filepath = os.path.join(source_path, filename.split('_Data_')[0] + '_Timeline.txt')
 
     # Opening DAT datafile
     file = open(filepath, 'rb')
