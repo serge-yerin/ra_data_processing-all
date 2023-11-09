@@ -29,7 +29,8 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                     v_min_corr_mag, v_max_corr_mag, colormap, custom_dpi, corr_process, 
                     long_file_save_ch_a, long_file_save_ch_b, long_file_save_cri, long_file_save_cmp,
                     dyn_spec_save_initial, dyn_spec_save_cleaned, corr_spectr_save_initial, corr_spectr_save_cleaned, 
-                    spectra_file_save_switch, immediate_sp_no, dat_files_path='', print_or_not=1):
+                    spectra_file_save_switch, immediate_sp_no, dat_files_path='',
+                    long_file_save_channels_sum=False, long_file_save_channels_diff=False, print_or_not=True):
     
     # current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
@@ -103,6 +104,18 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                     data_b_file.write(file_header)
                     data_b_file.close()
                     dat_file_list.append('chB')
+                if long_file_save_channels_sum is True and (mode == 1 or mode == 2):
+                    data_sum_file_name = dat_files_path + df_filename+'_Data_A+B.dat'
+                    data_sum_file = open(data_sum_file_name, 'wb')
+                    data_sum_file.write(file_header)
+                    data_sum_file.close()
+                    dat_file_list.append('A+B')
+                if long_file_save_channels_diff is True and (mode == 1 or mode == 2):
+                    data_diff_file_name = dat_files_path + df_filename+'_Data_A-B.dat'
+                    data_diff_file = open(data_diff_file_name, 'wb')
+                    data_diff_file.write(file_header)
+                    data_diff_file.close()
+                    dat_file_list.append('A-B')
                 if long_file_save_cri == 1 and corr_process == 1 and mode == 2:
                     data_cre_name = dat_files_path + df_filename+'_Data_CRe.dat'
                     data_cre_file = open(data_cre_name, 'wb')
@@ -243,6 +256,14 @@ def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                         data_b_file = open(data_b_file_name, 'ab')
                         data_b_file.write(data_chb)
                         data_b_file.close()
+                    if (mode == 1 or mode == 2) and long_file_save_channels_sum is True:
+                        data_sum_file = open(data_sum_file_name, 'ab')
+                        data_sum_file.write(data_cha + data_chb)
+                        data_sum_file.close()
+                    if (mode == 1 or mode == 2) and long_file_save_channels_diff is True:
+                        data_diff_file = open(data_diff_file_name, 'ab')
+                        data_diff_file.write(np.abs(data_cha - data_chb))
+                        data_diff_file.close()
                     if  mode == 2 and long_file_save_cri == 1 and corr_process == 1:
                         data_cre_file = open(data_cre_name, 'ab')
                         data_cre_file.write(np.float64(data_cre))
