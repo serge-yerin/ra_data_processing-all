@@ -77,8 +77,8 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
     current_date = time.strftime("%d.%m.%Y")
 
     # Files to be analyzed:
-    filename = dat_file_path + dat_file_name + '_Data_chA.dat'
-    tl_file_name = dat_file_path + dat_file_name + '_Timeline.txt'
+    filename = os.path.join(dat_file_path, dat_file_name + '_Data_chA.dat')
+    tl_file_name = os.path.join(dat_file_path, dat_file_name + '_Timeline.txt')
 
     for j in range(len(types_of_data)):  # Main loop by types of data to analyze
 
@@ -194,9 +194,7 @@ def DAT_file_reader(dat_file_path, dat_file_name, types_of_data, dat_result_path
         # *********************************************************************************
 
         # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-        if len(dat_result_path) > 1 and dat_result_path[-1] != '/':
-            dat_result_path += '/'
-        newpath = dat_result_path + 'DAT_Results_' + result_folder_name
+        newpath = os.path.join(dat_result_path, 'DAT_Results_' + result_folder_name)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
 
