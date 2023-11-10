@@ -1,11 +1,10 @@
-# TODO: make a sum of channels A & B
 # TODO: calculate the total data loss from cleaning
 # TODO: save pics of data with compensated delay applying mask as well
 # TODO: make similar pipeline, but starting from cutting into periods and averaging and then delay compensation
 
 # Python3
 software_name = 'Pulses Incoherent Averaging Script'
-software_version = '2022.11.02'
+software_version = '2023.11.10'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -16,25 +15,25 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2'
+source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74'
 # Directory where all results will be stored:
-# result_directory = 'e:/RA_DATA_RESULTS/'
-result_directory = 'e:/TEMP'
+result_directory = '../../RA_DATA_RESULTS/'
 
 # 'B0329+54' 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
 
-# Types of data to get (full possible set in the comment below - copy to code necessary)
-# data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-data_types = ['chA', 'A+B']
+# Types of data to get (full possible set in the comment below - copy to list the necessary ones)
+# data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B']
+data_types = ['chA', 'chB', 'A+B']
 
-# Calibration file needed only if cross-spectra are involved
-phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
+# Calibration file needed only if cross-spectra are involved, should be in source directory
+phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
+
 periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-save_long_dyn_spectra = False   # Save figures of the whole observation spectrogram?
-save_n_period_pics = False      # Save n-period pictures?
+save_long_dyn_spectra = False  # Save figures of the whole observation spectrogram?
+save_n_period_pics = False     # Save n-period pictures?
 threshold = 0.25               # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -95,6 +94,8 @@ longFileSaveCMP = 0
 if 'C_m' in data_types:
     CorrelationProcess = 1
     long_file_save_im_re = 1
+    phase_calibr_txt_file = os.path.join(source_directory, phase_calibr_txt_file)
+    assert os.path.isfile(phase_calibr_txt_file), 'There is no calibration file found'
 else:
     CorrelationProcess = 0
     long_file_save_im_re = 0
@@ -104,7 +105,7 @@ else:
 #
 #
 print('\n\n\n\n   ***************************************************************************')
-print('   *          ', software_name, ' v.', software_version, '            *      (c) YeS 2022')
+print('   *          ', software_name, ' v.', software_version, '            *      (c) YeS 2023')
 print('   *************************************************************************** \n')
 
 
@@ -267,8 +268,10 @@ if save_long_dyn_spectra:
           ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
 
     ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], data_types_to_process,
-                         path_to_dat_files, result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet',
-                         0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)  # path_to_dat_files
+                         path_to_dat_files, result_folder_name, 0, 0, 0,
+                         -120, -10, 0, 6, 6, 300, 'jet',
+                         0, 0, 0, 20 * 10**(-12), 16.5, 33.0,
+                         '', '', 16.5, 33.0, [], 0)
 
 
 #
@@ -280,21 +283,21 @@ if save_long_dyn_spectra:
 #
 #
 
+
 # Averaging the pulse
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making averaged (folded) pulse profile... \n\n')
 
 smp_file_name_list = []
-
-# file_name = dedispersed_data_file_name.split('/')[-1]
-file_name = dedispersed_data_file_name.split(os.sep)[-1]
-
 for dedispersed_data_file_name in dedispersed_data_file_list:
+    file_name = dedispersed_data_file_name.split(os.sep)[-1]
     smp_file_name = pulsar_period_folding(path_to_dat_files, file_name,
-                                          path_to_dat_files, pulsar_name, scale_factor, -0.5, 3, periods_per_fig,
+                                          path_to_dat_files, pulsar_name,
+                                          scale_factor, -0.5, 3, periods_per_fig,
                                           custom_dpi, colormap, use_mask_file=True, save_pulse_evolution=True)
     smp_file_name_list.append(smp_file_name)
 
-# SMP file analysis
+
+# SMP files analysis
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * SMP file analysis... \n\n')
 
 for smp_file_name in smp_file_name_list:
