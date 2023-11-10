@@ -67,11 +67,11 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
 
     # Creating a folder where all pictures and results will be stored (if it doesn't exist)
     dat_file_name = dat_file_path.split('/')[-1]
-    result_path = results_path + "Pulsar_n_periods_" + dat_file_name[:-4]
+    result_path = os.path.join(results_path, "Pulsar_n_periods_" + dat_file_name[:-4])
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     if save_strongest:
-        best_result_path = result_path + '/Strongest_pulses'
+        best_result_path = os.path.join(result_path, 'Strongest_pulses')
         if not os.path.exists(best_result_path):
             os.makedirs(best_result_path)
 
@@ -79,7 +79,6 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
     # Timeline file to be analyzed:
-    # timeline_filepath = results_path + dat_file_name.split('_Data_')[0] + '_Timeline.txt'
     timeline_filepath = dat_file_path.split('_Data_')[0] + '_Timeline.txt'
 
     # Opening DAT datafile
@@ -214,13 +213,13 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
                  fontsize=3, transform=plt.gcf().transFigure)
         fig.text(0.09, 0.04, 'Software version: ' + software_version+', yerin.serge@gmail.com, IRA NASU',
                  fontsize=3, transform=plt.gcf().transFigure)
-        pylab.savefig(result_path + '/' + dat_file_name[:-4] + ' fig. ' + str(block+1) + '.png',
+        pylab.savefig(os.path.join(result_path, dat_file_name[:-4] + ' fig. ' + str(block+1) + '.png'),
                       bbox_inches='tight', dpi=customDPI)
 
         # If the profile has points above threshold save picture also into separate folder
         if save_strongest and np.max(profile) > threshold:
-            pylab.savefig(best_result_path + '/' + dat_file_name[:-4] + ' fig. ' + str(block + 1) +
-                          ' - Combined picture.png',
+            pylab.savefig(os.path.join(best_result_path, dat_file_name[:-4] + ' fig. ' + str(block + 1) +
+                          ' - Combined picture.png'),
                           bbox_inches='tight', dpi=customDPI)
         plt.close('all')
 
