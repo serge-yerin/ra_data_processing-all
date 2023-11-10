@@ -32,8 +32,8 @@ phase_calibr_txt_file = 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 periods_per_fig = 1            # Number of periods on averaged (folded) pulse profile
 scale_factor = 10              # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
 
-save_long_dyn_spectra = False  # Save figures of the whole observation spectrogram?
-save_n_period_pics = False     # Save n-period pictures?
+save_long_dyn_spectra = True   # Save figures of the whole observation spectrogram?
+save_n_period_pics = True      # Save n-period pictures?
 threshold = 0.25               # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'             # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
@@ -171,8 +171,7 @@ if save_long_dyn_spectra:
     print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
           dat_file_name, ', of types:', data_types_to_process, '\n')
 
-    # result_folder_name = source_directory.split('/')[-2] + '_initial'
-    result_folder_name = source_directory.split(os.sep)[-2] + '_initial'
+    result_folder_name = source_directory.split(os.sep)[-1] + '_initial'
 
     ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
@@ -261,8 +260,7 @@ if save_n_period_pics:
 if save_long_dyn_spectra:
 
     # Making another long dynamic spectra
-    # result_folder_name = source_directory.split('/')[-2] + '_dedispersed'
-    result_folder_name = source_directory.split(os.sep)[-2] + '_dedispersed'
+    result_folder_name = source_directory.split(os.sep)[-1] + '_dedispersed'
 
     print('\n\n  * ', str(datetime.datetime.now())[:19],
           ' * Making dynamic spectra of the data with compensated dispersion delay... \n\n')
