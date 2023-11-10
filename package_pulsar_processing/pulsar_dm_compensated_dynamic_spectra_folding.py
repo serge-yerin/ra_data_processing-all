@@ -321,7 +321,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
 
     # Saving integrated pulse data to a file
     smp_result_file_name = 'DSPZ_' + data_filename[:-4] + ' - folded pulses.smd'
-    save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1], result_path + smp_result_file_name)
+    save_integrated_pulse_to_file(data, file_header, p_visible, data.shape[1],
+                                  os.path.join(result_path, smp_result_file_name))
     print('\n SMP data file saved. \n')
 
     # Make a figure of pulses profiles and dynamic spectrum
