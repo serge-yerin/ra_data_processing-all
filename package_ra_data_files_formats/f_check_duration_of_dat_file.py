@@ -1,7 +1,7 @@
 
 from datetime import datetime
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
-
+import os
 
 def check_duration_of_dat_file(path_to_dat_file, dat_file_name):
     """
@@ -11,7 +11,7 @@ def check_duration_of_dat_file(path_to_dat_file, dat_file_name):
     tl_file_name = dat_file_name.split('_Data_')[0]
     tl_file_name += '_Timeline.txt'
     try:
-        timeline, dt_timeline = time_line_file_reader(path_to_dat_file + tl_file_name)
+        timeline, dt_timeline = time_line_file_reader(os.path.join(path_to_dat_file, tl_file_name))
         duration = dt_timeline[-1] - dt_timeline[0]
     except FileNotFoundError:
         duration = ''
