@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pylab
+import os
 from matplotlib import rc
 import matplotlib.ticker as mticker   # <---- Added to suppress warning
 
@@ -192,7 +193,8 @@ def plot_average_profiles(a_data_array, data_type, filename, result_path, custom
     plt.ylabel('Dummy values', fontsize=8, fontweight='bold')
     plt.xticks(fontsize=6, fontweight='bold')
     plt.yticks(fontsize=6, fontweight='bold')
-    pylab.savefig(result_path + '/02.' + n + ' - ' + data_type + ' data integrated over time and over frequency.png',
+    pylab.savefig(os.path.join(result_path, '02.' + n + ' - ' + data_type +
+                                    ' data integrated over time and over frequency.png'),
                   bbox_inches='tight', dpi=custom_dpi)  # 250
     plt.close('all')
 
