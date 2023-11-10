@@ -1,3 +1,4 @@
+# TODO: add option to delete internal data files
 # TODO: calculate the total data loss from cleaning
 # TODO: save pics of data with compensated delay applying mask as well
 # TODO: make similar pipeline, but starting from cutting into periods and averaging and then delay compensation
