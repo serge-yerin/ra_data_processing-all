@@ -305,7 +305,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
         full_obs_profile = np.transpose(full_obs_profile)
 
         # Make a figure of pulse evolution with time
-        pic_filename = result_path + filename[:-4] + ' - pulse evolution.png'
+        pic_filename = os.path.join(result_path, filename[:-4] + ' - pulse evolution.png')
         fig_suptitle = 'Pulsar ' + pulsar_name + ' profile evolution (DM: ' + str(pulsar_dm) + \
                        r' $\mathrm{pc \cdot cm^{-3}}$' + ', Barycentric period: ' + str(p_bar) + ' s.)'
         fig_title = 'File: ' + data_filename + '   Description: ' + df_description + '\nResolution: ' + \
@@ -316,7 +316,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
                                      show=False, save=True)
 
         # Make ridge plot profiles figure
-        # pic_filename = result_path + filename[:-4] + ' - ridge plot.png'
+        # pic_filename = os.path.join(result_path, filename[:-4] + ' - ridge plot.png')
         # plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving integrated pulse data to a file
@@ -334,7 +334,7 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
                    r' $\mathrm{pc \cdot cm^{-3}}$' + ', Barycentric period: ' + str(p_bar) + ' s.), ' + \
                    str(profiles_counter) + ' integrated profiles '
 
-    pic_filename = result_path + filename[:-4] + ' - folded pulses.png'
+    pic_filename = os.path.join(result_path, filename[:-4] + ' - folded pulses.png')
     profile_pic_min = -0.25  # Minimum limit of profile picture
     profile_pic_max = 1.20   # Maximum limit of profile picture
 
