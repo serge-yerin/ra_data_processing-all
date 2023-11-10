@@ -6,14 +6,14 @@ software_name = 'Pulsar dynamic spectra folding'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to folder with the initial (source) data files (without file names)
-source_path = ''  # 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
+source_path = ''
 # Path where the result and temporary files will be stored
-result_path = ''  # 'e:/python/B0809+74_DSP_cross_spectra_B0809+74_URAN2/'
+result_path = '../../RA_DATA_RESULTS/'
 
 # File name of DAT file to be analyzed:
 filename = 'B0809+74_DM_5.755_E300117_180000.jds_Data_chA.dat'
 
-pulsar_name = 'B0809+74'  # 'B0809+74'  # 'J2325-0530'  # 'B0950+08'  # 'B1919+21'
+pulsar_name = 'B0809+74'  # 'B0809+74'  # 'J2325-0530'  # 'B0950+08'  # 'B1919+21'  # 'J1336-20'
 
 use_mask_file = True
 periods_per_fig = 1               # Periods of pulsar to show in the figure
@@ -244,6 +244,9 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
             current_time_remainder += remainder_of_n_periods
             # Integrate dynamic spectra
             data_frame = data_interp[:, i * interp_spectra_in_profile: (i+1) * interp_spectra_in_profile]
+
+            # print(bunch, interp_spectra_in_profile, integrated_spectra.shape, data_frame.shape)
+
             integrated_spectra = integrated_spectra + data_frame
 
             if save_pulse_evolution:
@@ -313,8 +316,8 @@ def pulsar_period_folding(source_path, filename, result_path, pulsar_name, scale
                                      show=False, save=True)
 
         # Make ridge plot profiles figure
-        pic_filename = result_path + filename[:-4] + ' - ridge plot.png'
-        plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
+        # pic_filename = result_path + filename[:-4] + ' - ridge plot.png'
+        # plot_pulsar_ridgeline_profiles(full_obs_profile, pic_filename, custom_dpi, overlap=0.9, fill=False, labels=None)
 
     # Saving integrated pulse data to a file
     smp_result_file_name = 'DSPZ_' + data_filename[:-4] + ' - folded pulses.smd'
