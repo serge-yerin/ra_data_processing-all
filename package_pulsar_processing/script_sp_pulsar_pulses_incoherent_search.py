@@ -16,7 +16,7 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74'
+source_directory = '../../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2'
 # Directory where all results will be stored:
 result_directory = '../../RA_DATA_RESULTS/'
 
@@ -143,9 +143,7 @@ done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_curre
                                                             long_file_save_channels_sum=long_file_sum,
                                                             long_file_save_channels_diff=False, print_or_not=False)
 
-print(dat_file_name,dat_file_list )
-
-# dat_file_list = ['chA', 'chB']
+# dat_file_list = ['chA', 'chB', 'A+B']
 # dat_file_name = 'E300117_180000.jds'
 
 # Take only channel A, channel B and Cross Spectra amplitude if present
