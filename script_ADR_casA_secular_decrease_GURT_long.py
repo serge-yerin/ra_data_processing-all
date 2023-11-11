@@ -70,7 +70,7 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
-from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.f_adr_file_read import adr_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read

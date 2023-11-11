@@ -51,7 +51,7 @@ from package_common_modules.find_unique_strings_in_list import find_unique_strin
 from package_common_modules.check_if_all_files_of_same_size import check_if_all_files_of_same_size
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.check_if_ADR_files_of_equal_parameters import check_if_ADR_files_of_equal_parameters
-from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.f_adr_file_read import adr_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 # ###############################################################################
@@ -151,7 +151,7 @@ for folder_no in range(num_of_folders):
         file_name_list_current[file] = list_of_folder_names[folder_no] + file_name_list_current[file]
 
     # Run ADR reader for the current folder
-    done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+    done_or_not, DAT_file_name, DAT_file_list = adr_file_reader(file_name_list_current, result_path, MaxNim,
                                                                 RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                                                                 VminCorrMag, VmaxCorrMag, custom_dpi, colormap,
                                                                 CorrelationProcess, 0, 1, 1, 1, 1, 0,

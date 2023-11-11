@@ -26,7 +26,7 @@ from package_ra_data_processing.f_spectra_normalization import normalization_db
 
 # *** Search ADR files in the directory ***
 
-def ADR_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+def adr_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                     VminCorrMag, VmaxCorrMag, custom_dpi, colormap, CorrelationProcess, Sum_Diff_Calculate,
                     longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
                     DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
@@ -622,8 +622,8 @@ if __name__ == '__main__':
     longFileSaveCRI = 1
     longFileSaveSSD = 0
 
-    done_or_not, DAT_file_name, DAT_file_list = ADR_file_reader(path_to_data, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-            VminCorrMag, VmaxCorrMag, custom_dpi, colormap, CorrelationProcess, Sum_Diff_Calculate,
-            longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
-            DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
-            SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)
+    done_or_not, DAT_file_name, DAT_file_list = adr_file_reader(path_to_data, result_path, MaxNim, RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                                VminCorrMag, VmaxCorrMag, custom_dpi, colormap, CorrelationProcess, Sum_Diff_Calculate,
+                                                                longFileSaveAch, longFileSaveBch, longFileSaveCMP, longFileSaveCRI, longFileSaveSSD,
+                                                                DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial, CorrSpecSaveCleaned,
+                                                                SpectrumFileSaveSwitch, ImmediateSpNo, print_or_not)

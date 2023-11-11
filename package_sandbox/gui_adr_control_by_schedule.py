@@ -31,7 +31,7 @@ from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.text_manipulations import find_between
 from package_common_modules.find_and_check_files_in_current_folder import find_files_only_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
-from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.f_adr_file_read import adr_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 
@@ -723,7 +723,7 @@ def copy_and_process_adr(copy_data, process_data, dir_data_on_server, data_direc
             longFileSaveCRI = 0
 
         # Run ADR reader for the current folder
-        ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
+        ok, DAT_file_name, DAT_file_list = adr_file_reader(file_name_list_current, result_path, MaxNim,
                                                            RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
                                                            VminCorrMag, VmaxCorrMag, customDPI, colormap,
                                                            CorrelationProcess, 0, longFileSaveAch, longFileSaveBch,

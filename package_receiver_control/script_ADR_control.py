@@ -73,7 +73,7 @@ from package_receiver_control.f_initialize_adr import f_initialize_adr
 from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
-from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.f_adr_file_read import adr_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_receiver_control.f_read_and_set_adr_parameters import f_read_adr_parameters_from_txt_file
 from package_receiver_control.f_read_and_set_adr_parameters import f_check_adr_parameters_correctness
@@ -217,13 +217,13 @@ if process_data > 0:
         file_name_list_current[file] = dir_data_on_server + data_directory_name + '/' + file_name_list_current[file]
 
     # Run ADR reader for the current folder
-    ok, DAT_file_name, DAT_file_list = ADR_file_reader(file_name_list_current, result_path, MaxNim,
-                                                                RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
-                                                                VminCorrMag, VmaxCorrMag, customDPI, colormap,
-                                                                CorrelationProcess, 0, 1, 1, 1, 1, 0,
-                                                                DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
-                                                                CorrSpecSaveCleaned,
-                                                                SpecterFileSaveSwitch, ImmediateSpNo, 0)
+    ok, DAT_file_name, DAT_file_list = adr_file_reader(file_name_list_current, result_path, MaxNim,
+                                                       RFImeanConst, Vmin, Vmax, VminNorm, VmaxNorm,
+                                                       VminCorrMag, VmaxCorrMag, customDPI, colormap,
+                                                       CorrelationProcess, 0, 1, 1, 1, 1, 0,
+                                                       DynSpecSaveInitial, DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                       CorrSpecSaveCleaned,
+                                                       SpecterFileSaveSwitch, ImmediateSpNo, 0)
 
     print('\n * DAT reader analyzes file:', DAT_file_name, ', of types:', DAT_file_list, '\n')
 

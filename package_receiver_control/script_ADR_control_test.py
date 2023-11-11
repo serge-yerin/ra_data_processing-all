@@ -46,7 +46,7 @@ from package_receiver_control.f_set_adr_parameters import f_set_adr_parameters
 from package_receiver_control.f_copy_data_from_adr import f_copy_data_from_adr
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_common_modules.telegram_bot_sendtext import telegram_bot_sendtext
-from package_ra_data_files_formats.ADR_file_reader import ADR_file_reader
+from package_ra_data_files_formats.f_adr_file_read import adr_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 
 # *******************************************************************************
