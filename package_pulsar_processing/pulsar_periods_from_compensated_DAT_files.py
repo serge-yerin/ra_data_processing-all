@@ -66,7 +66,7 @@ def pulsar_period_dm_compensated_pics(results_path, dat_file_path, pulsar_name, 
     a_current_date = time.strftime("%d.%m.%Y")
 
     # Creating a folder where all pictures and results will be stored (if it doesn't exist)
-    dat_file_name = dat_file_path.split('/')[-1]
+    dat_file_name = dat_file_path.split(os.sep)[-1]
     result_path = os.path.join(results_path, "Pulsar_n_periods_" + dat_file_name[:-4])
     if not os.path.exists(result_path):
         os.makedirs(result_path)
