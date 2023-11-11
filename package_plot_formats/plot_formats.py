@@ -300,7 +300,8 @@ def TwoDynSpectraPlot(Data_Ch_A, Data_Ch_B, VminA, VmaxA, VminB, VmaxB, Suptitle
     """
     Two dynamic spectra plot
     """
-    fig, axarr = plt.subplots(2, 1, figsize=(16.0, 9.0))
+    # fig, axarr = plt.subplots(2, 1, figsize=(16.0, 9.0))
+    fig, axarr = plt.subplots(2, 1, figsize=(20.0, 9.0))
     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.08)
     im0 = axarr[0].imshow(np.flipud(Data_Ch_A), aspect='auto', vmin=VminA, vmax=VmaxA,
                           extent=[0, no_of_spectra, frequency[0], frequency[FreqPointsNum-1]], cmap=colormap)
