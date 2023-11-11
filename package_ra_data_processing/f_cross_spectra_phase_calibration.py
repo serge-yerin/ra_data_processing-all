@@ -1,22 +1,20 @@
-
-fname = 'P130422_114422.jds'
-
-file_path = 'RESULTS_cross-correlation_calibration/'
-result_path = 'RESULTS_cross-correlation_calibration/'
-phase_calibr_txt_file = file_path + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
-
-no_of_spectra_in_bunch = 2048
-
 import os
 import math
 import pylab
 import numpy as np
 import matplotlib.pyplot as plt
-
 from progress.bar import IncrementalBar
 
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.f_jds_header_new_channels_numbers import jds_header_new_channels_numbers
+
+
+fname = 'P130422_114422.jds'
+file_path = 'RESULTS_cross-correlation_calibration/'
+result_path = 'RESULTS_cross-correlation_calibration/'
+phase_calibr_txt_file = file_path + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
+no_of_spectra_in_bunch = 2048
+
 
 def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_calibr_txt_file, no_of_spectra_in_bunch,
                                     save_complex=True, save_module=True, save_phase=True, log_module=True):
@@ -36,16 +34,16 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     mod_fname = file_name + '_Data_C_m' + '.dat'
     phs_fname = file_name + '_Data_C_p' + '.dat'
 
-    non_calibrated_re_fname = file_path + re_fname[:-4] + '_without_phase_calibration' + '.dat'
-    non_calibrated_im_fname = file_path + im_fname[:-4] + '_without_phase_calibration' + '.dat'
+    non_calibrated_re_fname = os.path.join(file_path, re_fname[:-4] + '_without_phase_calibration' + '.dat')
+    non_calibrated_im_fname = os.path.join(file_path, im_fname[:-4] + '_without_phase_calibration' + '.dat')
 
-    os.rename(file_path + re_fname, non_calibrated_re_fname)
-    os.rename(file_path + im_fname, non_calibrated_im_fname)
+    os.rename(os.path.join(file_path, re_fname), non_calibrated_re_fname)
+    os.rename(os.path.join(file_path, im_fname), non_calibrated_im_fname)
 
-    calibrated_re_fname = result_path + re_fname
-    calibrated_im_fname = result_path + im_fname
-    calibrated_mod_fname = result_path + mod_fname
-    calibrated_phs_fname = result_path + phs_fname
+    calibrated_re_fname = os.path.join(result_path, re_fname)
+    calibrated_im_fname = os.path.join(result_path, im_fname)
+    calibrated_mod_fname = os.path.join(result_path, mod_fname)
+    calibrated_phs_fname = os.path.join(result_path, phs_fname)
 
     print('\n  Phase calibration of cross-spectra data (Re and IM) \n')
 
@@ -108,7 +106,7 @@ def cross_spectra_phase_calibration(file_path, file_name, result_path, phase_cal
     ax1.grid(visible=True, which='both', color='silver', linestyle='-')
     ax1.set_xlabel('Frequency points, #', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Phase, rad', fontsize=6, fontweight='bold')
-    pylab.savefig(result_path + '00_Calibration_phase.png', bbox_inches='tight', dpi=250)
+    pylab.savefig(os.path.join(result_path, '00_Calibration_phase.png'), bbox_inches='tight', dpi=250)
     plt.close('all')
 
     # Converting phase to complex numbers (make function and store in separate file)
