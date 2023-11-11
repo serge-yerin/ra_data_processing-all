@@ -53,7 +53,7 @@ if __package__ is None:
 # My functions
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
+from package_ra_data_files_formats.f_jds_file_read import jds_file_reader
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_processing.filtering import median_filter
@@ -97,7 +97,7 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
               ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
         # Run JDS reader for the current folder
-        done, dat_file_name, dat_file_types = JDS_file_reader([path_to_calibr_data + file_list[file_no]],
+        done, dat_file_name, dat_file_types = jds_file_reader([path_to_calibr_data + file_list[file_no]],
                                                               result_path, MaxNsp, 0,
                                                               20, Vmin, Vmax, VminNorm, VmaxNorm,
                                                               VminCorrMag, VmaxCorrMag, colormap, custom_dpi,

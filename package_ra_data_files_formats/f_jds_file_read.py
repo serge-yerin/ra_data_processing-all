@@ -28,10 +28,10 @@ software_version = '2023.11.11'
 # *******************************************************************************
 
 
-def JDS_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const, v_min, v_max, v_min_norm, v_max_norm, 
-                    v_min_cross_mag, v_max_cross_mag, colormap, custom_dpi, cross_process, 
+def jds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const, v_min, v_max, v_min_norm, v_max_norm,
+                    v_min_cross_mag, v_max_cross_mag, colormap, custom_dpi, cross_process,
                     long_file_save_ch_a, long_file_save_ch_b, long_file_save_cri, long_file_save_cmp,
-                    dyn_spec_save_initial, dyn_spec_save_cleaned, cross_spectr_save_initial, cross_spectr_save_cleaned, 
+                    dyn_spec_save_initial, dyn_spec_save_cleaned, cross_spectr_save_initial, cross_spectr_save_cleaned,
                     spectra_file_save_switch, immediate_sp_no, dat_files_path='',
                     long_file_save_channels_sum=False, long_file_save_channels_diff=False, print_verbose=True):
     
@@ -542,7 +542,7 @@ if __name__ == '__main__':
     result_folder_name = directory.split(os.sep)[-1]
     result_path = os.path.join(result_path, 'JDS_Results_' + result_folder_name)
 
-    done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_path_list, result_path,
+    done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_path_list, result_path,
                                                                 max_sp_num, sp_skip, rfi_mean_const,
                                                                 v_min, v_max,
                                                                 v_min_norm, v_max_norm,

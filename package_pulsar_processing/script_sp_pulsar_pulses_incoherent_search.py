@@ -67,7 +67,7 @@ from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import 
 from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding import pulsar_period_folding
 from package_pulsar_processing.script_smd_integrated_pulses_analyzer import smd_integrated_pulses_analyzer
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
-from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
+from package_ra_data_files_formats.f_jds_file_read import jds_file_reader
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 from package_ra_data_processing.f_cross_spectra_phase_calibration import cross_spectra_phase_calibration
@@ -133,7 +133,7 @@ for file in range(len(file_name_list_current)):
 
 # Run JDS/ADR reader for the current folder
 
-done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
+done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30,
                                                             colormap, custom_dpi, CorrelationProcess,
                                                             longFileSaveAch, longFileSaveBch,

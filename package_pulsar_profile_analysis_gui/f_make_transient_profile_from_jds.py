@@ -6,7 +6,7 @@ from os import path
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from package_ra_data_files_formats.JDS_file_reader import JDS_file_reader
+from package_ra_data_files_formats.f_jds_file_read import jds_file_reader
 from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 from package_pulsar_processing.pulsar_incoherent_dedispersion import pulsar_incoherent_dedispersion
 
@@ -46,7 +46,7 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
         file_name_list_current[file] = source_directory + file_name_list_current[file]
 
     # Run JDS/ADR reader for the current folder
-    done_or_not, dat_file_name, dat_file_list = JDS_file_reader(file_name_list_current, result_path, 2048, 0,
+    done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, result_path, 2048, 0,
                                                                 8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                                 CorrelationProcess, longFileSaveAch, longFileSaveBch,
                                                                 long_file_save_im_re, longFileSaveCMP,
