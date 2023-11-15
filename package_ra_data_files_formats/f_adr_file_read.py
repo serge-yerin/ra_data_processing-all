@@ -51,12 +51,10 @@ def adr_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
         if not os.path.exists(os.path.join(result_path, 'Correlation_spectra')):
             os.makedirs(os.path.join(result_path, 'Correlation_spectra'))
 
-    for fileNo in range(len(file_list)):   # loop by files
+    for file_no in range(len(file_list)):   # loop by files
 
         # *** Opening datafile ***
-        fname = ''
-        if len(fname) < 1:
-            fname = file_list[fileNo]
+        fname = file_list[file_no]
 
         # Reading the file header
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -82,20 +80,18 @@ def adr_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
             # *** Reading indexes of data from index file '*.fft' ***
             indexes = []
             ifname = os.path.join('package_ra_data_files_formats', str(int(fft_size / 2)) + '.fft')
-            indexfile = open(ifname, 'r')
-            num = 0
-            for line in indexfile:
+            index_file = open(ifname, 'r')
+            for line in index_file:
                 ind = int(line)
                 if (ind >= SLine * 1024) & (ind < ((SLine + Width) * 1024)):
                     indexes.append(ind - SLine * 1024)
-                num = num + 1
-            indexfile.close()
+            index_file.close()
 
             timeLineSecond = np.zeros(chunks_in_file)  # List of second values from DSP_INF field
 
             # *** If it is the first file - write the header to long data file ***
             if (longFileSaveAch == 1 or longFileSaveBch == 1 or longFileSaveCRI == 1 or
-               longFileSaveCMP == 1 or longFileSaveSSD == 1) and fileNo == 0:
+               longFileSaveCMP == 1 or longFileSaveSSD == 1) and file_no == 0:
                 file.seek(0)
                 file_header = file.read(1024)
 
@@ -172,7 +168,7 @@ def adr_file_reader(file_list, result_path, MaxNim, RFImeanConst, Vmin, Vmax, Vm
                 fig_id = fig_id + 1
                 current_time = time.strftime("%H:%M:%S")
                 if print_verbose > 0:
-                    print('   File # ', str(fileNo+1), ' of ', str(len(file_list)),
+                    print('   File # ', str(file_no+1), ' of ', str(len(file_list)),
                           ', figure # ', fig_id+1, ' of ', fig_max, '   started at: ', current_time)
                 if (chunks_in_file - MaxNim * fig_id) < MaxNim:
                     Nim = chunks_in_file - MaxNim * fig_id
