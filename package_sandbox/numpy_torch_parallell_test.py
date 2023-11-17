@@ -7,8 +7,10 @@ import torch
 
 # Function to use for time measurements
 def kmeans(X, means):
-    return np.argmin(np.linalg.norm(X - means[:, None], axis=2), axis=0)
-    print('Hello')
+    a = np.argmin(np.linalg.norm(X - means[:, None], axis=2), axis=0)
+    # print('Hello')
+    return a
+
 
 
 # Preparing the dataset
