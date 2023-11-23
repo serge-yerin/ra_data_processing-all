@@ -142,7 +142,7 @@ done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_curre
                                                             0, 0,
                                                             dat_files_path=path_to_dat_files,
                                                             long_file_save_channels_sum=long_file_sum,
-                                                            long_file_save_channels_diff=False, print_or_not=False)
+                                                            long_file_save_channels_diff=False, print_verbose=False)
 
 # dat_file_list = ['chA', 'chB', 'A+B']
 # dat_file_name = 'E300117_180000.jds'
