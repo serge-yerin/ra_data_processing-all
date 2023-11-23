@@ -214,7 +214,8 @@ def jds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                     # *** Time line arranging ***
 
                     # Preparing/cleaning matrices for time scales
-                    time_scale_file_utc = []       # New for each file
+                    time_scale_file_utc = []       # New for each file contains only time to display on figure
+                    time_scale_date_utc = []       # The same time but contains date as well for timeline file
                     time_Scale_fig_abs = []        # Time lime (new) for each figure (n_sp)
 
                     # Time of the first spectrum in the bunch
@@ -226,6 +227,7 @@ def jds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                         time_of_spectrum = timedelta(0, int(sec_of_day[t]),
                                                      int(1000000 * phase_of_sec[t] / clc_freq))
                         time_scale_file_utc.append(str(time_scale_start_date + time_of_spectrum)[11:23])
+                        time_scale_date_utc.append(str(time_scale_start_date + time_of_spectrum)[0:23])
                         time_Scale_fig_abs.append(str(time_of_spectrum - figure_start_time_utc)[0:11])
 
                     # *** Converting from FPGA to PC float format ***
@@ -277,7 +279,7 @@ def jds_file_reader(file_list, result_path, max_sp_num, sp_skip, rfi_mean_const,
                             long_file_save_channels_sum or long_file_save_channels_diff):
                         with open(tl_file_name, 'a') as tl_file:
                             for t in range(n_sp):
-                                tl_file.write((time_scale_file_utc[t][:]+' \n'))
+                                tl_file.write((time_scale_date_utc[t][:]+' \n'))
 
                     # *** Converting to logarithmic scale matrices ***
                     if mode == 1 or mode == 2:
