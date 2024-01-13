@@ -1,6 +1,6 @@
 import os
 import sys
-
+import cv2 as cv
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
@@ -8,18 +8,31 @@ from matplotlib import rc
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_processing.f_spectra_normalization import normalization_db
-import cv2 as cv
+########################################################################################################################
 
-# Files to be analyzed:
-path = "e:/python/RA_DATA_RESULTS/B0809+74_DSP_spectra_pulsar_UTR2_B0809+74/"
-file = "E300117_180000.jds_Data_chA.dat"
-filepath = os.path.join(path, file)
+# Path to DAT file
+path = "e:/python/RA_DATA_RESULTS/B0809+74_DSP_cross_spectra_B0809+74_URAN2/"
+# DAT file name
+file = "P130422_121607.jds_Data_chA.dat"
+
+# Cleaning parameters
+delta_sigma = 0.002
+n_sigma = 1.5
+min_l = 25
+
+# Empirically selected parameters for UTR-2 pulsars:
+# delta_sigma = 0.05   # If difference of array StD between 2 iterations is less than delta_sigma - stop iterations
+# n_sigma = 2          # Level of RFI to mask as the multiplier of the array StD value
+# min_l = 30           # Minimal length of emission line (vertical or horizontal) on spectrum to be assumed as RFI
+
+# More detailed description of parameters you can find byt the link below (in Ukrainian)
+# https://docs.google.com/document/d/1DltcB2cZ9KD4d8e0-0H9icxcvYn3ut-BsvUzSfv4qvc/edit?usp=sharing
 
 
-def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=30, lin_data=True, show_figures=False,
-                                      print_or_not=True):
+def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=30,
+                                      lin_data=True, show_figures=False, print_or_not=True):
     """
-    Takes the array, makes log of it ib necessary, counts std and in a loop^
+    Takes the array, makes log of it if necessary, counts std and in a loop:
     - masks lines of data which exceed std in a row of min_l pixels horizontally and vertically
     - calculates new std with masked noise, if it is less than previous std for more than delta_sigma
       there will be next loop, else - we assume the array is cleaned and return it.
@@ -72,13 +85,6 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
 
         # Concatenating vertical and horizontal masks
         new_mask = np.logical_or(new_horizont_mask, new_vertical_mask)
-
-        # fig, [ax0, ax1, ax2, ax3] = plt.subplots(1, 4, figsize=(8, 4))
-        # ax0.imshow(mask, vmin=0, vmax=1, cmap='Greys')
-        # ax1.imshow(new_vertical_mask, vmin=0, vmax=1, cmap='Greys')
-        # ax2.imshow(new_horizont_mask, vmin=0, vmax=1, cmap='Greys')
-        # ax3.imshow(new_mask, vmin=0, vmax=1, cmap='Greys')
-        # plt.show()
 
         # Apply as mask to data
         cleaned_array = np.ma.masked_where(new_mask, array)
@@ -142,6 +148,7 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
 if __name__ == "__main__":
 
     # Opening DAT datafile and data file header read
+    filepath = os.path.join(path, file)
     file = open(filepath, 'rb')
     df_filepath = file.read(32).decode('utf-8').rstrip('\x00')  # Initial data file name
     file.close()
@@ -157,6 +164,7 @@ if __name__ == "__main__":
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
+    # Calculating the number of data chunks for chunk length equal to frequency points number
     chunks_in_file = int(sp_in_file / freq_points_num)
 
     for chunk in range(chunks_in_file):
@@ -191,8 +199,8 @@ if __name__ == "__main__":
         figManager.window.showMaximized()
         plt.show()
 
-        data, _, _ = clean_dirty_lines_for_weak_signal(data, delta_sigma=0.05, n_sigma=2,
-                                                       min_l=30, lin_data=True, show_figures=True)
+        data, _, _ = clean_dirty_lines_for_weak_signal(data, delta_sigma=delta_sigma, n_sigma=n_sigma,
+                                                       min_l=min_l, lin_data=True, show_figures=True)
 
         profile_0 = np.mean(data, axis=0)
         profile_1 = np.mean(data, axis=1)
