@@ -1,13 +1,19 @@
 import os
+import sys
+
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
+from matplotlib import rc
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_processing.f_spectra_normalization import normalization_db
 import cv2 as cv
 
 # Files to be analyzed:
-filepath = 'P250322_082507.jds_Data_chA.dat'
+path = "e:/python/RA_DATA_RESULTS/B0809+74_DSP_spectra_pulsar_UTR2_B0809+74/"
+file = "E300117_180000.jds_Data_chA.dat"
+filepath = os.path.join(path, file)
 
 
 def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=30, lin_data=True, show_figures=False,
@@ -30,8 +36,8 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
         array = array - np.mean(array)
 
     if print_or_not:
-        print('   Bunch shape :', array.shape,
-              ', Max: ', np.round(np.max(array), 5), ', Min: ', np.round(np.min(array), 5),
+        print('   Bunch shape:', array.shape,
+              ', Min: ', np.round(np.min(array), 5), ', Max: ', np.round(np.max(array), 5),
               ', Mean: ', np.round(np.mean(array), 5), ', StD: ', np.round(np.std(array), 2))
 
     # Set arrays and numbers for the while loop begin and for case when no loop iteration needed
@@ -86,10 +92,39 @@ def clean_dirty_lines_for_weak_signal(array, delta_sigma=0.05, n_sigma=2, min_l=
                                                                total_points, dirty_points / total_points * 100))
 
         if show_figures:
+
             # Show initial array and cleaned array
-            fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
-            ax0.imshow(array, vmin=0, vmax=1, cmap='Greys')
-            ax1.imshow(cleaned_array, vmin=0, vmax=1, cmap='Greys')
+            rc('font', size=6, weight='bold')
+            fig, [ax0, ax1, ax2] = plt.subplots(1, 3, figsize=(12, 4))
+            plt.suptitle('Data chunk before and after RFI masking, iteration #' + str(counter + 1),
+                         fontsize=8, fontweight='bold')
+            im0 = ax0.imshow(array, vmin=0, vmax=data_std, cmap='Greys')
+            ax0.set_xlabel('Time points', fontsize=6, fontweight='bold')
+            ax0.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
+            ax0.set_title('Before cleaning', fontsize=6, fontweight='bold')
+            divider = make_axes_locatable(ax0)
+            cax = divider.append_axes("right", size="3%", pad=0.0)
+            fig.colorbar(im0, ax=ax0, cax=cax, pad=0.0)
+
+            im1 = ax1.imshow(cleaned_array, vmin=0, vmax=data_std, cmap='Greys')
+            ax1.set_xlabel('Time points', fontsize=6, fontweight='bold')
+            ax1.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
+            ax1.set_title('After cleaning, StD = ' + str(np.round(data_std, 4)), fontsize=6, fontweight='bold')
+            divider = make_axes_locatable(ax1)
+            cax = divider.append_axes("right", size="3%", pad=0.0)
+            fig.colorbar(im1, ax=ax1, cax=cax, pad=0.0)
+
+            im2 = ax2.imshow(new_mask, vmin=0, vmax=1, cmap='Greys')
+            ax2.set_xlabel('Time points', fontsize=6, fontweight='bold')
+            ax2.set_ylabel('Frequency points', fontsize=6, fontweight='bold')
+            ax2.set_title('Calculated mask', fontsize=6, fontweight='bold')
+            divider = make_axes_locatable(ax2)
+            cax = divider.append_axes("right", size="3%", pad=0.0)
+            fig.colorbar(im2, ax=ax2, cax=cax, pad=0.0)
+
+            fig.tight_layout(pad=0.0)
+            fig_manager = plt.get_current_fig_manager()
+            fig_manager.window.showMaximized()
             plt.show()
 
         # Calculate new std and repeat if needed
@@ -116,31 +151,63 @@ if __name__ == "__main__":
         [df_filepath, df_filesize, df_system_name, df_obs_place, df_description, clock_frq,
          df_creation_time_utc, sp_in_file, receiver_mode, mode, n_avr, time_resolution, fmin, fmax,
          df, frequency, freq_points_num, data_block_size] = file_header_jds_read(filepath, 0, 1)
+    else:
+        sys.exit('Wrong format')
 
     data_file = open(filepath, 'rb')
     data_file.seek(1024, os.SEEK_SET)  # Jumping to 1024+number of spectra to skip byte from file beginning
 
-    spectra_to_read = 4000
+    chunks_in_file = int(sp_in_file / freq_points_num)
 
-    for chunk in range(10):
+    for chunk in range(chunks_in_file):
 
+        print('   Bunch # ' + str(chunk + 1) + ' of ' + str(chunks_in_file))
         # Reading and preparing block of data (3 periods)
-        data = np.fromfile(data_file, dtype=np.float64, count=spectra_to_read * len(frequency))
-        data = np.reshape(data, [len(frequency), spectra_to_read], order='F')
-        # data = data[:-4, :]
+        data = np.fromfile(data_file, dtype=np.float64, count=freq_points_num * freq_points_num)
+        data = np.reshape(data, [freq_points_num, freq_points_num], order='F')
+        data = data[:-4, :]
 
         # Preparing single averaged data profile for figure
         # profile = data.mean(axis=0)[:]
         # profile = profile - np.mean(profile)
         # data = data - np.mean(data)
 
-        # profile_0 = np.mean(data, axis=0)
-        # profile_1 = np.mean(data, axis=1)
+        profile_0 = np.mean(data, axis=0)
+        profile_1 = np.mean(data, axis=1)
 
-        # fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
-        # ax0.plot(profile_0)
-        # ax1.plot(profile_1)
-        # plt.show()
+        rc('font', size=6, weight='bold')
+        fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
+        plt.suptitle('Data average profiles before cleaning and normalizing, chunk #' + str(chunk+1),
+                     fontsize=8, fontweight='bold')
+        ax0.plot(profile_0)
+        ax0.set_xlabel('Time points', fontsize=6, fontweight='bold')
+        ax0.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+        ax0.set_title('Integrated time profile', fontsize=6, fontweight='bold')
+        ax1.plot(profile_1)
+        ax1.set_xlabel('Frequency points', fontsize=6, fontweight='bold')
+        ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+        ax1.set_title('Integrated frequency profile', fontsize=6, fontweight='bold')
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        plt.show()
 
-        clean_dirty_lines_for_weak_signal(data, delta_sigma=0.05, n_sigma=2,
-                                          min_l=30, lin_data=True, show_figures=True)
+        data, _, _ = clean_dirty_lines_for_weak_signal(data, delta_sigma=0.05, n_sigma=2,
+                                                       min_l=30, lin_data=True, show_figures=True)
+
+        profile_0 = np.mean(data, axis=0)
+        profile_1 = np.mean(data, axis=1)
+
+        fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(8, 4))
+        plt.suptitle('Data average profiles after cleaning and normalizing, chunk #' + str(chunk+1),
+                     fontsize=8, fontweight='bold')
+        ax0.plot(profile_0)
+        ax0.set_xlabel('Time points', fontsize=6, fontweight='bold')
+        ax0.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+        ax0.set_title('Integrated time profile', fontsize=6, fontweight='bold')
+        ax1.plot(profile_1)
+        ax1.set_xlabel('Frequency points', fontsize=6, fontweight='bold')
+        ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+        ax1.set_title('Integrated frequency profile', fontsize=6, fontweight='bold')
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        plt.show()
