@@ -13,6 +13,10 @@ observation session. It reads the (cross)spectra files, saves dynamic spectra pi
 whole observation, than runs the incoherent dispersion delay removing, saves dynamic spectra pics for 
 each max DM delay time, and then makes pics of each 3 pulsar periods. 
 """
+
+# More detailed description of some parameters you can find byt the link below (in Ukrainian)
+# https://docs.google.com/document/d/1DltcB2cZ9KD4d8e0-0H9icxcvYn3ut-BsvUzSfv4qvc/edit?usp=sharing
+
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
