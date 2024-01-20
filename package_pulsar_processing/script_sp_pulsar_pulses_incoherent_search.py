@@ -6,7 +6,7 @@
 
 # Python3
 software_name = 'Pulses Incoherent Averaging Script'
-software_version = '2023.11.10'
+software_version = '2024.01.20'
 """
 The main goal to the script is to analyze of (cross)spectra pulsar data to find anomalously intense pulses during 
 observation session. It reads the (cross)spectra files, saves dynamic spectra pics of each file and the 
@@ -17,9 +17,9 @@ each max DM delay time, and then makes pics of each 3 pulsar periods.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-source_directory = '../../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2'
+source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2'
 # Directory where all results will be stored:
-result_directory = '../../RA_DATA_RESULTS/'
+result_directory = '../RA_DATA_RESULTS/'
 
 # 'B0329+54' 'B0809+74' # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256' # 'J2325-0530' # 'J2336-01'
 pulsar_name = 'B0809+74'
@@ -45,10 +45,25 @@ DynSpecSaveCleaned = 0         # Save dynamic spectra pictures after cleaning (1
 CorrSpecSaveInitial = 0        # Save correlation Amp and Phase spectra pictures before cleaning (1 = yes, 0 = no) ?
 CorrSpecSaveCleaned = 0        # Save correlation Amp and Phase spectra pictures after cleaning (1 = yes, 0 = no) ?
 
+# RFI masking parameters
+rfi_mask_using = True          # To use or not the RFI maskng (preferrably True but it takes additional time)
+power_delta_sigma = 0.002      # Min StD change between iterations to stop the iterative masking algorithm for power spectrum (0.05)
+power_sigma = 1.5              # Amplitude of RFI to mask in StD for power spectrum (2)
+power_min_l = 25               # Minimal number of pixels above power_sigma in a row to be identified as RFI for power spectrum (30)
+cross_delta_sigma = 0.1        # Min StD change between iterations to stop the iterative masking algorithm for cross spectrum
+cross_n_sigma = 5              # Amplitude of RFI to mask in StD for cross spectrum
+cross_min_l = 30               # Minimal number of pixels above power_sigma in a row to be identified as RFI for cross spectrum
+
 # SMD analysis parameters
-no_of_dm_steps = 721             # Number of DM steps to plot (361)
-dm_var_step = 0.001              # Step of optimal DM finding  (0.002)
+no_of_dm_steps = 721           # Number of DM steps to plot (361)
+dm_var_step = 0.001            # Step of optimal DM finding  (0.002)
 frequency_cuts = [18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0]  # UTR-2 16.5 - 33 MHz divided bands of 2 MHz or less
+
+# Integrated profile and dynamic spectra visualization parameters
+amp_min = -0.15                # Lower limit of integrated profile acle on figure
+amp_max = 0.55                 # Upper limit of integrated profile acle on figure
+dyn_sp_min = -0.2              # Lower color limit of dynamic spectra
+dyn_sp_max = 3                 # Upper color limit of dynamic spectra
 
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
@@ -190,15 +205,16 @@ print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean dat
 
 for i in range(len(data_types_to_process)):
     if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB' or data_types_to_process[i] == 'A+B':
-        delta_sigma = 0.002  # 0.05
-        n_sigma = 1.5  # 2
-        min_l = 25  # 30
+        delta_sigma = power_delta_sigma
+        n_sigma = power_sigma
+        min_l = power_min_l
     elif data_types_to_process[i] == 'C_m':
-        delta_sigma = 0.1
-        n_sigma = 5
-        min_l = 30
+        delta_sigma = cross_delta_sigma
+        n_sigma = cross_n_sigma
+        min_l = cross_min_l
     else:
         sys.exit('            Type error!')
+
     file_name = os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat')
     dat_rfi_mask_making(file_name, 1024, lin_data=True,
                         delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
@@ -218,12 +234,10 @@ print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removi
 dedispersed_data_file_list = []
 for i in range(len(data_types_to_process)):
 
-    amp_min = -0.15
-    amp_max = 0.55
     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
                                                                 data_types_to_process[i] + '.dat', pulsar_name, 512,
                                                                 amp_min, amp_max, 0, 0.0, 16.5, 1, 1, 300, 'Greys',
-                                                                use_mask_file=True, result_path=path_to_dat_files)
+                                                                use_mask_file=rfi_mask_using, result_path=path_to_dat_files)
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
@@ -241,15 +255,10 @@ if save_n_period_pics:
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making figures of 3 pulsar periods... \n\n')
 
     for dedispersed_data_file_name in dedispersed_data_file_list:
-        # Setting  ranges of integrated signal
-        amp_min = -0.15
-        amp_max = 0.55
-        dyn_sp_min = -0.2
-        dyn_sp_max = 3
-
+ 
         pulsar_period_dm_compensated_pics(path_to_dat_files, dedispersed_data_file_name, pulsar_name, 0,
                                           amp_min, amp_max, dyn_sp_min, dyn_sp_max, 3, 500, 'Greys',
-                                          True, threshold, use_mask_file=True)
+                                          True, threshold, use_mask_file=rfi_mask_using)
 
 #
 #
@@ -291,7 +300,7 @@ for dedispersed_data_file_name in dedispersed_data_file_list:
     smp_file_name = pulsar_period_folding(path_to_dat_files, file_name,
                                           path_to_dat_files, pulsar_name,
                                           scale_factor, -0.5, 3, periods_per_fig,
-                                          custom_dpi, colormap, use_mask_file=True, save_pulse_evolution=True)
+                                          custom_dpi, colormap, use_mask_file=rfi_mask_using, save_pulse_evolution=True)
     smp_file_name_list.append(smp_file_name)
 
 
@@ -300,9 +309,7 @@ print('\n\n  * ', str(datetime.datetime.now())[:19], ' * SMP file analysis... \n
 
 for smp_file_name in smp_file_name_list:
     smd_integrated_pulses_analyzer(path_to_dat_files, path_to_dat_files, smp_file_name, pulsar_name, scale_factor,
-                                   True, True, no_of_dm_steps, dm_var_step,
-                                   1, 1.0, 1, 128,
-                                   8, True, 0,
+                                   True, True, no_of_dm_steps, dm_var_step, 1, 1.0, 1, 128, 8, True, 0,
                                    frequency_cuts, colormap, custom_dpi, 16.5, 33.0)
 
 
