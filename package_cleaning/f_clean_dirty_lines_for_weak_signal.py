@@ -11,8 +11,10 @@ from package_ra_data_processing.f_spectra_normalization import normalization_db
 ########################################################################################################################
 
 # Path to DAT file
+# path = "e:/python/RA_DATA_RESULTS/B0809+74_DSP_spectra_pulsar_UTR2_B0809+74/"
 path = "e:/python/RA_DATA_RESULTS/B0809+74_DSP_cross_spectra_B0809+74_URAN2/"
 # DAT file name
+# file = "E300117_180000.jds_Data_chA.dat"
 file = "P130422_121607.jds_Data_chA.dat"
 
 # Cleaning parameters
