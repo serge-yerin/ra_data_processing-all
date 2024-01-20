@@ -190,9 +190,9 @@ print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean dat
 
 for i in range(len(data_types_to_process)):
     if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB' or data_types_to_process[i] == 'A+B':
-        delta_sigma = 0.05
-        n_sigma = 2
-        min_l = 30
+        delta_sigma = 0.002  # 0.05
+        n_sigma = 1.5  # 2
+        min_l = 25  # 30
     elif data_types_to_process[i] == 'C_m':
         delta_sigma = 0.1
         n_sigma = 5
