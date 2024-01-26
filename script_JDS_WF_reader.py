@@ -11,7 +11,8 @@ software_version = '2020.01.19'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-directory = '/media/server2a/PSR_2020.01/B0950p08_29_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/' 
+# directory = '/media/server2a/PSR_2020.01/B0950p08_29_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/' 
+directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0950p08/' 
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
 skip_data_blocks = 0            # Number of data blocks to skip before reading
@@ -239,7 +240,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                     wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_to_average], order='F')
 
                 # Timing
-                timeline_block_str = jds_waveform_time(wf_data, CLCfrq, data_block_size)
+                timeline_block_str, _ = jds_waveform_time(wf_data, CLCfrq, data_block_size)
                 time_scale_fig.append(timeline_block_str[-1][0:12])
                 time_scale_full.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[-1][0:12])
 
