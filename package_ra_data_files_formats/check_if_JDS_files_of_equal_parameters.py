@@ -1,5 +1,6 @@
 '''
 '''
+import os
 import numpy as np
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 
@@ -24,7 +25,7 @@ def check_if_JDS_files_of_equal_parameters(folder_path, file_list):
     dataBlockSize_list = []
 
     for file_no in range (len(file_list)):
-        filepath = folder_path + file_list[file_no]
+        filepath = os.path.join(folder_path, file_list[file_no])
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
             CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,

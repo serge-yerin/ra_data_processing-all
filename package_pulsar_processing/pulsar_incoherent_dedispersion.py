@@ -105,7 +105,7 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3,
              transform=plt.gcf().transFigure)
-    pylab.savefig(newpath + '/' + filename[:-4] + ' fig. ' + str(block) + ' spectrogram and profile.png',
+    pylab.savefig(os.path.join(newpath,filename[:-4] + ' fig. ' + str(block) + ' spectrogram and profile.png'),
                   bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
@@ -191,7 +191,7 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         frequency_list = np.linspace(fmin, fmax, fft_size)
 
     # Number of spectra in the file   #   file size - 1024 bytes of header
-    dat_sp_in_file = int(((df_filesize - 1024) / (len(frequency_list) * 8)))
+    dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
 
     if save_profile_txt > 0:
         # *** Creating a name for long timeline TXT file ***

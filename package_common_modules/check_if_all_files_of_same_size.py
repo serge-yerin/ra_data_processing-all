@@ -17,7 +17,7 @@ def check_if_all_files_of_same_size(folder_path, file_name_list, one_but_last):
         filesize = np.zeros(len(file_name_list) - one_but_last)
         filesize_text = [''] * (len(file_name_list) - one_but_last)
         for i in range(len(file_name_list) - one_but_last):
-            filepath = folder_path + file_name_list[i]
+            filepath = os.path.join(folder_path, file_name_list[i])
             filesize[i] = (os.stat(filepath).st_size)
             filesize_text[i] = str(filesize[i])
 
