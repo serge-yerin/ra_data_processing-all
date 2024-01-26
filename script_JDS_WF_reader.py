@@ -54,20 +54,21 @@ from package_plot_formats.plot_formats import TwoOrOneValuePlot, OneDynSpectraPl
 
 
 def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, VminNorm, VmaxNorm,
-                        colormap, custom_dpi, save_long_file_aver, dyn_spectr_save_init, dyn_spectr_save_norm):
+                        colormap, custom_dpi, save_long_file_aver, dyn_spectr_save_init, dyn_spectr_save_norm, result_path=''):
 
     current_time = time.strftime("%H:%M:%S")
     current_date = time.strftime("%d.%m.%Y")
 
     # *** Creating a folder where all pictures and results will be stored (if it doesn't exist) ***
-    result_folder = 'RESULTS_JDS_waveform_' + directory.split('/')[-2]
+    # result_folder = os.path.join(result_path, 'RESULTS_JDS_waveform_' + directory.split('/')[-2])
+    result_folder = os.path.join(result_path, 'RESULTS_JDS_waveform_' + directory.split(os.sep)[-1])
     if not os.path.exists(result_folder):
         os.makedirs(result_folder)
-    service_folder = result_folder + '/Service'
+    service_folder = os.path.join(result_folder, 'Service')
     if not os.path.exists(service_folder):
         os.makedirs(service_folder)
     if dyn_spectr_save_init == 1:
-        initial_spectra_folder = result_folder + '/Initial spectra'
+        initial_spectra_folder = os.path.join(result_folder, 'Initial spectra')
         if not os.path.exists(initial_spectra_folder):
             os.makedirs(initial_spectra_folder)
 
@@ -102,13 +103,13 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, Channel, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, freq_points_num, data_block_size] = file_header_jds_read(directory + file_list[0], 0, 1)
+        df, frequency, freq_points_num, data_block_size] = file_header_jds_read(os.path.join(directory, file_list[0]), 0, 1)
 
     # Main loop by files start
     for file_no in range(len(file_list)):   # loop by files
 
         # *** Opening datafile ***
-        fname = directory + file_list[file_no]
+        fname = os.path.join(directory, file_list[file_no])
 
         # *********************************************************************************
 
@@ -125,12 +126,12 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                 file_header = file.read(1024)
 
             # *** Creating a name for long timeline TXT file ***
-            tl_file_name = df_filename + '_Timeline.txt'
+            tl_file_name = os.path.join(result_path, df_filename + '_Timeline.txt')
             tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
             tl_file.close()
 
             # *** Creating a binary file with data for long data storage ***
-            file_data_a_name = df_filename + '_Data_chA.dat'
+            file_data_a_name = os.path.join(result_path, df_filename + '_Data_chA.dat')
             file_data_a = open(file_data_a_name, 'wb')
             file_data_a.write(file_header)
             file_data_a.seek(574)  # FFT size place in header
@@ -146,7 +147,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
             file_data_a.close()
 
             if Channel == 2:
-                file_data_b_name = df_filename + '_Data_chB.dat'
+                file_data_b_name = os.path.join(result_path, df_filename + '_Data_chB.dat')
                 file_data_b = open(file_data_b_name, 'wb')
                 file_data_b.write(file_header)
                 file_data_b.seek(574)  # FFT size place in header
@@ -189,7 +190,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
         no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
 
         no_of_av_spectra_per_file = int(no_of_av_spectra_per_file)
-        fine_clock_frq = (int(CLCfrq/1000000.0) * 1000000.0)
+        fine_clock_frq = int(CLCfrq/1000000.0) * 1000000.0
 
         # Real time resolution of averaged spectra
         real_av_spectra_dt = (1 / fine_clock_frq) * (data_block_size-4) * no_of_spectra_to_average
@@ -314,7 +315,8 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                                       data_1, data_2, 'Channel A', 'Channel B', 1, data_block_size,
                                       -0.6, 0.6, -0.6, 0.6, 'ADC clock counts', 'Amplitude, V', 'Amplitude, V',
                                       suptitle, Title,
-                                      service_folder + '/' + df_filename[0:14] + ' Waveform first data block.png',
+                                    #   service_folder + '/' + df_filename[0:14] + ' Waveform first data block.png',
+                                      os.path.join(service_folder, df_filename[0:14] + ' Waveform first data block.png'),
                                       current_date, current_time, software_version)
 
                     # Prepare parameters for plot
@@ -333,7 +335,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                     TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2, 'Channel A', 'Channel B',
                                       frequency[0], frequency[-1], -80, 60, -80, 60, 'Frequency, MHz',
                                       'Intensity, dB', 'Intensity, dB', suptitle, Title,
-                                      service_folder+'/' + df_filename[0:14] + ' Immediate spectrum first in file.png',
+                                      os.path.join(service_folder, df_filename[0:14] + ' Immediate spectrum first in file.png'),
                                       current_date, current_time, software_version)
 
                 # Deleting the unnecessary matrices
@@ -365,8 +367,8 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
 
                     TwoOrOneValuePlot(no_of_sets, frequency, data_1, data_2, 'Channel A', 'Channel B',
                                       frequency[0], frequency[-1], -80, 60, -80, 60, 'Frequency, MHz', 'Intensity, dB',
-                                      'Intensity, dB', suptitle, Title,  service_folder + '/' + df_filename[0:14] +
-                                      ' Average spectrum first data block in file.png', current_date, current_time,
+                                      'Intensity, dB', suptitle, Title,  os.path.join(service_folder, df_filename[0:14] +
+                                      ' Average spectrum first data block in file.png'), current_date, current_time,
                                       software_version)
 
                 # Adding calculated averaged spectrum to dynamic spectra array
@@ -436,7 +438,7 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                         ' (' + str(round(no_of_spectra_to_average * TimeRes, 3)) + ' sec.), Description: ' +
                         str(df_description))
 
-            fig_file_name = (initial_spectra_folder + '/' + df_filename[0:14] + ' Initial dynamic spectrum fig.' +
+            fig_file_name = os.path.join(initial_spectra_folder, df_filename[0:14] + ' Initial dynamic spectrum fig.' +
                              str(0+1) + '.png')
 
             if Channel == 0 or Channel == 1:  # Single channel mode
@@ -472,8 +474,8 @@ def jds_wf_simple_reader(directory, no_of_spectra_to_average, skip_data_blocks, 
                         str(no_of_spectra_to_average) + ' (' + str(round(no_of_spectra_to_average * TimeRes, 3)) +
                         ' sec.), Description: ' + str(df_description))
 
-            fig_file_name = (result_folder + '/' + df_filename[0:14] + ' Normalized and cleaned dynamic spectrum fig.' +
-                             str(0+1) + '.png')
+            fig_file_name = os.path.join(result_folder, df_filename[0:14] + ' Normalized and cleaned dynamic spectrum fig.' +
+                                         str(0+1) + '.png')
 
             if Channel == 0 or Channel == 1:  # Single channel mode
                 OneDynSpectraPlot(dyn_spectra_ch_a, VminNorm, VmaxNorm, suptitle, 'Intensity, dB',

@@ -12,10 +12,12 @@ run the "script_wf_pulsar_coherent_dispersion_delay_removing.py" for selected fi
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-# directory = '/media/server2a/LC4-21-UTR2_002/PSRB0809p74_LC4-21_26-10-15_WF_Cl33_Ch1-NS_CH2-W/'
-directory = '/media/server2a/PSR_01_Jul_NenuFar/2021.07.01_PSRB0809+74_NenuFAR_2/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0950p08/'
 
-pulsar_name = 'B0809+74'  # 'B0950+08' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256'
+# Result folder (intermediate data is also stored here, so make sure there is plenty of disk space here)
+result_directory = '../RA_DATA_RESULTS/'  # !!!!!!!!!!!!!!!! NOT READY !!!!!!!!!!!!!!!!
+
+pulsar_name = 'B0950+08'  # 'B0809+74' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256'
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
 process_channel_b = False       # Process channel B or save time
@@ -24,10 +26,11 @@ threshold = 0.25                # Threshold of the strongest pulses (or RFIs)
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
+import os
 import sys
 from os import path
 
-# To change system path to main source_directory of the project:
+# To change system path to main directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
@@ -37,23 +40,35 @@ from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import 
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 # ###############################################################################
 
+# Prepare all folder paths to read data, to store intermediate data and results
+source_directory = os.path.normpath(source_directory)
+result_directory = os.path.normpath(result_directory)
 
+result_folder_name = source_directory.split(os.sep)[-1]
+path_to_dat_files = os.path.join(result_directory, pulsar_name + '_' + result_folder_name)
+
+# Conversion from data files to spectra data in long '.dat' format
 print('\n\n  * Conversion from waveform to spectra... \n\n')
+results_files_list = jds_wf_simple_reader(source_directory, no_of_spectra_to_average, 0, 0, 8, 'Greys', 
+                                          300, 1, 0, 1, result_path=path_to_dat_files)
 
-results_files_list = jds_wf_simple_reader(directory, no_of_spectra_to_average, 0, 0, 8, 'Greys', 300, 1, 0, 1)
-
+# Making a dynamic spectra of the whole data bunch to examine the data quality
 print('\n\n  * Making dynamic spectra of the initial data... \n\n')
 
-typesOfData = ['chA']
+types_of_data = ['chA']
 
 if len(results_files_list) > 1 and process_channel_b:
-    typesOfData.append('chB')
+    types_of_data.append('chB')
 else:
     results_files_list = [results_files_list[0]]
 
-result_folder_name = directory.split('/')[-2] + '_initial'
+for i in range(len(results_files_list)):
+    results_files_list[i] = results_files_list[i].split(os.sep)[-1]
 
-ok = DAT_file_reader('', results_files_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
+result_folder_name = source_directory.split(os.sep)[-1] + '_initial'
+
+ok = DAT_file_reader(path_to_dat_files, results_files_list[0][:-13], types_of_data, 
+                     path_to_dat_files, result_folder_name, 0, 0, 0, -120, -10, 0, 6, 6,
                      300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
 #
@@ -62,17 +77,36 @@ ok = DAT_file_reader('', results_files_list[0][:-13], typesOfData, '', result_fo
 #
 #
 
+# Incoherent dispersion delay removal in the whole data
 print('\n\n  *  Dispersion delay removing... \n\n')
 dedispersed_data_file_list = []
 for i in range(len(results_files_list)):
-    dedispersed_data_file_name = pulsar_incoherent_dedispersion('', results_files_list[i], pulsar_name,
-                                                                512, -0.15, 0.55, 0, 0, 0, 1, 10, 2.8, 0, 0.0,
-                                                                16.5, 1, 1, 300, 'Greys')
+    
+    # # Old function call left just in case
+    # dedispersed_data_file_name = pulsar_incoherent_dedispersion('', 
+    #                                                             results_files_list[i], 
+    #                                                             pulsar_name,
+    #                                                             512, 
+    #                                                             -0.15, 0.55, 
+    #                                                             0, 0, 0, 
+    #                                                             1, 10, 
+    #                                                             2.8, 0, 0.0,
+    #                                                             16.5, 1, 1, 300, 'Greys')
+    
+    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  results_files_list[i],  pulsar_name,
+                                                                512,  -0.15, 0.55,  False, 0.0, 0.0, 
+                                                                True, True,  300, 'Greys', 
+                                                                result_path=path_to_dat_files, save_pics=True, 
+                                                                use_mask_file=False, make_fourier=False, 
+                                                                print_or_not=True)
+    
     dedispersed_data_file_list.append(dedispersed_data_file_name)
 
+
+# Making figures of dynamic spectra and intergrated profile for each 3 pulsar periods
 print('\n\n  *  Making figures of 3 pulsar periods... \n\n')
 for dedispersed_data_file_name in dedispersed_data_file_list:
-    pulsar_period_dm_compensated_pics('', dedispersed_data_file_name, pulsar_name,
+    pulsar_period_dm_compensated_pics(path_to_dat_files, dedispersed_data_file_name, pulsar_name,
                                       0, -0.15, 0.55, -0.2, 3, 3, 500, 'Greys', save_strongest, threshold)
 
 #
@@ -81,11 +115,16 @@ for dedispersed_data_file_name in dedispersed_data_file_list:
 #
 #
 
-result_folder_name = directory.split('/')[-2] + '_dedispersed'
+# Making a dynamic spectra of the whole data bunch after dispersioon delay removal to examine the data quality
+result_folder_name = source_directory.split(os.sep)[-1] + '_dedispersed'
 
 print('\n\n  * Making dynamic spectra of the dedispersed data... \n\n')
 
-ok = DAT_file_reader('', dedispersed_data_file_list[0][:-13], typesOfData, '', result_folder_name, 0, 0, 0, -120, -10,
+for i in range(len(results_files_list)):
+    results_files_list[i] = results_files_list[i].split(os.sep)[-1]
+
+ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], 
+                     types_of_data, path_to_dat_files, result_folder_name, 0, 0, 0, -120, -10,
                      0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '', 16.5, 33.0, [], 0)
 
 print('\n\n  *  Pipeline finished successfully! \n\n')

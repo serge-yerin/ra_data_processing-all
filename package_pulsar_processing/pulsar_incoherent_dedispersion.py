@@ -105,7 +105,7 @@ def plot_integrated_profile_and_spectra(profile, averaged_array, frequency_list,
              fontsize=3, transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + software_version+', yerin.serge@gmail.com, IRA NASU', fontsize=3,
              transform=plt.gcf().transFigure)
-    pylab.savefig(os.path.join(newpath,filename[:-4] + ' fig. ' + str(block) + ' spectrogram and profile.png'),
+    pylab.savefig(os.path.join(newpath, filename[:-4] + ' fig. ' + str(block) + ' spectrogram and profile.png'),
                   bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
