@@ -11,7 +11,6 @@ software_version = '2020.01.19'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-# directory = '/media/server2a/PSR_2020.01/B0950p08_29_Jan_2020_Clk_33_WF_NS1ch_EW2ch_1beam/' 
 directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0950p08/' 
 
 no_of_spectra_to_average = 16   # Number of spectra to average for dynamic spectra (16 - 7.9 ms)
