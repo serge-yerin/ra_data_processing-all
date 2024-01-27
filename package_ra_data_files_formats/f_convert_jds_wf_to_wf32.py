@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 from progress.bar import IncrementalBar
@@ -31,7 +32,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     # *** Data file header read ***
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
      clock_freq, df_creation_time_utc, channel, receiver_mode, mode, n_avr, time_res, fmin, fmax,
-     df, frequency, freq_points_num, data_block_size] = file_header_jds_read(source_directory + file_list[0], 0, 1)
+     df, frequency, freq_points_num, data_block_size] = file_header_jds_read(os.path.join(source_directory, file_list[0]), 0, 1)
     if mode > 0:
         sys.exit('  ERROR!!! Data recorded in wrong mode! Waveform mode needed.\n\n    Program stopped!')
 
@@ -39,7 +40,7 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
     # Main loop by files start
     for file_no in range(len(file_list)):   # loop by files
 
-        fname = source_directory + file_list[file_no]
+        fname = os.path.join(source_directory, file_list[file_no])
 
         # Create long data files and copy first data file header to them
         if file_no == 0:
@@ -49,24 +50,24 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 file_header = file.read(1024)
 
             # *** Creating a name for long timeline TXT file ***
-            tl_file_name = result_directory + df_filename + '_Timeline.wtxt'
+            tl_file_name = os.path.join(result_directory, df_filename + '_Timeline.wtxt')
             tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
             tl_file.close()
 
             # *** Creating a name for long phase of second TXT file (to be added to timeline) ***
-            sp_file_name = result_directory + df_filename + '_Second_phase.xtxt'
+            sp_file_name = os.path.join(result_directory, df_filename + '_Second_phase.xtxt')
             sp_file = open(sp_file_name, 'w')  # Open and close to delete the file with the same name
             sp_file.close()
 
             # *** Creating a binary file with data for long data storage ***
-            file_data_a_name = result_directory + df_filename + '_Data_chA.wf32'
+            file_data_a_name = os.path.join(result_directory, df_filename + '_Data_chA.wf32')
             result_wf32_files.append(file_data_a_name)
             file_data_a = open(file_data_a_name, 'wb')
             file_data_a.write(file_header)
             file_data_a.close()
 
             if channel == 2:
-                file_data_b_name = result_directory + df_filename + '_Data_chB.wf32'
+                file_data_b_name = os.path.join(result_directory, df_filename + '_Data_chB.wf32')
                 result_wf32_files.append(file_data_b_name)
                 file_data_b = open(file_data_b_name, 'wb')
                 file_data_b.write(file_header)
@@ -100,8 +101,8 @@ def convert_jds_wf_to_wf32(source_directory, result_directory, no_of_bunches_per
                 TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
 
             time_scale_bunch = []
-
-            bar = IncrementalBar(' File ' + str(file_no + 1) + ' of ' + str(len(file_list)) + ' reading: ',
+ 
+            bar = IncrementalBar(' File {:3d}'.format(file_no+1) + ' of ' + str(len(file_list)) + ' reading: ',
                                  max=no_of_bunches_per_file, suffix='%(percent)d%%')
 
             bar.start()
