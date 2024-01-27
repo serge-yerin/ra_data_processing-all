@@ -8,7 +8,7 @@ software_name = 'JDS Waveform calibration data analysis'
 # *******************************************************************************
 
 # Directory with calibration JDS files to be analyzed
-source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74_calibration/'  
+source_directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0809+74_calibration/'  
  
 # Directory where DAT files to be stored (empty string means project directory)
 result_directory = '../RA_DATA_RESULTS/'                             
@@ -392,7 +392,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
 
     """
 
-# Prepare all folder paths to read data, to store intermediate data and results
+    # Prepare all folder paths to read data, to store intermediate data and results
     path_to_calibr_data = os.path.normpath(path_to_calibr_data)
     result_directory = os.path.normpath(result_directory)
 
