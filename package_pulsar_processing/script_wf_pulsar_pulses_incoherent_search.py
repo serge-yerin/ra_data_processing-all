@@ -15,7 +15,7 @@ run the "script_wf_pulsar_coherent_dispersion_delay_removing.py" for selected fi
 source_directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0950p08/'
 
 # Result folder (intermediate data is also stored here, so make sure there is plenty of disk space here)
-result_directory = '../RA_DATA_RESULTS/'  # !!!!!!!!!!!!!!!! NOT READY !!!!!!!!!!!!!!!!
+result_directory = '../RA_DATA_RESULTS/' 
 
 pulsar_name = 'B0950+08'  # 'B0809+74' # 'B1133+16' # 'B1604-00' # 'B1919+21' # 'J0242+6256'
 
