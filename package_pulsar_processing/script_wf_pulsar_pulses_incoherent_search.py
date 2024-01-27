@@ -45,7 +45,7 @@ source_directory = os.path.normpath(source_directory)
 result_directory = os.path.normpath(result_directory)
 
 result_folder_name = source_directory.split(os.sep)[-1]
-path_to_dat_files = os.path.join(result_directory, pulsar_name + '_' + result_folder_name)
+path_to_dat_files = os.path.join(result_directory, pulsar_name + '_' + result_folder_name + '_incoherent_search')
 
 # Conversion from data files to spectra data in long '.dat' format
 print('\n\n  * Conversion from waveform to spectra... \n\n')
