@@ -120,8 +120,8 @@ result_folder_name = source_directory.split(os.sep)[-1] + '_dedispersed'
 
 print('\n\n  * Making dynamic spectra of the dedispersed data... \n\n')
 
-for i in range(len(results_files_list)):
-    results_files_list[i] = results_files_list[i].split(os.sep)[-1]
+for i in range(len(dedispersed_data_file_list)):
+    dedispersed_data_file_list[i] = dedispersed_data_file_list[i].split(os.sep)[-1]
 
 ok = DAT_file_reader(path_to_dat_files, dedispersed_data_file_list[0][:-13], 
                      types_of_data, path_to_dat_files, result_folder_name, 0, 0, 0, -120, -10,

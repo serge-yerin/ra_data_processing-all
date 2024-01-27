@@ -58,7 +58,7 @@ def check_if_JDS_files_of_equal_parameters(folder_path, file_list):
         print('\n **********************************************************\n !!!   WARNING: Parameters of files in folder differ    !!! \n **********************************************************')
         print('\n   * Check letteral parameters of the files in list: \n')
         for file_no in range (len(file_list)):
-            print('   ',  file_no+1 ,') ', df_system_name_list[file_no], '  ', df_obs_place_list[file_no], '  ', df_description_list[file_no])
+            print('   {:4d}'.format(file_no+1) ,') ', df_system_name_list[file_no], '  ', df_obs_place_list[file_no], '  ', df_description_list[file_no])
         print('\n   * Check numerical parameters of the files in list: \n')
         print('   No  DSP mode  Sum/Diff  Time res.   FFT size   Start line   Width  Block size\n')
         for file_no in range (len(file_list)):

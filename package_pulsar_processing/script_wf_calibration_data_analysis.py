@@ -1,14 +1,18 @@
 # Python3
 # pip install progress
-Software_version = '2021.02.18'
-Software_name = 'JDS Waveform calibration data analysis'
+software_version = '2021.02.18'
+software_name = 'JDS Waveform calibration data analysis'
 
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 
-source_directory = 'DATA/'              # Directory with JDS files to be analyzed
-result_directory = ''                   # Directory where DAT files to be stored (empty string means project directory)
+# Directory with calibration JDS files to be analyzed
+source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0809+74_calibration/'  
+ 
+# Directory where DAT files to be stored (empty string means project directory)
+result_directory = '../RA_DATA_RESULTS/'                             
+
 no_of_points_for_fft = 16384            # Number of points for FFT on result spectra # 8192, 16384, 32768, 65536, 131072
 
 # ###############################################################################
@@ -208,9 +212,9 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
         plt.close('all')
 
     corr_function = np.fft.ifft(cross_spectrum)
-    print(' Corr function size ', corr_function.shape)
+    print('  Corr function size                         ', corr_function.shape)
     corr_function_av = np.mean(corr_function, axis=1)
-    print(' Av corr function size ', corr_function_av.shape)
+    print('  Averaged corr function size                ', corr_function_av.shape)
     corr_function_av[0] = 0
     corr_function_av_abs = np.abs(corr_function_av)
     corr_function_av_re = np.real(corr_function_av)
@@ -273,18 +277,18 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
 
     # *** Creating a name for long timeline TXT file ***
     tl_file_name = df_filename + '_Timeline.wtxt'
-    tl_file = open(result_directory + tl_file_name, 'w')  # Open and close to delete the file with the same name
+    tl_file = open(os.path.join(result_directory, tl_file_name), 'w')  # Open and close to delete the file with the same name
     tl_file.close()
 
     # *** Creating a binary file with data for long data storage ***
-    file_data_A_name = result_directory + df_filename + '_Data_chA.wf32'
+    file_data_A_name = os.path.join(result_directory, df_filename + '_Data_chA.wf32')
     result_wf32_files.append(file_data_A_name)
     file_data_A = open(file_data_A_name, 'wb')
     file_data_A.write(file_header)
     file_data_A.close()
 
     if channel == 2:
-        file_data_B_name = result_directory + df_filename + '_Data_chB.wf32'
+        file_data_B_name = os.path.join(result_directory, df_filename + '_Data_chB.wf32')
         result_wf32_files.append(file_data_B_name)
         file_data_B = open(file_data_B_name, 'wb')
         file_data_B.write(file_header)
@@ -332,7 +336,7 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
                 wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
 
             # Timing
-            timeline_block_str = jds_waveform_time(wf_data, clock_freq, data_block_size)
+            timeline_block_str, phase_of_second = jds_waveform_time(wf_data, clock_freq, data_block_size)
             if channel == 2:  # Two channels mode
                 timeline_block_str = timeline_block_str[
                                      0:int(len(timeline_block_str) / 2)]  # Cut the timeline of second channel
@@ -380,13 +384,17 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
     return result_wf32_files
 
 
-def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of_points_for_fft):
+def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, result_directory, no_of_points_for_fft):
     """
     The function reads 2-channel waveform calibration files (UTR-2 noise generator calibration with a set of
     attenuators) calculates the cross-spectra of two channels in each file and provides a phase difference txt file
     for pulsar waveform observations calibration
 
     """
+
+# Prepare all folder paths to read data, to store intermediate data and results
+    path_to_calibr_data = os.path.normpath(path_to_calibr_data)
+    result_directory = os.path.normpath(result_directory)
 
     file_list = find_and_check_files_in_current_folder(path_to_calibr_data, '.jds')
 
@@ -402,14 +410,15 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     corr_f_ang = []
     corr_f_re = []
 
-    result_path = 'RESULTS_WF_calibration_analyzer/'
+    source_folder_name = path_to_calibr_data.split(os.sep)[-1]
+    result_path = os.path.join(result_directory, 'WF_calibr_' + source_folder_name)
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
     # Main loop by files start
     for file_no in range(len(file_list)):  # loop by files
 
-        fname = path_to_calibr_data + file_list[file_no]
+        fname = os.path.join(path_to_calibr_data, file_list[file_no])
 
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -419,9 +428,9 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         labels.append(df_system_name + ' ' + df_description.replace('_', ' '))
         file_names.append(df_filename)
 
-        print('\n  Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(file_list), '\n')
+        print('\n* Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
-        wf32_files = convert_one_jds_wf_to_wf32(fname, result_directory, 16)
+        wf32_files = convert_one_jds_wf_to_wf32(fname, result_path, 16)
 
 
         ampl_corr, angle_corr, av_sp_1, av_sp_2, sp_1, sp_2, cf_abs, cf_arg, cf_re = correlate_two_wf32_signals(wf32_files[0],
@@ -456,7 +465,8 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         ax2.set_xlabel('Frequency channels, #', fontsize=10, fontweight='bold')
         ax2.legend(loc='upper right', fontsize=10)
         fig.subplots_adjust(hspace=0.07, top=0.94)
-        pylab.savefig(result_path + 'Signal_spectra_' + file_names[i] + '.png', bbox_inches='tight', dpi=160)
+        pylab.savefig(os.path.join(result_path, 'Signal_spectra_' + file_names[i] + '.png'), 
+                      bbox_inches='tight', dpi=160)
         plt.close('all')
 
         # Plot cross spectra matrix
@@ -477,7 +487,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
         ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
         ax2.legend(loc='upper right', fontsize=10)
         fig.subplots_adjust(hspace=0.07, top=0.94)
-        pylab.savefig(result_path + 'WF_signal_correlation_' + file_names[i] + '.png', bbox_inches='tight', dpi=160)
+        pylab.savefig(os.path.join(result_path, 'WF_signal_correlation_' + file_names[i] + '.png'), bbox_inches='tight', dpi=160)
         plt.close('all')
 
     # Plot calibration spectra matrix
@@ -499,7 +509,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(result_path + 'Calibration_matrix_wf_spectra.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_wf_spectra.png'), bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Plot cross spectra matrix
@@ -521,7 +531,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(result_path + 'Calibration_matrix_wf_cross_spectra.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_wf_cross_spectra.png'), bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Plot correlation matrix
@@ -543,7 +553,8 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(result_path + 'Calibration_matrix_wf_correlation.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_wf_correlation.png'), 
+                  bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Plot mutual correlation function
@@ -558,13 +569,14 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
     ax1.set(xlim=(0, no_of_points_for_fft // 1))
     ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
     fig.subplots_adjust(top=0.94)
-    pylab.savefig(result_path + 'Calibration_matrix_of_wf_mutual_correlation_function.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_of_wf_mutual_correlation_function.png'), 
+                  bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Save phase matrix to txt files
     for i in range(len(file_list)):
-        phase_txt_file = open(result_path + 'Calibration_' + file_names[i] + '_cross_spectra_phase.txt', "w")
-        for freq in range(no_of_points_for_fft // 1):  # //2
+        phase_txt_file = open(os.path.join(result_path, 'Calibration_' + file_names[i] + '_cross_spectra_phase.txt'), "w")
+        for freq in range(no_of_points_for_fft):  # //2
             phase_txt_file.write(''.join(' {:+12.7E}'.format(cross_sp_angl[i][freq])) + ' \n')
         phase_txt_file.close()
 
@@ -580,7 +592,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, no_of
 if __name__ == '__main__':
 
     print('\n\n\n\n\n\n\n\n   ********************************************************************')
-    print('   * ', Software_name, ' v.', Software_version, ' *      (c) YeS 2020')
+    print('   * ', software_name, ' v.', software_version, ' *      (c) YeS 2020')
     print('   ******************************************************************** \n\n\n')
 
     startTime = time.time()
@@ -597,9 +609,9 @@ if __name__ == '__main__':
     # # initial_wf32_files = ['E300120_233404.jds_Data_chA.wf32', 'E300120_233404.jds_Data_chB.wf32']
     # correlate_two_wf32_signals(initial_wf32_files[0], initial_wf32_files[1], no_of_points_for_fft, False)
 
-    obtain_calibr_matrix_for_2_channel_wf_calibration(source_directory, no_of_points_for_fft)
+    obtain_calibr_matrix_for_2_channel_wf_calibration(source_directory, result_directory, no_of_points_for_fft)
 
     endTime = time.time()
     print('\n\n  The program execution lasted for ', round((endTime - startTime), 2), 'seconds (',
                                                      round((endTime - startTime)/60, 2), 'min. ) \n')
-    print('\n\n                 *** ', Software_name, ' has finished! *** \n\n\n')
+    print('\n\n                 *** ', software_name, ' has finished! *** \n\n\n')
