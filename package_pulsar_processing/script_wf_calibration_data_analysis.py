@@ -491,7 +491,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
         plt.close('all')
 
     # Plot calibration spectra matrix
-    rc('font', size=10, weight='bold')
+    rc('font', size=8, weight='bold')
     fig = plt.figure(figsize=(18, 10))
     fig.suptitle('Calibration matrix of waveform signals', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(211)
@@ -509,11 +509,11 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
     ax2.set_ylabel('Signal, A.U.', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_wf_spectra.png'), bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, '01_Calibration_matrix_wf_auto_spectra_amplitude_2_channels.png'), bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Plot cross spectra matrix
-    rc('font', size=10, weight='bold')
+    rc('font', size=8, weight='bold')
     fig = plt.figure(figsize=(18, 10))
     fig.suptitle('Cross spectra matrix of waveform signals correlation', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(211)
@@ -531,11 +531,11 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_wf_cross_spectra.png'), bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, '02_Calibration_matrix_wf_cross_spectra_amplitude_and_phase.png'), bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Plot correlation matrix
-    rc('font', size=10, weight='bold')
+    rc('font', size=8, weight='bold')
     fig = plt.figure(figsize=(18, 10))
     fig.suptitle('Cross spectra matrix of waveform signals correlation', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(211)
@@ -553,12 +553,12 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_wf_correlation.png'), 
+    pylab.savefig(os.path.join(result_path, '03_Calibration_matrix_wf_correlation.png'), 
                   bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Plot mutual correlation function
-    rc('font', size=10, weight='bold')
+    rc('font', size=8, weight='bold')
     fig = plt.figure(figsize=(18, 10))
     fig.suptitle('Mutual correlation matrix of waveform signals', fontsize=12, fontweight='bold')
     ax1 = fig.add_subplot(111)
@@ -569,7 +569,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
     ax1.set(xlim=(0, no_of_points_for_fft // 1))
     ax1.set_ylabel('Amplitude, A.U.', fontsize=10, fontweight='bold')
     fig.subplots_adjust(top=0.94)
-    pylab.savefig(os.path.join(result_path, 'Calibration_matrix_of_wf_mutual_correlation_function.png'), 
+    pylab.savefig(os.path.join(result_path, '04_Calibration_matrix_of_wf_mutual_correlation_function.png'), 
                   bbox_inches='tight', dpi=160)
     plt.close('all')
 
