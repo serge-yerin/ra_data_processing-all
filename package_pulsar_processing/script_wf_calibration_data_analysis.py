@@ -276,8 +276,8 @@ def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_
         file_header = file.read(1024)
 
     # *** Creating a name for long timeline TXT file ***
-    tl_file_name = df_filename + '_Timeline.wtxt'
-    tl_file = open(os.path.join(result_directory, tl_file_name), 'w')  # Open and close to delete the file with the same name
+    tl_file_name = os.path.join(result_directory, df_filename + '_Timeline.wtxt')
+    tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
     tl_file.close()
 
     # *** Creating a binary file with data for long data storage ***
