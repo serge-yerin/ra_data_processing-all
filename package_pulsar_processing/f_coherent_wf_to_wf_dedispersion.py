@@ -1,5 +1,5 @@
 
-
+import os
 import pylab
 import numpy as np
 import matplotlib.pyplot as plt
@@ -43,9 +43,7 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
         df = 16500000 / freq_points_num
 
     # Create long data files and copy first data file header to them
-
-    fname = file_path.split('/')[-1]
-    fpath = '/'.join(file_path.split('/')[:-1]) + '/'
+    [fpath, fname] = os.path.split(file_path)
 
     with open(file_path, 'rb') as file:
         # *** Data file header read ***
@@ -62,14 +60,14 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
             file_data_name = 'DM_' + str(np.round(pulsar_dm, 6)) + '_' + fname
 
         # *** Creating a binary file with data for long data storage ***
-        file_data = open(fpath + file_data_name, 'wb')
+        file_data = open(os.path.join(fpath, file_data_name), 'wb')
         file_data.write(file_header)
         file_data.close()
         del file_header
 
         # *** Creating a new timeline TXT file for results ***
         new_tl_file_name = file_data_name.split("_Data_ch", 1)[0] + '_Timeline.wtxt'
-        new_tl_file = open(fpath + new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+        new_tl_file = open(os.path.join(fpath, new_tl_file_name), 'w')  # Open and close to delete the file with the same name
         new_tl_file.close()
 
         # Calculation of the time shifts
@@ -101,8 +99,8 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
         # !!! Fake timing. Real timing to be done!!!
         # *** Reading timeline file ***
         old_tl_file_name = fname.split("_Data_ch", 1)[0] + '_Timeline.wtxt'
-        old_tl_file = open(fpath + old_tl_file_name, 'r')
-        new_tl_file = open(fpath + new_tl_file_name, 'w')  # Open and close to delete the file with the same name
+        old_tl_file = open(os.path.join(fpath, old_tl_file_name), 'r')
+        new_tl_file = open(os.path.join(fpath, new_tl_file_name), 'w')  # Open and close to delete the file with the same name
 
         file.seek(1024)  # Jumping to 1024 byte from file beginning
 
@@ -280,7 +278,7 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
                 '''
 
                 # Saving waveform data to wf32 file
-                file_data = open(fpath + file_data_name, 'ab')
+                file_data = open(os.path.join(fpath, file_data_name), 'ab')
                 file_data.write(np.float32(wf_data).transpose().copy(order='C'))
                 file_data.close()
 
@@ -296,7 +294,9 @@ def coherent_wf_to_wf_dedispersion(pulsar_dm, file_path, no_of_points_for_fft_de
         old_tl_file.close()
         new_tl_file.close()
 
-    return fpath + file_data_name
+        file_path_new = os.path.join(fpath, file_data_name)
+
+    return file_path_new
 
 
 # *******************************************************************************

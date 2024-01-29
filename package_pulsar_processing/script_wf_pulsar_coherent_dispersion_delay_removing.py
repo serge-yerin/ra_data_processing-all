@@ -1,4 +1,5 @@
 # TODO: Correct timeline file making and check correctness of timeline from receiver
+# TODO: Add option to delete intermediate data files
 
 # Python3
 software_version = '2022.09.11'
@@ -11,9 +12,9 @@ software_name = 'JDS Waveform coherent dispersion delay removing'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory with JDS files to be analyzed
-source_directory = 'DATA/'  # 'e:/python/RA_DATA_ARCHIVE/DSP_waveform_B0950p08_high_band/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0950p08'
 # Directory where DAT files to be stored (empty string means project directory)
-result_directory = 'e:/python/'
+result_directory = '../RA_DATA_RESULTS/'
 
 pulsar_name = 'B0950+08'  # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'J0242+6256'
 
@@ -26,7 +27,8 @@ no_of_bunches_per_file = 16             # Number of bunches to read one WF file 
 median_filter_window = 80               # Window of median filter to smooth the average profile
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
-phase_calibr_txt_file = source_directory + 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
+# Phase calibration file (if used, must be in the source_directory near the initial jds files)
+phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
 use_window_for_fft = False              # Use FFT window (not finished)
@@ -36,7 +38,7 @@ only_extract_pulse = False
 norm_compensated_dat_file_name = 'Norm_DM_4.8471_E150721_154000.jds_Data_wfA+B.dat'
 
 # Parameters for final average spectra folding
-scale_factor = 10
+scale_factor = 1
 spectrum_pic_min = -0.5
 spectrum_pic_max = 3
 periods_per_fig = 1
@@ -57,25 +59,24 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 # My functions
+from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_common_modules.text_manipulations import separate_filename_and_path
-from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
-# from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
-from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat
-from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
-from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
-# from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
-from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_dat_to_txt
-from package_astronomy.catalogue_pulsar import catalogue_pulsar
 from package_ra_data_files_formats.f_convert_jds_wf_to_wf32 import convert_jds_wf_to_wf32
 from package_ra_data_files_formats.DAT_file_reader import DAT_file_reader
 from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_with_overlap
 from package_ra_data_files_formats.f_convert_wf32_to_dat import convert_wf32_to_dat_without_overlap
-
 from package_ra_data_processing.wf32_two_channel_phase_calibration import wf32_two_channel_phase_calibration
 from package_ra_data_processing.sum_signals_of_wf32_files import sum_signals_of_wf32_files
 from package_ra_data_processing.f_normalize_dat_file import normalize_dat_file
 from package_pulsar_processing.pulsar_dm_compensated_dynamic_spectra_folding import pulsar_period_folding
+from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_dat_to_txt
+from package_pulsar_processing.pulsar_periods_from_compensated_DAT_files import pulsar_period_dm_compensated_pics
+from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat
+from package_pulsar_processing.pulsar_dm_full_shift_calculation import dm_full_shift_calculate
+from package_pulsar_processing.f_coherent_wf_to_wf_dedispersion import coherent_wf_to_wf_dedispersion
+# from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_txt
+# from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat
 
 # *******************************************************************************
 #                            M A I N    P R O G R A M                           *
@@ -98,23 +99,25 @@ if __name__ == '__main__':
     shift_vector = dm_full_shift_calculate(8192, 16.5, 33.0, 2014 / pow(10, 6), 0.000496, pulsar_dm, 'jds')
     max_shift = np.abs(shift_vector[0])
     print('  * Pulsar ', pulsar_name)
-    print('                               Period: ', p_bar, 's.')
+    print('                   Barycentric period: ', p_bar, 's.')
     print('                   Dispersion measure:  {} pc・cm\u00b3'.format(pulsar_dm))
     print('    Maximal shift of dynamic spectrum: ', max_shift, ' points')
     print('                                  or : ', np.round(max_shift * 16384/33000000, 1), ' seconds')  # nfft/f_cl
     print('                                  or :  ~', int(np.ceil((max_shift * 16384/33000000) / 16)),
           ' files in 2 ch 33 MHz mode\n\n')
 
+
     # Preparing result directory
-    result_folder_name = source_directory.split('/')[-2]
+    source_directory = os.path.normpath(source_directory)
+    result_directory = os.path.normpath(result_directory)
+
+    result_folder_name = source_directory.split(os.sep)[-1]
 
     # Path to intermediate data files and results
     if result_directory == '':
         result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
-    elif result_directory[-1] != '/':
-        result_directory = result_directory + '/'
 
-    result_directory = result_directory + pulsar_name + '_' + result_folder_name + '/'
+    result_directory = os.path.join(result_directory, pulsar_name + '_' + result_folder_name + '_coherent_dedispersion')
     if not os.path.exists(result_directory):
         os.makedirs(result_directory)
 
@@ -147,6 +150,7 @@ if __name__ == '__main__':
         if len(initial_wf32_files) > 1 and calibrate_phase:
             t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
             print('\n\n', t, 'Making phase calibration of wf32 file... \n')
+            phase_calibr_txt_file = os.path.join(source_directory, phase_calibr_txt_file)
             wf32_two_channel_phase_calibration(initial_wf32_files[1], no_of_points_for_fft_dedisp,
                                                no_of_spectra_in_bunch, phase_calibr_txt_file)
 
@@ -170,7 +174,7 @@ if __name__ == '__main__':
         #
         #
         # Do not forget to comment variables below!!!
-        # file_name = 'E261015_035419.jds_Data_wfA+B.wf32'
+        # file_name = os.path.join(result_directory, 'E240621_113029.jds_Data_wfA+B.wf32')
         # typesOfData = ['wfA+B']
         #
         #
@@ -221,7 +225,7 @@ if __name__ == '__main__':
 
         #
         #
-        # file_name = 'DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
+        # file_name = os.path.join(result_directory, 'DM_5.755_E240621_113029.jds_Data_wfA+B.dat')
         # typesOfData = ['wfA+B']
         #
         #
@@ -229,12 +233,11 @@ if __name__ == '__main__':
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
         print('\n\n', t, 'Making normalization of the dedispersed spectra data. \n')
 
-        file_name = file_name.split('/')[-1]
-
+        file_name = file_name.split(os.sep)[-1]
         output_file_name = normalize_dat_file(result_directory, file_name, no_of_spectra_in_bunch,
                                               median_filter_window, show_av_sp_to_normalize)
 
-        print(' Files names after normalizing: ', output_file_name)
+        print('\n File names after normalizing: ', output_file_name)
 
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
         print('\n\n', t, 'Making figures of 3 pulsar periods. \n\n')
@@ -252,7 +255,7 @@ if __name__ == '__main__':
         print('\n\n', t, 'Pulsar folding. \n\n')
 
         # Separate file path from file name
-        data_directory, output_file_name = separate_filename_and_path(output_file_name)
+        [data_directory, output_file_name] = os.path.split(output_file_name)
 
         # Make an average pulse profile and pulse evolution plot
         pulsar_period_folding(data_directory, output_file_name, result_directory, pulsar_name, scale_factor,
@@ -285,7 +288,7 @@ if __name__ == '__main__':
     period_number = int(input('\n    Enter the number of period where the pulse is:  '))
     periods_per_fig = int(input('\n    Enter the length of wanted data in periods:     '))
 
-    output_file_name = output_file_name.split('/')[-1]
+    [_, output_file_name] = os.path.split(output_file_name)
     path, dat_fname, png_fname = cut_needed_pulsar_period_from_dat_to_dat(result_directory, output_file_name,
                                                                           pulsar_name, period_number, -0.15, 0.55,
                                                                           -0.2, 3.0, periods_per_fig, 500, 'Greys')
@@ -311,7 +314,7 @@ if __name__ == '__main__':
     #
 
     # Save initial jds files list to a txt file
-    jds_files_txt = open(path + '/Initial data files used.txt', "w")
+    jds_files_txt = open(os.path.join(path, 'Initial data files used.txt'), "w")
     jds_files_txt.write('Period # ' + str(period_number) + ', points: ' + str(start_point) + ' - ' +
                         str(end_point) + ' of ' + str(len(file_list)) + ' data files: \n')
     for item in range(len(file_list)):

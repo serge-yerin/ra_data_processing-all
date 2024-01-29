@@ -27,6 +27,8 @@ def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp,
         file_data_name -                name of file with calibrated data
     """
 
+    fname = os.path.normpath(fname)
+
     # Rename the data file to make the new data file of the same name as initial one
     non_calibrated_fname = fname[:-5] + '_without_phase_calibration' + '.wf32'
     calibrated_fname = fname
@@ -45,23 +47,24 @@ def wf32_two_channel_phase_calibration(fname, no_of_points_for_fft_dedisp,
     phase_calibr_file = open(phase_calibr_txt_file, 'r')
     phase_vs_freq = []
     for line in phase_calibr_file:
-        phase_vs_freq.append(np.float(line))
+        phase_vs_freq.append(float(line))  # np.float
     phase_calibr_file.close()
 
     # Path of the initial file
-    path = '/'.join(fname.split('/')[:-1]) + '/'
+    path_list = fname.split(os.sep)[:-1]
+    path = os.path.join(*path_list)
 
     fig = plt.figure(figsize=(9, 5))
     ax1 = fig.add_subplot(111)
     ax1.plot(phase_vs_freq, linestyle='-', linewidth='1.00', label='Phase to add')
     ax1.legend(loc='upper right', fontsize=6)
-    ax1.grid(b=True, which='both', color='silver', linestyle='-')
+    ax1.grid(visible=True, which='both', color='silver', linestyle='-')
     ax1.set_ylabel('Phase, a.u.', fontsize=6, fontweight='bold')
-    pylab.savefig(path + '00_Phase to add.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(path, '00_Phase to add.png'), bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Converting phase to complex numbers
-    cmplx_phase = np.zeros((len(phase_vs_freq)), dtype=np.complex)
+    cmplx_phase = np.zeros((len(phase_vs_freq)), dtype=complex)
     for i in range(len(phase_vs_freq)):
         cmplx_phase[i] = np.cos(phase_vs_freq[i]) + 1j * np.sin(phase_vs_freq[i])
 

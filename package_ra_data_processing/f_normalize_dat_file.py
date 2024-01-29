@@ -31,14 +31,13 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
 
     print('\n   Preparations and calculation of the average spectrum to normalize... \n')
 
-    output_file_name = directory + 'Norm_' + filename
-    # filename = directory + filename
+    output_file_name = os.path.join(directory, 'Norm_' + filename)
 
     # Opening DAT datafile
-    file = open(directory + filename, 'rb')
+    file = open(os.path.join(directory, filename), 'rb')
 
     # *** Data file header read ***
-    df_filesize = os.stat(directory + filename).st_size                         # Size of file
+    df_filesize = os.stat(os.path.join(directory, filename)).st_size                         # Size of file
     df_filename = file.read(32).decode('utf-8').rstrip('\x00')      # Initial data file name
     file.close()
 
@@ -47,13 +46,13 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
                 CLCfrq, df_creation_timeUTC, ReceiverMode, Mode, sumDifMode,
                 NAvr, TimeRes, fmin, fmax, df, frequency, FFTsize, SLine,
-                Width, BlockSize] = file_header_adr_read(directory + filename, 0, 0)
+                Width, BlockSize] = file_header_adr_read(os.path.join(directory, filename), 0, 0)
 
     if df_filename[-4:] == '.jds':     # If data obtained from DSPZ receiver
 
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
         CLCfrq, df_creation_timeUTC, SpInFile, ReceiverMode, Mode, Navr, TimeRes, fmin, fmax,
-        df, frequency, FreqPointsNum, dataBlockSize] = file_header_jds_read(directory + filename, 0, 0)
+        df, frequency, FreqPointsNum, dataBlockSize] = file_header_jds_read(os.path.join(directory, filename), 0, 0)
 
     # Calculation of the dimensions of arrays to read
     nx = len(frequency)                           # the first dimension of the array
@@ -63,7 +62,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     num_of_blocks = int(ny // no_of_spectra_in_bunch)
 
     # Read data from file by blocks and average it
-    file = open(directory + filename, 'rb')
+    file = open(os.path.join(directory, filename), 'rb')
     file.seek(1024)
     average_array = np.empty((nx, 0), float)
     for block in range(num_of_blocks):
@@ -98,10 +97,10 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     ax1.plot(10 * np.log10(average_profile), linestyle='-', linewidth='1.00',
              label='Median averaged spectra', color='C3')
     ax1.legend(loc='upper right', fontsize=6)
-    ax1.grid(b=True, which='both', color='silver', linestyle='-')
+    ax1.grid(visible=True, which='both', color='silver', linestyle='-')
     ax1.set_xlabel('Frequency points, num.', fontsize=6, fontweight='bold')
     ax1.set_ylabel('Intensity, dB', fontsize=6, fontweight='bold')
-    pylab.savefig(directory + 'Averaged_spectra_' + filename[:-4] + '_filtered.png',
+    pylab.savefig(os.path.join(directory, 'Averaged_spectra_' + filename[:-4] + '_filtered.png'),
                   bbox_inches='tight', dpi=160)
     if show_aver_spectra:
         print('\n   Close the figure window to continue processing!!!\n')
@@ -149,7 +148,7 @@ def normalize_dat_file(directory, filename, no_of_spectra_in_bunch, median_filte
     new_tl_file.close()
 
     # *** Reading timeline file ***
-    old_tl_file_name = directory + filename.split('_Data_', 1)[0] + '_Timeline.txt'
+    old_tl_file_name = os.path.join(directory, filename.split('_Data_', 1)[0] + '_Timeline.txt')
     old_tl_file = open(old_tl_file_name, 'r')
     new_tl_file = open(new_tl_file_name, 'w')
 

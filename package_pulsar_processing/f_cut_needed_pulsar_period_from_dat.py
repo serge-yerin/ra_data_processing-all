@@ -172,7 +172,7 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
     current_date = time.strftime("%d.%m.%Y")
 
     # Creating a folder where all pictures and results will be stored (if it doesn't exist)
-    result_path = common_path + "Extracted_pulse_" + filename
+    result_path = os.path.join(common_path, "Extracted_pulse_" + filename)
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
@@ -180,10 +180,10 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
     pulsar_ra, pulsar_dec, DM, p_bar = catalogue_pulsar(pulsar_name)
 
     # DAT file to be analyzed:
-    filepath = common_path + filename
+    filepath = os.path.join(common_path, filename)
 
     # Timeline file to be analyzed:
-    timeline_filepath = common_path + filename.split('_Data_')[0] + '_Timeline.txt'
+    timeline_filepath = os.path.join(common_path, filename.split('_Data_')[0] + '_Timeline.txt')
 
     # Opening DAT datafile
     file = open(filepath, 'rb')
@@ -247,7 +247,7 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
 
     # Create binary file with the header and pulsar one or two periods data
     dat_file_name = 'Single_pulse_' + filename
-    file_data = open(result_path + '/' + dat_file_name, 'wb')
+    file_data = open(os.path.join(result_path, dat_file_name), 'wb')
     file_data.write(file_header)
     del file_header
     # Prepare data to save to the file
@@ -298,7 +298,7 @@ def cut_needed_pulsar_period_from_dat_to_dat(common_path, filename, pulsar_name,
              transform=plt.gcf().transFigure)
     fig.text(0.09, 0.04, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=3, transform=plt.gcf().transFigure)
-    pylab.savefig(result_path + '/' + 'Single_pulse_' + filename[:-4] + '.png', bbox_inches='tight', dpi=customDPI)
+    pylab.savefig(os.path.join(result_path, 'Single_pulse_' + filename[:-4] + '.png'), bbox_inches='tight', dpi=customDPI)
     plt.close('all')
 
     return result_path, 'Single_pulse_' + filename, filename + 'Single_pulse_' + filename[:-4] + '.png'
