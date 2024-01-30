@@ -1,11 +1,16 @@
 # TODO: Correct timeline file making and check correctness of timeline from receiver
 # TODO: Add option to delete intermediate data files
+# TODO: Add option to process WF data for the full frequency band with 66 MHz clock
+# TODO: Correct time resolution for average pulse calculation after last FFT with/without overlap (now correct for "with" case)
 
 # Python3
 software_version = '2022.09.11'
 software_name = 'JDS Waveform coherent dispersion delay removing'
 # Script intended to convert data from DSPZ receivers in waveform mode to waveform float 32 files
-# and make coherent dispersion delay removing and saving found pulses
+# and make coherent dispersion delay removing and save found pulses.
+# !!! The coherent dispersion delay removing is not realized properly !!!
+# !!! There is a problem with overlapping and window application while FFT after dedispersion !!! 
+# You can choose the overlapping/window near line 222 of this script with commenting the function call
 # !!! Now works ONLY with 16.5-33.0 MHz data acquired with 33 MHz clock frequency !!!
 
 # *******************************************************************************
@@ -13,7 +18,7 @@ software_name = 'JDS Waveform coherent dispersion delay removing'
 # *******************************************************************************
 # Directory with JDS files to be analyzed
 source_directory = '../RA_DATA_ARCHIVE/DSP_waveform_33MHz_B0950p08'
-# Directory where DAT files to be stored (empty string means project directory)
+# Directory where DAT files and results will be stored
 result_directory = '../RA_DATA_RESULTS/'
 
 pulsar_name = 'B0950+08'  # 'B0809+74' # 'B0950+08' # 'B1133+16' # 'J0242+6256'
@@ -24,18 +29,18 @@ no_of_points_for_fft_spectr = 16384     # Number of points for FFT on result spe
 no_of_points_for_fft_dedisp = 16384     # Number of points for FFT on dedispersion # 8192, 16384, 32768, 65536, 131072
 no_of_spectra_in_bunch = 16384          # Number of spectra samples to read while conversion to dat (depends on RAM)
 no_of_bunches_per_file = 16             # Number of bunches to read one WF file (depends on RAM)
-median_filter_window = 80               # Window of median filter to smooth the average profile
+median_filter_window = 80               # Window of median filter to smooth the average profile while normalizing data
 calibrate_phase = True                  # Do we need to calibrate phases between two channels? (True/False)
 
 # Phase calibration file (if used, must be in the source_directory near the initial jds files)
 phase_calibr_txt_file = 'Calibration_E300120_232956.jds_cross_spectra_phase.txt'
 
 show_av_sp_to_normalize = False         # Pause and display filtered average spectrum to be used for normalization
-use_window_for_fft = False              # Use FFT window (not finished)
+use_window_for_fft = False              # Use FFT window (to be checked and corrected)
 
 # If only extract pulse from normalized dedispersed dat file, use this True and the name of file, otherwise ignored
 only_extract_pulse = False
-norm_compensated_dat_file_name = 'Norm_DM_4.8471_E150721_154000.jds_Data_wfA+B.dat'
+norm_compensated_dat_file_name = 'Norm_DM_2.972_E310120_225419.jds_Data_wfA+B.dat'
 
 # Parameters for final average spectra folding
 scale_factor = 1
@@ -216,10 +221,10 @@ if __name__ == '__main__':
         t = time.strftime(" %Y-%m-%d %H:%M:%S : ")
         print('\n\n', t, 'Making DAT files spectra of dedispersed wf32 data. \n')
 
-        # file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr,
-        #                                                 no_of_spectra_in_bunch)
-        file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
-                                                     int(no_of_spectra_in_bunch/2), use_window_for_fft)
+        file_name = convert_wf32_to_dat_without_overlap(file_name, no_of_points_for_fft_spectr,
+                                                        no_of_spectra_in_bunch)
+        # file_name = convert_wf32_to_dat_with_overlap(file_name, no_of_points_for_fft_spectr,
+                                                    #  int(no_of_spectra_in_bunch/2), use_window_for_fft)
 
         print('\n Dedispersed DAT file: ', file_name, '\n')
 
