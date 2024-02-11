@@ -1,8 +1,8 @@
-# "ra_data_processing-all" repository
+# Low-Frequency Radio Astronomy tools
 
 Scripts and functions for visualizing and processing of radio astronomy data from Ukrainian low-frequency radio telescopes UTR-2, URAN, GURT (DSP and ADR receivers) as well as to control the ADR receivers to make scheduled observation.
 
-Additional libraries needed are listed in **requirements.txt**.
+Additional libraries needed are listed in **requirements.txt**. The most used scripts were sucessfully run with **Python 3.11.8**, but there could be some files that were not tested for a long time.
 
 On Linux you may have to install tkinter if the error 'No module named 'Tkinter'' appears with the command:
 
@@ -10,9 +10,9 @@ On Linux you may have to install tkinter if the error 'No module named 'Tkinter'
 sudo apt-get install python3-tk
 ```
 
-Instead of usual **opencv-python library** we use **opencv-python-headless** to avoid conflicts with **PyQt5** GUI frqmework.
+Instead of usual **opencv-python library** we use **opencv-python-headless** to avoid conflicts with **PyQt5** GUI framework.
 
-Each script has several lines at its beginning with all variables to be defined by user, so user does not need to search parameters of processing in the code. Short descriptions of each parameters are given in the comments.
+Each script has several lines at its beginning with all variables to be defined by user, so no need to search processing parameters in the code. Short descriptions of each parameters are given in the comments.
 
 ## Parameters of radio astronomy data to keep in mind
 
@@ -29,26 +29,29 @@ DSPZ & ADR receivers can record data in 3 main data types:
 * cross-spectra (2 channels of auto-spectra + real & imaginary parts of cross-spectra)
 * waveform data (1 or 2 channels).
 
-Receivers can work with external clock generator which provides ADC samplig rate. The sampling rate can be adjusted. Typical sample rated used:
+Receivers can work with an external clock generator which provides ADC samplig rate. The sampling rate can be adjusted. Typical sample rates used:
 
 * **66 MHz** clock frequency provides 33 MHz band of receiver (usual at UTR-2 and URAN for DSPZ)
 * **160 MHz** clock frequency provides 80 MHz band of receiver (usual at GURT fo ADR)
-* **33 MHz** clock frequency provides 16.5 MHz band of receiver (sometimes used at UTR-2 to record waveform data to save data rate and record signal in 2-nd Niquist zone 16.5-33.0 MHz where UTR-2 has maximal sensitivity).
+* **33 MHz** clock frequency provides 16.5 MHz band of receiver (sometimes used at UTR-2 to record waveform data to save data rate and record signal in 2-nd Niquist zone **16.5-33.0 MHz** where UTR-2 has maximal sensitivity).
 
-Usually receivers store data into 2GB files consequently, but ADR receiver can save data into continuous **.adr** file of any length. Each file has a 1024 byte header where parameters of the receiver and observations are stored.
+Usually receivers store data into 2GB files consequently, but ADR receiver can save data into a continuous **.adr** file of any length. Each file has a 1024 byte header where parameters of the receiver and observations are stored.
 
 ## Scripts to visualize radio astronomy data
 
-**Note:** The first step of any data processing is saving the original data into long **".dat"** (one per receiver channel data recorded or their combination) files which are convenient for further processing. Each file contains data of particular type (channel A or channel B or cross-spectra imaginary part or cross-spectra real part
-or cross-spectra module or cross-spectra phase) of all initial data files.
-
-These **".dat"** files are usually supplied with **"timeline.txt"** files which carry time stamps for data points.
+**Note:** The first step of any data processing is saving the original **spectra** data into long **".dat"** (one per receiver channel data recorded or their combination) files which are convenient for further processing. Such files are also usually used as internediate reults, for example after dispersion delay removing for pulsar processing. Each file contains data of particular type (channel A or channel B or cross-spectra imaginary part or cross-spectra real part or cross-spectra module or cross-spectra phase) of all initial data files. These **".dat"** files are usually supplied with **"timeline.txt"** files which carry time stamps for data points. The 1024 byte header of each **".dat"** file is a copy of the header of the first initial file processed in a bunch. If the time or frequency resolution of data were changed during processing the header will contain the changed values.
 
  **".dat"** files can be processed with the **script_DAT_reader.py** to make PNG dynamic spectra of the whole observation with spectra averaging in time.
 
+ For **waveform** intermediate data format we use **".wdat"** and **"timeline.wtxt"** formats respectively. Additional info in each sample time is stored in special time format.
+
 ### script_ADR_multifolder_reader.py
 
-This script makes **PNG images** of immediate and dynamic spectra for  auto and cross-spectra data from ADR. Also it can convert these data into **".dat"** format for further processing. It is convenient to analyze the observations data. One can indicate the path to a folder with a bunch of observations data in many subfolders. The script will anaylize each subfolder separately.
+This script makes **PNG images** of immediate and dynamic spectra for  auto and cross-spectra data from ADR. Also it can convert these data into **".dat"** format for further processing. It is convenient to analyze the observations data. One can indicate the path to a folder with a bunch of observations data in many subfolders. The script will anaylize each subfolder separately and store the images for further analysis by observer. It is a main tool to search for well-visible emissions like solar bursts, Jupiter DAM emission etc.
+
+### script_JDS_multifolder_reader.py
+
+This script performs the same tasks as the previous **script_ADR_multifolder_reader.py** but for auto and cross-spectra data from **DSPZ**.
 
 ## Scripts to process pulsar data
 
@@ -65,17 +68,14 @@ These scripts are mostly stored in **"package_pulsar_processing"** folder.
 To obtain integrated over frequency profile of dedsipersed spectra data from waveform data
 one should:
 
-1) use "script_JDS_WF_reader.py" from main project directory with parameters
- 
-* no_of_spectra_to_average = 16 (for 33 MHz clock it results in 7.942 ms time resolution)
+1) use "script_JDS_WF_reader.py" from main project directory with parameters to convert from WF to spectra data in '.dat' file.
 
-* save_long_file_aver = 1 (to save '.dat' and 'timeline.txt' files)
-
-  to convert from WF to spectra data in '.dat' file.
-
-2) process the '.dat' and 'timeline.txt' files with script "script_pulsar_single_pulses.py" from 
-"package_pulsar_processing" folder using
-as parameters the name of the pulsar observed (DM will be taken from local pulsar catalogue automatically), and
+   ```python
+   no_of_spectra_to_average = 16  # for 33 MHz clock it results in 7.942 ms time resolution
+   save_long_file_aver = 1  # to save '.dat' and 'timeline.txt' files
+   ```
+  
+2) process the '.dat' and 'timeline.txt' files with script "script_pulsar_single_pulses.py" from "package_pulsar_processing" folder using as parameters the name of the pulsar observed (DM will be taken from local pulsar catalogue automatically), and
 the name of the '.dat' file from first stage.
 The pictures will appear in folder "RESULTS_pulsar_single_pulses_..." in the main project folder.
 
