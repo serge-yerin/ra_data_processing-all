@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 from os import path
@@ -38,9 +39,12 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
     CorrelationProcess = 0
     long_file_save_im_re = 0
 
-    result_folder_name = source_directory.split('/')[-2]
-    path_to_dat_files = result_directory + '/' + 'Transient_search_' + result_folder_name + '/'
-    result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
+    # result_folder_name = source_directory.split('/')[-2]
+    result_folder_name = source_directory.split(os.sep)[-1]
+    # path_to_dat_files = result_directory + '/' + 'Transient_search_' + result_folder_name + '/'
+    path_to_dat_files = os.path.join(result_directory, 'Transient_search_' + result_folder_name)
+    # result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
+    result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
 
     for file in range(len(file_name_list_current)):
         file_name_list_current[file] = source_directory + file_name_list_current[file]
@@ -54,7 +58,7 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
                                                                 DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                                 CorrSpecSaveCleaned, 0, 0,
                                                                 dat_files_path=path_to_dat_files,
-                                                                print_or_not=0)
+                                                                print_verbose=0)
 
     # Take only channel A, channel B and Cross Spectra amplitude if present
     data_types_to_process = []
@@ -89,13 +93,19 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
                                                                 source_dm=source_dm,
                                                                 result_path=path_to_dat_files, print_or_not=False)
 
-    data_filepath = path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[0] + '.dat'
-    data_filename = data_filepath.split('/')[-1]
+    
+    # data_filepath = path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[0] + '.dat'
+    data_filepath = os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[0] + '.dat')
+    
+    # data_filename = data_filepath.split('/')[-1]
+    data_filename = data_filepath.split(os.sep)[-1]
 
-    profile_txt_file_path = path_to_dat_files + 'Transient_DM_' + str(np.round(source_dm, 6)) + '_' + \
-        data_filename[:-4] + '_time_profile.txt'
+    # profile_txt_file_path = path_to_dat_files + 'Transient_DM_' + str(np.round(source_dm, 6)) + '_' + \
+        # data_filename[:-4] + '_time_profile.txt'
+    profile_txt_file_path = os.path.join(path_to_dat_files + 'Transient_DM_' + 
+                                         str(np.round(source_dm, 6)) + '_' + data_filename[:-4] + '_time_profile.txt')
 
-    profile_txt_file_path = profile_txt_file_path.replace('//', '/')
+    # profile_txt_file_path = profile_txt_file_path.replace('//', '/')
 
     # common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
     # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
