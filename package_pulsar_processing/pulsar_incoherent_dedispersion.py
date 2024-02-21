@@ -147,7 +147,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
     a_current_date = time.strftime("%d.%m.%Y")
 
     rc('font', size=6, weight='bold')
+    common_path = os.path.normpath(common_path)
     data_filepath = os.path.join(common_path, filename)
+    data_filepath = os.path.normpath(data_filepath)
 
     # Obtain pulsar parameters from catalogue
     if 'Transient' in pulsar_name:
@@ -255,7 +257,6 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
         del file_header
 
     # *** Creating a name for long timeline TXT file ***
-    # data_filename = data_filepath.split('/')[-1]
     data_filename = data_filepath.split(os.sep)[-1]
     new_tl_file_name = os.path.join(common_path, pulsar_name + '_DM_' + str(np.round(pulsar_dm, 6)) + '_' +
                                     data_filename[:-13] + '_Timeline.txt')
