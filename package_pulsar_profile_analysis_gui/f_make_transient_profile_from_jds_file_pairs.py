@@ -1,3 +1,4 @@
+import os
 import sys
 from os import path
 
@@ -12,10 +13,14 @@ from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds impor
 def f_make_transient_profile_from_jds_file_pairs(source_directory, result_directory, source_dm):
 
     # Checking if the paths end with slash
-    if source_directory[-1] != '/':
-        source_directory = source_directory + '/'
-    if result_directory[-1] != '/':
-        result_directory = result_directory + '/'
+    # if source_directory[-1] != '/':
+    #     source_directory = source_directory + '/'
+    # if result_directory[-1] != '/':
+    #     result_directory = result_directory + '/'
+
+    # Normalizing input paths
+    source_directory = os.path.normpath(source_directory)
+    result_directory = os.path.normpath(result_directory)
 
     # Finding a list of jds files in the folder (output is sorted by name)
     file_list = find_files_only_in_current_folder(source_directory, '.jds', True)
