@@ -19,8 +19,16 @@ def xlsx_vvz_pulsar_sources_reader(data_path, excel_file_name, excel_sheet_name)
     for key in dataframe.keys():
         print('   -', key)
 
+    # print('\n\n')
+    # print(dataframe.loc[[10]])
+
     print('\n\n')
-    print(dataframe.loc[[10]])
+
+    dataframe['Code&Date'] = pd.Series(dataframe['Code&Date']).fillna(method='ffill')
+    dataframe['Beam'] = pd.Series(dataframe['Beam']).fillna(method='ffill')
+
+    print(dataframe.head(40))
+
 
     return
 
