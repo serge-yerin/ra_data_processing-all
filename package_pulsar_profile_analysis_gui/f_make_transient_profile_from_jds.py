@@ -39,6 +39,8 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
     CorrelationProcess = 0
     long_file_save_im_re = 0
 
+    source_directory = os.path.normpath(source_directory)
+    result_directory = os.path.normpath(result_directory)
     result_folder_name = source_directory.split(os.sep)[-1]
     path_to_dat_files = os.path.join(result_directory, 'Transient_search_' + result_folder_name)
     result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
@@ -79,7 +81,7 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
         else:
             sys.exit('            Type error!')
 
-        dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
+        dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
                             1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l,
                             print_or_not=False)
 
@@ -95,7 +97,7 @@ def make_transient_profile_from_jds(source_directory, file_name_list_current, re
     
     data_filename = data_filepath.split(os.sep)[-1]
 
-    profile_txt_file_path = os.path.join(path_to_dat_files + 'Transient_DM_' + 
+    profile_txt_file_path = os.path.join(path_to_dat_files, 'Transient_DM_' + 
                                          str(np.round(source_dm, 6)) + '_' + data_filename[:-4] + '_time_profile.txt')
 
     return profile_txt_file_path
