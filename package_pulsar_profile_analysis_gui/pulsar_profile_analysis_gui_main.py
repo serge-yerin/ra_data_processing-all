@@ -13,6 +13,7 @@ from matplotlib import rc
 from os import path
 import numpy as np
 import sys
+import os
 
 # To change system path to the directory where script is running:
 if __package__ is None:
@@ -763,7 +764,7 @@ class MyTableWidget(QWidget):
 
         # Reading profile data from txt file
         data_filepath = self.txt_file_path_line.text()
-        directory, self.data_filename = separate_filename_and_path(data_filepath)
+        [directory, self.data_filename] = os.path.split(data_filepath)
         pulsar_data_in_time = read_one_value_txt_file(data_filepath)
         self.p_data_in_time = pulsar_data_in_time
 
@@ -833,7 +834,8 @@ class MyTableWidget(QWidget):
         def mouse_event(event):
             x = event.xdata
             self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x,
-                                        11*x, 12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x]
+                                        11*x, 12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x, 19*x, 20*x,
+                                        21*x, 22*x, 23*x, 24*x, 25*x, 26*x, 27*x, 28*x, 29*x, 30*x]
 
             self.figure.clear()  # clearing old figure
             ax0 = self.figure.add_subplot(211)
