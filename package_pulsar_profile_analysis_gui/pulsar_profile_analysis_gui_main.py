@@ -30,11 +30,11 @@ from package_common_modules.text_manipulations import separate_filename_and_path
 from package_ra_data_processing.filtering import median_filter
 
 
-# Keep in mind that for Linux (Ubuntu 22.04) you may will need to ise headless opencv:
+# Keep in mind that for Linux (Ubuntu 22.04) you may will need to use headless opencv:
 # pip uninstall opencv-python
 # pip install opencv-python-headless
 
-software_version = '2023.10.28'
+software_version = '2024.02.24'
 
 
 # Main window
@@ -66,19 +66,21 @@ class MyTableWidget(QWidget):
         self.tab2 = QWidget()
         self.tab3 = QWidget()
         self.tab4 = QWidget()
+        self.tab5 = QWidget()
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Process JDS data")
         self.tabs.addTab(self.tab2, "Analyze profile")
         self.tabs.addTab(self.tab3, "Analyze 1-8 parts")
         self.tabs.addTab(self.tab4, "Analyze 16 parts")
+        self.tabs.addTab(self.tab5, "Process Excel DB")
 
         ##############################
         #         First tab          #
         ##############################
 
         # First tab
-        self.tab1.layout = QGridLayout(self)  # QVBoxLayout
+        self.tab1.layout = QGridLayout(self.tab5)
 
         # First tab raw one
         self.radiobutton_txt = QRadioButton("Ready profile .txt file: ")
@@ -90,7 +92,7 @@ class MyTableWidget(QWidget):
         # Path to txt file line
         self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
 
-        common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+        common_path = '../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
         filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
         self.txt_filepath, self.txt_filename = common_path, filename
 
@@ -254,12 +256,18 @@ class MyTableWidget(QWidget):
 
         self.tab1.setLayout(self.tab1.layout)
 
+
+
+
+
+
+
         ##############################
         #         Second tab         #
         ##############################
 
         # Layouts in the second tab
-        self.tab2.layout = QVBoxLayout(self)
+        self.tab2.layout = QVBoxLayout(self.tab2)
         self.input_controls_layout = QHBoxLayout()
 
         # Creating labels near spinboxes to describe the input
@@ -338,12 +346,17 @@ class MyTableWidget(QWidget):
 
         self.tab2.setLayout(self.tab2.layout)
 
+
+
+
+
+
         ##############################
         #         Third tab         #
         ##############################
 
         # Third tab
-        self.tab3.layout = QVBoxLayout(self)
+        self.tab3.layout = QVBoxLayout(self.tab3)
         self.input_controls_layout_t3 = QHBoxLayout()
 
         # Button "Plot data 1-8"
@@ -368,12 +381,17 @@ class MyTableWidget(QWidget):
 
         self.tab3.setLayout(self.tab3.layout)
 
+
+
+
+
+
         ##############################
         #         Fourth tab         #
         ##############################
 
         # Fourth tab
-        self.tab4.layout = QVBoxLayout(self)
+        self.tab4.layout = QVBoxLayout(self.tab4)
         self.input_controls_layout_t4 = QHBoxLayout()
 
         # Button "Plot data 16"
@@ -397,6 +415,56 @@ class MyTableWidget(QWidget):
         self.tab4.layout.addWidget(self.canvas_16)
         self.tab4.setLayout(self.tab4.layout)
 
+
+
+
+        ##############################
+        #         Fifth tab          #
+        ##############################
+
+        # First tab
+        self.tab5.layout = QGridLayout(self.tab5)  # QVBoxLayout
+
+        # # First tab raw one
+        # self.radiobutton_txt = QRadioButton("Ready profile .txt file: ")
+        # self.radiobutton_txt.setChecked(True)
+        # self.radiobutton_txt.process_type = "txt file only"
+        # self.radiobutton_txt.toggled.connect(self.rb_txt_on_click)
+        # self.tab1.layout.addWidget(self.radiobutton_txt, 0, 0)
+
+        # # Path to txt file line
+        # self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
+
+        # common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+        # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
+        # self.txt_filepath, self.txt_filename = common_path, filename
+
+        # self.txt_file_path_line.setText(common_path + filename)
+        # self.tab1.layout.addWidget(self.txt_file_path_line, 0, 1)
+
+        # # Button "Open txt file"
+        # self.button_open_txt = QPushButton('Open txt file')
+        # self.button_open_txt.clicked.connect(self.one_txt_file_dialog)  # adding action to the button
+        # self.button_open_txt.setFixedSize(QSize(150, 30))
+        # self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
+
+        # # Label with further instructions
+        # self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
+        #                                       'the second tab "Analyze profile" and begin analysis', self)
+        # self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
+
+        # # Added empty label to separate workflows
+        # self.empty_label = QLabel(' ', self)
+        # self.tab1.layout.addWidget(self.empty_label, 2, 1)
+
+        # Packing into layouts
+        # self.tab5.layout.addLayout(self.input_controls_layout_t4)
+        # self.tab5.layout.addWidget(self.canvas_16)
+        self.tab5.setLayout(self.tab5.layout)
+
+
+
+
         ##############################
         #         Pack tabs          #
         ##############################
@@ -404,6 +472,8 @@ class MyTableWidget(QWidget):
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
+
+
 
     def save_spectra_16(self):
         # Run function to make and save bit plot
