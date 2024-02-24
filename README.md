@@ -55,7 +55,7 @@ This script performs the same tasks as the previous **script_ADR_multifolder_rea
 
 ## Scripts to process pulsar data
 
-These scripts are mostly stored in **"package_pulsar_processing"** folder.
+These scripts and functions specific for pulsar and transients processing are mostly stored in **"package_pulsar_processing"** folder. There is also a folder **"package_pulsar_profile_analysis_gui"** where GUI tool for pulsar and transient spectral data analysis in spectral domain is placed.
 
 ### Processing of spectra observations: _script_sp_pulsar_pulses_incoherent_search.py_
 
@@ -72,7 +72,7 @@ one should:
 
    ```python
    no_of_spectra_to_average = 16  # for 33 MHz clock it results in 7.942 ms time resolution
-   save_long_file_aver = 1  # to save '.dat' and 'timeline.txt' files
+   save_long_file_aver = 1        # to save '.dat' and 'timeline.txt' files
    ```
   
 2) process the '.dat' and 'timeline.txt' files with script "script_pulsar_single_pulses.py" from "package_pulsar_processing" folder using as parameters the name of the pulsar observed (DM will be taken from local pulsar catalogue automatically), and
