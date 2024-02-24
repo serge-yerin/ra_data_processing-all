@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from os import path
 import numpy as np
+import shutil
 import sys
 import os
 
@@ -25,6 +26,8 @@ from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds_file_
     f_make_transient_profile_from_jds_file_pairs)
 from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
 from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_16
+from package_pulsar_profile_analysis_gui.f_xlsx_vvz_pulsar_sources_reader import xlsx_vvz_pulsar_sources_reader
+
 from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_common_modules.text_manipulations import separate_filename_and_path
 from package_ra_data_processing.filtering import median_filter
@@ -74,6 +77,11 @@ class MyTableWidget(QWidget):
         self.tabs.addTab(self.tab3, "Analyze 1-8 parts")
         self.tabs.addTab(self.tab4, "Analyze 16 parts")
         self.tabs.addTab(self.tab5, "Process Excel DB")
+
+
+
+
+
 
         ##############################
         #         First tab          #
@@ -422,45 +430,152 @@ class MyTableWidget(QWidget):
         #         Fifth tab          #
         ##############################
 
-        # First tab
-        self.tab5.layout = QGridLayout(self.tab5)  # QVBoxLayout
+        self.tab5.layout = QVBoxLayout(self.tab5) 
+        self.tab_5_folder_selection_layout = QGridLayout() 
 
-        # # First tab raw one
-        # self.radiobutton_txt = QRadioButton("Ready profile .txt file: ")
-        # self.radiobutton_txt.setChecked(True)
-        # self.radiobutton_txt.process_type = "txt file only"
-        # self.radiobutton_txt.toggled.connect(self.rb_txt_on_click)
-        # self.tab1.layout.addWidget(self.radiobutton_txt, 0, 0)
+        # Label of path to xlsx file
+        self.label_txt_file_selected = QLabel('Path to XLS file: ', self)
+        self.tab_5_folder_selection_layout.addWidget(self.label_txt_file_selected, 0, 0)
 
-        # # Path to txt file line
-        # self.txt_file_path_line = QLineEdit()  # self, placeholderText='Enter a keyword to search...'
+        # Path to excel DB file line
+        self.xlsx_file_path_line = QLineEdit()  
+        excel_file_path = 'TP_corrected_for_VV_2017_June27.xlsx'
+        self.xlsx_file_path_line.setText(excel_file_path)
+        self.tab_5_folder_selection_layout.addWidget(self.xlsx_file_path_line, 0, 1)
 
-        # common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
-        # filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
-        # self.txt_filepath, self.txt_filename = common_path, filename
+        # Button "Open excel file"
+        self.button_open_xlsx = QPushButton('Open xls file')
+        self.button_open_xlsx.clicked.connect(self.one_xls_file_open_dialog)
+        self.button_open_xlsx.setFixedSize(QSize(150, 30))
+        self.tab_5_folder_selection_layout.addWidget(self.button_open_xlsx, 0, 2)
 
-        # self.txt_file_path_line.setText(common_path + filename)
-        # self.tab1.layout.addWidget(self.txt_file_path_line, 0, 1)
+        # Label of path to data to process
+        self.label_data_path_replace = QLabel('Path to data folder (to replace): ', self)
+        self.tab_5_folder_selection_layout.addWidget(self.label_data_path_replace, 1, 0)
 
-        # # Button "Open txt file"
-        # self.button_open_txt = QPushButton('Open txt file')
-        # self.button_open_txt.clicked.connect(self.one_txt_file_dialog)  # adding action to the button
-        # self.button_open_txt.setFixedSize(QSize(150, 30))
-        # self.tab1.layout.addWidget(self.button_open_txt, 0, 2)
+        # Path to excel DB file line
+        self.data_path_replace_line = QLineEdit()  
+        data_path_replace = '/'
+        self.data_path_replace_line.setText(data_path_replace)
+        self.tab_5_folder_selection_layout.addWidget(self.data_path_replace_line, 1, 1)
 
-        # # Label with further instructions
-        # self.label_txt_file_selected = QLabel('After selecting correct txt file, you can switch to ' +
-        #                                       'the second tab "Analyze profile" and begin analysis', self)
-        # self.tab1.layout.addWidget(self.label_txt_file_selected, 1, 1)
+        # Button "Specify data folder to replace"
+        self.button_data_path_replace = QPushButton('Specify folder')
+        self.button_data_path_replace.clicked.connect(self.specify_db_data_folder_dialog)  # add new action!!!
+        self.button_data_path_replace.setFixedSize(QSize(150, 30))
+        self.tab_5_folder_selection_layout.addWidget(self.button_data_path_replace, 1, 2)
 
-        # # Added empty label to separate workflows
-        # self.empty_label = QLabel(' ', self)
-        # self.tab1.layout.addWidget(self.empty_label, 2, 1)
 
-        # Packing into layouts
-        # self.tab5.layout.addLayout(self.input_controls_layout_t4)
-        # self.tab5.layout.addWidget(self.canvas_16)
+
+
+
+
+
+
+        # Label of path big folder with intermediate data
+        self.big_temp_data_path_label = QLabel('Path to big temp folder: ', self)
+        self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_label, 2, 0)
+
+        # Path to excel DB file line
+        self.big_temp_data_path_line = QLineEdit()  
+        self.big_temp_data_path_line.setText('/')
+        self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_line, 2, 1)
+
+        # Button "Specify data folder to replace"
+        self.button_big_temp_data_path = QPushButton('Specify folder')
+        self.button_big_temp_data_path.clicked.connect(self.specify_big_temp_data_path_dialog)  
+        self.button_big_temp_data_path.setFixedSize(QSize(150, 30))
+        self.tab_5_folder_selection_layout.addWidget(self.button_big_temp_data_path, 2, 2)
+
+
+
+
+
+
+        self.tab_5_input_controls_layout = QGridLayout()
+
+        # Creating labels near spinboxes to describe the input
+        self.t5_label_median_win = QLabel("Median window:", self)
+        self.t5_label_median_win.setFixedSize(QSize(100, 30))
+        self.t5_label_median_win.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.t5_label_low_limit_input = QLabel("Lower limit", self)
+        self.t5_label_low_limit_input.setFixedSize(QSize(100, 30))
+        self.t5_label_low_limit_input.setWordWrap(True)  # making label multi line
+        self.t5_label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.t5_label_high_limit_input = QLabel("Higher limit", self)
+        self.t5_label_high_limit_input.setFixedSize(QSize(100, 30))
+        self.t5_label_high_limit_input.setWordWrap(True)  # making label multi line
+        self.t5_label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Selection of limits with spinboxes
+
+        self.t5_filter_win_input = QDoubleSpinBox()
+        self.t5_filter_win_input.setFixedSize(QSize(100, 30))
+        self.t5_filter_win_input.setMinimum(0)
+        self.t5_filter_win_input.setMaximum(100000)
+        self.t5_filter_win_input.setValue(100)
+
+        step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
+
+        self.t5_low_limit_input = QDoubleSpinBox()
+        self.t5_low_limit_input.setStepType(step_type)
+        self.t5_low_limit_input.setMinimum(-10.0)
+        self.t5_low_limit_input.setFixedSize(QSize(100, 30))
+        self.t5_low_limit_input.setValue(-3)
+
+        self.t5_high_limit_input = QDoubleSpinBox()
+        self.t5_high_limit_input.setStepType(step_type)
+        self.t5_high_limit_input.setMinimum(-10.0)
+        self.t5_high_limit_input.setFixedSize(QSize(100, 30))
+        self.t5_high_limit_input.setValue(3)
+
+        # *** Middle nested layout ***
+        self.tab_5_process_start_layout = QVBoxLayout()
+
+        # Button "Start data processing"
+        self.t5_button_process = QPushButton('Start data processing')
+        self.t5_button_process.clicked.connect(self.thread_t5_start_processing)  # adding action to the button !!!!!!!!!!!!!!!!!!!!
+
+        # Processing status label
+        self.t5_label_processing_status = QLabel('Waiting to enter data and start processing', self)
+        self.t5_label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
+        self.t5_label_processing_status.setFont(QFont('Arial', 14))
+        
+        # *** Lower nested layouts ***
+        self.tab_5_two_column_layout = QVBoxLayout()
+        self.tab_5_additional_parameters_layout = QGridLayout()
+        self.tab_5_text_field_layout = QVBoxLayout()
+
+		# Text field
+        self.t5_text_field = QPlainTextEdit()
+
+        # Packing widgets to the layouts
+        self.tab_5_input_controls_layout.addWidget(self.t5_label_median_win, 0, 0)
+        self.tab_5_input_controls_layout.addWidget(self.t5_filter_win_input, 0, 1)
+        self.tab_5_input_controls_layout.addWidget(self.t5_label_low_limit_input, 0, 2)
+        self.tab_5_input_controls_layout.addWidget(self.t5_low_limit_input, 0, 3)
+        self.tab_5_input_controls_layout.addWidget(self.t5_label_high_limit_input, 0, 4)
+        self.tab_5_input_controls_layout.addWidget(self.t5_high_limit_input, 0, 5)
+        self.tab_5_process_start_layout.addWidget(self.t5_button_process)
+        self.tab_5_process_start_layout.addWidget(self.t5_label_processing_status)
+        self.tab_5_text_field_layout.addWidget(self.t5_text_field)
+
+        # Packing all layouts in the tab
+        self.tab5.layout.addLayout(self.tab_5_folder_selection_layout)
+        self.tab5.layout.addLayout(self.tab_5_input_controls_layout)
+        self.tab5.layout.addLayout(self.tab_5_process_start_layout)
+        self.tab5.layout.addLayout(self.tab_5_two_column_layout)
+        self.tab_5_two_column_layout.addLayout(self.tab_5_additional_parameters_layout)
+        self.tab_5_two_column_layout.addLayout(self.tab_5_text_field_layout)
+
+        # Modifying layouts
+        self.tab_5_folder_selection_layout.setRowStretch(self.tab_5_folder_selection_layout.rowCount(), 1)
+        self.tab_5_input_controls_layout.setRowStretch(self.tab_5_input_controls_layout.rowCount(), 1)
+        # self.tab_5_process_start_layout.setStretch(self.tab_5_process_start_layout.rowCount(), 1)
         self.tab5.setLayout(self.tab5.layout)
+        
 
 
 
@@ -941,6 +1056,105 @@ class MyTableWidget(QWidget):
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
         ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
         self.canvas.draw()  # refresh canvas
+
+
+    def thread_t5_start_processing(self):
+        t1 = Thread(target=self.t5_start_processing)
+        t1.start()
+
+    # action called by the push button
+    def t5_start_processing(self):
+
+        self.t5_label_processing_status.setText('Excel database file reading')
+        self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
+        
+        # Reading profile data from txt file
+        try:
+            excel_filepath = self.xlsx_file_path_line.text()
+            db_data_path = self.data_path_replace_line.text()
+            temp_big_folder = self.big_temp_data_path_line.text()
+            excel_filepath = os.path.normpath(excel_filepath)
+            db_data_path = os.path.normpath(db_data_path)
+            temp_big_folder = os.path.normpath(temp_big_folder)
+            [self.excel_directory, self.excel_filename] = os.path.split(excel_filepath)
+            [code_date, beam, source_dm, file_paths] = xlsx_vvz_pulsar_sources_reader(self.excel_directory, self.excel_filename, 
+                                                                                      'Лист1', db_data_path)
+
+        except:
+            self.t5_label_processing_status.setText('Error reading Excel database or data finding')
+            self.t5_label_processing_status.setStyleSheet("background-color: red;")
+
+        pairs_number = len(code_date)
+        
+        self.t5_text_field.clear()  # Cleat the text input to add new file paths
+        
+        obs_names = []
+        for pair in range(pairs_number):
+            obs_name = code_date[pair].replace('/','_') + '_beam_' + beam[pair] + '  ' + str(source_dm[pair]) + '   ' + file_paths[pair][0]
+            obs_names.append(obs_name)
+            print(obs_name)
+
+            # self.t5_text_field.appendPlainText(code_date[pair] + '_' + beam[pair] + '  ' + str(source_dm[pair]) + '   ' + file_paths[pair][0])
+            # self.t5_text_field.appendPlainText('plain')
+        
+        for pair in range(pairs_number):
+
+            print('* Processing pair # ' + str(pair + 1) + ' out of ' + str(pairs_number))
+            self.t5_label_processing_status.setText('Processing pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+            self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
+
+            try:            
+                [jds_pair_directory, jds_file_1] = os.path.split(file_paths[pair][0])
+                [jds_pair_directory, jds_file_2] = os.path.split(file_paths[pair][0])
+
+                profile_txt_file_path = make_transient_profile_from_jds(jds_pair_directory,
+                                                                        [jds_file_1, jds_file_2],
+                                                                        temp_big_folder,
+                                                                        source_dm[pair])
+            except:
+                self.t5_label_processing_status.setText('Error making transient profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+                self.t5_label_processing_status.setStyleSheet("background-color: red;")
+
+            try:
+                # Copy result profile and timeline into initial data folder
+                [txt_file_path, txt_file_name] = os.path.split(profile_txt_file_path)
+                tl_file_name = txt_file_name.split('_Data_')[0] + '_Timeline.txt'
+                shutil.copy(profile_txt_file_path, os.path.join(jds_pair_directory, txt_file_name))
+                shutil.copy(os.path.join(txt_file_path, tl_file_name), os.path.join(jds_pair_directory, tl_file_name))
+
+                # Delete the temporary data folder
+                shutil.rmtree(txt_file_path)
+            
+            except:
+                self.t5_label_processing_status.setText('Error copying profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+                self.t5_label_processing_status.setStyleSheet("background-color: red;")
+
+
+
+
+        self.t5_label_processing_status.setText('Program finished work, check the data.')
+        self.t5_label_processing_status.setStyleSheet("background-color: lightblue;")
+
+        return
+
+    def specify_db_data_folder_dialog(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
+        if dir_name:
+            # self.path_to_result_folder = dir_name
+            self.data_path_replace_line.setText(str(dir_name))
+
+
+    def specify_big_temp_data_path_dialog(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
+        if dir_name:
+            # self.path_to_result_folder = dir_name
+            self.big_temp_data_path_line.setText(str(dir_name))
+
+
+    def one_xls_file_open_dialog(self):
+        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "Excel Files (*.xls, *.xlsx)")
+        if check:
+            self.xlsx_file_path_line.setText(file)
 
 
 # Driver code
