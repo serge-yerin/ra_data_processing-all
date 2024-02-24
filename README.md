@@ -29,6 +29,14 @@ DSPZ & ADR receivers can record data in 3 main data types:
 * cross-spectra (2 channels of auto-spectra + real & imaginary parts of cross-spectra)
 * waveform data (1 or 2 channels).
 
+Connection of antennas to receiver channels
+
+* At UTR-2 channel A typically received signals from NS arm and the B channel from W arm of the antenna array, but there could be any other configurations like separate sections of the telescopes etc.
+
+* At URAN-2 channels A & B were typically connected to 2 perpendicular linear polarizations of dipole subarray.
+
+* At GURT for single subarray observations channels A & B were connected to 2 perpendicular linear polarizations of dipole subarray. For interferometer observations channels A & B were connected to the same linear polarizations of 2 dipole subarrays.
+
 Receivers can work with an external clock generator which provides ADC samplig rate. The sampling rate can be adjusted. Typical sample rates used:
 
 * **66 MHz** clock frequency provides 33 MHz band of receiver (usual at UTR-2 and URAN for DSPZ)
@@ -36,6 +44,24 @@ Receivers can work with an external clock generator which provides ADC samplig r
 * **33 MHz** clock frequency provides 16.5 MHz band of receiver (sometimes used at UTR-2 to record waveform data to save data rate and record signal in 2-nd Niquist zone **16.5-33.0 MHz** where UTR-2 has maximal sensitivity).
 
 Usually receivers store data into 2GB files consequently, but ADR receiver can save data into a continuous **.adr** file of any length. Each file has a 1024 byte header where parameters of the receiver and observations are stored.
+
+### Calibration data for UTR-2
+
+There are 2 main calibration goals to calibrate data:
+
+* by noise level (amplitude),
+
+* by phase difference in 2 receiver channels.
+
+The typical calibration process includes switching the radio telescope to calibration mode, e.g. automatic connection of a reference noise generator (RNG) to an amplifier and splitter which distributes the noise signal among the 12 telescope sections outputs. The amplifier is an analogue of the 1 stage UTR-2 antenna amplifier and is used in the calibration scheme to take into account the 1st stage amplifiers in the antenna array which are not subjected to calibration. Operator attaches reference attenuators of fifferent values between the RNG and the splitter, so the calibration files can be recoreded. The most detailed claibration included values from 36 dB to 0 dB (direct connection without attenuator) with 2 dB step, but each observer had its own calibration algorithm. Also the self-noise mode was used, when instead of the RNG the open-ended high-value attenuator was attached. The self-noise mode emulated the noise of the radio telescope system itself when no external noise is received.
+
+With such a clibration dataset we can:
+
+* calibrate the linearity of the noise levels in the telecope (mixture of the external noise and the internal noise of the system)
+
+* calibrate phase between 2 channels as the same noise from the RNG was splitted to all sections of the telescope, e.g. the NS and W arms as well as A and B receiver channels respectively.
+
+* possibly make an absolute measurements assuming we know exactly the noise temperature of the noise from RNG and convert the ADC samples or spectra levels to brightness temperatures or flux densities.
 
 ## Scripts to visualize radio astronomy data
 
@@ -65,19 +91,13 @@ These scripts and functions specific for pulsar and transients processing are mo
 
 ### Processing of waveform observations
 
-To obtain integrated over frequency profile of dedsipersed spectra data from waveform data
-one should:
+The main goal of waveform pulsar or transient data processing is and anomalous intense pulse (AIP) or transient pulse (TP) search, coherent dedispersion and analysis. This task solution is now realized for the case of 1 or 2 cahnnels waveform with 33 MHz clock frequency.
 
-1) use "script_JDS_WF_reader.py" from main project directory with parameters to convert from WF to spectra data in '.dat' file.
+1) Analysis of all waveform files in the observation to find the AIPs or TPs themselves and the time of their arrival. The script **script_wf_pulsar_pulses_incoherent_search.py** reads the .jds waveform files converts the data into spectra, makes the incoherent dispersion delay compensation and make dynamic spectra images with integrated over frequency profile to visual search of the pulses.
 
-   ```python
-   no_of_spectra_to_average = 16  # for 33 MHz clock it results in 7.942 ms time resolution
-   save_long_file_aver = 1        # to save '.dat' and 'timeline.txt' files
-   ```
-  
-2) process the '.dat' and 'timeline.txt' files with script "script_pulsar_single_pulses.py" from "package_pulsar_processing" folder using as parameters the name of the pulsar observed (DM will be taken from local pulsar catalogue automatically), and
-the name of the '.dat' file from first stage.
-The pictures will appear in folder "RESULTS_pulsar_single_pulses_..." in the main project folder.
+2) This step is relevant only for 2 channel observations and calibration data saved. Using the data of calibration we obtain the phase difference between 2 receiver channels for further phase calibration. The script **script_wf_calibration_data_analysis.py** taked the folder with calibration data, analyses all the files, builds the amplitude calibration matrix as a png image and saves calibration phases for each level to txt files. User analyses the images and picks one phase clibration txt file for further calibration.
+
+3) Script **script_wf_pulsar_coherent_dispersion_delay_removing.py**
 
 ## Scripts to process data of Cas A secular flux decrease
 
