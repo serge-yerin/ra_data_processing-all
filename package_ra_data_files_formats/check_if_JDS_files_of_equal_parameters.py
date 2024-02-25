@@ -77,4 +77,4 @@ if __name__ == '__main__':
 
     folder_path = 'DATA/'
     file_list = ['A170712_160219.adr', 'File 10 2048FFT A 100 ms 141119_164450.adr']
-    equal_or_not = chaeck_if_ADR_files_of_equal_parameters(folder_path, file_list)
+    equal_or_not = check_if_JDS_files_of_equal_parameters(folder_path, file_list)
