@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 from threading import *
 import matplotlib.pyplot as plt
 from matplotlib import rc
+import pylab
 from os import path
 import numpy as np
 import shutil
@@ -1142,7 +1143,6 @@ class MyTableWidget(QWidget):
                 self.t5_label_processing_status.setStyleSheet("background-color: red;")
 
             try:
-            # for i in range(1):
                 print('Processing spectra of pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
                 self.t5_label_processing_status.setText('Processing spectra of pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
                 self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
@@ -1152,9 +1152,24 @@ class MyTableWidget(QWidget):
                 pulsar_data_in_time = read_one_value_txt_file(profile_filepath)
 
                 # Calculating the spectrum
-                # frequency_axis, pulses_spectra, spectrum_max = \
-                #     calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
-                    
+                frequency_axis, pulses_spectra, spectrum_max = \
+                    calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+                
+                fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(16.0, 7.0))
+                ax0.plot(pulsar_data_in_time)
+                ax0.set_xlim([0, len(pulsar_data_in_time)])
+                # ax0.set_ylim([-5.0, 5.0])
+                ax0.set_title('Time series', fontsize=10, fontweight='bold')
+                ax1.plot(frequency_axis, pulses_spectra)
+                ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+                fig.subplots_adjust(hspace=0.25, top=0.945)
+                ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
+                pylab.savefig(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum before filtering.png'), 
+                              bbox_inches='tight', dpi=300)
+                plt.close('all')
+
+
                 # Subtract median and normalize data
                 median = median_filter(pulsar_data_in_time, int(self.t5_filter_win_input.value()))
                 pulsar_data_in_time = pulsar_data_in_time - median
@@ -1167,10 +1182,24 @@ class MyTableWidget(QWidget):
                 # Clip data
                 cropped_data_in_time = np.clip(pulsar_data_in_time, min_limit, max_limit)
 
-                # # Calculating the spectrum
-                # frequency_axis, pulses_spectra, spectrum_max = \
-                #     calculate_spectrum_of_profile(cropped_data_in_time, time_resolution)
+                # Calculating the spectrum
+                frequency_axis, pulses_spectra, spectrum_max = \
+                    calculate_spectrum_of_profile(cropped_data_in_time, time_resolution)
                 
+                fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(16.0, 7.0))
+                ax0.plot(cropped_data_in_time)
+                ax0.set_xlim([0, len(cropped_data_in_time)])
+                # ax0.set_ylim([-5.0, 5.0])
+                ax0.set_title('Time series', fontsize=10, fontweight='bold')
+                ax1.plot(frequency_axis, pulses_spectra)
+                ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+                fig.subplots_adjust(hspace=0.25, top=0.945)
+                ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
+                pylab.savefig(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum after filtering.png'), 
+                              bbox_inches='tight', dpi=300)
+                plt.close('all')
+
                 harmonics_highlight = None
                 # Run function to make and save bit plot
                 time_profile_spectra_for_gui_16(cropped_data_in_time, time_resolution, harmonics_highlight,
@@ -1181,6 +1210,17 @@ class MyTableWidget(QWidget):
                 time_profile_spectra_for_gui_1_8(cropped_data_in_time, time_resolution, harmonics_highlight,
                                                  frequency_limit, new_obs_folder, txt_file_name,
                                                  software_version, 300)
+                
+                # Copy the plots to source folder as well
+                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum before filtering.png'), 
+                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' profile and spectrum before filtering.png'))
+                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum after filtering.png'), 
+                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' profile and spectrum after filtering.png'))
+                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' big picture up to 8 parts.png'), 
+                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' big picture up to 8 parts.png'))
+                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' big picture 16 parts.png'), 
+                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' big picture 16 parts.png'))
+
 
             except:
                 print('Error processing profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
