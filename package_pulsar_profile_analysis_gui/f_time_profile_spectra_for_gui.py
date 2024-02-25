@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import pylab
@@ -100,7 +101,7 @@ def time_profile_spectra_for_gui_1_8(profile_data, time_resolution, harmonics_to
              fontsize=5, transform=plt.gcf().transFigure)
     fig.text(0.11, 0.06, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=5, transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + '/' + filename[0:-4] + ' big picture up to 8 parts.png',
+    pylab.savefig(os.path.join(common_path, filename[0:-4] + ' big picture up to 8 parts.png'),
                   bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
@@ -167,7 +168,7 @@ def time_profile_spectra_for_gui_16(profile_data, time_resolution, harmonics_to_
              fontsize=5, transform=plt.gcf().transFigure)
     fig.text(0.11, 0.06, 'Software version: ' + software_version + ', yerin.serge@gmail.com, IRA NASU',
              fontsize=5, transform=plt.gcf().transFigure)
-    pylab.savefig(common_path + '/' + filename[0:-4] + ' big picture 16 parts.png',
+    pylab.savefig(os.path.join(common_path, filename[0:-4] + ' big picture 16 parts.png'),
                   bbox_inches='tight', dpi=custom_dpi)
     plt.close('all')
 
