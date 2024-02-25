@@ -299,7 +299,7 @@ class MyTableWidget(QWidget):
         self.filter_win_input.setFixedSize(QSize(100, 30))
         self.filter_win_input.setMinimum(0)
         self.filter_win_input.setMaximum(100000)
-        self.filter_win_input.setValue(100)
+        self.filter_win_input.setValue(300)
 
         step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
@@ -455,8 +455,7 @@ class MyTableWidget(QWidget):
 
         # Path to excel DB file line
         self.data_path_replace_line = QLineEdit()  
-        data_path_replace = '/'
-        self.data_path_replace_line.setText(data_path_replace)
+        self.data_path_replace_line.setText('E:/data/')
         self.tab_5_folder_selection_layout.addWidget(self.data_path_replace_line, 1, 1)
 
         # Button "Specify data folder to replace"
@@ -468,17 +467,13 @@ class MyTableWidget(QWidget):
 
 
 
-
-
-
-
         # Label of path big folder with intermediate data
         self.big_temp_data_path_label = QLabel('Path to big temp folder: ', self)
         self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_label, 2, 0)
 
         # Path to excel DB file line
         self.big_temp_data_path_line = QLineEdit()  
-        self.big_temp_data_path_line.setText('/')
+        self.big_temp_data_path_line.setText('E:/temp/')
         self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_line, 2, 1)
 
         # Button "Specify data folder to replace"
@@ -515,7 +510,7 @@ class MyTableWidget(QWidget):
         self.t5_filter_win_input.setFixedSize(QSize(100, 30))
         self.t5_filter_win_input.setMinimum(0)
         self.t5_filter_win_input.setMaximum(100000)
-        self.t5_filter_win_input.setValue(100)
+        self.t5_filter_win_input.setValue(300)
 
         step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
@@ -848,7 +843,7 @@ class MyTableWidget(QWidget):
     def jds_files_open_dialog(self):
         files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
         file_names = []
-        self.jds_file_path_line.clear()  # Cleat the text input to add new file paths
+        self.jds_file_path_line.clear()  # Clear the text input to add new file paths
         if check:
             for i in range(len(files)):
                 self.jds_file_path_line.appendPlainText(files[i])
@@ -1059,6 +1054,7 @@ class MyTableWidget(QWidget):
 
 
     def thread_t5_start_processing(self):
+        self.t5_text_field.appendPlainText('Reading database...')
         t1 = Thread(target=self.t5_start_processing)
         t1.start()
 
@@ -1090,17 +1086,23 @@ class MyTableWidget(QWidget):
         
         obs_names = []
         for pair in range(pairs_number):
-            obs_name = code_date[pair].replace('/','_') + '_beam_' + beam[pair] + '  ' + str(source_dm[pair]) + '   ' + file_paths[pair][0]
+            tmp_filepath = file_paths[pair][0].split(os.sep)
+            numbers = tmp_filepath[-2].split(' ')
+            data_file_name = tmp_filepath[-1][:-4]
+
+            obs_name = code_date[pair].replace('/','_') + '_{:0>2d}'.format(int(numbers[0])) + '_{:0>2d}'.format(int(numbers[1])) + \
+                       '  beam ' + beam[pair] + '  DM={: >6}'.format(str(np.round(source_dm[pair], 4))) + '  ' + data_file_name
+
             obs_names.append(obs_name)
             print(obs_name)
 
             # self.t5_text_field.appendPlainText(code_date[pair] + '_' + beam[pair] + '  ' + str(source_dm[pair]) + '   ' + file_paths[pair][0])
-            # self.t5_text_field.appendPlainText('plain')
+            # self.t5_text_field.appendPlainText('Text')
         
         for pair in range(pairs_number):
 
-            print('* Processing pair # ' + str(pair + 1) + ' out of ' + str(pairs_number))
-            self.t5_label_processing_status.setText('Processing pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+            print('\n* Processing pair # ' + str(pair + 1) + ' out of ' + str(pairs_number))
+            self.t5_label_processing_status.setText('Processing raw data pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
             self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
 
             try:            
@@ -1111,7 +1113,10 @@ class MyTableWidget(QWidget):
                                                                         [jds_file_1, jds_file_2],
                                                                         temp_big_folder,
                                                                         source_dm[pair])
+                # profile_txt_file_path = os.path.normpath('e:/temp/Transient_search_1 10/Transient_DM_21.022_A240311_160000.jds_Data_chA_time_profile.txt')
+            
             except:
+                print('Error making transient profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
                 self.t5_label_processing_status.setText('Error making transient profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
                 self.t5_label_processing_status.setStyleSheet("background-color: red;")
 
@@ -1121,14 +1126,66 @@ class MyTableWidget(QWidget):
                 tl_file_name = txt_file_name.split('_Data_')[0] + '_Timeline.txt'
                 shutil.copy(profile_txt_file_path, os.path.join(jds_pair_directory, txt_file_name))
                 shutil.copy(os.path.join(txt_file_path, tl_file_name), os.path.join(jds_pair_directory, tl_file_name))
+                
+                # Make new directory in the big temp folder and copy profile there
+                new_obs_folder = os.path.join(temp_big_folder, obs_names[pair].replace(' ', '_'))
+                os.mkdir(new_obs_folder) 
+                
+                shutil.copy(profile_txt_file_path, os.path.join(new_obs_folder, txt_file_name))
+                shutil.copy(os.path.join(txt_file_path, tl_file_name), os.path.join(new_obs_folder, tl_file_name))
 
                 # Delete the temporary data folder
                 shutil.rmtree(txt_file_path)
-            
             except:
+                print('Error copying profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
                 self.t5_label_processing_status.setText('Error copying profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
                 self.t5_label_processing_status.setStyleSheet("background-color: red;")
 
+            try:
+            # for i in range(1):
+                print('Processing spectra of pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+                self.t5_label_processing_status.setText('Processing spectra of pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+                self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
+                
+                # Reading profile data from txt file
+                profile_filepath = os.path.join(new_obs_folder, txt_file_name)
+                pulsar_data_in_time = read_one_value_txt_file(profile_filepath)
+
+                # Calculating the spectrum
+                # frequency_axis, pulses_spectra, spectrum_max = \
+                #     calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+                    
+                # Subtract median and normalize data
+                median = median_filter(pulsar_data_in_time, int(self.t5_filter_win_input.value()))
+                pulsar_data_in_time = pulsar_data_in_time - median
+                pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
+
+                # Getting current values from spinboxes
+                min_limit = self.t5_low_limit_input.value()
+                max_limit = self.t5_high_limit_input.value()
+
+                # Clip data
+                cropped_data_in_time = np.clip(pulsar_data_in_time, min_limit, max_limit)
+
+                # # Calculating the spectrum
+                # frequency_axis, pulses_spectra, spectrum_max = \
+                #     calculate_spectrum_of_profile(cropped_data_in_time, time_resolution)
+                
+                harmonics_highlight = None
+                # Run function to make and save bit plot
+                time_profile_spectra_for_gui_16(cropped_data_in_time, time_resolution, harmonics_highlight,
+                                                frequency_limit, new_obs_folder, txt_file_name,
+                                                software_version, 300)
+										
+                # Run function to make and save bit plot
+                time_profile_spectra_for_gui_1_8(cropped_data_in_time, time_resolution, harmonics_highlight,
+                                                 frequency_limit, new_obs_folder, txt_file_name,
+                                                 software_version, 300)
+
+            except:
+                print('Error processing profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+                self.t5_label_processing_status.setText('Error processing profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
+                self.t5_label_processing_status.setStyleSheet("background-color: red;")
 
 
 
@@ -1163,7 +1220,7 @@ if __name__ == '__main__':
     main = Window()  # creating a window object
     main.show()  # showing the window
 
-    frequency_limit = 10
+    frequency_limit = 10  # Hz
     time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
 
     sys.exit(app.exec_())  # loop
