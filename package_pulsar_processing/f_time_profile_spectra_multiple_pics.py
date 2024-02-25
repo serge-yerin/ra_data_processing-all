@@ -5,7 +5,7 @@ Software_name = 'Pulsar long time profile spectra calculation (whole & chunks)'
 #                     M A N U A L    P A R A M E T E R S                        *
 # *******************************************************************************
 # Path to initial and results files
-common_path = '../../../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
+common_path = '../RA_DATA_ARCHIVE/ADDITIONAL_pulses_profiles/'
 
 # Name of TXT file to be analyzed:
 filename = 'B0329+54_DM_26.78_C240122_152201.jds_Data_chA_time_profile.txt'
