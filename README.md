@@ -79,15 +79,36 @@ This script makes **PNG images** of immediate and dynamic spectra for  auto and 
 
 This script performs the same tasks as the previous **script_ADR_multifolder_reader.py** but for auto and cross-spectra data from **DSPZ**.
 
-## Scripts to process pulsar data
+## Scripts to process pulsed emissions (pulsars and transients)
 
 These scripts and functions specific for pulsar and transients processing are mostly stored in **"package_pulsar_processing"** folder. There is also a folder **"package_pulsar_profile_analysis_gui"** where GUI tool for pulsar and transient spectral data analysis in spectral domain is placed.
 
-### Processing of spectra observations: _script_sp_pulsar_pulses_incoherent_search.py_
+### Processing of spectra observations.
+
+Script **script_sp_pulsar_pulses_incoherent_search.py**
 
 **Input:** .jds files of pulsar or transients observations and pulsar name.
 
 **Output:** dedispersed dynamic spectra & time profile of pulses, averaged (integrated) pulse.
+
+### Analysis of pulse profile in frequency domain
+
+**Note: only A channel data is analyzed here**, no data summation or B channel analysis for now.
+
+For the analysis of pulse profile in frequency domain there is a special GUI program **pulsar_profile_analysis_gui_main.py** which is located in the **package_pulsar_profile_analysis_gui** folder. It performs 2 main tasks:
+
+1) makes pulses 1D time profile from spectral data observations by means of unpacking the spectra data, oerforming the incoherent dedispersion and intergrated the data iver frequency to obtain time profile
+
+2) allows to apply median filter to smooth the low-frequency changes of the profile, clip the profile from top and botton, and finally, analyze the full profile and each 1/2, 1/4, 1/8, and 1/16 parts of the profile.
+
+You can perform these tasks consequently or pick only one of them to be executed. As it is a GUI program the interface is more or less self-explanatory. There are multiple ways of the first task, e.g. making time profile of the pulses:
+
+1) You select any number of consequtive .jds spectra data files form single observation (single DM value to be dedispersed) to be processed to make a pulse profile.
+
+2) You can specify the folder with multiple consequtive .jds spectral data files, and these files will be split into consequtive pairs and for each files pair there will be a separate time profile.
+
+3) Processing of the special kind of a database of expected sources in an excel file made of transient survey with UTR-2. Here you can select an excel database list, the actual folder with data sorted into dedicated folders and a folder for temporary files which will be deleted during processing. 
+   
 
 ### Processing of waveform observations
 
