@@ -41,6 +41,7 @@ def xlsx_vvz_pulsar_sources_reader(data_path, excel_file_name, excel_sheet_name,
 
     # Selecting lines (rows) fronm correct code&date with indicated paths to files
     # selected_df = dataframe[dataframe['Code&Date'].str.contains('V102')]
+    selected_df = dataframe
     selected_df = selected_df[selected_df['Path 1'].notna()]
 
     # Prepare empty arrays to save items
