@@ -279,41 +279,54 @@ class MyTableWidget(QWidget):
         self.tab2.layout = QVBoxLayout(self.tab2)
         self.input_controls_layout = QHBoxLayout()
 
+        self.time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
+
         # Creating labels near spinboxes to describe the input
         self.label_median_win = QLabel("Median window:", self)
-        self.label_median_win.setFixedSize(QSize(100, 30))
+        self.label_median_win.setFixedSize(QSize(90, 30))
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
 
         self.label_low_limit_input = QLabel("Lower limit", self)
-        self.label_low_limit_input.setFixedSize(QSize(100, 30))
+        self.label_low_limit_input.setFixedSize(QSize(70, 30))
         self.label_low_limit_input.setWordWrap(True)  # making label multi line
         self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
         self.label_high_limit_input = QLabel("Higher limit", self)
-        self.label_high_limit_input.setFixedSize(QSize(100, 30))
+        self.label_high_limit_input.setFixedSize(QSize(70, 30))
         self.label_high_limit_input.setWordWrap(True)  # making label multi line
         self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.label_aver_const = QLabel("Average points\n x dt", self)
+        self.label_aver_const.setFixedSize(QSize(90, 30))
+        self.label_aver_const.setWordWrap(True)  # making label multi line
+        self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
 
         # Selection of limits with spinboxes
 
         self.filter_win_input = QDoubleSpinBox()
-        self.filter_win_input.setFixedSize(QSize(100, 30))
+        self.filter_win_input.setFixedSize(QSize(70, 30))
         self.filter_win_input.setMinimum(0)
         self.filter_win_input.setMaximum(100000)
         self.filter_win_input.setValue(300)
+
+        self.aver_const_input = QDoubleSpinBox()
+        self.aver_const_input.setFixedSize(QSize(60, 30))
+        self.aver_const_input.setMinimum(1)
+        self.aver_const_input.setMaximum(10)
+        self.aver_const_input.setValue(1)
 
         step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
         self.low_limit_input = QDoubleSpinBox()
         self.low_limit_input.setStepType(step_type)
         self.low_limit_input.setMinimum(-10.0)
-        self.low_limit_input.setFixedSize(QSize(100, 30))
+        self.low_limit_input.setFixedSize(QSize(60, 30))
         self.low_limit_input.setValue(-3)
 
         self.high_limit_input = QDoubleSpinBox()
         self.high_limit_input.setStepType(step_type)
         self.high_limit_input.setMinimum(-10.0)
-        self.high_limit_input.setFixedSize(QSize(100, 30))
+        self.high_limit_input.setFixedSize(QSize(60, 30))
         self.high_limit_input.setValue(3)
 
         # Main plot window
@@ -331,18 +344,26 @@ class MyTableWidget(QWidget):
         # Button "Subtract median"
         self.button_filter = QPushButton('Subtract median')
         self.button_filter.clicked.connect(self.subtract_median)  # adding action to the button
-        self.button_filter.setFixedSize(QSize(140, 30))
+        self.button_filter.setFixedSize(QSize(110, 30))
+
+        # Button "Average data"
+        self.button_average = QPushButton('Average data')
+        self.button_average.clicked.connect(self.average_time_data)  # adding action to the button
+        self.button_average.setFixedSize(QSize(110, 30))
 
         # Button "Crop data"
         self.button_crop = QPushButton('Crop data')
         self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
-        self.button_crop.setFixedSize(QSize(140, 30))
+        self.button_crop.setFixedSize(QSize(100, 30))
 
         # Packing layouts in the window
         self.input_controls_layout.addWidget(self.button_read)
         self.input_controls_layout.addWidget(self.label_median_win)
         self.input_controls_layout.addWidget(self.filter_win_input)
         self.input_controls_layout.addWidget(self.button_filter)
+        self.input_controls_layout.addWidget(self.label_aver_const)
+        self.input_controls_layout.addWidget(self.aver_const_input)
+        self.input_controls_layout.addWidget(self.button_average)
         self.input_controls_layout.addWidget(self.label_low_limit_input)
         self.input_controls_layout.addWidget(self.low_limit_input)
         self.input_controls_layout.addWidget(self.label_high_limit_input)
@@ -350,7 +371,40 @@ class MyTableWidget(QWidget):
         self.input_controls_layout.addWidget(self.button_crop)
 
         self.tab2.layout.addLayout(self.input_controls_layout)
-        self.tab2.layout.addWidget(self.toolbar)
+        
+        self.toolbar_frequency_layout = QHBoxLayout()
+
+        # Creating labels to indicate the initial time resolution
+        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        self.label_time_resolution = QLabel(label, self)
+        self.label_time_resolution.setFixedSize(QSize(300, 30))
+        self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.frequency_limit = 10  # Hz
+
+        self.label_freq_resolution = QLabel('Fig frequency limit:', self)
+        self.label_freq_resolution.setFixedSize(QSize(100, 30))
+        self.label_freq_resolution.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.label_hz = QLabel('Hz', self)
+        self.label_hz.setFixedSize(QSize(15, 30))
+        self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        self.freq_limit_input = QDoubleSpinBox()
+        self.freq_limit_input.setStepType(step_type)
+        self.freq_limit_input.setMinimum(0.0)
+        self.freq_limit_input.setFixedSize(QSize(60, 30))
+        self.freq_limit_input.setValue(self.frequency_limit)
+
+
+        self.toolbar_frequency_layout.addWidget(self.toolbar)
+        self.toolbar_frequency_layout.addWidget(self.label_time_resolution)
+        self.toolbar_frequency_layout.addWidget(self.label_freq_resolution)
+        self.toolbar_frequency_layout.addWidget(self.freq_limit_input)
+        self.toolbar_frequency_layout.addWidget(self.label_hz)
+        
+        self.tab2.layout.addLayout(self.toolbar_frequency_layout)
         self.tab2.layout.addWidget(self.canvas)
 
         self.tab2.setLayout(self.tab2.layout)
@@ -588,8 +642,8 @@ class MyTableWidget(QWidget):
 
     def save_spectra_16(self):
         # Run function to make and save bit plot
-        time_profile_spectra_for_gui_16(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
-                                        frequency_limit, self.txt_filepath, self.txt_filename,
+        time_profile_spectra_for_gui_16(self.cropped_data_in_time, self.time_resolution, self.harmonics_highlight,
+                                        self.frequency_limit, self.txt_filepath, self.txt_filename,
                                         software_version, 300)
 
     def plot_spectra_16(self):
@@ -618,7 +672,7 @@ class MyTableWidget(QWidget):
 
             # # Calculating the spectrum
             frequency_axis, profile_spectrum, spectrum_max = calculate_spectrum_of_profile(new_profile_data,
-                                                                                           time_resolution)
+                                                                                           self.time_resolution)
 
             # Adding the plots for parts of data to the big result picture
             ax = self.figure_16.add_subplot(4, 4, part+1)
@@ -629,7 +683,7 @@ class MyTableWidget(QWidget):
             # Plotting the spectra
             ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60',
                     label='Time series spectrum')
-            ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+            ax.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
             ax.legend(loc='upper right', fontsize=5)
             if v_ind[index] == 3:
                 ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
@@ -647,8 +701,8 @@ class MyTableWidget(QWidget):
 
     def save_spectra_1_8(self):
         # Run function to make and save bit plot
-        time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, time_resolution, self.harmonics_highlight,
-                                         frequency_limit, self.txt_filepath, self.txt_filename,
+        time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, self.time_resolution, self.harmonics_highlight,
+                                         self.frequency_limit, self.txt_filepath, self.txt_filename,
                                          software_version, 300)
 
     def plot_spectra_1_8(self):
@@ -656,7 +710,7 @@ class MyTableWidget(QWidget):
         pulsar_data_in_time = self.cropped_data_in_time
         # Calculating the spectrum
         frequency_axis, profile_spectrum, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
 
         # Update the plot
         self.figure_1_8.clear()  # clearing old figure
@@ -672,7 +726,7 @@ class MyTableWidget(QWidget):
         # Plot spectrum itself
         ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
                  linewidth='0.60', label='Time series spectrum')
-        ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
         ax1.legend(loc='upper right', fontsize=5)
         ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
         ax1.set_title('Full data length', fontsize=5, fontweight='bold')
@@ -696,7 +750,7 @@ class MyTableWidget(QWidget):
 
                 # Calculating the spectrum
                 frequency_axis, profile_spectrum, spectrum_max = \
-                    calculate_spectrum_of_profile(new_profile_data, time_resolution)
+                    calculate_spectrum_of_profile(new_profile_data, self.time_resolution)
 
                 # Plot N of 16
                 ax = self.figure_1_8.add_subplot(4, 4, fig_num[index])
@@ -708,7 +762,7 @@ class MyTableWidget(QWidget):
                 # Plot spectrum itself
                 ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
                         linewidth='0.60', label='Time series spectrum')
-                ax.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                ax.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
                 ax.legend(loc='upper right', fontsize=5)
                 if v_ind[index] == 3:
                     ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
@@ -947,11 +1001,11 @@ class MyTableWidget(QWidget):
         data_filepath = self.txt_file_path_line.text()
         [directory, self.data_filename] = os.path.split(data_filepath)
         pulsar_data_in_time = read_one_value_txt_file(data_filepath)
-        self.p_data_in_time = pulsar_data_in_time
+        self.initial_data_in_time = pulsar_data_in_time
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
 
         # Update the plot
         self.figure.clear()  # clearing old figure
@@ -963,7 +1017,7 @@ class MyTableWidget(QWidget):
         ax1 = self.figure.add_subplot(212)
         # Adding the plots for parts of data to the big result picture
         ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
         ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
         ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
@@ -973,14 +1027,15 @@ class MyTableWidget(QWidget):
     def subtract_median(self):
 
         # Subtract median and normalize data
-        median = median_filter(self.p_data_in_time, int(self.filter_win_input.value()))
-        pulsar_data_in_time = self.p_data_in_time - median
+        median = median_filter(self.initial_data_in_time, int(self.filter_win_input.value()))
+        pulsar_data_in_time = self.initial_data_in_time - median
         pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-        self.prepared_data_in_time = pulsar_data_in_time
-
+        self.filtered_data_in_time = pulsar_data_in_time
+        self.frequency_limit = float(self.freq_limit_input.value())
+        
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
 
         # Update the plot
         self.figure.clear()  # clearing old figure
@@ -991,24 +1046,63 @@ class MyTableWidget(QWidget):
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
         ax1 = self.figure.add_subplot(212)
         ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
         ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
         ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
         self.canvas.draw()  # refresh canvas
+
+    # action called by the push button Average data
+    def average_time_data(self):
+
+        pulsar_data_in_time = np.array(self.filtered_data_in_time)
+
+        # Read the average value from the input
+        average_const = int(self.aver_const_input.value())
+        self.frequency_limit = float(self.freq_limit_input.value())
+        
+        # Make sure the length of the array is divisible by average constant
+        points_limit = (len(pulsar_data_in_time) // average_const) * average_const
+        pulsar_data_in_time = pulsar_data_in_time[:points_limit]
+
+        # Calculate the average and new time resolution
+        pulsar_data_in_time = np.average(pulsar_data_in_time.reshape(-1, average_const ), axis=1)
+        self.filtered_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
+        self.time_resolution = self.time_resolution * average_const
+
+        # Calculating the spectrum
+        frequency_axis, pulses_spectra, spectrum_max = \
+            calculate_spectrum_of_profile(self.filtered_data_in_time, self.time_resolution)
+
+        # Update the plot
+        self.figure.clear()  # clearing old figure
+        ax0 = self.figure.add_subplot(211)
+        ax0.plot(self.filtered_data_in_time)
+        ax0.set_xlim([0, len(self.filtered_data_in_time)])
+        ax0.set_ylim([-5.0, 5.0])
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        ax1 = self.figure.add_subplot(212)
+        ax1.plot(frequency_axis, pulses_spectra)
+        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        self.figure.subplots_adjust(hspace=0.25, top=0.945)
+        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
+        self.canvas.draw()  # refresh canvas
+
 
     def crop_and_show_spectrum(self):
 
         # Getting current values from spinboxes
         min_limit = self.low_limit_input.value()
         max_limit = self.high_limit_input.value()
+        self.frequency_limit = float(self.freq_limit_input.value())
 
         # Clip data
-        self.cropped_data_in_time = np.clip(self.prepared_data_in_time, min_limit, max_limit)
+        self.cropped_data_in_time = np.clip(self.filtered_data_in_time, min_limit, max_limit)
 
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(self.cropped_data_in_time, time_resolution)
+            calculate_spectrum_of_profile(self.cropped_data_in_time, self.time_resolution)
 
         self.harmonics_highlight = None
 
@@ -1030,7 +1124,7 @@ class MyTableWidget(QWidget):
             for harmonic in self.harmonics_highlight:
                 ax1.axvline(x=harmonic, color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
             ax1.plot(frequency_axis, pulses_spectra)
-            ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+            ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
             ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
             self.figure.subplots_adjust(hspace=0.25, top=0.945)
             ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
@@ -1047,7 +1141,7 @@ class MyTableWidget(QWidget):
         ax1 = self.figure.add_subplot(212)
         # Adding the plots for parts of data to the big result picture
         ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
         ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         self.figure.subplots_adjust(hspace=0.25, top=0.945)
         ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
@@ -1153,7 +1247,7 @@ class MyTableWidget(QWidget):
 
                 # Calculating the spectrum
                 frequency_axis, pulses_spectra, spectrum_max = \
-                    calculate_spectrum_of_profile(pulsar_data_in_time, time_resolution)
+                    calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
                 
                 fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(16.0, 7.0))
                 ax0.plot(pulsar_data_in_time)
@@ -1161,7 +1255,7 @@ class MyTableWidget(QWidget):
                 # ax0.set_ylim([-5.0, 5.0])
                 ax0.set_title('Time series', fontsize=10, fontweight='bold')
                 ax1.plot(frequency_axis, pulses_spectra)
-                ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
                 ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
                 fig.subplots_adjust(hspace=0.25, top=0.945)
                 ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
@@ -1184,7 +1278,7 @@ class MyTableWidget(QWidget):
 
                 # Calculating the spectrum
                 frequency_axis, pulses_spectra, spectrum_max = \
-                    calculate_spectrum_of_profile(cropped_data_in_time, time_resolution)
+                    calculate_spectrum_of_profile(cropped_data_in_time, self.time_resolution)
                 
                 fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(16.0, 7.0))
                 ax0.plot(cropped_data_in_time)
@@ -1192,7 +1286,7 @@ class MyTableWidget(QWidget):
                 # ax0.set_ylim([-5.0, 5.0])
                 ax0.set_title('Time series', fontsize=10, fontweight='bold')
                 ax1.plot(frequency_axis, pulses_spectra)
-                ax1.axis([0, frequency_limit, 0, 1.1 * spectrum_max])
+                ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
                 ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
                 fig.subplots_adjust(hspace=0.25, top=0.945)
                 ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
@@ -1202,13 +1296,13 @@ class MyTableWidget(QWidget):
 
                 harmonics_highlight = None
                 # Run function to make and save bit plot
-                time_profile_spectra_for_gui_16(cropped_data_in_time, time_resolution, harmonics_highlight,
-                                                frequency_limit, new_obs_folder, txt_file_name,
+                time_profile_spectra_for_gui_16(cropped_data_in_time, self.time_resolution, harmonics_highlight,
+                                                self.frequency_limit, new_obs_folder, txt_file_name,
                                                 software_version, 300)
 										
                 # Run function to make and save bit plot
-                time_profile_spectra_for_gui_1_8(cropped_data_in_time, time_resolution, harmonics_highlight,
-                                                 frequency_limit, new_obs_folder, txt_file_name,
+                time_profile_spectra_for_gui_1_8(cropped_data_in_time, self.time_resolution, harmonics_highlight,
+                                                 self.frequency_limit, new_obs_folder, txt_file_name,
                                                  software_version, 300)
                 
                 # Copy the plots to source folder as well
@@ -1259,8 +1353,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)  # creating apyqt5 application
     main = Window()  # creating a window object
     main.show()  # showing the window
-
-    frequency_limit = 10  # Hz
-    time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
 
     sys.exit(app.exec_())  # loop
