@@ -39,9 +39,11 @@ def xlsx_vvz_pulsar_sources_reader(data_path, excel_file_name, excel_sheet_name,
     dataframe['Code&Date'] = pd.Series(dataframe['Code&Date']).ffill()
     dataframe['Beam'] = pd.Series(dataframe['Beam']).ffill()
 
-    # Selecting lines (rows) fronm correct code&date with indicated paths to files
+    # Selecting lines (rows) with correct code&date with indicated paths to files
     # selected_df = dataframe[dataframe['Code&Date'].str.contains('V102')]
     selected_df = dataframe
+
+    # Selecting lines which contain actual paths
     selected_df = selected_df[selected_df['Path 1'].notna()]
 
     # Prepare empty arrays to save items
@@ -71,7 +73,7 @@ def xlsx_vvz_pulsar_sources_reader(data_path, excel_file_name, excel_sheet_name,
             source_dm.append(float(selected_df.iloc[i]['DM_corr']))
             
         else:
-            print(' * File pair ', file_paths[i][0], ' are not fined on the PC, skipped in the list')
+            print(' * File pair ', path_01, ' are not fined on the PC, skipped in the list')
 
     print('\n  Number of file pairs found: ', len(source_dm), '\n')
    
