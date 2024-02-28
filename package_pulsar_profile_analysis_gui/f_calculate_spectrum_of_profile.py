@@ -9,6 +9,7 @@ def calculate_spectrum_of_profile(profile_data, time_resolution):
     # Calculating the spectrum
     profile_spectrum = np.power(np.real(np.fft.fft(profile_data[:])), 2)  # calculation of the spectrum
     profile_spectrum = profile_spectrum[0:int(len(profile_spectrum) / 2)]  # delete second part of the spectrum
+    profile_spectrum[0] = 0
 
     frequency_axis = [frequency_resolution * i for i in range(len(profile_spectrum))]
 
