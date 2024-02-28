@@ -296,7 +296,7 @@ class MyTableWidget(QWidget):
         self.label_high_limit_input.setWordWrap(True)  # making label multi line
         self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.label_aver_const = QLabel("Average points\n x dt", self)
+        self.label_aver_const = QLabel("Average window", self)
         self.label_aver_const.setFixedSize(QSize(90, 30))
         self.label_aver_const.setWordWrap(True)  # making label multi line
         self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
@@ -312,7 +312,7 @@ class MyTableWidget(QWidget):
         self.aver_const_input = QDoubleSpinBox()
         self.aver_const_input.setFixedSize(QSize(60, 30))
         self.aver_const_input.setMinimum(1)
-        self.aver_const_input.setMaximum(10)
+        self.aver_const_input.setMaximum(300)
         self.aver_const_input.setValue(1)
 
         step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
@@ -347,7 +347,7 @@ class MyTableWidget(QWidget):
         self.button_filter.setFixedSize(QSize(110, 30))
 
         # Button "Average data"
-        self.button_average = QPushButton('Average data')
+        self.button_average = QPushButton('Moving average')
         self.button_average.clicked.connect(self.average_time_data)  # adding action to the button
         self.button_average.setFixedSize(QSize(110, 30))
 
@@ -1062,14 +1062,16 @@ class MyTableWidget(QWidget):
         self.frequency_limit = float(self.freq_limit_input.value())
         
         # Make sure the length of the array is divisible by average constant
-        points_limit = (len(pulsar_data_in_time) // average_const) * average_const
-        pulsar_data_in_time = pulsar_data_in_time[:points_limit]
-
+        # points_limit = (len(pulsar_data_in_time) // average_const) * average_const
+        # pulsar_data_in_time = pulsar_data_in_time[:points_limit]
+        print(len(pulsar_data_in_time))
         # Calculate the average and new time resolution
-        pulsar_data_in_time = np.average(pulsar_data_in_time.reshape(-1, average_const ), axis=1)
+        # pulsar_data_in_time = np.average(pulsar_data_in_time.reshape(-1, average_const ), axis=1)
+        pulsar_data_in_time = np.convolve(pulsar_data_in_time, np.ones(average_const), 'valid') / average_const
         self.filtered_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-        self.time_resolution = self.time_resolution * average_const
-
+        # self.time_resolution = self.time_resolution * average_const
+        print(len(pulsar_data_in_time))
+        
         # Calculating the spectrum
         frequency_axis, pulses_spectra, spectrum_max = \
             calculate_spectrum_of_profile(self.filtered_data_in_time, self.time_resolution)
