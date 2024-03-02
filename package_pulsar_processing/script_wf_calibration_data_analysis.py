@@ -27,7 +27,6 @@ import pylab
 from scipy import ndimage
 import numpy as np
 from os import path
-from progress.bar import IncrementalBar
 from matplotlib import rc
 import matplotlib.pyplot as plt
 
@@ -37,37 +36,12 @@ if __package__ is None:
 
 # My functions
 from package_common_modules.find_and_check_files_in_current_folder import find_and_check_files_in_current_folder
+from package_ra_data_processing.phase_linearization import phase_linearization_rad
+from package_ra_data_processing.filtering import median_filter
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
-from package_ra_data_files_formats.JDS_waveform_time import jds_waveform_time
+from package_ra_data_files_formats.f_convert_one_jds_wf_to_wf32 import convert_one_jds_wf_to_wf32
 
 # ###############################################################################
-
-
-def phase_linearization_rad(matrix):
-    """
-    Makes a vector of phase values linear without 360 deg subtraction
-    """
-    matrix_lin = np.zeros((len(matrix)))
-    matrix_lin[:] = matrix[:]
-    const = 0
-    for elem in range(1, len(matrix)):
-        if (matrix[elem] - matrix[elem-1]) > 4:
-            const = const + 2 * np.pi
-        matrix_lin[elem] = matrix_lin[elem] - const
-    const = 0
-    for elem in range(1, len(matrix)):
-        if (matrix[elem-1] - matrix[elem]) > 4:
-            const = const + 2*np.pi
-        matrix_lin[elem] = matrix_lin[elem] + const
-    return matrix_lin
-
-
-def median_filter(data, window_len):
-    """
-    A simple median filter to smooth the data
-    """
-    fitered_data = ndimage.median_filter(data, size=window_len)
-    return fitered_data
 
 
 def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, filter_or_not, plot_or_not):
@@ -107,6 +81,9 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
 
     data_1 = np.fromfile(file_1, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
     data_2 = np.fromfile(file_2, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
+
+    file_1.close()
+    file_2.close()
 
     data_1 = np.reshape(data_1, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
     data_2 = np.reshape(data_2, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
@@ -212,8 +189,10 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
         plt.close('all')
 
     corr_function = np.fft.ifft(cross_spectrum)
+    del cross_spectrum
     print('  Corr function size                         ', corr_function.shape)
     corr_function_av = np.mean(corr_function, axis=1)
+    del corr_function
     print('  Averaged corr function size                ', corr_function_av.shape)
     corr_function_av[0] = 0
     corr_function_av_abs = np.abs(corr_function_av)
@@ -246,142 +225,6 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
     return cross_spectrum_abs, cross_spectrum_arg, spectrum_av_1, spectrum_av_2, first_spectrum_1, first_spectrum_2, \
             corr_function_av_abs, corr_function_av_arg, corr_function_av_re
 
-
-def convert_one_jds_wf_to_wf32(source_file, result_directory, no_of_bunches_per_file):
-    """
-    function converts jds waveform data to wf32 waveform data for further processing (coherent dedispersion) and
-    saves txt files with time data
-    Input parameters:
-        source_directory - directory where initial jds waveform data are stored
-        result_directory - directory where new wf32 files will be stored
-        no_of_bunches_per_file - number of data bunches per file to peocess (depends on RAM volume on the PC)
-    Output parameters:
-        result_wf32_files - list of results files
-    """
-
-    # *** Data file header read ***
-    [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
-     clock_freq, df_creation_timeUTC, channel, receiver_mode, Mode, Navr, time_res, fmin, fmax,
-     df, frequency, freq_points_num, data_block_size] = file_header_jds_read(source_file, 0, 0)
-    if Mode > 0:
-        sys.exit('  ERROR!!! Data recorded in wrong mode! Waveform mode needed.\n\n    Program stopped!')
-
-    result_wf32_files = []
-
-    fname = source_file
-
-    # Create long data files and copy first data file header to them
-    with open(fname, 'rb') as file:
-        # *** Data file header read ***
-        file_header = file.read(1024)
-
-    # *** Creating a name for long timeline TXT file ***
-    tl_file_name = os.path.join(result_directory, df_filename + '_Timeline.wtxt')
-    tl_file = open(tl_file_name, 'w')  # Open and close to delete the file with the same name
-    tl_file.close()
-
-    # *** Creating a binary file with data for long data storage ***
-    file_data_A_name = os.path.join(result_directory, df_filename + '_Data_chA.wf32')
-    result_wf32_files.append(file_data_A_name)
-    file_data_A = open(file_data_A_name, 'wb')
-    file_data_A.write(file_header)
-    file_data_A.close()
-
-    if channel == 2:
-        file_data_B_name = os.path.join(result_directory, df_filename + '_Data_chB.wf32')
-        result_wf32_files.append(file_data_B_name)
-        file_data_B = open(file_data_B_name, 'wb')
-        file_data_B.write(file_header)
-        file_data_B.close()
-
-    del file_header
-
-    # Calculation of number of blocks and number of spectra in the file
-    if channel == 0 or channel == 1:  # Single channel mode
-        no_of_spectra_in_bunch = int((df_filesize - 1024) / (no_of_bunches_per_file * 2 * data_block_size))
-    else:  # Two channels mode
-        no_of_spectra_in_bunch = int((df_filesize - 1024) / (no_of_bunches_per_file * 4 * data_block_size))
-
-    no_of_blocks_in_file = (df_filesize - 1024) / data_block_size
-
-    print('  Number of blocks in file:                  ', no_of_blocks_in_file)
-    print('  Number of bunches to read in file:         ', no_of_bunches_per_file, '\n')
-
-    # *******************************************************************************
-    #                           R E A D I N G   D A T A                             *
-    # *******************************************************************************
-
-    with open(fname, 'rb') as file:
-        file.seek(1024)  # Jumping to 1024 byte from file beginning
-
-        # !!! Fake timing. Real timing to be done!!!
-        TimeFigureScaleFig = np.linspace(0, no_of_bunches_per_file, no_of_bunches_per_file + 1)
-        for i in range(no_of_bunches_per_file):
-            TimeFigureScaleFig[i] = str(TimeFigureScaleFig[i])
-
-        time_scale_bunch = []
-
-        bar = IncrementalBar('  File reading: ', max=no_of_bunches_per_file, suffix='%(percent)d%%')
-
-        for bunch in range(no_of_bunches_per_file):
-
-            bar.next()
-
-            # Reading and reshaping all data with time data
-            if channel == 0 or channel == 1:  # Single channel mode
-                wf_data = np.fromfile(file, dtype='i2', count=no_of_spectra_in_bunch * data_block_size)
-                wf_data = np.reshape(wf_data, [data_block_size, no_of_spectra_in_bunch], order='F')
-            if channel == 2:  # Two channels mode
-                wf_data = np.fromfile(file, dtype='i2', count=2 * no_of_spectra_in_bunch * data_block_size)
-                wf_data = np.reshape(wf_data, [data_block_size, 2 * no_of_spectra_in_bunch], order='F')
-
-            # Timing
-            timeline_block_str, phase_of_second = jds_waveform_time(wf_data, clock_freq, data_block_size)
-            if channel == 2:  # Two channels mode
-                timeline_block_str = timeline_block_str[
-                                     0:int(len(timeline_block_str) / 2)]  # Cut the timeline of second channel
-            for i in range(len(timeline_block_str)):
-                time_scale_bunch.append(df_creation_timeUTC[0:10] + ' ' + timeline_block_str[i])  # [0:12]
-
-            # Deleting the time blocks from waveform data
-            real_data_block_size = data_block_size - 4
-            wf_data = wf_data[0: real_data_block_size, :]
-
-            # Separation data into channels
-            if channel == 0 or channel == 1:  # Single channel mode
-                wf_data_chA = np.reshape(wf_data, [real_data_block_size * no_of_spectra_in_bunch, 1], order='F')
-                del wf_data  # Deleting unnecessary array name just in case
-
-            if channel == 2:  # Two channels mode
-
-                # Separating the data into two channels
-                wf_data = np.reshape(wf_data, [2 * real_data_block_size * no_of_spectra_in_bunch, 1], order='F')
-                wf_data_chA = wf_data[0: (2 * real_data_block_size * no_of_spectra_in_bunch): 2]  # A
-                wf_data_chB = wf_data[1: (2 * real_data_block_size * no_of_spectra_in_bunch): 2]  # B
-                del wf_data
-
-            # Saving WF data to dat file
-            file_data_A = open(file_data_A_name, 'ab')
-            file_data_A.write(np.float32(wf_data_chA).transpose().copy(order='C'))
-            file_data_A.close()
-            if channel == 2:
-                file_data_B = open(file_data_B_name, 'ab')
-                file_data_B.write(np.float32(wf_data_chB).transpose().copy(order='C'))
-                file_data_B.close()
-
-            # Saving time data to ling timeline file
-            with open(tl_file_name, 'a') as tl_file:
-                for i in range(no_of_spectra_in_bunch):
-                    tl_file.write((str(time_scale_bunch[i][:])) + ' \n')  # str
-
-        bar.finish()
-
-        file.close()  # Close the data file
-        del file_data_A
-        if channel == 2:
-            del file_data_B
-
-    return result_wf32_files
 
 
 def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, result_directory, no_of_points_for_fft):
@@ -430,11 +273,13 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
 
         print('\n* Processing file: ', df_description.replace('_', ' '), ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
+        # Convert JDS file into A & B cannel WF32 files
         wf32_files = convert_one_jds_wf_to_wf32(fname, result_path, 16)
 
-
+        # Calculate correlations
         ampl_corr, angle_corr, av_sp_1, av_sp_2, sp_1, sp_2, cf_abs, cf_arg, cf_re = correlate_two_wf32_signals(wf32_files[0],
                                     wf32_files[1], no_of_points_for_fft, True, False)
+
 
         cross_sp_ampl.append(ampl_corr)
         cross_sp_angl.append(angle_corr)
