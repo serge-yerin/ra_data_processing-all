@@ -72,19 +72,21 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
         num_of_spectra_in_files = 16384
         print('  Number of spectra in files is limited to:  ', num_of_spectra_in_files)
 
+    # Opening WF files to read
     file_1 = open(file_name_1, 'rb')
     file_2 = open(file_name_2, 'rb')
     file_1.seek(1024)
     file_2.seek(1024)
 
     # Data reading
-
     data_1 = np.fromfile(file_1, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
     data_2 = np.fromfile(file_2, dtype=np.float32, count=num_of_spectra_in_files * no_of_points_for_fft)
 
+    # Closing files
     file_1.close()
     file_2.close()
 
+    # Reshaping data for spectra calculation
     data_1 = np.reshape(data_1, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
     data_2 = np.reshape(data_2, [no_of_points_for_fft, num_of_spectra_in_files], order='F')
 
@@ -109,8 +111,8 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
     # Calculation of averaged signal spectra
     spectrum_av_1 = np.mean(spectrum_1, axis=1)
     spectrum_av_2 = np.mean(spectrum_2, axis=1)
-    first_spectrum_1 = spectrum_1[:, 0]
-    first_spectrum_2 = spectrum_2[:, 0]
+    first_spectrum_1 = spectrum_1[:, 0].copy()
+    first_spectrum_2 = spectrum_2[:, 0].copy()
     del spectrum_1, spectrum_2
 
     if plot_or_not:
@@ -290,6 +292,7 @@ def obtain_calibr_matrix_for_2_channel_wf_calibration(path_to_calibr_data, resul
         corr_f_abs.append(cf_abs)
         corr_f_ang.append(cf_arg)
         corr_f_re.append(cf_re)
+        del ampl_corr, angle_corr, av_sp_1, av_sp_2, cf_abs, cf_arg, cf_re
 
     # Figures of initial and averaged spectra for each file
     for i in range(len(file_list)):
