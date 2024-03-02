@@ -1204,7 +1204,7 @@ class MyTableWidget(QWidget):
 
             try:            
                 [jds_pair_directory, jds_file_1] = os.path.split(file_paths[pair][0])
-                [jds_pair_directory, jds_file_2] = os.path.split(file_paths[pair][0])
+                [jds_pair_directory, jds_file_2] = os.path.split(file_paths[pair][1])
 
                 profile_txt_file_path = make_transient_profile_from_jds(jds_pair_directory,
                                                                         [jds_file_1, jds_file_2],
