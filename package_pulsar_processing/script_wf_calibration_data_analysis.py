@@ -68,9 +68,9 @@ def correlate_two_wf32_signals(file_name_1, file_name_2, no_of_points_for_fft, f
     print('\n  Correlation calculation... \n')
     print('  Number of time samples in files:           ', ny)
     print('  Number of spectra in files:                ', num_of_spectra_in_files)
-    if num_of_spectra_in_files > 16384:
-        num_of_spectra_in_files = 16384
-        print('  Number of spectra in files is limited to:  ', num_of_spectra_in_files)
+    # if num_of_spectra_in_files > 16384:
+    #     num_of_spectra_in_files = 16384
+    #     print('  Number of spectra in files is limited to:  ', num_of_spectra_in_files)
 
     # Opening WF files to read
     file_1 = open(file_name_1, 'rb')
