@@ -9,9 +9,11 @@ software_name = 'Pulsar single pulses processing pipeline'
 common_path = ''
 
 # DAT file to be analyzed:
-filename = 'E300117_180000.jds_Data_chA.dat'  # 'E220213_201439.jds_Data_chA.dat'
+filename = 'E220213_201439.jds_Data_chA.dat'
 
 pulsar_name = 'B0809+74'  # 'B1919+21' #'B0809+74' #'B1133+16' #  'B1604-00' 'B0950+08'
+# pulsar_name = 'Transient'
+source_dm = 1.59
 
 average_const = 512             # Number of frequency channels to appear in result picture
 profile_pic_min = -0.15         # Minimum limit of profile picture
@@ -231,8 +233,9 @@ def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_c
                                                time_res, pulsar_dm, receiver_type)
         if print_or_not:
             print(' Number of frequency channels:  ', len(frequency_list) - 4)
-        ifmin = int(fmin * 1e6 / df)
-        ifmax = int(fmax * 1e6 / df) - 4
+        
+        ifmin = int(np.round(fmin * 1e6 / df))
+        ifmax = int(np.round(fmax * 1e6 / df)) - 4
 
     if save_compensated_data > 0:
         with open(data_filepath, 'rb') as file:
@@ -465,7 +468,9 @@ if __name__ == '__main__':
     data_file_name = pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_const,
                                         profile_pic_min, profile_pic_max,
                                         spec_freq_range, freq_start, freq_stop, save_profile_txt,
-                                        save_compensated_data, custom_dpi, colormap, use_mask_file=True)
+                                        save_compensated_data, custom_dpi, colormap, use_mask_file=False, 
+                                        save_pics=False, source_dm=source_dm, result_path='', 
+                                        make_fourier=False, print_or_not=True)
 
     print('  Dedispersed data stored in:', data_file_name)
 
