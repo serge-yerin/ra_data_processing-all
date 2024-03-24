@@ -7,7 +7,8 @@ software_name = 'DAT multifile data reader for CasA study'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Path to data files
-path_to_data = '../DATA/'
+# path_to_data = '../DATA/'
+path_to_data = '../'
 
 # Types of data to get
 types_of_data = ['CRe', 'CIm']
@@ -21,7 +22,7 @@ freq_list_GURT = [12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22
                   60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0, 68.0, 69.0, 70.0, 71.0, 72.0, 73.0, 74.0, 75.0]
 
 aver_or_min = 0                  # Use average value (0) per data block or minimum value (1)
-auto_start_stop = 1              # 1 - calculate depending on source in comment, 0 - use manual values
+auto_start_stop = 2              # 1 - calculate depending on source in comment, 0 - use manual values
 auto_source_switch = 1           # 1 - find sources in comment, 0 - use manually set source
 VminMan = -120                   # Manual lower limit of immediate spectrum figure color range
 VmaxMan = -10                    # Manual upper limit of immediate spectrum figure color range
@@ -212,52 +213,61 @@ def cut_culmination_times_from_dat(path_to_data, types_of_data, freq_list_UTR2, 
                                         int(date_time_stop[8:10]), int(date_time_stop[11:13]), 
                                         int(date_time_stop[14:16]), int(date_time_stop[17:19]), 0)
 
+            if auto_start_stop == 2:
+                start_obs_time = datetime(int(timeline[10][0:4]), int(timeline[10][5:7]),
+                                          int(timeline[10][8:10]), int(timeline[10][11:13]),
+                                          int(timeline[10][14:16]), int(timeline[10][17:19]), 0)
+                end_obs_time = datetime(int(timeline[-10][0:4]), int(timeline[-10][5:7]),
+                                        int(timeline[-10][8:10]), int(timeline[-10][11:13]),
+                                        int(timeline[-10][14:16]), int(timeline[-10][17:19]), 0)
+
             # *** Showing the time limits of file and time limits of chosen part
             print('\n                                Start                         End \n')
             print('   File time limits:   ', dt_timeline[0], ' ', dt_timeline[len(timeline)-1], '\n')
             print('   Chosen time limits: ', start_obs_time, '    ', end_obs_time, '\n')
 
             # Verifying that chosen time limits are inside file and are correct
-            if (dt_timeline[len(timeline)-1] >= start_obs_time > dt_timeline[0]) and \
-                    (dt_timeline[len(timeline)-1] > end_obs_time >= dt_timeline[0]) and (end_obs_time > start_obs_time):
-                print('   Time is chosen correctly! \n\n')
-            elif(dt_timeline[len(timeline)-1] >= start_obs_time + TimeDelta(86400, format='sec') > dt_timeline[0]) and \
-                    (dt_timeline[len(timeline)-1] > end_obs_time + TimeDelta(86400, format='sec') >= dt_timeline[0]) and \
-                    (end_obs_time > start_obs_time):
-                start_obs_time = start_obs_time + TimeDelta(86400, format='sec')
-                end_obs_time = end_obs_time + TimeDelta(86400, format='sec')
-                culm_time = culm_time + TimeDelta(86400, format='sec')
-                print('   Time is chosen correctly but adjusted for 1 day ahead! \n')
-            else:
-                print('   ERROR! Culmination time is calculated chosen out of file limits!!! \n\n')
-                sys.exit('           Program stopped! \n\n')
+            # if (dt_timeline[len(timeline)-1] >= start_obs_time > dt_timeline[0]) and \
+            #         (dt_timeline[len(timeline)-1] > end_obs_time >= dt_timeline[0]) and (end_obs_time > start_obs_time):
+            #     print('   Time is chosen correctly! \n\n')
+            #
+            # elif(dt_timeline[len(timeline)-1] >= start_obs_time + TimeDelta(86400, format='sec') > dt_timeline[0]) and \
+            #         (dt_timeline[len(timeline)-1] > end_obs_time + TimeDelta(86400, format='sec') >= dt_timeline[0]) and \
+            #         (end_obs_time > start_obs_time):
+            #     start_obs_time = start_obs_time + TimeDelta(86400, format='sec')
+            #     end_obs_time = end_obs_time + TimeDelta(86400, format='sec')
+            #     culm_time = culm_time + TimeDelta(86400, format='sec')
+            #     print('   Time is chosen correctly but adjusted for 1 day ahead! \n')
+            # else:
+            #     print('   ERROR! Culmination time is calculated chosen out of file limits!!! \n\n')
+            #     sys.exit('           Program stopped! \n\n')
 
             # DAT_result_path = 'DAT_Results_' + data_files_name_list[file_no]
             if auto_start_stop == 1:
                 date_time_start = str(start_obs_time)[0:19]
                 date_time_stop = str(end_obs_time)[0:19]
-   
+
             done_or_not = DAT_file_reader(path_to_data, data_files_name_list[file_no], [type_of_data],
                                           path_to_data, data_files_name_list[file_no] + '_' + source,   
-                                          aver_or_min, 1, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan, 
+                                          aver_or_min, 0, 0, VminMan, VmaxMan, VminNormMan, VmaxNormMan,
                                           rfi_mean_const, 300, 'jet', 1, 1, list_or_all_freq,
                                           ampl_re_im, 0.0, 30.0, date_time_start, date_time_stop, 
                                           freq_start_txt, freq_stop_txt, freq_list, 0)
 
-            # Saving TXT file with parameters from file header
-            path = path_to_data + 'DAT_Results_' + data_files_name_list[file_no]+'_' + source + '/'
-            txt_file = open(path + data_files_name_list[file_no] + '_'+source + '_header.info', "w")
-            txt_file.write(' Observatory:           ' + df_obs_place + '\n')
-            txt_file.write(' Receiver:              ' + df_system_name + '\n')
-            txt_file.write(' Initial filename:      ' + df_filename + '\n')
-            txt_file.write(' Description:           ' + df_description + '\n')
-            txt_file.write(' Source for processing: ' + source + '\n')
-            txt_file.write(' Culmination time:      ' + str(culm_time) + '\n')
-            txt_file.write(' Receiver mode:         ' + receiver_mode + '\n')
-            txt_file.write(' Time resolution:       ' + str(np.round(time_res, 6)) + ' s \n')
-            txt_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax) + ' MHz \n')
-            txt_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
-            txt_file.close()
+            # # Saving TXT file with parameters from file header
+            # path = path_to_data + 'DAT_Results_' + data_files_name_list[file_no]+'_' + source + '/'
+            # txt_file = open(path + data_files_name_list[file_no] + '_'+source + '_header.info', "w")
+            # txt_file.write(' Observatory:           ' + df_obs_place + '\n')
+            # txt_file.write(' Receiver:              ' + df_system_name + '\n')
+            # txt_file.write(' Initial filename:      ' + df_filename + '\n')
+            # txt_file.write(' Description:           ' + df_description + '\n')
+            # txt_file.write(' Source for processing: ' + source + '\n')
+            # txt_file.write(' Culmination time:      ' + str(culm_time) + '\n')
+            # txt_file.write(' Receiver mode:         ' + receiver_mode + '\n')
+            # txt_file.write(' Time resolution:       ' + str(np.round(time_res, 6)) + ' s \n')
+            # txt_file.write(' Frequency range:       ' + str(fmin) + ' - ' + str(fmax) + ' MHz \n')
+            # txt_file.write(' Frequency resolution:  ' + str(np.round(df, )) + ' Hz \n')
+            # txt_file.close()
 
     return
 

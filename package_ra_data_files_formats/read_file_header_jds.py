@@ -156,7 +156,7 @@ def file_header_jds_read(filepath, start_byte, print_or_not):
         elif mode == 1:
             print('\n mode:                           Spectra A & B')
         elif mode == 2:
-            print('\n mode:                           Correlation A & B')
+            print('\n mode:                           Cross-spectra A & B')
         else:
             sys.exit(' DSPZ mode is wrong!')
 
@@ -258,7 +258,7 @@ def file_header_jds_read(filepath, start_byte, print_or_not):
         receiver_mode = 'Spectra mode'
     elif mode == 2:
         sp_in_file = int(df_filesize - 1024) / (4 * 4 * freq_points_num)  # Number of frequency points in specter
-        receiver_mode = 'Correlation mode'
+        receiver_mode = 'Cross-spectra mode'
     else:
         sys.exit(' DSPZ mode is wrong')
 
@@ -408,7 +408,7 @@ def file_header_jds_read_old(filepath, start_byte, print_or_not):
         if mode == 1:
             print(' mode:                           Spectra A & B')
         if mode == 2:
-            print(' mode:                           Correlation A & B')
+            print(' mode:                           Cross-spectra A & B')
 
         print(' Sampling ADC frequency:        ', clock_freq / 10**6, ' MHz')
         if ExtSyn == 0:
@@ -499,7 +499,7 @@ def file_header_jds_read_old(filepath, start_byte, print_or_not):
         receiver_mode = 'Spectra mode'
     if mode == 2:
         sp_in_file = int(df_filesize - 1024) / (4 * 4 * freq_points_num)  # Number of frequency points in specter
-        receiver_mode = 'Correlation mode'
+        receiver_mode = 'Cross-spectra mode'
     if mode == 1 or mode == 2:
         if print_or_not == 1:
             print(' Number of JDS spectra in file: ', sp_in_file, '\n\n')

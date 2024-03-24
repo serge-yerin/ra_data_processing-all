@@ -153,8 +153,8 @@ def file_header_adr_read(filepath, start_byte, print_or_not):
         adr_mode_txt = 'Spectra mode'
     elif adr_mode == 6:
         if print_or_not:
-            print('\n Mode:                           A and B spectra correlation mode')
-        adr_mode_txt = 'Correlation mode'
+            print('\n Mode:                           A and B cross-spectra mode')
+        adr_mode_txt = 'Cross-spectra mode'
     else:
         print('\n Mode:                           Error detecting mode!!!')
         sys.exit('         Program stopped')
@@ -298,8 +298,8 @@ def file_header_adr_read_old(filepath, start_byte, print_or_not):
         if (print_or_not == 1): print (' Mode:                           Power spectra of A and B channels')
         ReceiverMode = 'Spectra mode'
     elif ADRmode == 6:
-        if (print_or_not == 1): print (' Mode:                           A and B spectra correlation mode')
-        ReceiverMode = 'Correlation mode'
+        if (print_or_not == 1): print (' Mode:                           A and B cross-spectra mode')
+        ReceiverMode = 'Cross-spectra mode'
     else:
         print (' Mode:                           Error detecting mode!!!')
         sys.exit('         Program stopped')
