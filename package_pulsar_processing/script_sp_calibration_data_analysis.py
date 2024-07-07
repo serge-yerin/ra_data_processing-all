@@ -5,30 +5,11 @@ software_name = 'JDS cross-spectra phase calibration data analysis'
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory with JDS files to be analyzed
-source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_calibration/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_calibration_URAN2/'
 # Directory where DAT and result txt files to be stored (empty string means project directory)
 result_directory = source_directory  # ''
 
 do_filtering = True
-
-MaxNsp = 2048                 # Number of spectra to read for one figure
-Vmin = -100                   # Lower limit of figure dynamic range
-Vmax = -40                    # Upper limit of figure dynamic range
-VminNorm = 0                  # Lower limit of figure dynamic range for normalized spectra
-VmaxNorm = 20                 # Upper limit of figure dynamic range for normalized spectra
-VminCorrMag = -150            # Lower limit of figure dynamic range for correlation magnitude spectra
-VmaxCorrMag = -30             # Upper limit of figure dynamic range for correlation magnitude spectra
-colormap = 'jet'              # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
-custom_dpi = 300              # Resolution of images of dynamic spectra
-CorrelationProcess = 1        # Process correlation data or save time?  (1 = process, 0 = save)
-longFileSaveAch = 0           # Save data A to long file? (1 = yes, 0 = no)
-longFileSaveBch = 0           # Save data B to long file? (1 = yes, 0 = no)
-longFileSaveCRI = 1           # Save correlation data (Real and Imaginary) to long file? (1 = yes, 0 = no)
-longFileSaveCMP = 0           # Save correlation data (Module and Phase) to long file? (1 = yes, 0 = no)
-SpecterFileSaveSwitch = 0     # Save 1 immediate specter to TXT file? (1 = yes, 0 = no)
-ImmediateSpNo = 0             # Number of immediate specter to save to TXT file
-where_save_pics = 1           # Where to save result pictures? (0 - to script folder, 1 - to data folder)
-
 
 # ###############################################################################
 # *******************************************************************************
@@ -65,9 +46,12 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
     The function reads 2-channel cross-spectra calibration files (UTR-2/URAN noise generator calibration with a set of
     attenuators) and provides a phase difference txt file for cross-spectra observations calibration
     """
-
+    
     # Prepare a folder for results
-    result_path = result_directory + 'RESULTS_cross-sp_calibr_' + path_to_calibr_data.split('/')[-2] + '/'
+    path_to_calibr_data = os.path.normpath(path_to_calibr_data)
+    result_directory = os.path.normpath(result_directory)
+
+    result_path = os.path.join(result_directory, 'RESULTS_cross-sp_calibr_' + path_to_calibr_data.split(os.sep)[-2] + '/')
     if not os.path.exists(result_path):
         os.makedirs(result_path)
 
@@ -83,7 +67,7 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
     # Main loop by files start
     for file_no in range(len(file_list)):  # loop by files
 
-        fname = path_to_calibr_data + file_list[file_no]
+        fname = os.path.join(path_to_calibr_data, file_list[file_no])
 
         # *** Data file header read ***
         [df_filename, df_filesize, df_system_name, df_obs_place, df_description,
@@ -93,18 +77,20 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
         labels.append(df_system_name + ' ' + df_description.replace('_', ' '))
         init_file_names.append(df_filename)
 
-        print('\n  Processing file: ', df_description.replace('_', ' '),
+        print('\n\n  Processing file: ', df_description.replace('_', ' '),
               ',  # ', file_no+1, ' of ', len(file_list), '\n')
 
         # Run JDS reader for the current folder
-        done, dat_file_name, dat_file_types = jds_file_reader([path_to_calibr_data + file_list[file_no]],
-                                                              result_path, MaxNsp, 0,
-                                                              20, Vmin, Vmax, VminNorm, VmaxNorm,
-                                                              VminCorrMag, VmaxCorrMag, colormap, custom_dpi,
-                                                              CorrelationProcess, longFileSaveAch, longFileSaveBch,
-                                                              longFileSaveCRI, longFileSaveCMP, 0,
-                                                              0, 0, 0, 0, 0, dat_files_path=result_path,
-                                                              print_or_not=0)
+        done, dat_file_name, dat_file_types = jds_file_reader([os.path.join(path_to_calibr_data, file_list[file_no])],
+                                                              result_path, 2048, 0,
+                                                              20, -100, -40, 0, 20,
+                                                              -150, -30, 'jet', 300,
+                                                              1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 
+                                                              dat_files_path=result_path,
+                                                              print_verbose=False)
+
+
+    print('\n Processing pairs: \n')
 
     def read_dat_file_for_calibration(file_name, num_of_spectra, freq_points_num):
         file = open(file_name, 'rb')
@@ -118,13 +104,13 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
     # Processing pairs of files to find the phase difference
     for pair in range(len(file_list)):
 
-        re_file_name = result_path + init_file_names[pair] + '_Data_CRe.dat'
+        re_file_name = os.path.join(result_path, init_file_names[pair] + '_Data_CRe.dat')
         file_size = os.stat(re_file_name).st_size
         num_of_spectra = int((file_size - 1024) / (8 * freq_points_num))
         re_data = read_dat_file_for_calibration(re_file_name, num_of_spectra, freq_points_num)
         print(re_file_name)
 
-        im_file_name = result_path + init_file_names[pair] + '_Data_CIm.dat'
+        im_file_name = os.path.join(result_path, init_file_names[pair] + '_Data_CIm.dat')
         im_data = read_dat_file_for_calibration(im_file_name, num_of_spectra, freq_points_num)
 
         cross_sp_phase = np.arctan2(im_data, re_data)
@@ -162,7 +148,7 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
         ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
         ax2.legend(loc='upper right', fontsize=10)
         fig.subplots_adjust(hspace=0.07, top=0.94)
-        pylab.savefig(result_path + 'Signal_cross-spectra_' + init_file_names[i] + '.png', bbox_inches='tight', dpi=160)
+        pylab.savefig(os.path.join(result_path, 'Signal_cross-spectra_' + init_file_names[i] + '.png'), bbox_inches='tight', dpi=160)
         plt.close('all')
 
     # Plot cross spectra matrix
@@ -186,12 +172,12 @@ def obtain_calibr_matrix_for_2_channel_sp_calibration(path_to_calibr_data, resul
     ax2.set_ylabel('Phase, rad', fontsize=10, fontweight='bold')
     ax2.legend(loc='upper right', fontsize=10)
     fig.subplots_adjust(hspace=0.07, top=0.94)
-    pylab.savefig(result_path + 'Cross_spectra_calibration_matrix.png', bbox_inches='tight', dpi=160)
+    pylab.savefig(os.path.join(result_path, 'Cross_spectra_calibration_matrix.png'), bbox_inches='tight', dpi=160)
     plt.close('all')
 
     # Save phase matrix to txt files
     for i in range(len(file_list)):
-        phase_txt_file = open(result_path + 'Calibration_' + init_file_names[i] + '_cross_spectra_phase.txt', "w")
+        phase_txt_file = open(os.path.join(result_path, 'Calibration_' + init_file_names[i] + '_cross_spectra_phase.txt'), "w")
         for freq in range(freq_points_num-4):
             phase_txt_file.write(''.join(' {:+12.7E}'.format(cross_sp_angl[i][freq])) + ' \n')
         phase_txt_file.close()
