@@ -14,8 +14,8 @@ matrix. The matrix is plotted as a dynamic spectrum.
 # *******************************************************************************
 # Directory of files to be analyzed:
 # source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
-source_directory = 'e:/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
-result_directory = 'e:/RA_DATA_RESULTS/'
+source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+result_directory = 'e:/python/RA_DATA_RESULTS/'
 
 # central_dm = 2.972
 central_dm = 5.755
@@ -153,7 +153,7 @@ done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_curre
                                                             long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
                                                             DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                             CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
-                                                            print_or_not=0)
+                                                            print_verbose=0)
 
 # dat_file_list = ['chA']
 # dat_file_name = 'P130422_121607.jds'
