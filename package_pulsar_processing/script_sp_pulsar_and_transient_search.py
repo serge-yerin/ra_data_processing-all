@@ -1,6 +1,6 @@
 
 # Python3
-software_version = '2022.09.30'
+software_version = '2024.07.20'
 software_name = 'Transient Search Script'
 """
 The main goal to the script is to analyze of (cross)spectra of transient or pulsar data to find anomalously intense 
@@ -22,7 +22,7 @@ central_dm = 5.755
 # dm_range = 0.2
 dm_range = 0.5
 # dm_points = 51  # 41
-dm_points = 101  # 41
+dm_points = 11  # 41  101
 
 time_res = 0.007944     # Time resolution, s
 fig_time = 30           # Time on one figure, s
@@ -268,8 +268,8 @@ data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_n
                                                    central_dm, dm_range, dm_points)
 
 # Separate file name and path
-data_path, data_file_name = os.split(data_file_name)
-data_path, tl_file_name = os.split(tl_file_name)
+data_path, data_file_name = os.path.split(data_file_name)
+data_path, tl_file_name = os.path.split(tl_file_name)
 
 # Read and plot the file of various DM tine profiles
 read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
