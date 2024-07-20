@@ -268,12 +268,10 @@ data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_n
                                                    central_dm, dm_range, dm_points)
 
 # Separate file name and path
-# data_path, data_file_name = separate_filename_and_path(data_file_name)
 data_path, data_file_name = os.split(data_file_name)
-# data_path, tl_file_name = separate_filename_and_path(tl_file_name)
 data_path, tl_file_name = os.split(tl_file_name)
 
-
+# Read and plot the file of various DM tine profiles
 read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
                           time_res, fig_time, print_or_not=True)
 
