@@ -23,7 +23,7 @@ dm_points = 101  # 41
 
 time_res = 0.007944     # Time resolution, s
 fig_time = 30           # Time on one figure, s
-frequency_limit = 10
+high_frequency_limit = 5  # Hz
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
@@ -82,15 +82,21 @@ vdm_data, dm_vector = read_and_plot_var_dm_file(source_directory, vardmd_file_na
 
 print(vdm_data.shape)
 
-median = scipy.ndimage.median_filter(vdm_data, 100, axes=1)
+med_filter_length = 100
 
+median = scipy.ndimage.median_filter(vdm_data, med_filter_length, axes=1)
 vdm_data = vdm_data - median
+
+
 
 profile_spectrum = np.power(np.real(np.fft.fft(vdm_data[:])), 2)  # calculation of the spectrum
 profile_spectrum = profile_spectrum[:, 0 : int(profile_spectrum.shape[1]/2)]  # delete second part of the spectrum
 
 
 frequency_resolution = 1 / (time_res * 2 * profile_spectrum.shape[1])  # frequency resolution, Hz   
+low_freq_limit_of_filter = med_filter_length * frequency_resolution
+print("Low freq limit of filter: ", low_freq_limit_of_filter, " Hz")
+
 frequency_axis = [frequency_resolution * i for i in range(profile_spectrum.shape[1])]
 print(frequency_axis[0], frequency_axis[1], frequency_axis[-1])
 
@@ -103,31 +109,16 @@ fig = plt.figure(figsize=(9.2, 4.5))
 ax1 = fig.add_subplot(111)
 ax1.plot(frequency_axis, profile_spectrum[50, :], color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='1.00', label='Pulses time profile')
 plt.show()
+plt.close('all')
 
 # Making result picture
 fig = plt.figure(figsize=(9.2, 4.5))
-# rc('font', size=5, weight='bold')
+rc('font', size=12, weight='bold')
 ax1 = fig.add_subplot(111)
-# ax1.plot(profile_spectrum[0, :], color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60', label='Pulses time profile')
-# ax1.legend(loc='upper right', fontsize=5)
-# ax1.grid(b=True, which='both', color='silver', linewidth='0.50', linestyle='-')
-# ax1.axis([0, len(profile_data), profile_pic_min, profile_pic_max])
-# ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-# ax1.set_title('File: ' + filename + '  Pulsar period: '+str(np.round(pulsar_period,3))+' s.', fontsize=5, fontweight='bold')
-# ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
-# ax2 = fig.add_subplot(212)
-
-fr = 1000
-
-ax1.imshow(profile_spectrum[0:100, :], extent=[frequency_axis[0], frequency_axis[-1], dm_vector[0], dm_vector[100]], aspect='auto', cmap="Greys")
-ax1.axis([0, frequency_limit, dm_vector[0], dm_vector[100]])
-# ax1.set_xlim(frequency_axis[0], frequency_axis[-1])
-# ax1.set_ylim(dm_vector[0], dm_vector[-1])
-
-# ax1.axis([frequency_axis[0], frequency_axis[-1], -10, 10])
-# ax2.legend(loc='upper right', fontsize=5)
-# ax2.set_xlabel('Frequency, Hz', fontsize=6, fontweight='bold')
-# ax2.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
+ax1.imshow(profile_spectrum, extent=[frequency_axis[0], frequency_axis[-1], dm_vector[0], dm_vector[-1]], aspect='auto', cmap="Greys")
+ax1.axis([low_freq_limit_of_filter, high_frequency_limit, dm_vector[0], dm_vector[100]])
+ax1.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+ax1.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
 # fig.subplots_adjust(hspace=0.05, top=0.91)
 # fig.suptitle('Single pulses of ' + pulsar_name + ' in time and frequency', fontsize=7, fontweight='bold')
 # fig.text(0.80, 0.04, 'Processed ' + currentDate + ' at ' + currentTime, fontsize=3, transform=plt.gcf().transFigure)
