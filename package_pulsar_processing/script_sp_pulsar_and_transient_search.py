@@ -34,13 +34,7 @@ data_types = ['chA']
 # Calibration file needed only if cross-spectra are involved
 phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 
-# periods_per_fig = 1           # Number of periods on averaged (folded) pulse profile
-# scale_factor = 10             # Scale factor to interpolate data (depends on RAM, use 1, 10, 30)
-
 save_long_dyn_spectra = False   # Save figures of the whole observation spectrogram?
-# save_n_period_pics = False    # Save n-period pictures?
-# save_strongest = True         # Save strongest images to additional separate folder?
-# threshold = 0.25              # Threshold of the strongest pulses (or RFIs)
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
@@ -104,42 +98,42 @@ print('\n\n\n\n   **************************************************************
 print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2022')
 print('   *************************************************************************** \n')
 
+source_directory = os.path.normpath(source_directory)
+result_directory = os.path.normpath(result_directory)
+
 # Making a DM values vector
 dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
 
+# Printing to terminal the DM values vector
 print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
 for i in range(int(len(dm_vector)/2)):
     print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
-
-# Central value
-k = int(len(dm_vector)/2)
+k = int(len(dm_vector)/2)  # Central value
 print(k, '        ', dm_vector[k])
 
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making long DAT file of the initial data')
 
-print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making dynamic spectra of the initial data')
-
-# Find all files in folder once more:
+# Find all jds files in folder:
 file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
-
-result_folder_name = source_directory.split('/')[-2]
 
 # Path to intermediate data files and results
 if result_directory == '':
     result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
-#
-path_to_dat_files = result_directory + '/' + 'Transient_search_' + result_folder_name + '/'
 
-result_path = path_to_dat_files + 'JDS_Results_' + result_folder_name
+# Configuring paths to save intermediate and result files
+result_folder_name = source_directory.split(os.sep)[-1]
+path_to_dat_files = os.path.join(result_directory, 'Transient_search_' + result_folder_name)
+jds_result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
 
 for file in range(len(file_name_list_current)):
-    file_name_list_current[file] = source_directory + file_name_list_current[file]
+    file_name_list_current[file] = os.path.join(source_directory, file_name_list_current[file])
 
 # # Read data file header
 # with open(filepath, 'rb') as file:
 #     file_header = file.read(1024)
 #
 # # Create a small binary file with header
-# file_data = open(result_path + '/' + filename, 'wb')
+# file_data = open(jds_result_path + '/' + filename, 'wb')
 # file_data.write(file_header)
 # file_data.close()
 # del file_header
@@ -147,7 +141,7 @@ for file in range(len(file_name_list_current)):
 
 # Run JDS/ADR reader for the current folder
 # '''
-done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, result_path, 2048, 0,
+done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, jds_result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
                                                             long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
@@ -181,16 +175,21 @@ if save_long_dyn_spectra:
     print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
           dat_file_name, ', of types:', data_types_to_process, '\n')
 
-    result_folder_name = source_directory.split('/')[-2] + '_initial'
+    # result_folder_name = source_directory.split('/')[-2] + '_initial'
+    result_folder_name = os.path.split(source_directory)[-2] + '_initial'
 
     ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
                          16.5, 33.0, [], 0)
 
-
+#
+#
+#
 # dat_file_name = 'C250122_214003.jds'
 # data_types_to_process = ['chA']
-
+#
+#
+#
 
 # RFI mask making
 print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
@@ -207,7 +206,7 @@ for i in range(len(data_types_to_process)):
     else:
         sys.exit('            Type error!')
 
-    dat_rfi_mask_making(path_to_dat_files + dat_file_name + '_Data_' + data_types_to_process[i] + '.dat',
+    dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
                         1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
 # '''
@@ -217,8 +216,9 @@ for i in range(len(data_types_to_process)):
 # dat_file_name = 'P130422_121607.jds'
 #
 #
+#
 
-# Dispersion delay removing
+# Dispersion delay removing in a loop for all values in DM vector
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * First dispersion delay removing... \n\n')
 
 amp_min = -0.15
@@ -226,34 +226,24 @@ amp_max = 0.55
 dedispersed_data_file_list = []
 
 # for i in range(len(data_types_to_process)):
-#
-#     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', i+1, ' of ',
-#           dm_points-1, ' DM: ', np.round(dm_vector[i], 6), ' pc / cm3 ')
-#
-#     dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
-#                                                                 data_types_to_process[i] + '.dat', 'Transient', 512,
-#                                                                 amp_min, amp_max, False, 16.5, 33.0, True, True, 300,
-#                                                                 'Greys', use_mask_file=True, save_pics=True,
-#                                                                 source_dm=dm_vector[0],
-#                                                                 result_path=path_to_dat_files)
-#
-#     dedispersed_data_file_list.append(dedispersed_data_file_name)
-
 for k in range(dm_points):
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
           dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
 
-    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files, dat_file_name + '_Data_' +
-                                                                data_types_to_process[0] + '.dat', 'Transient', 512,
-                                                                amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
-                                                                'Greys', use_mask_file=True, save_pics=False,
-                                                                source_dm=dm_vector[k],
+    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  dat_file_name + '_Data_' + data_types_to_process[0] + '.dat', 
+                                                                'Transient', 512, amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
+                                                                'Greys', use_mask_file=True, save_pics=False, source_dm=dm_vector[k],
                                                                 result_path=path_to_dat_files, print_or_not=False)
 
     dedispersed_data_file_list.append(dedispersed_data_file_name)
-
+#
+#
+#
 # dedispersed_data_file_list = ['Transient_DM_5.255_P130422_121607.jds_Data_chA.dat']
+#
+#
+#
 
 '''
 dir_name, file_name = separate_filename_and_path(dedispersed_data_file_list[0])
@@ -278,8 +268,10 @@ data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_n
                                                    central_dm, dm_range, dm_points)
 
 # Separate file name and path
-data_path, data_file_name = separate_filename_and_path(data_file_name)
-data_path, tl_file_name = separate_filename_and_path(tl_file_name)
+# data_path, data_file_name = separate_filename_and_path(data_file_name)
+data_path, data_file_name = os.split(data_file_name)
+# data_path, tl_file_name = separate_filename_and_path(tl_file_name)
+data_path, tl_file_name = os.split(tl_file_name)
 
 
 read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
