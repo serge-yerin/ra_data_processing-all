@@ -57,7 +57,7 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
 
     # Save the first and the last time in timeliest to find the common start and stop times
     for i in range(len(data_filenames)):
-        timeline, dt_timeline = time_line_file_reader(common_path + time_filenames[i])
+        timeline, dt_timeline = time_line_file_reader(os.path.join(common_path, time_filenames[i]))
         start_times[i] = dt_timeline[0]
         stop_times[i] = dt_timeline[-1]
 
@@ -72,7 +72,7 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
     for i in range(len(data_filenames)):
 
         # Reading timeline file
-        timeline, dt_timeline = time_line_file_reader(common_path + time_filenames[i])
+        timeline, dt_timeline = time_line_file_reader(os.path.join(common_path, time_filenames[i]))
 
         # Find indexes of common start time and common end time
         start_index = np.where(dt_timeline == np.datetime64(max_start_time))[0][0]
@@ -89,9 +89,9 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
             common_timeline = timeline[start_index: stop_index]
 
             # Creating a long timeline TXT file
-            new_tl_file_name = common_path + 'Transient_' + dat_file_name + '_Data_' + data_type_to_process +\
+            new_tl_file_name = os.path.join(common_path, 'Transient_' + dat_file_name + '_Data_' + data_type_to_process +\
                                '_var_DM_' + str(np.round(dm_vector[0], 6)) + '-' + str(np.round(dm_vector[-1], 6)) + \
-                               '_Timeline.txt'
+                               '_Timeline.txt')
             new_tl_file = open(new_tl_file_name, 'w')  # Open and close to delete the file with the same name
             new_tl_file.close()
 
@@ -99,7 +99,7 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
                 for k in range(len(common_timeline)):
                     new_tl_file.write((common_timeline[k][:]))  # str
 
-        data_file = open(common_path + data_filenames[i], 'r')
+        data_file = open(os.path.join(common_path, data_filenames[i]), 'r')
         data_cur = []
         for line in data_file:
             data_cur.append(float(str(line)))
@@ -118,9 +118,9 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
 
     # *** Creating a binary file with data for long data storage ***
 
-    new_data_file_name = common_path + 'Transient_' + dat_file_name + '_Data_' + data_type_to_process + \
+    new_data_file_name = os.path.join(common_path, 'Transient_' + dat_file_name + '_Data_' + data_type_to_process + \
                          '_var_DM_' + str(np.round(dm_vector[0], 6)) + '-' + str(np.round(dm_vector[-1], 6)) + \
-                         '.vdm'
+                         '.vdm')
 
     new_data_file = open(new_data_file_name, 'wb')
     time_points_num = np.int64(data_array.shape[1])
@@ -137,9 +137,9 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
 
 def visualize_time_profile(common_path, data_file_name, time_filename):
 
-    timeline, dt_timeline = time_line_file_reader(common_path + time_filename)
+    timeline, dt_timeline = time_line_file_reader(os.path.join(common_path, time_filename))
 
-    data_file = open(common_path + data_file_name, 'r')
+    data_file = open(os. path.join(common_path, data_file_name), 'r')
     data_cur = []
     for line in data_file:
         data_cur.append(float(str(line)))
@@ -186,7 +186,7 @@ def read_and_plot_var_dm_file(data_path, data_file_name, tl_file_name, result_pa
     timeline, dt_timeline = time_line_file_reader(os.path.join(data_path, tl_file_name))
 
     # Reading (.vdm) data file
-    data_file = open(data_path + data_file_name, 'rb')
+    data_file = open(os.path.join(data_path, data_file_name), 'rb')
     time_points_num = struct.unpack('q', data_file.read(8))[0]
     dm_points = struct.unpack('q', data_file.read(8))[0]
     central_dm = struct.unpack('d', data_file.read(8))[0]
@@ -250,8 +250,10 @@ if __name__ == '__main__':
                                                        central_dm, dm_range, dm_points)
 
     from package_common_modules.text_manipulations import separate_filename_and_path
-    data_path, data_file_name = separate_filename_and_path(data_file_name)
-    data_path, tl_file_name = separate_filename_and_path(tl_file_name)
+    # data_path, data_file_name = separate_filename_and_path(data_file_name)
+    data_path, data_file_name = os.path.split(data_file_name)
+    # data_path, tl_file_name = separate_filename_and_path(tl_file_name)
+    data_path, tl_file_name = os.path.split(tl_file_name)
 
     # data_path = common_path
     result_path = common_path
