@@ -163,10 +163,27 @@ def visualize_time_profile(common_path, data_file_name, time_filename):
 
 
 def read_and_plot_var_dm_file(data_path, data_file_name, tl_file_name, result_path, time_res, fig_time,
-                              print_or_not=True):
+                              print_or_not=True, plot_or_not=True):
+    """Function reads, returns ad optionally make plots of the array of time profiles 
+    dedispersed with varoius DM values from vdm file and its timeline
+
+    Args:
+        data_path (str): path to data file folder
+        data_file_name (str): name of the data file with various dm profiles
+        tl_file_name (str): name of the timeline file for the data file with various dm profiles
+        result_path (str): path to fiolder where resuls will be stored (usually the same as data_path)
+        time_res (float32): time resolution of the data
+        fig_time (float32): time in seconds the 1 figure contains while plotting data in sequence of figures
+        print_or_not (bool, optional): print verbose info on what's going on to terminal. Defaults to True.
+        plot_or_not (bool, optional): make plots or just read the file and return the array. Defaults to True.
+
+    Returns:
+        data_array (np.array float64): the array of time profiles dedispersed with varoius DM values
+        dm_vector (list float32): list of DM values used for data_array making
+    """    
 
     # Reading timeline file
-    timeline, dt_timeline = time_line_file_reader(data_path + tl_file_name)
+    timeline, dt_timeline = time_line_file_reader(os.path.join(data_path, tl_file_name))
 
     # Reading (.vdm) data file
     data_file = open(data_path + data_file_name, 'rb')
@@ -182,42 +199,45 @@ def read_and_plot_var_dm_file(data_path, data_file_name, tl_file_name, result_pa
     # Recalculating DM vector to display DM values
     dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
 
-    # Calculating number of samples per figure and number of figures
-    samples_per_fig = int(fig_time / time_res)
-    fig_num = int(data_array.shape[1] / samples_per_fig)
+    if plot_or_not:
+        
+        # Calculating number of samples per figure and number of figures
+        samples_per_fig = int(fig_time / time_res)
+        fig_num = int(data_array.shape[1] / samples_per_fig)
 
-    if print_or_not:
-        print('\n  Making figures... \n')
-        print('  Number of figures:', fig_num)
-        print('  Samples per figure:', samples_per_fig)
+        if print_or_not:
+            print('\n  Making figures... \n')
+            print('  Number of figures:', fig_num)
+            print('  Samples per figure:', samples_per_fig)
 
-    newpath = result_path + 'DM_search_' + dat_file_name + '_Data_' + data_type_to_process + \
-              '_var_DM_' + str(np.round(dm_vector[0], 6)) + '-' + str(np.round(dm_vector[-1], 6))
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)
+        # Making a folder to save the figures
+        newpath = os.path.join(result_path, 'DM_search_' + dat_file_name + '_Data_' + data_type_to_process + \
+                '_var_DM_' + str(np.round(dm_vector[0], 6)) + '-' + str(np.round(dm_vector[-1], 6)))
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
 
-    for j in range(fig_num):
-        rc('font', size=8, weight='bold')
-        fig, ax = plt.subplots(1, 1, figsize=(16.0, 7.0))
-        ax.imshow(data_array[:, j * samples_per_fig: (j+1) * samples_per_fig], aspect='auto', cmap='Greys',
-                  extent=[0, samples_per_fig, dm_vector[0], dm_vector[-1]])
-        ax.set_xlabel('Time, UTC', fontsize=8, fontweight='bold')
-        ax.set_ylabel('Dispersion measure, pc*cm-3', fontsize=8, fontweight='bold')
-        text = ax.get_xticks().tolist()
-        for i in range(len(text) - 1):
-            k = int(text[i])
-            text[i] = timeline[k + j * samples_per_fig][11:23]
-        ticks_loc = ax.get_xticks().tolist()  # <---- Added to suppress warning
-        ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))  # <---- Added to suppress warning
-        ax.set_xticklabels(text, fontsize=8, fontweight='bold')
-        fig.suptitle('Single pulses of ' + ' ' + str(len(dm_vector)) + ' DM points' +
-                     'fig. ' + str(j+1) + ' of ' + str(fig_num),
-                     fontsize=8, fontweight='bold')
-        pylab.savefig(newpath + '/' + data_file_name + '_var_DM_fig. ' + str(j + 1) + '.png',
-                      bbox_inches='tight', dpi=300)
-        plt.close('all')
+        for j in range(fig_num):
+            rc('font', size=8, weight='bold')
+            fig, ax = plt.subplots(1, 1, figsize=(16.0, 7.0))
+            ax.imshow(data_array[:, j * samples_per_fig: (j+1) * samples_per_fig], aspect='auto', cmap='Greys',
+                    extent=[0, samples_per_fig, dm_vector[0], dm_vector[-1]])
+            ax.set_xlabel('Time, UTC', fontsize=8, fontweight='bold')
+            ax.set_ylabel('Dispersion measure, pc*cm-3', fontsize=8, fontweight='bold')
+            text = ax.get_xticks().tolist()
+            for i in range(len(text) - 1):
+                k = int(text[i])
+                text[i] = timeline[k + j * samples_per_fig][11:23]
+            ticks_loc = ax.get_xticks().tolist()                                 # <---- Added to suppress warning
+            ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))          # <---- Added to suppress warning
+            ax.set_xticklabels(text, fontsize=8, fontweight='bold')
+            fig.suptitle('Single pulses of ' + ' ' + str(len(dm_vector)) + ' DM points' +
+                        'fig. ' + str(j+1) + ' of ' + str(fig_num),
+                        fontsize=8, fontweight='bold')
+            pylab.savefig(os.path.join(newpath, data_file_name + '_var_DM_fig. ' + str(j + 1) + '.png'),
+                        bbox_inches='tight', dpi=300)
+            plt.close('all')
 
-    return
+    return data_array, dm_vector
 
 # *******************************************************************************
 #                           M A I N    P R O G R A M                            *
