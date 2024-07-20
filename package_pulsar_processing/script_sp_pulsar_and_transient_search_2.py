@@ -23,6 +23,7 @@ dm_points = 101  # 41
 
 time_res = 0.007944     # Time resolution, s
 fig_time = 30           # Time on one figure, s
+frequency_limit = 10
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
@@ -36,6 +37,7 @@ import os
 import sys
 import datetime
 import numpy as np
+import scipy
 from os import path
 
 # To change system path to main directory of the project:
@@ -57,21 +59,21 @@ from package_pulsar_processing.time_profiles_allignment import read_and_plot_var
 
 
 print('\n\n\n\n   ***************************************************************************')
-print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2024')
+print('   *               ', software_name, ' v.', software_version, '                *      (c) YeS 2024')
 print('   *************************************************************************** \n')
 
-# Making a DM values vector
-dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
+# # Making a DM values vector
+# dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
 
-print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
-for i in range(int(len(dm_vector)/2)):
-    print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
+# print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
+# for i in range(int(len(dm_vector)/2)):
+#     print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
 
-# Central value
-k = int(len(dm_vector)/2)
-print(k, '        ', dm_vector[k])
+# # Central value
+# k = int(len(dm_vector)/2)
+# print(k, '        ', dm_vector[k])
 
-print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making...')
+# print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making...')
 
 vdm_data, dm_vector = read_and_plot_var_dm_file(source_directory, vardmd_file_name, timeln_file_name, 
                                                 result_directory, time_res, fig_time, 
@@ -80,21 +82,27 @@ vdm_data, dm_vector = read_and_plot_var_dm_file(source_directory, vardmd_file_na
 
 print(vdm_data.shape)
 
+median = scipy.ndimage.median_filter(vdm_data, 100, axes=1)
 
-frequency_resolution = 1 / (time_res * vdm_data.shape[1]) # frequency resolution, Hz
-
+vdm_data = vdm_data - median
 
 profile_spectrum = np.power(np.real(np.fft.fft(vdm_data[:])), 2)  # calculation of the spectrum
-profile_spectrum = profile_spectrum[:, 0 : int(vdm_data.shape[1]/2)]  # delete second part of the spectrum
-profile_spectrum = np.log10(profile_spectrum)
+profile_spectrum = profile_spectrum[:, 0 : int(profile_spectrum.shape[1]/2)]  # delete second part of the spectrum
 
-#profile_spectrum[0:100] = 0.0
 
-frequency_axis = [frequency_resolution * i for i in range(len(profile_spectrum))]
+frequency_resolution = 1 / (time_res * 2 * profile_spectrum.shape[1])  # frequency resolution, Hz   
+frequency_axis = [frequency_resolution * i for i in range(profile_spectrum.shape[1])]
+print(frequency_axis[0], frequency_axis[1], frequency_axis[-1])
 
 
 import matplotlib.pyplot as plt
 from matplotlib import rc
+
+
+fig = plt.figure(figsize=(9.2, 4.5))
+ax1 = fig.add_subplot(111)
+ax1.plot(frequency_axis, profile_spectrum[50, :], color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='1.00', label='Pulses time profile')
+plt.show()
 
 # Making result picture
 fig = plt.figure(figsize=(9.2, 4.5))
@@ -109,9 +117,12 @@ ax1 = fig.add_subplot(111)
 # ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
 # ax2 = fig.add_subplot(212)
 
-ax1.imshow(profile_spectrum[0:100, 0:500], aspect='auto')
-ax1.set_xticklabels(frequency_axis)
-ax1.set_yticklabels(dm_vector)
+fr = 1000
+
+ax1.imshow(profile_spectrum[0:100, :], extent=[frequency_axis[0], frequency_axis[-1], dm_vector[0], dm_vector[100]], aspect='auto', cmap="Greys")
+ax1.axis([0, frequency_limit, dm_vector[0], dm_vector[100]])
+# ax1.set_xlim(frequency_axis[0], frequency_axis[-1])
+# ax1.set_ylim(dm_vector[0], dm_vector[-1])
 
 # ax1.axis([frequency_axis[0], frequency_axis[-1], -10, 10])
 # ax2.legend(loc='upper right', fontsize=5)
