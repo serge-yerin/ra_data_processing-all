@@ -13,6 +13,8 @@ from matplotlib import rc
 import pylab
 from os import path
 import numpy as np
+import struct
+import scipy
 import shutil
 import sys
 import os
@@ -904,11 +906,11 @@ class MyTableWidget(QWidget):
         self.dm_points = int(self.line_dm_points_entry.text().replace(',', '.'))
 
         # Calculating DM vector to display DM values
-        dm_vector = np.linspace(self.central_dm - self.dm_range, self.central_dm + self.dm_range, num=self.dm_points)
+        self.dm_vector = np.linspace(self.central_dm - self.dm_range, self.central_dm + self.dm_range, num=self.dm_points)
 
-        self.line_start_dm_entry.setText(str(np.round(dm_vector[0], 6)))
-        self.line_dm_step_entry.setText(str(np.round(dm_vector[1] - dm_vector[0], 6)))
-        self.line_dm_stop_entry.setText(str(np.round(dm_vector[-1], 6)))
+        self.line_start_dm_entry.setText(str(np.round(self.dm_vector[0], 6)))
+        self.line_dm_step_entry.setText(str(np.round(self.dm_vector[1] - self.dm_vector[0], 6)))
+        self.line_dm_stop_entry.setText(str(np.round(self.dm_vector[-1], 6)))
 
 
 
@@ -1219,31 +1221,72 @@ class MyTableWidget(QWidget):
     # action called by the push button
     def read_initial_data(self):
 
-        # Reading profile data from txt file
-        data_filepath = self.txt_file_path_line.text()
-        [directory, self.data_filename] = os.path.split(data_filepath)
-        pulsar_data_in_time = read_one_value_txt_file(data_filepath)
-        self.initial_data_in_time = pulsar_data_in_time
 
-        # Calculating the spectrum
-        frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
+        # Reading profile data from txt file
+        data_filepath = self.vdm_file_path_line.text()
+        data_filepath = os.path.normpath(data_filepath)
+        [directory, self.data_filename] = os.path.split(data_filepath)
+        
+        # pulsar_data_in_time = read_one_value_txt_file(data_filepath)
+
+        # Reading (.vdm) data file
+        data_file = open(os.path.join(directory, self.data_filename), 'rb')
+        time_points_num = struct.unpack('q', data_file.read(8))[0]
+        self.vdm_dm_points = struct.unpack('q', data_file.read(8))[0]
+        self.vdm_central_dm = struct.unpack('d', data_file.read(8))[0]
+        self.vdm_dm_range = struct.unpack('d', data_file.read(8))[0]
+        initial_data_array = np.fromfile(data_file, dtype=np.float64, count=time_points_num * self.vdm_dm_points)
+        initial_data_array = np.reshape(initial_data_array, [self.vdm_dm_points, time_points_num])
+        data_file.close()
+
+        self.vdm_data = initial_data_array
+
+        # Recalculating DM vector to display DM values
+        self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  self.vdm_central_dm + self.vdm_dm_range, num=self.vdm_dm_points)
+
+        med_filter_length = int(self.filter_win_input.value())
+
+        median = scipy.ndimage.median_filter(self.vdm_data, med_filter_length, axes=1)
+        self.vdm_data = self.vdm_data - median
+
+        self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data[:])), 2)  # calculation of the spectrum
+        self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
+
+        self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
+        self.low_freq_limit_of_filter = med_filter_length * self.frequency_resolution
+
+        frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
+
+
+        self.high_frequency_limit = 7  # Hz
 
         # Update the plot
+        # rc('font', size=12, weight='bold')
+        
         self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(211)
-        ax0.plot(pulsar_data_in_time)
-        ax0.set_xlim([0, len(pulsar_data_in_time)])
-        ax0.set_ylim([-0.2, 0.2])
+        ax0 = self.figure.add_subplot(111)
+       
+        ax0.imshow(self.vdm_spectra, extent=[frequency_axis[0], frequency_axis[-1],  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], aspect='auto', cmap="Greys")
+        ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        ax1 = self.figure.add_subplot(212)
-        # Adding the plots for parts of data to the big result picture
-        ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
+        
+        # ax0.plot(pulsar_data_in_time)
+        # ax0.set_xlim([0, len(pulsar_data_in_time)])
+        # ax0.set_ylim([-0.2, 0.2])
+        # ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        # ax1 = self.figure.add_subplot(212)
+        # # Adding the plots for parts of data to the big result picture
+        # ax1.plot(frequency_axis, pulses_spectra)
+        # ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
+        # ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        # self.figure.subplots_adjust(hspace=0.25, top=0.945)
+        # ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
         self.canvas.draw()  # refresh canvas
+
+
+
 
     # action called by the push button
     def subtract_median(self):
