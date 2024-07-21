@@ -9,10 +9,10 @@ software_name = 'Transient Search Script 2'
 # *******************************************************************************
 # Directory of files to be analyzed:
 # source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
-source_directory = '../RA_DATA_RESULTS/Transient_search_DSP_cross_spectra_B0809+74_URAN2_/'
-vardmd_file_name = 'Transient_P130422_121607.jds_Data_chA_var_DM_5.255-6.255.vdm'
-timeln_file_name = 'Transient_P130422_121607.jds_Data_chA_var_DM_5.255-6.255_Timeline.txt'
-result_directory = '../RA_DATA_RESULTS/Transient_search_DSP_cross_spectra_B0809+74_URAN2_/'
+source_directory = '../RA_DATA_RESULTS/Transient_search_DSP_cross_spectra_B0809+74_URAN2_XL/'
+vardmd_file_name = 'Transient_P130422_121607.jds_Data_chA_var_DM_4.255-7.255.vdm'
+timeln_file_name = 'Transient_P130422_121607.jds_Data_chA_var_DM_4.255-7.255_Timeline.txt'
+result_directory = '../RA_DATA_RESULTS/Transient_search_DSP_cross_spectra_B0809+74_URAN2_XL/'
 
 # central_dm = 2.972
 central_dm = 5.755
@@ -24,6 +24,7 @@ dm_points = 101  # 41
 time_res = 0.007944     # Time resolution, s
 fig_time = 30           # Time on one figure, s
 high_frequency_limit = 5  # Hz
+med_filter_length = 100
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
@@ -62,27 +63,27 @@ print('\n\n\n\n   **************************************************************
 print('   *               ', software_name, ' v.', software_version, '                *      (c) YeS 2024')
 print('   *************************************************************************** \n')
 
-# # Making a DM values vector
-# dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
-
-# print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
-# for i in range(int(len(dm_vector)/2)):
-#     print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
-
-# # Central value
-# k = int(len(dm_vector)/2)
-# print(k, '        ', dm_vector[k])
-
-# print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making...')
 
 vdm_data, dm_vector = read_and_plot_var_dm_file(source_directory, vardmd_file_name, timeln_file_name, 
                                                 result_directory, time_res, fig_time, 
                                                 print_or_not=True, plot_or_not=False)
 
 
+print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
+for i in range(int(len(dm_vector)/2)):
+    print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
+
+# Central value
+k = int(len(dm_vector)/2)
+print(k, '        ', dm_vector[k])
+
+print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making...')
+
+
+
 print(vdm_data.shape)
 
-med_filter_length = 100
+
 
 median = scipy.ndimage.median_filter(vdm_data, med_filter_length, axes=1)
 vdm_data = vdm_data - median
@@ -116,7 +117,7 @@ fig = plt.figure(figsize=(9.2, 4.5))
 rc('font', size=12, weight='bold')
 ax1 = fig.add_subplot(111)
 ax1.imshow(profile_spectrum, extent=[frequency_axis[0], frequency_axis[-1], dm_vector[0], dm_vector[-1]], aspect='auto', cmap="Greys")
-ax1.axis([low_freq_limit_of_filter, high_frequency_limit, dm_vector[0], dm_vector[100]])
+ax1.axis([low_freq_limit_of_filter, high_frequency_limit, dm_vector[0], dm_vector[-1]])
 ax1.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
 ax1.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
 # fig.subplots_adjust(hspace=0.05, top=0.91)
