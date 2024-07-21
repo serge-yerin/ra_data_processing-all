@@ -109,7 +109,7 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addWidget(self.vdm_file_path_line, 0, 1)
 
         # Button "Open txt file"
-        self.button_open_vdm = QPushButton('Open txt file')
+        self.button_open_vdm = QPushButton('Open .vdm file')
         self.button_open_vdm.clicked.connect(self.one_vdm_file_dialog)  # adding action to the button
         self.button_open_vdm.setFixedSize(QSize(150, 30))
         self.tab1.layout.addWidget(self.button_open_vdm, 0, 2)
@@ -204,7 +204,7 @@ class MyTableWidget(QWidget):
         self.dm_entry_layout.addWidget(self.label_dm_range_units)
 
 
-        self.label_dm_points_entry = QLabel("  Points: ", self)
+        self.label_dm_points_entry = QLabel("  Points (odd): ", self)
         self.label_dm_points_entry.setEnabled(False)
         self.label_dm_points_entry.setFixedSize(QSize(80, 30))
         self.dm_entry_layout.addWidget(self.label_dm_points_entry)
@@ -235,7 +235,7 @@ class MyTableWidget(QWidget):
 
         # Button "Calculate DM values"
         self.button_calc_dm = QPushButton('Calculate DM values')
-        self.button_calc_dm.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.button_calc_dm.clicked.connect(self.calculate_dm_values)  # adding action to the button  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.button_calc_dm.setEnabled(False)
         self.button_calc_dm.setFixedSize(QSize(140, 25))
         self.dm_calc_layout.addWidget(self.button_calc_dm)
@@ -766,6 +766,288 @@ class MyTableWidget(QWidget):
         self.setLayout(self.layout)
 
 
+    # action called by radio button switch txt
+    def rb_txt_on_click(self):
+        self.radioButton = self.sender()
+        if self.radioButton.isChecked():
+            # print("Process is %s" % (self.radioButton.process_type))
+            self.label_vdm_file_selected.setEnabled(True)
+            self.button_open_vdm.setEnabled(True)
+            self.vdm_file_path_line.setEnabled(True)
+
+            self.button_open_jds.setEnabled(False)
+            self.button_select_result_path.setEnabled(False)
+            self.button_process_jds.setEnabled(False)
+            self.jds_file_path_line.setEnabled(False)
+            self.result_path_line.setEnabled(False)
+
+            self.label_dm_entry.setEnabled(False)
+            self.line_dm_entry.setEnabled(False)
+            self.label_dm_units.setEnabled(False)
+            self.label_dm_range_entry.setEnabled(False)
+            self.line_dm_range_entry.setEnabled(False)
+            self.label_dm_range_units.setEnabled(False)
+            self.label_dm_points_entry.setEnabled(False)
+            self.line_dm_points_entry.setEnabled(False)
+            self.button_calc_dm.setEnabled(False)
+            self.label_dm_start.setEnabled(False)
+            self.label_stert_dm_unit.setEnabled(False)
+            self.label_dm_step_entry.setEnabled(False)
+            self.label_dm_step_units.setEnabled(False)
+            self.label_dm_stop_entry.setEnabled(False)
+            self.label_dm_stop_units.setEnabled(False)
+
+            self.button_select_pairs_source_path.setEnabled(False)
+            self.button_select_pairs_result_path.setEnabled(False)
+            self.button_process_pairs_jds.setEnabled(False)
+            self.source_pairs_path_line.setEnabled(False)
+            self.result_pairs_path_line.setEnabled(False)
+            self.line_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_units.setEnabled(False)
+
+    # action called by radio button switch jds
+    def rb_jds_on_click(self):
+        self.radioButton = self.sender()
+        if self.radioButton.isChecked():
+            # print("Process is %s" % (self.radioButton.process_type))
+            self.label_vdm_file_selected.setEnabled(False)
+            self.vdm_file_path_line.setEnabled(False)
+            self.button_open_vdm.setEnabled(False)
+
+            self.button_open_jds.setEnabled(True)
+            self.button_select_result_path.setEnabled(True)
+            self.button_process_jds.setEnabled(True)
+            self.jds_file_path_line.setEnabled(True)
+            self.result_path_line.setEnabled(True)
+            self.label_dm_entry.setEnabled(True)
+            self.line_dm_entry.setEnabled(True)
+            self.label_dm_units.setEnabled(True)
+            self.label_dm_range_entry.setEnabled(True)
+            self.line_dm_range_entry.setEnabled(True)
+            self.label_dm_range_units.setEnabled(True)
+            self.label_dm_points_entry.setEnabled(True)
+            self.line_dm_points_entry.setEnabled(True)
+            self.button_calc_dm.setEnabled(True)
+            self.label_dm_start.setEnabled(True)
+            self.label_stert_dm_unit.setEnabled(True)
+            self.label_dm_step_entry.setEnabled(True)
+            self.label_dm_step_units.setEnabled(True)
+            self.label_dm_stop_entry.setEnabled(True)
+            self.label_dm_stop_units.setEnabled(True)
+
+            self.button_select_pairs_source_path.setEnabled(False)
+            self.button_select_pairs_result_path.setEnabled(False)
+            self.button_process_pairs_jds.setEnabled(False)
+            self.source_pairs_path_line.setEnabled(False)
+            self.result_pairs_path_line.setEnabled(False)
+            self.line_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_entry.setEnabled(False)
+            self.label_pairs_dm_units.setEnabled(False)
+
+    def rb_pairs_on_click(self):
+        self.radioButton = self.sender()
+        if self.radioButton.isChecked():
+            # print("Process is %s" % (self.radioButton.process_type))
+            self.label_vdm_file_selected.setEnabled(False)
+            self.vdm_file_path_line.setEnabled(False)
+            self.button_open_vdm.setEnabled(False)
+
+            self.button_open_jds.setEnabled(False)
+            self.button_select_result_path.setEnabled(False)
+            self.button_process_jds.setEnabled(False)
+            self.jds_file_path_line.setEnabled(False)
+            self.result_path_line.setEnabled(False)
+            self.label_dm_entry.setEnabled(False)
+            self.line_dm_entry.setEnabled(False)
+            self.label_dm_units.setEnabled(False)
+            self.label_dm_range_entry.setEnabled(False)
+            self.line_dm_range_entry.setEnabled(False)
+            self.label_dm_range_units.setEnabled(False)
+            self.label_dm_points_entry.setEnabled(False)
+            self.line_dm_points_entry.setEnabled(False)
+            self.button_calc_dm.setEnabled(False)
+            self.label_dm_start.setEnabled(False)
+            self.label_stert_dm_unit.setEnabled(False)
+            self.label_dm_step_entry.setEnabled(False)
+            self.label_dm_step_units.setEnabled(False)
+            self.label_dm_stop_entry.setEnabled(False)
+            self.label_dm_stop_units.setEnabled(False)
+
+            self.button_select_pairs_source_path.setEnabled(True)
+            self.button_select_pairs_result_path.setEnabled(True)
+            self.button_process_pairs_jds.setEnabled(True)
+            self.source_pairs_path_line.setEnabled(True)
+            self.result_pairs_path_line.setEnabled(True)
+            self.line_pairs_dm_entry.setEnabled(True)
+            self.label_pairs_dm_entry.setEnabled(True)
+            self.label_pairs_dm_units.setEnabled(True)
+
+
+
+
+        ##############################
+        #         Functions          #
+        ##############################
+
+
+    def one_vdm_file_dialog(self):
+        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "VDM Files (*.vdm)")
+        if check:
+            self.vdm_filepath, self.vdm_filename = separate_filename_and_path(file)
+            self.vdm_file_path_line.setText(file)
+
+
+    def calculate_dm_values(self):
+        self.central_dm = float(self.line_dm_entry.text().replace(',', '.'))
+        self.dm_range = float(self.line_dm_range_entry.text().replace(',', '.'))
+        self.dm_points = int(self.line_dm_points_entry.text().replace(',', '.'))
+
+        # Calculating DM vector to display DM values
+        dm_vector = np.linspace(self.central_dm - self.dm_range, self.central_dm + self.dm_range, num=self.dm_points)
+
+        self.line_start_dm_entry.setText(str(np.round(dm_vector[0], 6)))
+        self.line_dm_step_entry.setText(str(np.round(dm_vector[1] - dm_vector[0], 6)))
+        self.line_dm_stop_entry.setText(str(np.round(dm_vector[-1], 6)))
+
+
+
+    def jds_files_open_dialog(self):
+        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
+        file_names = []
+        self.jds_file_path_line.clear()  # Clear the text input to add new file paths
+        if check:
+            for i in range(len(files)):
+                self.jds_file_path_line.appendPlainText(files[i])
+                directory, file_name = separate_filename_and_path(files[i])
+                file_names.append(file_name)
+            self.jds_analysis_directory = directory
+            self.jds_analysis_list = file_names
+
+
+    def thread_preprocess_jds_files(self):
+        t1 = Thread(target=self.preprocess_jds_files)
+        t1.start()
+
+
+    def specify_result_folder_dialog(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
+        if dir_name:
+            self.path_to_result_folder = dir_name
+            self.result_path_line.setText(str(dir_name))
+        pass
+
+
+    def preprocess_jds_files(self):
+        try:
+            self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
+        except ValueError:
+            print(' Wrong source DM value! Unable to convert into float number.')
+            self.label_processing_status.setText("Wrong DM value!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_result_folder = str(self.path_to_result_folder)
+        except AttributeError:
+            self.label_processing_status.setText("Wrong result directory specified!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_analysis_files = self.jds_analysis_list
+        except AttributeError:
+            self.label_processing_status.setText("Wrong JDS files specified!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # Only if parameters are good, run processing
+        self.label_processing_status.setText("JDS data are being processed...")
+        self.label_processing_status.setStyleSheet("background-color: yellow;")
+
+        try:
+            profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+                                                                    jds_analysis_files,
+                                                                    jds_result_folder,
+                                                                    self.source_dm)
+        except:
+            self.label_processing_status.setText("Something wrong happened during calculations!")
+            self.label_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # After the processing is finished,
+        self.txt_file_path_line.setText(profile_txt_file_path)
+        self.txt_filepath, self.txt_filename = separate_filename_and_path(profile_txt_file_path)
+        self.label_processing_status.setText("JDS preprocessing finished! "
+                                             "You can now open next tab and process the profile")
+        self.label_processing_status.setStyleSheet("background-color: lightgreen;")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def preprocess_pairs_jds_files(self):
+        try:
+            self.source_pairs_dm = float(self.line_pairs_dm_entry.text().replace(',', '.'))
+        except ValueError:
+            print(' Wrong source DM value! Unable to convert into float number.')
+            self.label_pairs_processing_status.setText("Wrong DM value!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_pairs_source_folder = str(self.path_to_source_pairs_folder)
+        except AttributeError:
+            self.label_pairs_processing_status.setText("Wrong source directory specified!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        try:
+            jds_pairs_result_folder = str(self.path_to_result_pairs_folder)
+        except AttributeError:
+            self.label_pairs_processing_status.setText("Wrong result directory specified!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # Only if parameters are good, run processing
+        self.label_pairs_processing_status.setText("JDS file pairs are being processed...")
+        self.label_pairs_processing_status.setStyleSheet("background-color: yellow;")
+
+        try:
+            profile_txt_file_path = f_make_transient_profile_from_jds_file_pairs(jds_pairs_source_folder,
+                                                                                 jds_pairs_result_folder,
+                                                                                 self.source_pairs_dm)
+        except:
+            self.label_pairs_processing_status.setText("Something wrong happened during calculations!")
+            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
+            return
+
+        # After the processing is finished,
+        self.label_pairs_processing_status.setText("JDS file pairs preprocessing finished! "
+                                             "Please select the first option and pick a file to process the profile")
+        self.label_pairs_processing_status.setStyleSheet("background-color: lightgreen;")
+
+
+
+
+
+
+
+
 
     def save_spectra_16(self):
         # Run function to make and save bit plot
@@ -908,105 +1190,14 @@ class MyTableWidget(QWidget):
 
         self.canvas_1_8.draw()  # refresh canvas
 
-    def thread_preprocess_jds_files(self):
-        t1 = Thread(target=self.preprocess_jds_files)
-        t1.start()
+
 
     def thread_preprocess_pairs_jds_files(self):
         t2 = Thread(target=self.preprocess_pairs_jds_files)
         t2.start()
 
-    def preprocess_jds_files(self):
-        try:
-            self.source_dm = float(self.line_dm_entry.text().replace(',', '.'))
-        except ValueError:
-            print(' Wrong source DM value! Unable to convert into float number.')
-            self.label_processing_status.setText("Wrong DM value!")
-            self.label_processing_status.setStyleSheet("background-color: red;")
-            return
 
-        try:
-            jds_result_folder = str(self.path_to_result_folder)
-        except AttributeError:
-            self.label_processing_status.setText("Wrong result directory specified!")
-            self.label_processing_status.setStyleSheet("background-color: red;")
-            return
 
-        try:
-            jds_analysis_files = self.jds_analysis_list
-        except AttributeError:
-            self.label_processing_status.setText("Wrong JDS files specified!")
-            self.label_processing_status.setStyleSheet("background-color: red;")
-            return
-
-        # Only if parameters are good, run processing
-        self.label_processing_status.setText("JDS data are being processed...")
-        self.label_processing_status.setStyleSheet("background-color: yellow;")
-
-        try:
-            profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
-                                                                    jds_analysis_files,
-                                                                    jds_result_folder,
-                                                                    self.source_dm)
-        except:
-            self.label_processing_status.setText("Something wrong happened during calculations!")
-            self.label_processing_status.setStyleSheet("background-color: red;")
-            return
-
-        # After the processing is finished,
-        self.txt_file_path_line.setText(profile_txt_file_path)
-        self.txt_filepath, self.txt_filename = separate_filename_and_path(profile_txt_file_path)
-        self.label_processing_status.setText("JDS preprocessing finished! "
-                                             "You can now open next tab and process the profile")
-        self.label_processing_status.setStyleSheet("background-color: lightgreen;")
-
-    def preprocess_pairs_jds_files(self):
-        try:
-            self.source_pairs_dm = float(self.line_pairs_dm_entry.text().replace(',', '.'))
-        except ValueError:
-            print(' Wrong source DM value! Unable to convert into float number.')
-            self.label_pairs_processing_status.setText("Wrong DM value!")
-            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
-            return
-
-        try:
-            jds_pairs_source_folder = str(self.path_to_source_pairs_folder)
-        except AttributeError:
-            self.label_pairs_processing_status.setText("Wrong source directory specified!")
-            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
-            return
-
-        try:
-            jds_pairs_result_folder = str(self.path_to_result_pairs_folder)
-        except AttributeError:
-            self.label_pairs_processing_status.setText("Wrong result directory specified!")
-            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
-            return
-
-        # Only if parameters are good, run processing
-        self.label_pairs_processing_status.setText("JDS file pairs are being processed...")
-        self.label_pairs_processing_status.setStyleSheet("background-color: yellow;")
-
-        try:
-            profile_txt_file_path = f_make_transient_profile_from_jds_file_pairs(jds_pairs_source_folder,
-                                                                                 jds_pairs_result_folder,
-                                                                                 self.source_pairs_dm)
-        except:
-            self.label_pairs_processing_status.setText("Something wrong happened during calculations!")
-            self.label_pairs_processing_status.setStyleSheet("background-color: red;")
-            return
-
-        # After the processing is finished,
-        self.label_pairs_processing_status.setText("JDS file pairs preprocessing finished! "
-                                             "Please select the first option and pick a file to process the profile")
-        self.label_pairs_processing_status.setStyleSheet("background-color: lightgreen;")
-
-    def specify_result_folder_dialog(self):
-        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
-        if dir_name:
-            self.path_to_result_folder = dir_name
-            self.result_path_line.setText(str(dir_name))
-        pass
 
     def specify_source_pairs_folder_dialog(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
@@ -1022,148 +1213,7 @@ class MyTableWidget(QWidget):
             self.result_pairs_path_line.setText(str(dir_name))
         pass
 
-    def jds_files_open_dialog(self):
-        files, check = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "JDS files (*.jds)")
-        file_names = []
-        self.jds_file_path_line.clear()  # Clear the text input to add new file paths
-        if check:
-            for i in range(len(files)):
-                self.jds_file_path_line.appendPlainText(files[i])
-                directory, file_name = separate_filename_and_path(files[i])
-                file_names.append(file_name)
-            self.jds_analysis_directory = directory
-            self.jds_analysis_list = file_names
 
-    def one_vdm_file_dialog(self):
-        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "VDM Files (*.vdm)")
-        if check:
-            self.vdm_filepath, self.vdm_filename = separate_filename_and_path(file)
-            self.vdm_file_path_line.setText(file)
-
-    # action called by radio button switch txt
-    def rb_txt_on_click(self):
-        self.radioButton = self.sender()
-        if self.radioButton.isChecked():
-            # print("Process is %s" % (self.radioButton.process_type))
-            self.label_vdm_file_selected.setEnabled(True)
-            self.button_open_vdm.setEnabled(True)
-            self.vdm_file_path_line.setEnabled(True)
-
-            self.button_open_jds.setEnabled(False)
-            self.button_select_result_path.setEnabled(False)
-            self.button_process_jds.setEnabled(False)
-            self.jds_file_path_line.setEnabled(False)
-            self.result_path_line.setEnabled(False)
-            # self.line_dm_entry.setEnabled(False)
-            # self.label_dm_entry.setEnabled(False)
-            # self.label_dm_units.setEnabled(False)
-            self.label_dm_entry.setEnabled(False)
-            self.line_dm_entry.setEnabled(False)
-            self.label_dm_units.setEnabled(False)
-            self.label_dm_range_entry.setEnabled(False)
-            self.line_dm_range_entry.setEnabled(False)
-            self.label_dm_range_units.setEnabled(False)
-            self.label_dm_points_entry.setEnabled(False)
-            self.line_dm_points_entry.setEnabled(False)
-            self.button_calc_dm.setEnabled(False)
-            self.label_dm_start.setEnabled(False)
-            self.label_stert_dm_unit.setEnabled(False)
-            self.label_dm_step_entry.setEnabled(False)
-            self.label_dm_step_units.setEnabled(False)
-            self.label_dm_stop_entry.setEnabled(False)
-            self.label_dm_stop_units.setEnabled(False)
-
-            self.button_select_pairs_source_path.setEnabled(False)
-            self.button_select_pairs_result_path.setEnabled(False)
-            self.button_process_pairs_jds.setEnabled(False)
-            self.source_pairs_path_line.setEnabled(False)
-            self.result_pairs_path_line.setEnabled(False)
-            self.line_pairs_dm_entry.setEnabled(False)
-            self.label_pairs_dm_entry.setEnabled(False)
-            self.label_pairs_dm_units.setEnabled(False)
-
-    # action called by radio button switch jds
-    def rb_jds_on_click(self):
-        self.radioButton = self.sender()
-        if self.radioButton.isChecked():
-            # print("Process is %s" % (self.radioButton.process_type))
-            self.label_vdm_file_selected.setEnabled(False)
-            self.vdm_file_path_line.setEnabled(False)
-            self.button_open_vdm.setEnabled(False)
-
-            self.button_open_jds.setEnabled(True)
-            self.button_select_result_path.setEnabled(True)
-            self.button_process_jds.setEnabled(True)
-            self.jds_file_path_line.setEnabled(True)
-            self.result_path_line.setEnabled(True)
-            # self.line_dm_entry.setEnabled(True)
-            # self.label_dm_entry.setEnabled(True)
-            # self.label_dm_units.setEnabled(True)
-            self.label_dm_entry.setEnabled(True)
-            self.line_dm_entry.setEnabled(True)
-            self.label_dm_units.setEnabled(True)
-            self.label_dm_range_entry.setEnabled(True)
-            self.line_dm_range_entry.setEnabled(True)
-            self.label_dm_range_units.setEnabled(True)
-            self.label_dm_points_entry.setEnabled(True)
-            self.line_dm_points_entry.setEnabled(True)
-            self.button_calc_dm.setEnabled(True)
-            self.label_dm_start.setEnabled(True)
-            self.label_stert_dm_unit.setEnabled(True)
-            self.label_dm_step_entry.setEnabled(True)
-            self.label_dm_step_units.setEnabled(True)
-            self.label_dm_stop_entry.setEnabled(True)
-            self.label_dm_stop_units.setEnabled(True)
-
-            self.button_select_pairs_source_path.setEnabled(False)
-            self.button_select_pairs_result_path.setEnabled(False)
-            self.button_process_pairs_jds.setEnabled(False)
-            self.source_pairs_path_line.setEnabled(False)
-            self.result_pairs_path_line.setEnabled(False)
-            self.line_pairs_dm_entry.setEnabled(False)
-            self.label_pairs_dm_entry.setEnabled(False)
-            self.label_pairs_dm_units.setEnabled(False)
-
-    def rb_pairs_on_click(self):
-        self.radioButton = self.sender()
-        if self.radioButton.isChecked():
-            # print("Process is %s" % (self.radioButton.process_type))
-            self.label_vdm_file_selected.setEnabled(False)
-            self.vdm_file_path_line.setEnabled(False)
-            self.button_open_vdm.setEnabled(False)
-
-            self.button_open_jds.setEnabled(False)
-            self.button_select_result_path.setEnabled(False)
-            self.button_process_jds.setEnabled(False)
-            self.jds_file_path_line.setEnabled(False)
-            self.result_path_line.setEnabled(False)
-            # self.line_dm_entry.setEnabled(False)
-            # self.label_dm_entry.setEnabled(False)
-            # self.label_dm_units.setEnabled(False)
-            self.label_dm_entry.setEnabled(False)
-            self.line_dm_entry.setEnabled(False)
-            self.label_dm_units.setEnabled(False)
-            self.label_dm_range_entry.setEnabled(False)
-            self.line_dm_range_entry.setEnabled(False)
-            self.label_dm_range_units.setEnabled(False)
-            self.label_dm_points_entry.setEnabled(False)
-            self.line_dm_points_entry.setEnabled(False)
-            self.button_calc_dm.setEnabled(False)
-            self.label_dm_start.setEnabled(False)
-            self.label_stert_dm_unit.setEnabled(False)
-            self.label_dm_step_entry.setEnabled(False)
-            self.label_dm_step_units.setEnabled(False)
-            self.label_dm_stop_entry.setEnabled(False)
-            self.label_dm_stop_units.setEnabled(False)
-
-            self.button_select_pairs_source_path.setEnabled(True)
-            self.button_select_pairs_result_path.setEnabled(True)
-            self.button_process_pairs_jds.setEnabled(True)
-            self.source_pairs_path_line.setEnabled(True)
-            self.result_pairs_path_line.setEnabled(True)
-            self.line_pairs_dm_entry.setEnabled(True)
-            self.label_pairs_dm_entry.setEnabled(True)
-            self.label_pairs_dm_units.setEnabled(True)
 
 
     # action called by the push button
