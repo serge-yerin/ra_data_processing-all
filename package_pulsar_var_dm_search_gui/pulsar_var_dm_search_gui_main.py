@@ -51,7 +51,7 @@ class Window(QMainWindow):
         super().__init__(*args, **kwargs)
 
         # Window geometry and hierarchy
-        self.setWindowTitle('Pulsar search    v.' + software_version + '    Serge Yerin @ IRA NASU')  # Win title
+        self.setWindowTitle('Pulsar & transient search    v.' + software_version + '    Serge Yerin @ IRA NASU')  # Win title
         self.setGeometry(100, 100, 800, 600)
         # menu_bar = self.menuBar()
         # file_menu = menu_bar.addMenu('&File')
@@ -436,7 +436,7 @@ class MyTableWidget(QWidget):
         self.filter_win_input.setFixedSize(QSize(70, 30))
         self.filter_win_input.setMinimum(0)
         self.filter_win_input.setMaximum(100000)
-        self.filter_win_input.setValue(300)
+        self.filter_win_input.setValue(100)
 
         self.aver_const_input = QDoubleSpinBox()
         self.aver_const_input.setFixedSize(QSize(60, 30))
@@ -467,7 +467,7 @@ class MyTableWidget(QWidget):
 
         # Button "Read data"
         self.button_read = QPushButton('Read data')
-        self.button_read.clicked.connect(self.read_initial_data)  # adding action to the button
+        self.button_read.clicked.connect(self.thread_read_initial_data)  # adding action to the button
         self.button_read.setFixedSize(QSize(100, 30))
 
         # Button "Subtract median"
@@ -486,9 +486,9 @@ class MyTableWidget(QWidget):
         self.button_crop.setFixedSize(QSize(100, 30))
 
         # Packing layouts in the window
-        self.input_controls_layout.addWidget(self.button_read)
         self.input_controls_layout.addWidget(self.label_median_win)
         self.input_controls_layout.addWidget(self.filter_win_input)
+        self.input_controls_layout.addWidget(self.button_read)
         self.input_controls_layout.addWidget(self.button_filter)
         self.input_controls_layout.addWidget(self.label_aver_const)
         self.input_controls_layout.addWidget(self.aver_const_input)
@@ -1218,9 +1218,22 @@ class MyTableWidget(QWidget):
 
 
 
+
+
+
+
+    def thread_read_initial_data(self):
+        self.figure.clear()  # clearing old figure
+        ax0 = self.figure.add_subplot(111)
+        ax0.remove() 
+        self.figure.text(0.4, 0.5, "Reading file...", color="C0", size=22)
+        self.canvas.draw()  # refresh canvas
+        
+        t0 = Thread(target=self.read_initial_data)
+        t0.start()
+
     # action called by the push button
     def read_initial_data(self):
-
 
         # Reading profile data from txt file
         data_filepath = self.vdm_file_path_line.text()
@@ -1239,10 +1252,22 @@ class MyTableWidget(QWidget):
         initial_data_array = np.reshape(initial_data_array, [self.vdm_dm_points, time_points_num])
         data_file.close()
 
+        self.figure.clear()  # clearing old figure
+        ax0 = self.figure.add_subplot(111)
+        ax0.remove() 
+        self.figure.text(0.35, 0.5, "Applying median filter...", color="C0", size=22)
+        self.canvas.draw()  # refresh canvas
+
         self.vdm_data = initial_data_array
 
         # Recalculating DM vector to display DM values
         self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  self.vdm_central_dm + self.vdm_dm_range, num=self.vdm_dm_points)
+
+        self.figure.clear()  # clearing old figure
+        ax0 = self.figure.add_subplot(111)
+        ax0.remove() 
+        self.figure.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
+        self.canvas.draw()  # refresh canvas
 
         med_filter_length = int(self.filter_win_input.value())
 
@@ -1257,21 +1282,24 @@ class MyTableWidget(QWidget):
 
         frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
 
-
-        self.high_frequency_limit = 7  # Hz
+        self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
 
         # Update the plot
         # rc('font', size=12, weight='bold')
         
         self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(111)
+        ax0 = self.figure.add_subplot(111)  # , layout='constrained'
        
-        ax0.imshow(self.vdm_spectra, extent=[frequency_axis[0], frequency_axis[-1],  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], aspect='auto', cmap="Greys")
+        plot = ax0.imshow(self.vdm_spectra, 
+                          extent=[frequency_axis[0], frequency_axis[-1],  
+                                  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                                  aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
         ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        
+        self.figure.set_constrained_layout(True)
+        self.figure.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
         # ax0.plot(pulsar_data_in_time)
         # ax0.set_xlim([0, len(pulsar_data_in_time)])
         # ax0.set_ylim([-0.2, 0.2])
