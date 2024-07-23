@@ -14,17 +14,21 @@ matrix. The matrix is plotted as a dynamic spectrum.
 # *******************************************************************************
 # Directory of files to be analyzed:
 # source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
-source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
-result_directory = 'e:/python/RA_DATA_RESULTS/'
+# source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/'
+result_directory = '../RA_DATA_RESULTS/'
 
 # central_dm = 2.972
-central_dm = 5.755
+# central_dm = 5.755
+central_dm = 22.5
 # dm_range = 0.2
-dm_range = 0.5
+# dm_range = 0.5
+dm_range = 22.5
 # dm_points = 51  # 41
-dm_points = 11  # 41  101
+dm_points = 9001  # 41  101
 
-time_res = 0.007944     # Time resolution, s
+# time_res = 0.007944     # Time resolution, s
+time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s
 fig_time = 30           # Time on one figure, s
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
@@ -34,7 +38,7 @@ data_types = ['chA']
 # Calibration file needed only if cross-spectra are involved
 phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 
-save_long_dyn_spectra = False   # Save figures of the whole observation spectrogram?
+save_long_dyn_spectra = True   # Save figures of the whole observation spectrogram?
 
 colormap = 'Greys'            # Colormap of images of dynamic spectra ('jet', 'Purples' or 'Greys')
 custom_dpi = 300              # Resolution of images of dynamic spectra
@@ -111,6 +115,9 @@ for i in range(int(len(dm_vector)/2)):
 k = int(len(dm_vector)/2)  # Central value
 print(k, '        ', dm_vector[k])
 
+# Removing possible values less than 2 pc/cm3 from DM vector
+dm_vector = [elem for elem in dm_vector if elem > 2]
+
 print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making long DAT file of the initial data')
 
 # Find all jds files in folder:
@@ -139,8 +146,10 @@ for file in range(len(file_name_list_current)):
 # del file_header
 
 
+# """
+
 # Run JDS/ADR reader for the current folder
-# '''
+
 done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, jds_result_path, 2048, 0,
                                                             8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
                                                             CorrelationProcess, longFileSaveAch, longFileSaveBch,
@@ -175,8 +184,8 @@ if save_long_dyn_spectra:
     print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
           dat_file_name, ', of types:', data_types_to_process, '\n')
 
-    # result_folder_name = source_directory.split('/')[-2] + '_initial'
-    result_folder_name = os.path.split(source_directory)[-2] + '_initial'
+    result_folder_name = source_directory.split(os.sep)[-1] + '_initial'
+    # result_folder_name = os.path.split(source_directory)[-1] + '_initial'
 
     ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
                          0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
@@ -209,11 +218,13 @@ for i in range(len(data_types_to_process)):
     dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
                         1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
-# '''
+# """
+
 #
 #
-# data_types_to_process = ['chA']
+data_types_to_process = ['chA']
 # dat_file_name = 'P130422_121607.jds'
+dat_file_name = 'C250122_070501.jds'
 #
 #
 #
@@ -224,19 +235,28 @@ print('\n\n  * ', str(datetime.datetime.now())[:19], ' * First dispersion delay 
 amp_min = -0.15
 amp_max = 0.55
 dedispersed_data_file_list = []
+calculated_dm_vector = []
 
 # for i in range(len(data_types_to_process)):
 for k in range(dm_points):
+    
+    if dm_vector[k] > 0:
+    
+        print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
+            dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
 
-    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
-          dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
+        try:
+            dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  dat_file_name + '_Data_' + data_types_to_process[0] + '.dat', 
+                                                                        'Transient', 512, amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
+                                                                        'Greys', use_mask_file=True, save_pics=False, source_dm=dm_vector[k],
+                                                                        result_path=path_to_dat_files, print_or_not=False)
 
-    dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  dat_file_name + '_Data_' + data_types_to_process[0] + '.dat', 
-                                                                'Transient', 512, amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
-                                                                'Greys', use_mask_file=True, save_pics=False, source_dm=dm_vector[k],
-                                                                result_path=path_to_dat_files, print_or_not=False)
-
-    dedispersed_data_file_list.append(dedispersed_data_file_name)
+            dedispersed_data_file_list.append(dedispersed_data_file_name)
+            calculated_dm_vector.append(dm_vector[k])
+        except:
+            print("    Calculation failed!")
+    else:
+        pass
 #
 #
 #
@@ -263,6 +283,8 @@ for k in range(dm_points-1):
                                                          result_path=path_to_dat_files)
 
 '''
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change the input of function to list of DM values (calculated_dm_vector) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0],
                                                    central_dm, dm_range, dm_points)
