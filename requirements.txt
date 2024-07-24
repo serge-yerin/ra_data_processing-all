@@ -13,3 +13,4 @@ opencv-python-headless
 PyAstronomy
 PyQt5
 openpyxl
+tqdm
