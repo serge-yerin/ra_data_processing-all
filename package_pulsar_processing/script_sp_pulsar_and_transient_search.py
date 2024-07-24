@@ -1,6 +1,6 @@
 
 # Python3
-software_version = '2024.07.20'
+software_version = '2024.07.24'
 software_name = 'Transient Search Script'
 """
 The main goal to the script is to analyze of (cross)spectra of transient or pulsar data to find anomalously intense 
@@ -13,23 +13,23 @@ matrix. The matrix is plotted as a dynamic spectrum.
 #                              P A R A M E T E R S                              *
 # *******************************************************************************
 # Directory of files to be analyzed:
-# source_directory = '../../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
-# source_directory = 'e:/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
-source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/'
+# source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+# source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/'
 result_directory = '../RA_DATA_RESULTS/'
 
 # central_dm = 2.972
-# central_dm = 5.755
-central_dm = 12.0
-# dm_range = 0.2
+central_dm = 5.755
+# central_dm = 12.0
+dm_range = 0.2
 # dm_range = 0.5
-dm_range = 3.0
+# dm_range = 3.0
 # dm_points = 51  # 41
-dm_points = 301  # 41  101
+dm_points = 31  # 41  101
 
-# time_res = 0.007944     # Time resolution, s
-time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s
+time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s  (0.007944 s)
 fig_time = 30           # Time on one figure, s
+n_proc = 2              # Number of processes when making dedispersion (less than CPU cores)
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
@@ -57,6 +57,7 @@ import sys
 import datetime
 import numpy as np
 from os import path
+from tqdm import tqdm
 import multiprocessing 
 
 # To change system path to main directory of the project:
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     #
     #
     print('\n\n\n\n   ***************************************************************************')
-    print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2022')
+    print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2024')
     print('   *************************************************************************** \n')
 
     source_directory = os.path.normpath(source_directory)
@@ -112,11 +113,13 @@ if __name__ == '__main__':
     dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
 
     # Printing to terminal the DM values vector
-    print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
+    print('\n  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points, '\n')
     for i in range(int(len(dm_vector)/2)):
-        print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
+        print(" {:>3}   {:<10}    |    {:<10}   {:>3} ".format(i, np.round(dm_vector[i], 6), np.round(dm_vector[-(i+1)], 6), len(dm_vector)-i-1))
+
     k = int(len(dm_vector)/2)  # Central value
-    print(k, '        ', dm_vector[k])
+    print(" {:>3}            {:^10}  ".format(k, np.round(dm_vector[k], 6)))
+
 
     # Removing possible values less than 2 pc/cm3 from DM vector
     dm_vector = [elem for elem in dm_vector if elem > 2]
@@ -128,7 +131,7 @@ if __name__ == '__main__':
 
     # Path to intermediate data files and results
     if result_directory == '':
-        result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
+        result_directory = os.path.dirname(os.path.realpath(__file__))
 
     # Configuring paths to save intermediate and result files
     result_folder_name = source_directory.split(os.sep)[-1]
@@ -137,6 +140,7 @@ if __name__ == '__main__':
 
     for file in range(len(file_name_list_current)):
         file_name_list_current[file] = os.path.join(source_directory, file_name_list_current[file])
+
 
     # # Read data file header
     # with open(filepath, 'rb') as file:
@@ -149,7 +153,7 @@ if __name__ == '__main__':
     # del file_header
 
 
-    """
+    # """
 
     # Run JDS/ADR reader for the current folder
 
@@ -160,10 +164,14 @@ if __name__ == '__main__':
                                                                 DynSpecSaveCleaned, CorrSpecSaveInitial,
                                                                 CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
                                                                 print_verbose=0)
-
+    #
+    #
+    #
     # dat_file_list = ['chA']
     # dat_file_name = 'P130422_121607.jds'
-
+    #
+    #
+    #
 
     # Take only channel A, channel B and Cross Spectra amplitude if present
     data_types_to_process = []
@@ -221,19 +229,19 @@ if __name__ == '__main__':
         dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
                             1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
-    """
+    # """
 
     #
     #
-    data_types_to_process = ['chA']
+    # data_types_to_process = ['chA']
     # dat_file_name = 'P130422_121607.jds'
-    dat_file_name = 'C250122_070501.jds'
+    # dat_file_name = 'C250122_070501.jds'
     #
     #
     #
 
     # Dispersion delay removing in a loop for all values in DM vector
-    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * First dispersion delay removing... \n\n')
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing... \n')
 
     amp_min = -0.15
     amp_max = 0.55
@@ -262,7 +270,7 @@ if __name__ == '__main__':
     #         pass
 
     
-
+    # Running incoherent dedispersion for many DM values in parallel
     args = (path_to_dat_files,  
             dat_file_name + '_Data_' + data_types_to_process[0] + '.dat',  
             'Transient', 512, amp_min, amp_max, False, 
@@ -273,10 +281,10 @@ if __name__ == '__main__':
             "result_path": path_to_dat_files, 
             "print_or_not": False}
 
-    n_proc = 2
     pool = multiprocessing.Pool(processes=n_proc) 
 
-    result_async = [pool.apply_async(pulsar_incoherent_dedispersion, args, {**{"source_dm": dm}, **kwargs} ) for dm in dm_vector]   # for i in range(100, 200, 10)
+    result_async = tqdm([pool.apply_async(pulsar_incoherent_dedispersion, args, {**{"source_dm": dm}, **kwargs}) for dm in dm_vector]) 
+
     dedispersed_data_file_list = [r.get() for r in result_async]
 
     #
@@ -307,6 +315,8 @@ if __name__ == '__main__':
     '''
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change the input of function to list of DM values (calculated_dm_vector) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Aligning profiles in time and saving array to file... \n\n')
 
     data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0],
                                                     central_dm, dm_range, dm_points)
