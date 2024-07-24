@@ -28,11 +28,18 @@ if __name__ == '__main__':
 """
 
 import multiprocessing 
+import time
+from tqdm import tqdm
+
+# # progress indicator for tasks in the process pool
+# def progress(results):
+#     print('.', end='', flush=True)
+    
 
 def square(x, *args, **kwargs) : # , **kwargs
     
-    print("\n",  x, args[0], kwargs, "\n")
-    
+    # print("\n",  x, args[0], kwargs, "\n")
+    time.sleep(2)
     return kwargs["n"] 
   
 if __name__ == '__main__': 
@@ -42,11 +49,11 @@ if __name__ == '__main__':
     my_kwargs_2 = {'a': 5}
     args = ("a", )
     
-    result_async = [pool.apply_async(square, (1, ) + args , {**{"c": i}, **my_kwargs_1}) for i in range(10)] 
+    result_async = tqdm([pool.apply_async(square, (1, ) + args , {**{"c": i}, **my_kwargs_1}) for i in range(30)])  # , callback=progress
     
     results = [r.get() for r in result_async] 
 
-    print("Output: {}".format(results)) 
+    print("\n Output: {}".format(results)) 
     
     
     
