@@ -20,12 +20,12 @@ result_directory = '../RA_DATA_RESULTS/'
 
 # central_dm = 2.972
 # central_dm = 5.755
-central_dm = 22.5
+central_dm = 12.0
 # dm_range = 0.2
 # dm_range = 0.5
-dm_range = 22.5
+dm_range = 3.0
 # dm_points = 51  # 41
-dm_points = 9001  # 41  101
+dm_points = 301  # 41  101
 
 # time_res = 0.007944     # Time resolution, s
 time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s
@@ -57,6 +57,7 @@ import sys
 import datetime
 import numpy as np
 from os import path
+import multiprocessing 
 
 # To change system path to main directory of the project:
 if __package__ is None:
@@ -75,226 +76,247 @@ from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 from package_ra_data_processing.f_cross_spectra_phase_calibration import cross_spectra_phase_calibration
 # ###############################################################################
 
-# Preparations for automatic processing
-if 'chA' in data_types:
-    longFileSaveAch = 1
-else:
-    longFileSaveAch = 0
+if __name__ == '__main__':
 
-if 'chB' in data_types:
-    longFileSaveBch = 1
-else:
-    longFileSaveBch = 0
-
-longFileSaveCMP = 0
-
-if 'C_m' in data_types:
-    CorrelationProcess = 1
-    long_file_save_im_re = 1
-else:
-    CorrelationProcess = 0
-    long_file_save_im_re = 0
-
-#
-#
-#
-print('\n\n\n\n   ***************************************************************************')
-print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2022')
-print('   *************************************************************************** \n')
-
-source_directory = os.path.normpath(source_directory)
-result_directory = os.path.normpath(result_directory)
-
-# Making a DM values vector
-dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
-
-# Printing to terminal the DM values vector
-print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
-for i in range(int(len(dm_vector)/2)):
-    print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
-k = int(len(dm_vector)/2)  # Central value
-print(k, '        ', dm_vector[k])
-
-# Removing possible values less than 2 pc/cm3 from DM vector
-dm_vector = [elem for elem in dm_vector if elem > 2]
-
-print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making long DAT file of the initial data')
-
-# Find all jds files in folder:
-file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
-
-# Path to intermediate data files and results
-if result_directory == '':
-    result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
-
-# Configuring paths to save intermediate and result files
-result_folder_name = source_directory.split(os.sep)[-1]
-path_to_dat_files = os.path.join(result_directory, 'Transient_search_' + result_folder_name)
-jds_result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
-
-for file in range(len(file_name_list_current)):
-    file_name_list_current[file] = os.path.join(source_directory, file_name_list_current[file])
-
-# # Read data file header
-# with open(filepath, 'rb') as file:
-#     file_header = file.read(1024)
-#
-# # Create a small binary file with header
-# file_data = open(jds_result_path + '/' + filename, 'wb')
-# file_data.write(file_header)
-# file_data.close()
-# del file_header
-
-
-# """
-
-# Run JDS/ADR reader for the current folder
-
-done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, jds_result_path, 2048, 0,
-                                                            8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
-                                                            CorrelationProcess, longFileSaveAch, longFileSaveBch,
-                                                            long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
-                                                            DynSpecSaveCleaned, CorrSpecSaveInitial,
-                                                            CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
-                                                            print_verbose=0)
-
-# dat_file_list = ['chA']
-# dat_file_name = 'P130422_121607.jds'
-
-
-# Take only channel A, channel B and Cross Spectra amplitude if present
-data_types_to_process = []
-if 'chA' in dat_file_list and 'chA' in data_types:
-    data_types_to_process.append('chA')
-if 'chB' in dat_file_list and 'chB' in data_types:
-    data_types_to_process.append('chB')
-if 'CRe' in dat_file_list and 'C_m' in data_types:
-    data_types_to_process.append('C_m')
-
-
-# Calibrate phase of cross-correlation data if needed
-if 'C_m' in data_types_to_process:
-
-    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Calibrating cross-spectra data')
-    cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
-                                    save_complex=False, save_module=True, save_phase=True, log_module=False)
-
-
-if save_long_dyn_spectra:
-    print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
-          dat_file_name, ', of types:', data_types_to_process, '\n')
-
-    result_folder_name = source_directory.split(os.sep)[-1] + '_initial'
-    # result_folder_name = os.path.split(source_directory)[-1] + '_initial'
-
-    ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
-                         0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
-                         16.5, 33.0, [], 0)
-
-#
-#
-#
-# dat_file_name = 'C250122_214003.jds'
-# data_types_to_process = ['chA']
-#
-#
-#
-
-# RFI mask making
-print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
-
-for i in range(len(data_types_to_process)):
-    if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
-        delta_sigma = 0.005  # 0.05
-        n_sigma = 1.0  # 2
-        min_l = 20  # 30
-    elif data_types_to_process[i] == 'C_m':
-        delta_sigma = 0.1
-        n_sigma = 5
-        min_l = 30
+    # Preparations for automatic processing
+    if 'chA' in data_types:
+        longFileSaveAch = 1
     else:
-        sys.exit('            Type error!')
+        longFileSaveAch = 0
 
-    dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
-                        1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
-
-# """
-
-#
-#
-data_types_to_process = ['chA']
-# dat_file_name = 'P130422_121607.jds'
-dat_file_name = 'C250122_070501.jds'
-#
-#
-#
-
-# Dispersion delay removing in a loop for all values in DM vector
-print('\n\n  * ', str(datetime.datetime.now())[:19], ' * First dispersion delay removing... \n\n')
-
-amp_min = -0.15
-amp_max = 0.55
-dedispersed_data_file_list = []
-calculated_dm_vector = []
-
-# for i in range(len(data_types_to_process)):
-for k in range(dm_points):
-    
-    if dm_vector[k] > 0:
-    
-        print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
-            dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
-
-        try:
-            dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  dat_file_name + '_Data_' + data_types_to_process[0] + '.dat', 
-                                                                        'Transient', 512, amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
-                                                                        'Greys', use_mask_file=True, save_pics=False, source_dm=dm_vector[k],
-                                                                        result_path=path_to_dat_files, print_or_not=False)
-
-            dedispersed_data_file_list.append(dedispersed_data_file_name)
-            calculated_dm_vector.append(dm_vector[k])
-        except:
-            print("    Calculation failed!")
+    if 'chB' in data_types:
+        longFileSaveBch = 1
     else:
-        pass
-#
-#
-#
-# dedispersed_data_file_list = ['Transient_DM_5.255_P130422_121607.jds_Data_chA.dat']
-#
-#
-#
+        longFileSaveBch = 0
 
-'''
-dir_name, file_name = separate_filename_and_path(dedispersed_data_file_list[0])
-batch_factor = 1
+    longFileSaveCMP = 0
 
-for k in range(dm_points-1):
+    if 'C_m' in data_types:
+        CorrelationProcess = 1
+        long_file_save_im_re = 1
+    else:
+        CorrelationProcess = 0
+        long_file_save_im_re = 0
 
-    current_add_dm = dm_vector[k + 1] - dm_vector[0]
+    #
+    #
+    #
+    print('\n\n\n\n   ***************************************************************************')
+    print('   *               ', software_name, ' v.', software_version, '                  *      (c) YeS 2022')
+    print('   *************************************************************************** \n')
 
-    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
-          ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
+    source_directory = os.path.normpath(source_directory)
+    result_directory = os.path.normpath(result_directory)
 
-    dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, file_name,
-                                                         current_add_dm, 'Transient', batch_factor,
-                                                         512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
-                                                         start_dm=0, use_mask_file=True, save_images=False,
-                                                         result_path=path_to_dat_files)
+    # Making a DM values vector
+    dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
 
-'''
+    # Printing to terminal the DM values vector
+    print('  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points)
+    for i in range(int(len(dm_vector)/2)):
+        print(i, '   ', np.round(dm_vector[i], 6), '   ', np.round(dm_vector[-(i+1)], 6))
+    k = int(len(dm_vector)/2)  # Central value
+    print(k, '        ', dm_vector[k])
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change the input of function to list of DM values (calculated_dm_vector) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # Removing possible values less than 2 pc/cm3 from DM vector
+    dm_vector = [elem for elem in dm_vector if elem > 2]
 
-data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0],
-                                                   central_dm, dm_range, dm_points)
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making long DAT file of the initial data')
 
-# Separate file name and path
-data_path, data_file_name = os.path.split(data_file_name)
-data_path, tl_file_name = os.path.split(tl_file_name)
+    # Find all jds files in folder:
+    file_name_list_current = find_files_only_in_current_folder(source_directory, '.jds', 0)
 
-# Read and plot the file of various DM tine profiles
-read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
-                          time_res, fig_time, print_or_not=True)
+    # Path to intermediate data files and results
+    if result_directory == '':
+        result_directory = os.path.dirname(os.path.realpath(__file__))  # + '/'
 
-print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
+    # Configuring paths to save intermediate and result files
+    result_folder_name = source_directory.split(os.sep)[-1]
+    path_to_dat_files = os.path.join(result_directory, 'Transient_search_' + result_folder_name)
+    jds_result_path = os.path.join(path_to_dat_files, 'JDS_Results_' + result_folder_name)
+
+    for file in range(len(file_name_list_current)):
+        file_name_list_current[file] = os.path.join(source_directory, file_name_list_current[file])
+
+    # # Read data file header
+    # with open(filepath, 'rb') as file:
+    #     file_header = file.read(1024)
+    #
+    # # Create a small binary file with header
+    # file_data = open(jds_result_path + '/' + filename, 'wb')
+    # file_data.write(file_header)
+    # file_data.close()
+    # del file_header
+
+
+    """
+
+    # Run JDS/ADR reader for the current folder
+
+    done_or_not, dat_file_name, dat_file_list = jds_file_reader(file_name_list_current, jds_result_path, 2048, 0,
+                                                                8, -100, -40, 0, 6, -150, -30, colormap, custom_dpi,
+                                                                CorrelationProcess, longFileSaveAch, longFileSaveBch,
+                                                                long_file_save_im_re, longFileSaveCMP, DynSpecSaveInitial,
+                                                                DynSpecSaveCleaned, CorrSpecSaveInitial,
+                                                                CorrSpecSaveCleaned, 0, 0, dat_files_path=path_to_dat_files,
+                                                                print_verbose=0)
+
+    # dat_file_list = ['chA']
+    # dat_file_name = 'P130422_121607.jds'
+
+
+    # Take only channel A, channel B and Cross Spectra amplitude if present
+    data_types_to_process = []
+    if 'chA' in dat_file_list and 'chA' in data_types:
+        data_types_to_process.append('chA')
+    if 'chB' in dat_file_list and 'chB' in data_types:
+        data_types_to_process.append('chB')
+    if 'CRe' in dat_file_list and 'C_m' in data_types:
+        data_types_to_process.append('C_m')
+
+
+    # Calibrate phase of cross-correlation data if needed
+    if 'C_m' in data_types_to_process:
+
+        print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Calibrating cross-spectra data')
+        cross_spectra_phase_calibration(path_to_dat_files, dat_file_name, path_to_dat_files, phase_calibr_txt_file, 2048,
+                                        save_complex=False, save_module=True, save_phase=True, log_module=False)
+
+
+    if save_long_dyn_spectra:
+        print('\n * ', str(datetime.datetime.now())[:19], ' * DAT reader analyzes file: \n',
+            dat_file_name, ', of types:', data_types_to_process, '\n')
+
+        result_folder_name = source_directory.split(os.sep)[-1] + '_initial'
+        # result_folder_name = os.path.split(source_directory)[-1] + '_initial'
+
+        ok = DAT_file_reader(path_to_dat_files, dat_file_name, data_types_to_process, path_to_dat_files, result_folder_name,
+                            0, 0, 0, -120, -10, 0, 6, 6, 300, 'jet', 0, 0, 0, 20 * 10**(-12), 16.5, 33.0, '', '',
+                            16.5, 33.0, [], 0)
+
+    #
+    #
+    #
+    # dat_file_name = 'C250122_214003.jds'
+    # data_types_to_process = ['chA']
+    #
+    #
+    #
+
+    # RFI mask making
+    print('\n\n * ', str(datetime.datetime.now())[:19], ' * Making mask to clean data \n')
+
+    for i in range(len(data_types_to_process)):
+        if data_types_to_process[i] == 'chA' or data_types_to_process[i] == 'chB':
+            delta_sigma = 0.005  # 0.05
+            n_sigma = 1.0  # 2
+            min_l = 20  # 30
+        elif data_types_to_process[i] == 'C_m':
+            delta_sigma = 0.1
+            n_sigma = 5
+            min_l = 30
+        else:
+            sys.exit('            Type error!')
+
+        dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
+                            1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
+
+    """
+
+    #
+    #
+    data_types_to_process = ['chA']
+    # dat_file_name = 'P130422_121607.jds'
+    dat_file_name = 'C250122_070501.jds'
+    #
+    #
+    #
+
+    # Dispersion delay removing in a loop for all values in DM vector
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * First dispersion delay removing... \n\n')
+
+    amp_min = -0.15
+    amp_max = 0.55
+    dedispersed_data_file_list = []
+    calculated_dm_vector = []
+
+    # # for i in range(len(data_types_to_process)):
+    # for k in range(dm_points):
+        
+    #     if dm_vector[k] > 0:
+        
+    #         print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
+    #             dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
+
+    #         try:
+    #             dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  dat_file_name + '_Data_' + data_types_to_process[0] + '.dat', 
+    #                                                                         'Transient', 512, amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
+    #                                                                         'Greys', use_mask_file=True, save_pics=False, source_dm=dm_vector[k],
+    #                                                                         result_path=path_to_dat_files, print_or_not=False)
+
+    #             dedispersed_data_file_list.append(dedispersed_data_file_name)
+    #             calculated_dm_vector.append(dm_vector[k])
+    #         except:
+    #             print("    Calculation failed!")
+    #     else:
+    #         pass
+
+    
+
+    args = (path_to_dat_files,  
+            dat_file_name + '_Data_' + data_types_to_process[0] + '.dat',  
+            'Transient', 512, amp_min, amp_max, False, 
+            16.5, 33.0, True, False, 300, 'Greys')
+
+    kwargs = {"use_mask_file": True, 
+            "save_pics": False, 
+            "result_path": path_to_dat_files, 
+            "print_or_not": False}
+
+    n_proc = 2
+    pool = multiprocessing.Pool(processes=n_proc) 
+
+    result_async = [pool.apply_async(pulsar_incoherent_dedispersion, args, {**{"source_dm": dm}, **kwargs} ) for dm in dm_vector]   # for i in range(100, 200, 10)
+    dedispersed_data_file_list = [r.get() for r in result_async]
+
+    #
+    #
+    #
+    # dedispersed_data_file_list = ['Transient_DM_5.255_P130422_121607.jds_Data_chA.dat']
+    #
+    #
+    #
+
+    '''
+    dir_name, file_name = separate_filename_and_path(dedispersed_data_file_list[0])
+    batch_factor = 1
+
+    for k in range(dm_points-1):
+
+        current_add_dm = dm_vector[k + 1] - dm_vector[0]
+
+        print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ', dm_points-1,
+            ' DM: ', np.round(current_add_dm, 6), ' pc / cm3 \n\n')
+
+        dedispersed_data_file_name = incoherent_dedispersion(path_to_dat_files, file_name,
+                                                            current_add_dm, 'Transient', batch_factor,
+                                                            512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
+                                                            start_dm=0, use_mask_file=True, save_images=False,
+                                                            result_path=path_to_dat_files)
+
+    '''
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change the input of function to list of DM values (calculated_dm_vector) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0],
+                                                    central_dm, dm_range, dm_points)
+
+    # Separate file name and path
+    data_path, data_file_name = os.path.split(data_file_name)
+    data_path, tl_file_name = os.path.split(tl_file_name)
+
+    # Read and plot the file of various DM tine profiles
+    read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
+                            time_res, fig_time, print_or_not=True)
+
+    print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
