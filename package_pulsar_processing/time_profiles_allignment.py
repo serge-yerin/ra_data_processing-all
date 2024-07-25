@@ -26,8 +26,7 @@ dm_range = 0.5
 dm_points = 101
 
 
-def align_time_profiles(common_path, dat_file_name, data_type_to_process, central_dm, dm_range, dm_points,
-                        print_or_not=True):
+def align_time_profiles(common_path, dat_file_name, data_type_to_process, central_dm, dm_range, dm_points, print_or_not=True):
     """
     Function aligns time profiles with their timelines for transient search
     Input parameters:
@@ -41,6 +40,7 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
 
     """
     dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
+
     if print_or_not:
         print('\n\n  Reading DM variation in range: ', dm_vector[0], ' - ', dm_vector[-1], 'pc / cm3')
         print('\n  Selecting common time segment... \n')
@@ -125,7 +125,7 @@ def align_time_profiles(common_path, dat_file_name, data_type_to_process, centra
     new_data_file = open(new_data_file_name, 'wb')
     time_points_num = np.int64(data_array.shape[1])
     new_data_file.write(time_points_num)             # Number of time points
-    new_data_file.write(np.int64(dm_points))         # Number of DM points
+    new_data_file.write(np.int64(len(dm_vector)))    # Number of DM points
     new_data_file.write(np.float64(central_dm))      # Central DM
     new_data_file.write(np.float64(dm_range))        # DM range
     new_data_file.write(data_array)                  # Data array
@@ -246,8 +246,11 @@ def read_and_plot_var_dm_file(data_path, data_file_name, tl_file_name, result_pa
 
 if __name__ == '__main__':
 
-    data_file_name, tl_file_name = align_time_profiles(common_path, dat_file_name, data_type_to_process,
-                                                       central_dm, dm_range, dm_points)
+    # Calculating DM vector to display DM values
+    dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
+
+    data_file_name, tl_file_name = align_time_profiles(common_path, dat_file_name, data_type_to_process, dm_vector)
+                                                       
 
     from package_common_modules.text_manipulations import separate_filename_and_path
     # data_path, data_file_name = separate_filename_and_path(data_file_name)
