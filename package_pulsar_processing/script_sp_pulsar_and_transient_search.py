@@ -314,12 +314,9 @@ if __name__ == '__main__':
 
     '''
 
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change the input of function to list of DM values (calculated_dm_vector) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Aligning profiles in time and saving array to file... \n\n')
 
-    data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0],
-                                                    central_dm, dm_range, dm_points)
+    data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0], central_dm, dm_range, dm_points)
 
     # Separate file name and path
     data_path, data_file_name = os.path.split(data_file_name)
@@ -327,6 +324,6 @@ if __name__ == '__main__':
 
     # Read and plot the file of various DM tine profiles
     read_and_plot_var_dm_file(path_to_dat_files, data_file_name, tl_file_name, path_to_dat_files,
-                            time_res, fig_time, print_or_not=True)
+                              time_res, fig_time, print_or_not=True)
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
