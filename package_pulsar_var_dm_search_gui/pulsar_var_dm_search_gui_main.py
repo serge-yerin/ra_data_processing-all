@@ -75,12 +75,13 @@ class MyTableWidget(QWidget):
         self.tab5 = QWidget()
 
         # Add tabs
-        self.tabs.addTab(self.tab1, "Process JDS data")
-        self.tabs.addTab(self.tab2, "Analyze profile")
-        self.tabs.addTab(self.tab3, "Analyze 1-8 parts")
-        self.tabs.addTab(self.tab4, "Analyze 16 parts")
-        self.tabs.addTab(self.tab5, "Process Excel DB")
+        self.tabs.addTab(self.tab1, "Preprocess JDS data")
+        self.tabs.addTab(self.tab2, "Data in time domain")
+        self.tabs.addTab(self.tab3, "Data in spectral domain")
+        # self.tabs.addTab(self.tab4, "Analyze 16 parts")
+        # self.tabs.addTab(self.tab5, "Process Excel DB")
 
+        self.time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
 
 
 
@@ -124,9 +125,6 @@ class MyTableWidget(QWidget):
         # Added empty label to separate workflows
         self.empty_label = QLabel(' ', self)
         self.tab1.layout.addWidget(self.empty_label, 2, 1)
-
-
-
 
 
         # First tab second part
@@ -229,8 +227,6 @@ class MyTableWidget(QWidget):
 
 
 
-
-
         # Nested horizontal layout for DM entry
         self.dm_calc_layout = QHBoxLayout()
 
@@ -297,15 +293,6 @@ class MyTableWidget(QWidget):
 
         # Add nested horizontal layout to the main one
         self.tab1.layout.addLayout(self.dm_calc_layout, 6, 1)
-
-
-
-
-
-
-
-
-
 
 
         # Button "Preprocess jds files"
@@ -406,31 +393,29 @@ class MyTableWidget(QWidget):
 
         # Layouts in the second tab
         self.tab2.layout = QVBoxLayout(self.tab2)
-        self.input_controls_layout = QHBoxLayout()
+        self.input_controls_layout_t2 = QHBoxLayout()
 
-        self.time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
+        # self.time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
 
         # Creating labels near spinboxes to describe the input
         self.label_median_win = QLabel("Median window:", self)
         self.label_median_win.setFixedSize(QSize(90, 30))
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.label_low_limit_input = QLabel("Lower limit", self)
-        self.label_low_limit_input.setFixedSize(QSize(70, 30))
-        self.label_low_limit_input.setWordWrap(True)  # making label multi line
-        self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+        # self.label_low_limit_input = QLabel("Lower limit", self)
+        # self.label_low_limit_input.setFixedSize(QSize(70, 30))
+        # self.label_low_limit_input.setWordWrap(True)  # making label multi line
+        # self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.label_high_limit_input = QLabel("Higher limit", self)
-        self.label_high_limit_input.setFixedSize(QSize(70, 30))
-        self.label_high_limit_input.setWordWrap(True)  # making label multi line
-        self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+        # self.label_high_limit_input = QLabel("Higher limit", self)
+        # self.label_high_limit_input.setFixedSize(QSize(70, 30))
+        # self.label_high_limit_input.setWordWrap(True)  # making label multi line
+        # self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.label_aver_const = QLabel("Average window", self)
-        self.label_aver_const.setFixedSize(QSize(90, 30))
-        self.label_aver_const.setWordWrap(True)  # making label multi line
-        self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
-
-        # Selection of limits with spinboxes
+        # self.label_aver_const = QLabel("Average window", self)
+        # self.label_aver_const.setFixedSize(QSize(90, 30))
+        # self.label_aver_const.setWordWrap(True)  # making label multi line
+        # self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
 
         self.filter_win_input = QDoubleSpinBox()
         self.filter_win_input.setFixedSize(QSize(70, 30))
@@ -438,322 +423,428 @@ class MyTableWidget(QWidget):
         self.filter_win_input.setMaximum(100000)
         self.filter_win_input.setValue(100)
 
-        self.aver_const_input = QDoubleSpinBox()
-        self.aver_const_input.setFixedSize(QSize(60, 30))
-        self.aver_const_input.setMinimum(1)
-        self.aver_const_input.setMaximum(300)
-        self.aver_const_input.setValue(1)
-
-        step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
-
-        self.low_limit_input = QDoubleSpinBox()
-        self.low_limit_input.setStepType(step_type)
-        self.low_limit_input.setMinimum(-10.0)
-        self.low_limit_input.setFixedSize(QSize(60, 30))
-        self.low_limit_input.setValue(-3)
-
-        self.high_limit_input = QDoubleSpinBox()
-        self.high_limit_input.setStepType(step_type)
-        self.high_limit_input.setMinimum(-10.0)
-        self.high_limit_input.setFixedSize(QSize(60, 30))
-        self.high_limit_input.setValue(3)
-
         # Main plot window
-        self.figure = plt.figure()  # a figure instance to plot on
-        self.canvas = FigureCanvas(self.figure)  # takes the 'figure' instance as a parameter to __init__
+        self.figure_time = plt.figure()  # a figure instance to plot on
+        self.canvas_time = FigureCanvas(self.figure_time)  # takes the 'figure' instance as a parameter to __init__
 
         # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
-        self.toolbar = NavigationToolbar(self.canvas, self)
+        self.toolbar_time = NavigationToolbar(self.canvas_time, self)
 
         # Button "Read data"
-        self.button_read = QPushButton('Read data')
-        self.button_read.clicked.connect(self.thread_read_initial_data)  # adding action to the button
-        self.button_read.setFixedSize(QSize(100, 30))
+        self.button_read_time = QPushButton('Read data')
+        self.button_read_time.clicked.connect(self.thread_read_initial_data)  # adding action to the button
+        self.button_read_time.setFixedSize(QSize(100, 30))
 
         # Button "Subtract median"
-        self.button_filter = QPushButton('Subtract median')
-        self.button_filter.clicked.connect(self.subtract_median)  # adding action to the button
-        self.button_filter.setFixedSize(QSize(110, 30))
-
-        # Button "Average data"
-        self.button_average = QPushButton('Moving average')
-        self.button_average.clicked.connect(self.average_time_data)  # adding action to the button
-        self.button_average.setFixedSize(QSize(110, 30))
-
-        # Button "Crop data"
-        self.button_crop = QPushButton('Crop data')
-        self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
-        self.button_crop.setFixedSize(QSize(100, 30))
+        self.button_filter_time = QPushButton('Subtract median')
+        self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)  # adding action to the button
+        self.button_filter_time.setFixedSize(QSize(110, 30))
 
         # Packing layouts in the window
-        self.input_controls_layout.addWidget(self.label_median_win)
-        self.input_controls_layout.addWidget(self.filter_win_input)
-        self.input_controls_layout.addWidget(self.button_read)
-        self.input_controls_layout.addWidget(self.button_filter)
-        self.input_controls_layout.addWidget(self.label_aver_const)
-        self.input_controls_layout.addWidget(self.aver_const_input)
-        self.input_controls_layout.addWidget(self.button_average)
-        self.input_controls_layout.addWidget(self.label_low_limit_input)
-        self.input_controls_layout.addWidget(self.low_limit_input)
-        self.input_controls_layout.addWidget(self.label_high_limit_input)
-        self.input_controls_layout.addWidget(self.high_limit_input)
-        self.input_controls_layout.addWidget(self.button_crop)
+        self.input_controls_layout_t2.addWidget(self.button_read_time)
+        self.input_controls_layout_t2.addWidget(self.label_median_win)
+        self.input_controls_layout_t2.addWidget(self.filter_win_input)
+        self.input_controls_layout_t2.addWidget(self.button_filter_time)
+        # self.input_controls_layout.addWidget(self.label_aver_const)
+        # self.input_controls_layout.addWidget(self.aver_const_input)
+        # self.input_controls_layout.addWidget(self.button_average)
+        # self.input_controls_layout.addWidget(self.label_low_limit_input)
+        # self.input_controls_layout.addWidget(self.low_limit_input)
+        # self.input_controls_layout.addWidget(self.label_high_limit_input)
+        # self.input_controls_layout.addWidget(self.high_limit_input)
+        # self.input_controls_layout.addWidget(self.button_crop)
 
-        self.tab2.layout.addLayout(self.input_controls_layout)
+        self.tab2.layout.addLayout(self.input_controls_layout_t2)
         
-        self.toolbar_frequency_layout = QHBoxLayout()
+        self.toolbar_layout_t2 = QHBoxLayout()
 
-        # Creating labels to indicate the initial time resolution
-        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
-        self.label_time_resolution = QLabel(label, self)
-        self.label_time_resolution.setFixedSize(QSize(300, 30))
-        self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
+        # # Creating labels to indicate the initial time resolution
+        # label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        # self.label_time_resolution = QLabel(label, self)
+        # self.label_time_resolution.setFixedSize(QSize(300, 30))
+        # self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.frequency_limit = 10  # Hz
+        # self.frequency_limit = 10  # Hz
+        # self.label_freq_resolution = QLabel('Fig frequency limit:', self)
+        # self.label_freq_resolution.setFixedSize(QSize(100, 30))
+        # self.label_freq_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.label_freq_resolution = QLabel('Fig frequency limit:', self)
-        self.label_freq_resolution.setFixedSize(QSize(100, 30))
-        self.label_freq_resolution.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.label_hz = QLabel('Hz', self)
-        self.label_hz.setFixedSize(QSize(15, 30))
-        self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
-
-
-        self.freq_limit_input = QDoubleSpinBox()
-        self.freq_limit_input.setStepType(step_type)
-        self.freq_limit_input.setMinimum(0.0)
-        self.freq_limit_input.setFixedSize(QSize(60, 30))
-        self.freq_limit_input.setValue(self.frequency_limit)
+        # self.label_hz = QLabel('Hz', self)
+        # self.label_hz.setFixedSize(QSize(15, 30))
+        # self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
 
 
-        self.toolbar_frequency_layout.addWidget(self.toolbar)
-        self.toolbar_frequency_layout.addWidget(self.label_time_resolution)
-        self.toolbar_frequency_layout.addWidget(self.label_freq_resolution)
-        self.toolbar_frequency_layout.addWidget(self.freq_limit_input)
-        self.toolbar_frequency_layout.addWidget(self.label_hz)
+        # self.freq_limit_input = QDoubleSpinBox()
+        # self.freq_limit_input.setStepType(step_type)
+        # self.freq_limit_input.setMinimum(0.0)
+        # self.freq_limit_input.setFixedSize(QSize(60, 30))
+        # self.freq_limit_input.setValue(self.frequency_limit)
+
+
+        self.toolbar_layout_t2.addWidget(self.toolbar_time)
+        # self.toolbar_layout_t2.addWidget(self.label_time_resolution)
+        # self.toolbar_layout_t2.addWidget(self.label_freq_resolution)
+        # self.toolbar_layout_t2.addWidget(self.freq_limit_input)
+        # self.toolbar_layout_t2.addWidget(self.label_hz)
         
-        self.tab2.layout.addLayout(self.toolbar_frequency_layout)
-        self.tab2.layout.addWidget(self.canvas)
+        self.tab2.layout.addLayout(self.toolbar_layout_t2)
+        self.tab2.layout.addWidget(self.canvas_time)
 
         self.tab2.setLayout(self.tab2.layout)
 
 
 
 
-
-
         ##############################
-        #         Third tab         #
+        #         Third tab         # +
         ##############################
 
-        # Third tab
-        self.tab3.layout = QVBoxLayout(self.tab3)
-        self.input_controls_layout_t3 = QHBoxLayout()
+        # # Layouts in the third tab
+        # self.tab3.layout = QVBoxLayout(self.tab3)
+        # self.input_controls_layout_t3 = QHBoxLayout()
 
-        # Button "Plot data 1-8"
-        self.button_plot_1_8 = QPushButton('Plot parts of data from 1 to 8')
-        self.button_plot_1_8.clicked.connect(self.plot_spectra_1_8)  # adding action to the button
-        self.button_plot_1_8.setFixedSize(QSize(250, 30))
-        self.input_controls_layout_t3.addWidget(self.button_plot_1_8)
+        # # Creating labels near spinboxes to describe the input
+        # self.label_median_win = QLabel("Median window:", self)
+        # self.label_median_win.setFixedSize(QSize(90, 30))
+        # self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Button "Save data 1-8"
-        self.button_save_1_8 = QPushButton('Save image of data from 1 to 8')
-        self.button_save_1_8.clicked.connect(self.save_spectra_1_8)  # adding action to the button
-        self.button_save_1_8.setFixedSize(QSize(250, 30))
-        self.input_controls_layout_t3.addWidget(self.button_save_1_8)
+        # self.label_low_limit_input = QLabel("Lower limit", self)
+        # self.label_low_limit_input.setFixedSize(QSize(70, 30))
+        # self.label_low_limit_input.setWordWrap(True)  # making label multi line
+        # self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Main plot window
-        self.figure_1_8 = plt.figure()  # a figure instance to plot on
-        self.canvas_1_8 = FigureCanvas(self.figure_1_8)  # takes the 'figure' instance as a parameter to __init__
+        # self.label_high_limit_input = QLabel("Higher limit", self)
+        # self.label_high_limit_input.setFixedSize(QSize(70, 30))
+        # self.label_high_limit_input.setWordWrap(True)  # making label multi line
+        # self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Packing into layouts
-        self.tab3.layout.addLayout(self.input_controls_layout_t3)
-        self.tab3.layout.addWidget(self.canvas_1_8)
+        # self.label_aver_const = QLabel("Average window", self)
+        # self.label_aver_const.setFixedSize(QSize(90, 30))
+        # self.label_aver_const.setWordWrap(True)  # making label multi line
+        # self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.tab3.setLayout(self.tab3.layout)
+        # # Selection of limits with spinboxes
 
+        # self.filter_win_input = QDoubleSpinBox()
+        # self.filter_win_input.setFixedSize(QSize(70, 30))
+        # self.filter_win_input.setMinimum(0)
+        # self.filter_win_input.setMaximum(100000)
+        # self.filter_win_input.setValue(100)
 
+        # self.aver_const_input = QDoubleSpinBox()
+        # self.aver_const_input.setFixedSize(QSize(60, 30))
+        # self.aver_const_input.setMinimum(1)
+        # self.aver_const_input.setMaximum(300)
+        # self.aver_const_input.setValue(1)
 
+        # step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
+        # self.low_limit_input = QDoubleSpinBox()
+        # self.low_limit_input.setStepType(step_type)
+        # self.low_limit_input.setMinimum(-10.0)
+        # self.low_limit_input.setFixedSize(QSize(60, 30))
+        # self.low_limit_input.setValue(-3)
 
+        # self.high_limit_input = QDoubleSpinBox()
+        # self.high_limit_input.setStepType(step_type)
+        # self.high_limit_input.setMinimum(-10.0)
+        # self.high_limit_input.setFixedSize(QSize(60, 30))
+        # self.high_limit_input.setValue(3)
 
-        ##############################
-        #         Fourth tab         #
-        ##############################
+        # # Main plot window
+        # self.figure = plt.figure()  # a figure instance to plot on
+        # self.canvas = FigureCanvas(self.figure)  # takes the 'figure' instance as a parameter to __init__
 
-        # Fourth tab
-        self.tab4.layout = QVBoxLayout(self.tab4)
-        self.input_controls_layout_t4 = QHBoxLayout()
+        # # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
+        # self.toolbar = NavigationToolbar(self.canvas, self)
 
-        # Button "Plot data 16"
-        self.button_plot_16 = QPushButton('Plot parts of data 16 of 16')
-        self.button_plot_16.clicked.connect(self.plot_spectra_16)  # adding action to the button
-        self.button_plot_16.setFixedSize(QSize(250, 30))
-        self.input_controls_layout_t4.addWidget(self.button_plot_16)
+        # # Button "Read data"
+        # self.button_read = QPushButton('Read data')
+        # self.button_read.clicked.connect(self.thread_read_initial_data)  # adding action to the button
+        # self.button_read.setFixedSize(QSize(100, 30))
 
-        # Button "Save data 16"
-        self.button_save_16 = QPushButton('Save image of data 16 of 16')
-        self.button_save_16.clicked.connect(self.save_spectra_16)  # adding action to the button
-        self.button_save_16.setFixedSize(QSize(250, 30))
-        self.input_controls_layout_t4.addWidget(self.button_save_16)
+        # # Button "Subtract median"
+        # self.button_filter = QPushButton('Subtract median')
+        # self.button_filter.clicked.connect(self.subtract_median)  # adding action to the button
+        # self.button_filter.setFixedSize(QSize(110, 30))
 
-        # Main plot window
-        self.figure_16 = plt.figure()  # a figure instance to plot on
-        self.canvas_16 = FigureCanvas(self.figure_16)  # takes the 'figure' instance as a parameter to __init__
+        # # Button "Average data"
+        # self.button_average = QPushButton('Moving average')
+        # self.button_average.clicked.connect(self.average_time_data)  # adding action to the button
+        # self.button_average.setFixedSize(QSize(110, 30))
 
-        # Packing into layouts
-        self.tab4.layout.addLayout(self.input_controls_layout_t4)
-        self.tab4.layout.addWidget(self.canvas_16)
-        self.tab4.setLayout(self.tab4.layout)
+        # # Button "Crop data"
+        # self.button_crop = QPushButton('Crop data')
+        # self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
+        # self.button_crop.setFixedSize(QSize(100, 30))
 
+        # # Packing layouts in the window
+        # self.input_controls_layout.addWidget(self.label_median_win)
+        # self.input_controls_layout.addWidget(self.filter_win_input)
+        # self.input_controls_layout.addWidget(self.button_read)
+        # self.input_controls_layout.addWidget(self.button_filter)
+        # self.input_controls_layout.addWidget(self.label_aver_const)
+        # self.input_controls_layout.addWidget(self.aver_const_input)
+        # self.input_controls_layout.addWidget(self.button_average)
+        # self.input_controls_layout.addWidget(self.label_low_limit_input)
+        # self.input_controls_layout.addWidget(self.low_limit_input)
+        # self.input_controls_layout.addWidget(self.label_high_limit_input)
+        # self.input_controls_layout.addWidget(self.high_limit_input)
+        # self.input_controls_layout.addWidget(self.button_crop)
 
-
-
-        ##############################
-        #         Fifth tab          #
-        ##############################
-
-        self.tab5.layout = QVBoxLayout(self.tab5) 
-        self.tab_5_folder_selection_layout = QGridLayout() 
-
-        # Label of path to xlsx file
-        self.label_txt_file_selected = QLabel('Path to XLS file: ', self)
-        self.tab_5_folder_selection_layout.addWidget(self.label_txt_file_selected, 0, 0)
-
-        # Path to excel DB file line
-        self.xlsx_file_path_line = QLineEdit()  
-        excel_file_path = 'TP_corrected_for_VV_2017_June27.xlsx'
-        self.xlsx_file_path_line.setText(excel_file_path)
-        self.tab_5_folder_selection_layout.addWidget(self.xlsx_file_path_line, 0, 1)
-
-        # Button "Open excel file"
-        self.button_open_xlsx = QPushButton('Open xls file')
-        self.button_open_xlsx.clicked.connect(self.one_xls_file_open_dialog)
-        self.button_open_xlsx.setFixedSize(QSize(150, 30))
-        self.tab_5_folder_selection_layout.addWidget(self.button_open_xlsx, 0, 2)
-
-        # Label of path to data to process
-        self.label_data_path_replace = QLabel('Path to data folder (to replace): ', self)
-        self.tab_5_folder_selection_layout.addWidget(self.label_data_path_replace, 1, 0)
-
-        # Path to excel DB file line
-        self.data_path_replace_line = QLineEdit()  
-        self.data_path_replace_line.setText('E:/data/')
-        self.tab_5_folder_selection_layout.addWidget(self.data_path_replace_line, 1, 1)
-
-        # Button "Specify data folder to replace"
-        self.button_data_path_replace = QPushButton('Specify folder')
-        self.button_data_path_replace.clicked.connect(self.specify_db_data_folder_dialog)  # add new action!!!
-        self.button_data_path_replace.setFixedSize(QSize(150, 30))
-        self.tab_5_folder_selection_layout.addWidget(self.button_data_path_replace, 1, 2)
-
-
-
-
-        # Label of path big folder with intermediate data
-        self.big_temp_data_path_label = QLabel('Path to big temp folder: ', self)
-        self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_label, 2, 0)
-
-        # Path to excel DB file line
-        self.big_temp_data_path_line = QLineEdit()  
-        self.big_temp_data_path_line.setText('E:/temp/')
-        self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_line, 2, 1)
-
-        # Button "Specify data folder to replace"
-        self.button_big_temp_data_path = QPushButton('Specify folder')
-        self.button_big_temp_data_path.clicked.connect(self.specify_big_temp_data_path_dialog)  
-        self.button_big_temp_data_path.setFixedSize(QSize(150, 30))
-        self.tab_5_folder_selection_layout.addWidget(self.button_big_temp_data_path, 2, 2)
-
-
-
-
-
-
-        self.tab_5_input_controls_layout = QGridLayout()
-
-        # Creating labels near spinboxes to describe the input
-        self.t5_label_median_win = QLabel("Median window:", self)
-        self.t5_label_median_win.setFixedSize(QSize(100, 30))
-        self.t5_label_median_win.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.t5_label_low_limit_input = QLabel("Lower limit", self)
-        self.t5_label_low_limit_input.setFixedSize(QSize(100, 30))
-        self.t5_label_low_limit_input.setWordWrap(True)  # making label multi line
-        self.t5_label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.t5_label_high_limit_input = QLabel("Higher limit", self)
-        self.t5_label_high_limit_input.setFixedSize(QSize(100, 30))
-        self.t5_label_high_limit_input.setWordWrap(True)  # making label multi line
-        self.t5_label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
-
-        # Selection of limits with spinboxes
-
-        self.t5_filter_win_input = QDoubleSpinBox()
-        self.t5_filter_win_input.setFixedSize(QSize(100, 30))
-        self.t5_filter_win_input.setMinimum(0)
-        self.t5_filter_win_input.setMaximum(100000)
-        self.t5_filter_win_input.setValue(300)
-
-        step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
-
-        self.t5_low_limit_input = QDoubleSpinBox()
-        self.t5_low_limit_input.setStepType(step_type)
-        self.t5_low_limit_input.setMinimum(-10.0)
-        self.t5_low_limit_input.setFixedSize(QSize(100, 30))
-        self.t5_low_limit_input.setValue(-3)
-
-        self.t5_high_limit_input = QDoubleSpinBox()
-        self.t5_high_limit_input.setStepType(step_type)
-        self.t5_high_limit_input.setMinimum(-10.0)
-        self.t5_high_limit_input.setFixedSize(QSize(100, 30))
-        self.t5_high_limit_input.setValue(3)
-
-        # *** Middle nested layout ***
-        self.tab_5_process_start_layout = QVBoxLayout()
-
-        # Button "Start data processing"
-        self.t5_button_process = QPushButton('Start data processing')
-        self.t5_button_process.clicked.connect(self.thread_t5_start_processing)  # adding action to the button !!!!!!!!!!!!!!!!!!!!
-
-        # Processing status label
-        self.t5_label_processing_status = QLabel('Waiting to enter data and start processing', self)
-        self.t5_label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
-        self.t5_label_processing_status.setFont(QFont('Arial', 14))
+        # self.tab2.layout.addLayout(self.input_controls_layout)
         
-        # *** Lower nested layouts ***
-        self.tab_5_two_column_layout = QVBoxLayout()
-        self.tab_5_additional_parameters_layout = QGridLayout()
-        self.tab_5_text_field_layout = QVBoxLayout()
+        # self.toolbar_frequency_layout = QHBoxLayout()
 
-		# Text field
-        self.t5_text_field = QPlainTextEdit()
+        # # Creating labels to indicate the initial time resolution
+        # label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        # self.label_time_resolution = QLabel(label, self)
+        # self.label_time_resolution.setFixedSize(QSize(300, 30))
+        # self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Packing widgets to the layouts
-        self.tab_5_input_controls_layout.addWidget(self.t5_label_median_win, 0, 0)
-        self.tab_5_input_controls_layout.addWidget(self.t5_filter_win_input, 0, 1)
-        self.tab_5_input_controls_layout.addWidget(self.t5_label_low_limit_input, 0, 2)
-        self.tab_5_input_controls_layout.addWidget(self.t5_low_limit_input, 0, 3)
-        self.tab_5_input_controls_layout.addWidget(self.t5_label_high_limit_input, 0, 4)
-        self.tab_5_input_controls_layout.addWidget(self.t5_high_limit_input, 0, 5)
-        self.tab_5_process_start_layout.addWidget(self.t5_button_process)
-        self.tab_5_process_start_layout.addWidget(self.t5_label_processing_status)
-        self.tab_5_text_field_layout.addWidget(self.t5_text_field)
+        # self.frequency_limit = 10  # Hz
 
-        # Packing all layouts in the tab
-        self.tab5.layout.addLayout(self.tab_5_folder_selection_layout)
-        self.tab5.layout.addLayout(self.tab_5_input_controls_layout)
-        self.tab5.layout.addLayout(self.tab_5_process_start_layout)
-        self.tab5.layout.addLayout(self.tab_5_two_column_layout)
-        self.tab_5_two_column_layout.addLayout(self.tab_5_additional_parameters_layout)
-        self.tab_5_two_column_layout.addLayout(self.tab_5_text_field_layout)
+        # self.label_freq_resolution = QLabel('Fig frequency limit:', self)
+        # self.label_freq_resolution.setFixedSize(QSize(100, 30))
+        # self.label_freq_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Modifying layouts
-        self.tab_5_folder_selection_layout.setRowStretch(self.tab_5_folder_selection_layout.rowCount(), 1)
-        self.tab_5_input_controls_layout.setRowStretch(self.tab_5_input_controls_layout.rowCount(), 1)
-        # self.tab_5_process_start_layout.setStretch(self.tab_5_process_start_layout.rowCount(), 1)
-        self.tab5.setLayout(self.tab5.layout)
+        # self.label_hz = QLabel('Hz', self)
+        # self.label_hz.setFixedSize(QSize(15, 30))
+        # self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        # self.freq_limit_input = QDoubleSpinBox()
+        # self.freq_limit_input.setStepType(step_type)
+        # self.freq_limit_input.setMinimum(0.0)
+        # self.freq_limit_input.setFixedSize(QSize(60, 30))
+        # self.freq_limit_input.setValue(self.frequency_limit)
+
+
+        # self.toolbar_frequency_layout_t3.addWidget(self.toolbar)
+        # self.toolbar_frequency_layout_t3.addWidget(self.label_time_resolution)
+        # self.toolbar_frequency_layout_t3.addWidget(self.label_freq_resolution)
+        # self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
+        # self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
+        
+        # self.tab3.layout.addLayout(self.toolbar_frequency_layout_t3)
+        # self.tab3.layout.addWidget(self.canvas)
+
+        # self.tab3.setLayout(self.tab3.layout)
+
+
+
+
+        # ##############################
+        # #         Third tab         # 4
+        # ##############################
+
+        # # Third tab
+        # self.tab3.layout = QVBoxLayout(self.tab3)
+        # self.input_controls_layout_t3 = QHBoxLayout()
+
+        # # Button "Plot data 1-8"
+        # self.button_plot_1_8 = QPushButton('Plot parts of data from 1 to 8')
+        # self.button_plot_1_8.clicked.connect(self.plot_spectra_1_8)  # adding action to the button
+        # self.button_plot_1_8.setFixedSize(QSize(250, 30))
+        # self.input_controls_layout_t3.addWidget(self.button_plot_1_8)
+
+        # # Button "Save data 1-8"
+        # self.button_save_1_8 = QPushButton('Save image of data from 1 to 8')
+        # self.button_save_1_8.clicked.connect(self.save_spectra_1_8)  # adding action to the button
+        # self.button_save_1_8.setFixedSize(QSize(250, 30))
+        # self.input_controls_layout_t3.addWidget(self.button_save_1_8)
+
+        # # Main plot window
+        # self.figure_1_8 = plt.figure()  # a figure instance to plot on
+        # self.canvas_1_8 = FigureCanvas(self.figure_1_8)  # takes the 'figure' instance as a parameter to __init__
+
+        # # Packing into layouts
+        # self.tab3.layout.addLayout(self.input_controls_layout_t3)
+        # self.tab3.layout.addWidget(self.canvas_1_8)
+
+        # self.tab3.setLayout(self.tab3.layout)
+
+
+
+
+
+
+        # ##############################
+        # #         Fourth tab         # 5
+        # ##############################
+
+        # # Fourth tab
+        # self.tab4.layout = QVBoxLayout(self.tab4)
+        # self.input_controls_layout_t4 = QHBoxLayout()
+
+        # # Button "Plot data 16"
+        # self.button_plot_16 = QPushButton('Plot parts of data 16 of 16')
+        # self.button_plot_16.clicked.connect(self.plot_spectra_16)  # adding action to the button
+        # self.button_plot_16.setFixedSize(QSize(250, 30))
+        # self.input_controls_layout_t4.addWidget(self.button_plot_16)
+
+        # # Button "Save data 16"
+        # self.button_save_16 = QPushButton('Save image of data 16 of 16')
+        # self.button_save_16.clicked.connect(self.save_spectra_16)  # adding action to the button
+        # self.button_save_16.setFixedSize(QSize(250, 30))
+        # self.input_controls_layout_t4.addWidget(self.button_save_16)
+
+        # # Main plot window
+        # self.figure_16 = plt.figure()  # a figure instance to plot on
+        # self.canvas_16 = FigureCanvas(self.figure_16)  # takes the 'figure' instance as a parameter to __init__
+
+        # # Packing into layouts
+        # self.tab4.layout.addLayout(self.input_controls_layout_t4)
+        # self.tab4.layout.addWidget(self.canvas_16)
+        # self.tab4.setLayout(self.tab4.layout)
+
+
+
+
+        # ##############################
+        # #         Fifth tab          #
+        # ##############################
+
+        # self.tab5.layout = QVBoxLayout(self.tab5) 
+        # self.tab_5_folder_selection_layout = QGridLayout() 
+
+        # # Label of path to xlsx file
+        # self.label_txt_file_selected = QLabel('Path to XLS file: ', self)
+        # self.tab_5_folder_selection_layout.addWidget(self.label_txt_file_selected, 0, 0)
+
+        # # Path to excel DB file line
+        # self.xlsx_file_path_line = QLineEdit()  
+        # excel_file_path = 'TP_corrected_for_VV_2017_June27.xlsx'
+        # self.xlsx_file_path_line.setText(excel_file_path)
+        # self.tab_5_folder_selection_layout.addWidget(self.xlsx_file_path_line, 0, 1)
+
+        # # Button "Open excel file"
+        # self.button_open_xlsx = QPushButton('Open xls file')
+        # self.button_open_xlsx.clicked.connect(self.one_xls_file_open_dialog)
+        # self.button_open_xlsx.setFixedSize(QSize(150, 30))
+        # self.tab_5_folder_selection_layout.addWidget(self.button_open_xlsx, 0, 2)
+
+        # # Label of path to data to process
+        # self.label_data_path_replace = QLabel('Path to data folder (to replace): ', self)
+        # self.tab_5_folder_selection_layout.addWidget(self.label_data_path_replace, 1, 0)
+
+        # # Path to excel DB file line
+        # self.data_path_replace_line = QLineEdit()  
+        # self.data_path_replace_line.setText('E:/data/')
+        # self.tab_5_folder_selection_layout.addWidget(self.data_path_replace_line, 1, 1)
+
+        # # Button "Specify data folder to replace"
+        # self.button_data_path_replace = QPushButton('Specify folder')
+        # self.button_data_path_replace.clicked.connect(self.specify_db_data_folder_dialog)  # add new action!!!
+        # self.button_data_path_replace.setFixedSize(QSize(150, 30))
+        # self.tab_5_folder_selection_layout.addWidget(self.button_data_path_replace, 1, 2)
+
+
+
+
+        # # Label of path big folder with intermediate data
+        # self.big_temp_data_path_label = QLabel('Path to big temp folder: ', self)
+        # self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_label, 2, 0)
+
+        # # Path to excel DB file line
+        # self.big_temp_data_path_line = QLineEdit()  
+        # self.big_temp_data_path_line.setText('E:/temp/')
+        # self.tab_5_folder_selection_layout.addWidget(self.big_temp_data_path_line, 2, 1)
+
+        # # Button "Specify data folder to replace"
+        # self.button_big_temp_data_path = QPushButton('Specify folder')
+        # self.button_big_temp_data_path.clicked.connect(self.specify_big_temp_data_path_dialog)  
+        # self.button_big_temp_data_path.setFixedSize(QSize(150, 30))
+        # self.tab_5_folder_selection_layout.addWidget(self.button_big_temp_data_path, 2, 2)
+
+
+
+
+
+
+        # self.tab_5_input_controls_layout = QGridLayout()
+
+        # # Creating labels near spinboxes to describe the input
+        # self.t5_label_median_win = QLabel("Median window:", self)
+        # self.t5_label_median_win.setFixedSize(QSize(100, 30))
+        # self.t5_label_median_win.setAlignment(QtCore.Qt.AlignCenter)
+
+        # self.t5_label_low_limit_input = QLabel("Lower limit", self)
+        # self.t5_label_low_limit_input.setFixedSize(QSize(100, 30))
+        # self.t5_label_low_limit_input.setWordWrap(True)  # making label multi line
+        # self.t5_label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+
+        # self.t5_label_high_limit_input = QLabel("Higher limit", self)
+        # self.t5_label_high_limit_input.setFixedSize(QSize(100, 30))
+        # self.t5_label_high_limit_input.setWordWrap(True)  # making label multi line
+        # self.t5_label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+
+        # # Selection of limits with spinboxes
+
+        # self.t5_filter_win_input = QDoubleSpinBox()
+        # self.t5_filter_win_input.setFixedSize(QSize(100, 30))
+        # self.t5_filter_win_input.setMinimum(0)
+        # self.t5_filter_win_input.setMaximum(100000)
+        # self.t5_filter_win_input.setValue(300)
+
+        # step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
+
+        # self.t5_low_limit_input = QDoubleSpinBox()
+        # self.t5_low_limit_input.setStepType(step_type)
+        # self.t5_low_limit_input.setMinimum(-10.0)
+        # self.t5_low_limit_input.setFixedSize(QSize(100, 30))
+        # self.t5_low_limit_input.setValue(-3)
+
+        # self.t5_high_limit_input = QDoubleSpinBox()
+        # self.t5_high_limit_input.setStepType(step_type)
+        # self.t5_high_limit_input.setMinimum(-10.0)
+        # self.t5_high_limit_input.setFixedSize(QSize(100, 30))
+        # self.t5_high_limit_input.setValue(3)
+
+        # # *** Middle nested layout ***
+        # self.tab_5_process_start_layout = QVBoxLayout()
+
+        # # Button "Start data processing"
+        # self.t5_button_process = QPushButton('Start data processing')
+        # self.t5_button_process.clicked.connect(self.thread_t5_start_processing)  # adding action to the button !!!!!!!!!!!!!!!!!!!!
+
+        # # Processing status label
+        # self.t5_label_processing_status = QLabel('Waiting to enter data and start processing', self)
+        # self.t5_label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
+        # self.t5_label_processing_status.setFont(QFont('Arial', 14))
+        
+        # # *** Lower nested layouts ***
+        # self.tab_5_two_column_layout = QVBoxLayout()
+        # self.tab_5_additional_parameters_layout = QGridLayout()
+        # self.tab_5_text_field_layout = QVBoxLayout()
+
+		# # Text field
+        # self.t5_text_field = QPlainTextEdit()
+
+        # # Packing widgets to the layouts
+        # self.tab_5_input_controls_layout.addWidget(self.t5_label_median_win, 0, 0)
+        # self.tab_5_input_controls_layout.addWidget(self.t5_filter_win_input, 0, 1)
+        # self.tab_5_input_controls_layout.addWidget(self.t5_label_low_limit_input, 0, 2)
+        # self.tab_5_input_controls_layout.addWidget(self.t5_low_limit_input, 0, 3)
+        # self.tab_5_input_controls_layout.addWidget(self.t5_label_high_limit_input, 0, 4)
+        # self.tab_5_input_controls_layout.addWidget(self.t5_high_limit_input, 0, 5)
+        # self.tab_5_process_start_layout.addWidget(self.t5_button_process)
+        # self.tab_5_process_start_layout.addWidget(self.t5_label_processing_status)
+        # self.tab_5_text_field_layout.addWidget(self.t5_text_field)
+
+        # # Packing all layouts in the tab
+        # self.tab5.layout.addLayout(self.tab_5_folder_selection_layout)
+        # self.tab5.layout.addLayout(self.tab_5_input_controls_layout)
+        # self.tab5.layout.addLayout(self.tab_5_process_start_layout)
+        # self.tab5.layout.addLayout(self.tab_5_two_column_layout)
+        # self.tab_5_two_column_layout.addLayout(self.tab_5_additional_parameters_layout)
+        # self.tab_5_two_column_layout.addLayout(self.tab_5_text_field_layout)
+
+        # # Modifying layouts
+        # self.tab_5_folder_selection_layout.setRowStretch(self.tab_5_folder_selection_layout.rowCount(), 1)
+        # self.tab_5_input_controls_layout.setRowStretch(self.tab_5_input_controls_layout.rowCount(), 1)
+        # # self.tab_5_process_start_layout.setStretch(self.tab_5_process_start_layout.rowCount(), 1)
+        # self.tab5.setLayout(self.tab5.layout)
         
 
 
@@ -1223,14 +1314,16 @@ class MyTableWidget(QWidget):
 
 
     def thread_read_initial_data(self):
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(111)
+        
+        self.figure_time.clear()  # clearing old figure
+        ax0 = self.figure_time.add_subplot(111)
         ax0.remove() 
-        self.figure.text(0.4, 0.5, "Reading file...", color="C0", size=22)
-        self.canvas.draw()  # refresh canvas
+        self.figure_time.text(0.4, 0.5, "Reading file...", color="C0", size=22)
+        self.canvas_time.draw()  # refresh canvas
         
         t0 = Thread(target=self.read_initial_data)
         t0.start()
+
 
     # action called by the push button
     def read_initial_data(self):
@@ -1240,110 +1333,160 @@ class MyTableWidget(QWidget):
         data_filepath = os.path.normpath(data_filepath)
         [directory, self.data_filename] = os.path.split(data_filepath)
         
-        # pulsar_data_in_time = read_one_value_txt_file(data_filepath)
-
         # Reading (.vdm) data file
         data_file = open(os.path.join(directory, self.data_filename), 'rb')
-        time_points_num = struct.unpack('q', data_file.read(8))[0]
+        self.time_points_num = struct.unpack('q', data_file.read(8))[0]
         self.vdm_dm_points = struct.unpack('q', data_file.read(8))[0]
         self.vdm_central_dm = struct.unpack('d', data_file.read(8))[0]
         self.vdm_dm_range = struct.unpack('d', data_file.read(8))[0]
-        initial_data_array = np.fromfile(data_file, dtype=np.float64, count=time_points_num * self.vdm_dm_points)
-        initial_data_array = np.reshape(initial_data_array, [self.vdm_dm_points, time_points_num])
+        initial_data_array = np.fromfile(data_file, dtype=np.float64, count=self.time_points_num * self.vdm_dm_points)
+        self.vdm_data_array = np.reshape(initial_data_array, [self.vdm_dm_points, self.time_points_num])
         data_file.close()
 
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(111)
-        ax0.remove() 
-        self.figure.text(0.35, 0.5, "Applying median filter...", color="C0", size=22)
-        self.canvas.draw()  # refresh canvas
+        # self.figure.clear()  # clearing old figure
+        # ax0 = self.figure.add_subplot(111)
+        # ax0.remove() 
+        # self.figure.text(0.35, 0.5, "Applying median filter...", color="C0", size=22)
+        # self.canvas.draw()  # refresh canvas
 
-        self.vdm_data = initial_data_array
+        # self.vdm_data = initial_data_array
 
         # Recalculating DM vector to display DM values
         self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  self.vdm_central_dm + self.vdm_dm_range, num=self.vdm_dm_points)
 
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(111)
-        ax0.remove() 
-        self.figure.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
-        self.canvas.draw()  # refresh canvas
+        self.figure_time.clear()  # clearing old figure
+        ax0 = self.figure_time.add_subplot(111)  # , layout='constrained'
+       
+        plot = ax0.imshow(self.vdm_data_array, 
+                          extent=[0,  self.time_points_num,  
+                                  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                                  aspect='auto', cmap="Greys")
+        # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
+        self.figure_time.set_constrained_layout(True)
+        self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        self.canvas_time.draw()  # refresh canvas
 
-        med_filter_length = int(self.filter_win_input.value())
 
-        median = scipy.ndimage.median_filter(self.vdm_data, med_filter_length, axes=1)
-        self.vdm_data = self.vdm_data - median
 
-        self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data[:])), 2)  # calculation of the spectrum
-        self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
 
-        self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
-        self.low_freq_limit_of_filter = med_filter_length * self.frequency_resolution
 
-        frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
 
-        self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
+        # self.figure.clear()  # clearing old figure
+        # ax0 = self.figure.add_subplot(111)
+        # ax0.remove() 
+        # self.figure.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
+        # self.canvas.draw()  # refresh canvas
+
+
+
+        # med_filter_length = int(self.filter_win_input.value())
+
+        # median = scipy.ndimage.median_filter(self.vdm_data, med_filter_length, axes=1)
+        # self.vdm_data = self.vdm_data - median
+
+        # self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data[:])), 2)  # calculation of the spectrum
+        # self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
+
+        # self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
+        # self.low_freq_limit_of_filter = med_filter_length * self.frequency_resolution
+
+        # frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
+
+        # self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
 
         # Update the plot
         # rc('font', size=12, weight='bold')
         
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(111)  # , layout='constrained'
+        # self.figure.clear()  # clearing old figure
+        # ax0 = self.figure.add_subplot(111)  # , layout='constrained'
        
-        plot = ax0.imshow(self.vdm_spectra, 
-                          extent=[frequency_axis[0], frequency_axis[-1],  
+        # plot = ax0.imshow(self.vdm_spectra, 
+        #                   extent=[frequency_axis[0], frequency_axis[-1],  
+        #                           self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+        #                           aspect='auto', cmap="Greys")
+        # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        # ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+        # ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        # ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        # self.figure.set_constrained_layout(True)
+        # self.figure.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        # # ax0.plot(pulsar_data_in_time)
+        # # ax0.set_xlim([0, len(pulsar_data_in_time)])
+        # # ax0.set_ylim([-0.2, 0.2])
+        # # ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        # # ax1 = self.figure.add_subplot(212)
+        # # # Adding the plots for parts of data to the big result picture
+        # # ax1.plot(frequency_axis, pulses_spectra)
+        # # ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
+        # # ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        # # self.figure.subplots_adjust(hspace=0.25, top=0.945)
+        # # ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
+        # self.canvas.draw()  # refresh canvas
+
+
+
+    def thread_subtract_median_in_time(self):
+        
+        t0 = Thread(target=self.subtract_median_in_time)
+        t0.start()
+
+
+
+    # action called by the push button
+    def subtract_median_in_time(self):
+
+        # Subtract median and normalize data
+
+        med_filter_length = int(self.filter_win_input.value())
+
+        median = scipy.ndimage.median_filter(self.vdm_data_array, med_filter_length, axes=1)
+        self.vdm_data_array = self.vdm_data_array - median
+
+
+        self.figure_time.clear()  # clearing old figure
+        ax0 = self.figure_time.add_subplot(111)  # , layout='constrained'
+       
+        plot = ax0.imshow(self.vdm_data_array, 
+                          extent=[0, self.time_points_num,  
                                   self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                                   aspect='auto', cmap="Greys")
-        ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-        ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+        # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
         ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
-        ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        self.figure.set_constrained_layout(True)
-        self.figure.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
+        self.figure_time.set_constrained_layout(True)
+        self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        self.canvas_time.draw()  # refresh canvas
+
+
+
+        # median = median_filter(self.initial_data_in_time, int(self.filter_win_input.value()))
+        # pulsar_data_in_time = self.initial_data_in_time - median
+        # pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
+        # self.filtered_data_in_time = pulsar_data_in_time
+        # self.frequency_limit = float(self.freq_limit_input.value())
+        
+        # # Calculating the spectrum
+        # frequency_axis, pulses_spectra, spectrum_max = \
+        #     calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
+
+        # # Update the plot
+        # self.figure.clear()  # clearing old figure
+        # ax0 = self.figure.add_subplot(211)
         # ax0.plot(pulsar_data_in_time)
         # ax0.set_xlim([0, len(pulsar_data_in_time)])
-        # ax0.set_ylim([-0.2, 0.2])
+        # ax0.set_ylim([-5.0, 5.0])
         # ax0.set_title('Time series', fontsize=10, fontweight='bold')
         # ax1 = self.figure.add_subplot(212)
-        # # Adding the plots for parts of data to the big result picture
         # ax1.plot(frequency_axis, pulses_spectra)
         # ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
         # ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         # self.figure.subplots_adjust(hspace=0.25, top=0.945)
         # ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-        self.canvas.draw()  # refresh canvas
-
-
-
-
-    # action called by the push button
-    def subtract_median(self):
-
-        # Subtract median and normalize data
-        median = median_filter(self.initial_data_in_time, int(self.filter_win_input.value()))
-        pulsar_data_in_time = self.initial_data_in_time - median
-        pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-        self.filtered_data_in_time = pulsar_data_in_time
-        self.frequency_limit = float(self.freq_limit_input.value())
-        
-        # Calculating the spectrum
-        frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
-
-        # Update the plot
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(211)
-        ax0.plot(pulsar_data_in_time)
-        ax0.set_xlim([0, len(pulsar_data_in_time)])
-        ax0.set_ylim([-5.0, 5.0])
-        ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        ax1 = self.figure.add_subplot(212)
-        ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-        self.canvas.draw()  # refresh canvas
+        # self.canvas.draw()  # refresh canvas
 
     # action called by the push button Average data
     def average_time_data(self):
