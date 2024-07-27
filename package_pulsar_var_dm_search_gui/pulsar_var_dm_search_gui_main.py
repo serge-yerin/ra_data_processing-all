@@ -440,11 +440,18 @@ class MyTableWidget(QWidget):
         self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)  # adding action to the button
         self.button_filter_time.setFixedSize(QSize(110, 30))
 
+        # Work tatus label tab 2
+        self.label_processing_status_t2 = QLabel('', self)
+        self.label_processing_status_t2.setFixedSize(QSize(300, 30))
+        self.label_processing_status_t2.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_processing_status_t2.setFont(QFont('Arial', 14))
+
         # Packing layouts in the window
         self.input_controls_layout_t2.addWidget(self.button_read_time)
         self.input_controls_layout_t2.addWidget(self.label_median_win)
         self.input_controls_layout_t2.addWidget(self.filter_win_input)
         self.input_controls_layout_t2.addWidget(self.button_filter_time)
+        self.input_controls_layout_t2.addWidget(self.label_processing_status_t2)
         # self.input_controls_layout.addWidget(self.label_aver_const)
         # self.input_controls_layout.addWidget(self.aver_const_input)
         # self.input_controls_layout.addWidget(self.button_average)
@@ -495,13 +502,13 @@ class MyTableWidget(QWidget):
 
 
 
-        ##############################
-        #         Third tab         # +
-        ##############################
+        ##############################################
+        #         Third tab - Spectral domain        #
+        ##############################################
 
-        # # Layouts in the third tab
-        # self.tab3.layout = QVBoxLayout(self.tab3)
-        # self.input_controls_layout_t3 = QHBoxLayout()
+        # Layouts in the third tab
+        self.tab3.layout = QVBoxLayout(self.tab3)
+        self.input_controls_layout_t3 = QHBoxLayout()
 
         # # Creating labels near spinboxes to describe the input
         # self.label_median_win = QLabel("Median window:", self)
@@ -537,7 +544,6 @@ class MyTableWidget(QWidget):
         # self.aver_const_input.setMaximum(300)
         # self.aver_const_input.setValue(1)
 
-        # step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
         # self.low_limit_input = QDoubleSpinBox()
         # self.low_limit_input.setStepType(step_type)
@@ -551,17 +557,17 @@ class MyTableWidget(QWidget):
         # self.high_limit_input.setFixedSize(QSize(60, 30))
         # self.high_limit_input.setValue(3)
 
-        # # Main plot window
-        # self.figure = plt.figure()  # a figure instance to plot on
-        # self.canvas = FigureCanvas(self.figure)  # takes the 'figure' instance as a parameter to __init__
+        # Main plot window
+        self.figure_freq = plt.figure()  # a figure instance to plot on
+        self.canvas_freq = FigureCanvas(self.figure_freq)  # takes the 'figure' instance as a parameter to __init__
 
-        # # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
-        # self.toolbar = NavigationToolbar(self.canvas, self)
+        # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
+        self.toolbar_freq = NavigationToolbar(self.canvas_freq, self)
 
-        # # Button "Read data"
-        # self.button_read = QPushButton('Read data')
-        # self.button_read.clicked.connect(self.thread_read_initial_data)  # adding action to the button
-        # self.button_read.setFixedSize(QSize(100, 30))
+        # Button "Read data"
+        self.button_calc_fft = QPushButton('Calculate FFT')
+        self.button_calc_fft.clicked.connect(self.thread_calculate_fft_of_data)  # adding action to the button
+        self.button_calc_fft.setFixedSize(QSize(100, 30))
 
         # # Button "Subtract median"
         # self.button_filter = QPushButton('Subtract median')
@@ -578,10 +584,17 @@ class MyTableWidget(QWidget):
         # self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
         # self.button_crop.setFixedSize(QSize(100, 30))
 
-        # # Packing layouts in the window
+        # Work status label tab 3 
+        self.label_processing_status_t3 = QLabel('', self)
+        self.label_processing_status_t3.setFixedSize(QSize(300, 30))
+        self.label_processing_status_t3.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_processing_status_t3.setFont(QFont('Arial', 14))
+
+        # Packing layouts in the window
         # self.input_controls_layout.addWidget(self.label_median_win)
         # self.input_controls_layout.addWidget(self.filter_win_input)
-        # self.input_controls_layout.addWidget(self.button_read)
+        self.input_controls_layout_t3.addWidget(self.button_calc_fft)
+        self.input_controls_layout_t3.addWidget(self.label_processing_status_t3)
         # self.input_controls_layout.addWidget(self.button_filter)
         # self.input_controls_layout.addWidget(self.label_aver_const)
         # self.input_controls_layout.addWidget(self.aver_const_input)
@@ -592,44 +605,43 @@ class MyTableWidget(QWidget):
         # self.input_controls_layout.addWidget(self.high_limit_input)
         # self.input_controls_layout.addWidget(self.button_crop)
 
-        # self.tab2.layout.addLayout(self.input_controls_layout)
+        self.tab3.layout.addLayout(self.input_controls_layout_t3)
         
-        # self.toolbar_frequency_layout = QHBoxLayout()
+        self.toolbar_frequency_layout_t3 = QHBoxLayout()
 
-        # # Creating labels to indicate the initial time resolution
-        # label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
-        # self.label_time_resolution = QLabel(label, self)
-        # self.label_time_resolution.setFixedSize(QSize(300, 30))
-        # self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
+        # Creating labels to indicate the initial time resolution
+        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        self.label_time_resolution = QLabel(label, self)
+        self.label_time_resolution.setFixedSize(QSize(300, 30))
+        self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
-        # self.frequency_limit = 10  # Hz
+        self.label_freq_limit = QLabel('Fig frequency limit:', self)
+        self.label_freq_limit.setFixedSize(QSize(100, 30))
+        self.label_freq_limit.setAlignment(QtCore.Qt.AlignCenter)
 
-        # self.label_freq_resolution = QLabel('Fig frequency limit:', self)
-        # self.label_freq_resolution.setFixedSize(QSize(100, 30))
-        # self.label_freq_resolution.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_hz = QLabel('Hz', self)
+        self.label_hz.setFixedSize(QSize(15, 30))
+        self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
 
-        # self.label_hz = QLabel('Hz', self)
-        # self.label_hz.setFixedSize(QSize(15, 30))
-        # self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
+        frequency_limit_init = 10  # Hz
+        step_type = QAbstractSpinBox.AdaptiveDecimalStepType  # step type
 
+        self.freq_limit_input = QDoubleSpinBox()
+        self.freq_limit_input.setStepType(step_type)
+        self.freq_limit_input.setMinimum(0.0)
+        self.freq_limit_input.setFixedSize(QSize(60, 30))
+        self.freq_limit_input.setValue(frequency_limit_init)
 
-        # self.freq_limit_input = QDoubleSpinBox()
-        # self.freq_limit_input.setStepType(step_type)
-        # self.freq_limit_input.setMinimum(0.0)
-        # self.freq_limit_input.setFixedSize(QSize(60, 30))
-        # self.freq_limit_input.setValue(self.frequency_limit)
-
-
-        # self.toolbar_frequency_layout_t3.addWidget(self.toolbar)
-        # self.toolbar_frequency_layout_t3.addWidget(self.label_time_resolution)
-        # self.toolbar_frequency_layout_t3.addWidget(self.label_freq_resolution)
-        # self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
-        # self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
+        self.toolbar_frequency_layout_t3.addWidget(self.toolbar_freq)
+        self.toolbar_frequency_layout_t3.addWidget(self.label_time_resolution)
+        self.toolbar_frequency_layout_t3.addWidget(self.label_freq_limit)
+        self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
+        self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
         
-        # self.tab3.layout.addLayout(self.toolbar_frequency_layout_t3)
-        # self.tab3.layout.addWidget(self.canvas)
+        self.tab3.layout.addLayout(self.toolbar_frequency_layout_t3)
+        self.tab3.layout.addWidget(self.canvas_freq)
 
-        # self.tab3.setLayout(self.tab3.layout)
+        self.tab3.setLayout(self.tab3.layout)
 
 
 
@@ -1078,21 +1090,6 @@ class MyTableWidget(QWidget):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def preprocess_pairs_jds_files(self):
         try:
             self.source_pairs_dm = float(self.line_pairs_dm_entry.text().replace(',', '.'))
@@ -1139,156 +1136,9 @@ class MyTableWidget(QWidget):
 
 
 
-
-
-
-    def save_spectra_16(self):
-        # Run function to make and save bit plot
-        time_profile_spectra_for_gui_16(self.cropped_data_in_time, self.time_resolution, self.harmonics_highlight,
-                                        self.frequency_limit, self.txt_filepath, self.txt_filename,
-                                        software_version, 300)
-
-    def plot_spectra_16(self):
-
-        pulsar_data_in_time = self.cropped_data_in_time
-
-        # Update the plot
-        self.figure_16.clear()  # clearing old figure
-        rc('font', size=6, weight='bold')
-
-        full_data_length = len(pulsar_data_in_time)
-        parts_num = 16
-        v_ind = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
-        h_ind = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
-        index = 0
-
-        # Creating the plot with the 16-16 data
-        rc('font', size=5, weight='bold')
-
-        for part in range(parts_num):
-
-            start = int((full_data_length / parts_num) * part)
-            stop = int((full_data_length / parts_num) * (part + 1))
-            add_text = ' Part ' + str(part + 1) + ' of ' + str(parts_num)
-            new_profile_data = pulsar_data_in_time[start:stop]
-
-            # # Calculating the spectrum
-            frequency_axis, profile_spectrum, spectrum_max = calculate_spectrum_of_profile(new_profile_data,
-                                                                                           self.time_resolution)
-
-            # Adding the plots for parts of data to the big result picture
-            ax = self.figure_16.add_subplot(4, 4, part+1)
-            if self.harmonics_highlight is not None:
-                harmonics = self.harmonics_highlight
-                for i in range(len(harmonics)):
-                    ax.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-            # Plotting the spectra
-            ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0, linewidth='0.60',
-                    label='Time series spectrum')
-            ax.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-            ax.legend(loc='upper right', fontsize=5)
-            if v_ind[index] == 3:
-                ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
-            if h_ind[index] == 0:
-                ax.set_ylabel('Amplitude, AU', fontsize=7, fontweight='bold')
-            ax.set_title(add_text, fontsize=7, fontweight='bold')
-            index += 1
-
-        # Finishing and saving the big results figure with 15 plots
-        self.figure_16.subplots_adjust(hspace=0.25, top=0.930)
-        self.figure_16.suptitle('Time profile in frequency domain (16 parts) from file: ' + self.data_filename,
-                                fontsize=10, fontweight='bold')
-
-        self.canvas_16.draw()  # refresh canvas
-
-    def save_spectra_1_8(self):
-        # Run function to make and save bit plot
-        time_profile_spectra_for_gui_1_8(self.cropped_data_in_time, self.time_resolution, self.harmonics_highlight,
-                                         self.frequency_limit, self.txt_filepath, self.txt_filename,
-                                         software_version, 300)
-
-    def plot_spectra_1_8(self):
-
-        pulsar_data_in_time = self.cropped_data_in_time
-        # Calculating the spectrum
-        frequency_axis, profile_spectrum, spectrum_max = \
-            calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
-
-        # Update the plot
-        self.figure_1_8.clear()  # clearing old figure
-        rc('font', size=6, weight='bold')
-
-        # Adding the plot # 1 of 16
-        ax1 = self.figure_1_8.add_subplot(4, 4, 1)
-        # Add vertical lines on harmonics of selected frequency
-        if self.harmonics_highlight is not None:
-            harmonics = self.harmonics_highlight
-            for i in range(len(harmonics)):
-                ax1.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-        # Plot spectrum itself
-        ax1.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
-                 linewidth='0.60', label='Time series spectrum')
-        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        ax1.legend(loc='upper right', fontsize=5)
-        ax1.set_ylabel('Amplitude, AU', fontsize=6, fontweight='bold')
-        ax1.set_title('Full data length', fontsize=5, fontweight='bold')
-
-        # Analyze only parts of the time profile (Creating indexes for plots positioning on the big result figure)
-        v_ind = [0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
-        h_ind = [1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
-        fig_num = [2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-        index = 0
-
-        full_data_length = len(pulsar_data_in_time)
-
-        for step in range(3):
-            parts_num = 2 ** (step + 1)
-
-            for part in range(parts_num):
-                start = int((full_data_length / parts_num) * part)
-                stop = int((full_data_length / parts_num) * (part + 1))
-                add_text = ' Part ' + str(part + 1) + ' of ' + str(parts_num)
-                new_profile_data = pulsar_data_in_time[start:stop]
-
-                # Calculating the spectrum
-                frequency_axis, profile_spectrum, spectrum_max = \
-                    calculate_spectrum_of_profile(new_profile_data, self.time_resolution)
-
-                # Plot N of 16
-                ax = self.figure_1_8.add_subplot(4, 4, fig_num[index])
-                # Add vertical lines on harmonics of selected frequency
-                if self.harmonics_highlight is not None:
-                    harmonics = self.harmonics_highlight
-                    for i in range(len(harmonics)):
-                        ax.axvline(x=harmonics[i], color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-                # Plot spectrum itself
-                ax.plot(frequency_axis, profile_spectrum, color=u'#1f77b4', linestyle='-', alpha=1.0,
-                        linewidth='0.60', label='Time series spectrum')
-                ax.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-                ax.legend(loc='upper right', fontsize=5)
-                if v_ind[index] == 3:
-                    ax.set_xlabel('Frequency, Hz', fontsize=7, fontweight='bold')
-                if h_ind[index] == 0:
-                    ax.set_ylabel('Amplitude, AU', fontsize=7, fontweight='bold')
-                ax.set_title(add_text, fontsize=7, fontweight='bold')
-                index += 1
-            # Adding empty place on 4,4 position
-            ax = self.figure_1_8.add_subplot(4, 4, 4)
-            ax.axis('off')
-
-            # Finishing and saving the big results figure with 15 plots
-            self.figure_1_8.subplots_adjust(hspace=0.25, top=0.930)
-            self.figure_1_8.suptitle('Time profile in frequency domain from file: ' + self.data_filename,
-                                     fontsize=10, fontweight='bold')
-
-        self.canvas_1_8.draw()  # refresh canvas
-
-
-
     def thread_preprocess_pairs_jds_files(self):
         t2 = Thread(target=self.preprocess_pairs_jds_files)
         t2.start()
-
 
 
 
@@ -1307,28 +1157,37 @@ class MyTableWidget(QWidget):
         pass
 
 
+    #
+    #
+    #
+    #
+    #
 
 
+    #############################################################
+    #              T A B    2    F U N C T I O N S              #
+    #############################################################
 
-
-
-
+    # Thread called by the push button "Read data" on tab 2
     def thread_read_initial_data(self):
         
-        self.figure_time.clear()  # clearing old figure
+        self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
         ax0.remove() 
-        self.figure_time.text(0.4, 0.5, "Reading file...", color="C0", size=22)
+        self.figure_time.text(0.4, 0.5, "Reading data file...", color="C0", size=22)
         self.canvas_time.draw()  # refresh canvas
+
+        self.label_processing_status_t2.setText("Processing...")
+        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
         
         t0 = Thread(target=self.read_initial_data)
         t0.start()
 
 
-    # action called by the push button
+    # Action called by the push button "Read data" on tab 2
     def read_initial_data(self):
 
-        # Reading profile data from txt file
+        # Reading the path fo VDM data file from GUI and normalizing it
         data_filepath = self.vdm_file_path_line.text()
         data_filepath = os.path.normpath(data_filepath)
         [directory, self.data_filename] = os.path.split(data_filepath)
@@ -1343,24 +1202,18 @@ class MyTableWidget(QWidget):
         self.vdm_data_array = np.reshape(initial_data_array, [self.vdm_dm_points, self.time_points_num])
         data_file.close()
 
-        # self.figure.clear()  # clearing old figure
-        # ax0 = self.figure.add_subplot(111)
-        # ax0.remove() 
-        # self.figure.text(0.35, 0.5, "Applying median filter...", color="C0", size=22)
-        # self.canvas.draw()  # refresh canvas
-
         # self.vdm_data = initial_data_array
 
-        # Recalculating DM vector to display DM values
-        self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  self.vdm_central_dm + self.vdm_dm_range, num=self.vdm_dm_points)
+        # Calculating DM vector to have all DM values used
+        self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  
+                                         self.vdm_central_dm + self.vdm_dm_range, 
+                                         num=self.vdm_dm_points)
 
-        self.figure_time.clear()  # clearing old figure
-        ax0 = self.figure_time.add_subplot(111)  # , layout='constrained'
-       
+        self.figure_time.clear()  # clearing figure
+        ax0 = self.figure_time.add_subplot(111)
         plot = ax0.imshow(self.vdm_data_array, 
-                          extent=[0,  self.time_points_num,  
-                                  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
-                                  aspect='auto', cmap="Greys")
+                          extent=[0,  self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          aspect='auto', cmap="Greys")
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
         ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
@@ -1369,124 +1222,128 @@ class MyTableWidget(QWidget):
         self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
         self.canvas_time.draw()  # refresh canvas
 
+        self.label_processing_status_t2.setText(" ")
+        self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
 
 
+    #
+    #
+    #
+    #
+    #
 
-
-
-        # self.figure.clear()  # clearing old figure
-        # ax0 = self.figure.add_subplot(111)
-        # ax0.remove() 
-        # self.figure.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
-        # self.canvas.draw()  # refresh canvas
-
-
-
-        # med_filter_length = int(self.filter_win_input.value())
-
-        # median = scipy.ndimage.median_filter(self.vdm_data, med_filter_length, axes=1)
-        # self.vdm_data = self.vdm_data - median
-
-        # self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data[:])), 2)  # calculation of the spectrum
-        # self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
-
-        # self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
-        # self.low_freq_limit_of_filter = med_filter_length * self.frequency_resolution
-
-        # frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
-
-        # self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
-
-        # Update the plot
-        # rc('font', size=12, weight='bold')
-        
-        # self.figure.clear()  # clearing old figure
-        # ax0 = self.figure.add_subplot(111)  # , layout='constrained'
-       
-        # plot = ax0.imshow(self.vdm_spectra, 
-        #                   extent=[frequency_axis[0], frequency_axis[-1],  
-        #                           self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
-        #                           aspect='auto', cmap="Greys")
-        # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-        # ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
-        # ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
-        # ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        # self.figure.set_constrained_layout(True)
-        # self.figure.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
-        # # ax0.plot(pulsar_data_in_time)
-        # # ax0.set_xlim([0, len(pulsar_data_in_time)])
-        # # ax0.set_ylim([-0.2, 0.2])
-        # # ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        # # ax1 = self.figure.add_subplot(212)
-        # # # Adding the plots for parts of data to the big result picture
-        # # ax1.plot(frequency_axis, pulses_spectra)
-        # # ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        # # ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        # # self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        # # ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-        # self.canvas.draw()  # refresh canvas
-
-
-
+    # Thread called by the push button "Subtract median" on tab 2
     def thread_subtract_median_in_time(self):
-        
+
+        self.label_processing_status_t2.setText("Processing...")
+        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
+
         t0 = Thread(target=self.subtract_median_in_time)
         t0.start()
 
 
-
-    # action called by the push button
+    # Action called by the push button "Subtract median" on tab 2
     def subtract_median_in_time(self):
 
-        # Subtract median and normalize data
-
-        med_filter_length = int(self.filter_win_input.value())
-
-        median = scipy.ndimage.median_filter(self.vdm_data_array, med_filter_length, axes=1)
+        # Subtract median
+        self.med_filter_length = int(self.filter_win_input.value())
+        median = scipy.ndimage.median_filter(self.vdm_data_array, self.med_filter_length, axes=1)
         self.vdm_data_array = self.vdm_data_array - median
 
-
-        self.figure_time.clear()  # clearing old figure
-        ax0 = self.figure_time.add_subplot(111)  # , layout='constrained'
-       
+        # Updating figure on tab 2
+        self.figure_time.clear()  # clearing figure
+        ax0 = self.figure_time.add_subplot(111)
         plot = ax0.imshow(self.vdm_data_array, 
-                          extent=[0, self.time_points_num,  
-                                  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
-                                  aspect='auto', cmap="Greys")
+                          extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          aspect='auto', cmap="Greys")
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
         ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
         ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
         self.figure_time.set_constrained_layout(True)
         self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
-        self.canvas_time.draw()  # refresh canvas
+        self.canvas_time.draw()  # Refresh canvas
+    
+        self.label_processing_status_t2.setText(" ")
+        self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+
+    #
+    #
+    #
+    #
+    #
 
 
+    #############################################################
+    #              T A B    3    F U N C T I O N S              #
+    #############################################################
 
-        # median = median_filter(self.initial_data_in_time, int(self.filter_win_input.value()))
-        # pulsar_data_in_time = self.initial_data_in_time - median
-        # pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-        # self.filtered_data_in_time = pulsar_data_in_time
-        # self.frequency_limit = float(self.freq_limit_input.value())
+
+    # Thread called by the push button "Calculate FFT"
+    def thread_calculate_fft_of_data(self):
         
-        # # Calculating the spectrum
-        # frequency_axis, pulses_spectra, spectrum_max = \
-        #     calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
+        # Updating figure on tab 3 to indicate the FFT is being calculated
+        self.figure_freq.clear()  # clearing old figure
+        ax0 = self.figure_freq.add_subplot(111)
+        ax0.remove() 
+        self.figure_freq.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
+        self.canvas_freq.draw()  # refresh canvas
 
-        # # Update the plot
-        # self.figure.clear()  # clearing old figure
-        # ax0 = self.figure.add_subplot(211)
-        # ax0.plot(pulsar_data_in_time)
-        # ax0.set_xlim([0, len(pulsar_data_in_time)])
-        # ax0.set_ylim([-5.0, 5.0])
-        # ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        # ax1 = self.figure.add_subplot(212)
-        # ax1.plot(frequency_axis, pulses_spectra)
-        # ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        # ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        # self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        # ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-        # self.canvas.draw()  # refresh canvas
+        self.label_processing_status_t3.setText("Processing...")
+        self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
+
+        # Starting the thread of FFT calculation
+        t0 = Thread(target=self.calculate_fft_of_data)
+        t0.start()
+
+
+    # Action called by the push button "Calculate FFT"
+    def calculate_fft_of_data(self):
+
+        # Calculating FFT
+        self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data_array[:])), 2)  # calculation of the spectrum
+        self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
+
+        # Calculating the frequency resolution and low frequency (median) filter limit 
+        self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
+        self.low_freq_limit_of_filter = self.med_filter_length * self.frequency_resolution
+        frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
+
+        # Taking the high limit of frequency scale from GUI
+        self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
+
+        # Update the plot
+        rc('font', size=12, weight='bold')
+        self.figure_freq.clear()  # clearing figure
+        ax0 = self.figure_freq.add_subplot(111)
+        plot = ax0.imshow(self.vdm_spectra, 
+                          extent=[frequency_axis[0], frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          aspect='auto', cmap="Greys")
+        ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        self.figure_freq.set_constrained_layout(True)
+        self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        self.canvas_freq.draw()  # refresh canvas
+
+        self.label_processing_status_t3.setText(" ")
+        self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # action called by the push button Average data
     def average_time_data(self):
