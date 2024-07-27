@@ -2,7 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
-from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit
+from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider
 from PyQt5.QtCore import QSize, Qt
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 from threading import *
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pylab
 from os import path
 import numpy as np
@@ -564,10 +565,28 @@ class MyTableWidget(QWidget):
         # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
         self.toolbar_freq = NavigationToolbar(self.canvas_freq, self)
 
-        # Button "Read data"
+        # Button "Calculate FFT"
         self.button_calc_fft = QPushButton('Calculate FFT')
         self.button_calc_fft.clicked.connect(self.thread_calculate_fft_of_data)  # adding action to the button
         self.button_calc_fft.setFixedSize(QSize(100, 30))
+
+        self.slider_low_freq_t3 = QSlider(Qt.Horizontal)  # .centralwidget
+        self.slider_low_freq_t3.setRange(0, 100)
+
+        # self.slider_low_freq_t2.setMinimum(0)
+        # self.slider_low_freq_t2.setMaximum(300)
+        # self.slider_low_freq_t2(QtCore.QRect(190, 100, 160, 16))
+        # self.slider_low_freq_t2(QtCore.Qt.Horizontal)
+
+        # After each value change, slot "scaletext" will get invoked.
+        self.slider_low_freq_t3.valueChanged.connect(self.thread_change_low_freq_fig_limits)
+
+        self.slider_high_freq_t3 = QSlider(Qt.Horizontal)
+        self.slider_high_freq_t3.setRange(0, 100)
+
+        # After each value change, slot "scaletext" will get invoked.
+        self.slider_high_freq_t3.valueChanged.connect(self.thread_change_high_freq_fig_limits)
+
 
         # # Button "Subtract median"
         # self.button_filter = QPushButton('Subtract median')
@@ -594,6 +613,8 @@ class MyTableWidget(QWidget):
         # self.input_controls_layout.addWidget(self.label_median_win)
         # self.input_controls_layout.addWidget(self.filter_win_input)
         self.input_controls_layout_t3.addWidget(self.button_calc_fft)
+        self.input_controls_layout_t3.addWidget(self.slider_low_freq_t3)
+        self.input_controls_layout_t3.addWidget(self.slider_high_freq_t3)
         self.input_controls_layout_t3.addWidget(self.label_processing_status_t3)
         # self.input_controls_layout.addWidget(self.button_filter)
         # self.input_controls_layout.addWidget(self.label_aver_const)
@@ -1204,6 +1225,9 @@ class MyTableWidget(QWidget):
 
         # self.vdm_data = initial_data_array
 
+        # Set meduan filter length to 1 for the case the filter has never called
+        self.med_filter_length = 1
+
         # Calculating DM vector to have all DM values used
         self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  
                                          self.vdm_central_dm + self.vdm_dm_range, 
@@ -1295,6 +1319,7 @@ class MyTableWidget(QWidget):
         # Starting the thread of FFT calculation
         t0 = Thread(target=self.calculate_fft_of_data)
         t0.start()
+        t0.join()
 
 
     # Action called by the push button "Calculate FFT"
@@ -1304,11 +1329,15 @@ class MyTableWidget(QWidget):
         self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data_array[:])), 2)  # calculation of the spectrum
         self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
 
+        # Normalizing spectrum
+        self.vdm_spectra = self.vdm_spectra - np.min(self.vdm_spectra)
+        self.vdm_spectra = self.vdm_spectra / np.max(self.vdm_spectra)
+
         # Calculating the frequency resolution and low frequency (median) filter limit 
         self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
         self.low_freq_limit_of_filter = self.med_filter_length * self.frequency_resolution
-        frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
-
+        self.frequency_axis = [self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])]
+        
         # Taking the high limit of frequency scale from GUI
         self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
 
@@ -1316,30 +1345,103 @@ class MyTableWidget(QWidget):
         rc('font', size=12, weight='bold')
         self.figure_freq.clear()  # clearing figure
         ax0 = self.figure_freq.add_subplot(111)
+        
+        # divider = make_axes_locatable(ax0)
+        # cax = divider.append_axes('right', size='1%', pad=0)
+        
         plot = ax0.imshow(self.vdm_spectra, 
-                          extent=[frequency_axis[0], frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
         ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
         self.figure_freq.set_constrained_layout(True)
-        self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+        # self.figure_freq.colorbar(plot, cax=cax, aspect=100, label="Amplitude, AU")
         self.canvas_freq.draw()  # refresh canvas
 
         self.label_processing_status_t3.setText(" ")
         self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
 
 
+    # Thread called by slider low limit
+    def thread_change_low_freq_fig_limits(self, value):
+
+        # Starting the thread of FFT calculation
+        t0 = Thread(target=self.change_low_freq_fig_limits, args=(value,))
+        t0.start()
+        t0.join()
+
+
+    # Action called by slider low limit
+    def change_low_freq_fig_limits(self, *args):
+
+        v_min_man = float(0.5 * (args[0] / 100))
+        # v_max_man = float(0.5 * (1 - (self.slider_high_freq_t3.value() / 100)) + 0.5)
+        v_max_man = float((1 - (self.slider_high_freq_t3.value() / 100)))
+
+        # Update the plot
+        rc('font', size=12, weight='bold')
+        self.figure_freq.clear()  # clearing figure
+        ax0 = self.figure_freq.add_subplot(111)
+
+        # divider = make_axes_locatable(ax0)
+        # cax = divider.append_axes('right', size='1%', pad=0)
+
+        plot = ax0.imshow(self.vdm_spectra, 
+                          extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          vmin = v_min_man, vmax = v_max_man,
+                          aspect='auto', cmap="Greys")
+        ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        self.figure_freq.set_constrained_layout(True)
+        # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
+        # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+        self.canvas_freq.draw()  # refresh canvas
 
 
 
 
+    # Thread called by slider high limit
+    def thread_change_high_freq_fig_limits(self, value):
+
+        # Starting the thread of FFT calculation
+        t0 = Thread(target=self.change_high_freq_fig_limits, args=(value,))
+        t0.start()
+        t0.join()
 
 
+    # Action called by slider low limit
+    def change_high_freq_fig_limits(self, *args):
+
+        v_min_man = float(0.5 * (self.slider_low_freq_t3.value() / 100))
+        # v_max_man = float(0.5 * (1 - (args[0] / 100)) + 0.5)
+        v_max_man = float((1 - (args[0] / 100)))
 
 
+        # Update the plot
+        rc('font', size=12, weight='bold')
+        self.figure_freq.clear()  # clearing figure
+        ax0 = self.figure_freq.add_subplot(111)
 
+        # divider = make_axes_locatable(ax0)
+        # cax = divider.append_axes('right', size='1%', pad=0)
+
+        plot = ax0.imshow(self.vdm_spectra, 
+                          extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          vmin = v_min_man, vmax = v_max_man,
+                          aspect='auto', cmap="Greys")
+        ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_title('Time series', fontsize=10, fontweight='bold')
+        self.figure_freq.set_constrained_layout(True)
+        # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
+        # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+        self.canvas_freq.draw()  # refresh canvas
 
 
 
