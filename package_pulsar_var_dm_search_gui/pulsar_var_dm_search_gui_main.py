@@ -394,35 +394,67 @@ class MyTableWidget(QWidget):
 
         # Layouts in the second tab
         self.tab2.layout = QVBoxLayout(self.tab2)
-        self.input_controls_layout_t2 = QHBoxLayout()
-
-        # self.time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
+        self.input_controls_layout_t2_l1 = QHBoxLayout()  # Line 1 of controls
+        self.input_controls_layout_t2_l2 = QHBoxLayout()  # Line 2 of controls
 
         # Creating labels near spinboxes to describe the input
         self.label_median_win = QLabel("Median window:", self)
         self.label_median_win.setFixedSize(QSize(90, 30))
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
 
-        # self.label_low_limit_input = QLabel("Lower limit", self)
-        # self.label_low_limit_input.setFixedSize(QSize(70, 30))
-        # self.label_low_limit_input.setWordWrap(True)  # making label multi line
-        # self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+        # Dummy labels to align Sliders in first and second lines
+        self.label_dummy_t2l2_4 = QLabel(" ", self)
+        self.label_dummy_t2l2_4.setFixedSize(QSize(110, 30))
 
-        # self.label_high_limit_input = QLabel("Higher limit", self)
-        # self.label_high_limit_input.setFixedSize(QSize(70, 30))
-        # self.label_high_limit_input.setWordWrap(True)  # making label multi line
-        # self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_dummy_t2l2_5 = QLabel(" ", self)
+        self.label_dummy_t2l2_5.setFixedHeight(30)
 
-        # self.label_aver_const = QLabel("Average window", self)
-        # self.label_aver_const.setFixedSize(QSize(90, 30))
-        # self.label_aver_const.setWordWrap(True)  # making label multi line
-        # self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
 
+        self.label_cut_start_t2l1 = QLabel("Cut start:", self)
+        self.label_cut_start_t2l1.setFixedSize(QSize(90, 30))
+        self.label_cut_start_t2l1.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.label_cut_finish_t2l2 = QLabel("Cut finish:", self)
+        self.label_cut_finish_t2l2.setFixedSize(QSize(90, 30))
+        self.label_cut_finish_t2l2.setAlignment(QtCore.Qt.AlignCenter)
+
+
+
+        # Spinbox filter window length
         self.filter_win_input = QDoubleSpinBox()
         self.filter_win_input.setFixedSize(QSize(70, 30))
         self.filter_win_input.setMinimum(0)
         self.filter_win_input.setMaximum(100000)
         self.filter_win_input.setValue(100)
+
+        # Slider 1
+        self.slider_data_begins_at = QSlider(Qt.Horizontal)  
+        self.slider_data_begins_at.setFixedSize(QSize(450, 30))
+        self.slider_data_begins_at.setRange(0, 15)
+        self.slider_data_begins_at.setValue(0)
+        self.slider_data_begins_at.setTickPosition(QSlider.TicksAbove)
+        self.slider_data_begins_at.valueChanged.connect(self.slider_data_begins_at_value_changed)
+        
+        # Slider 2
+        self.slider_data_finishes_at = QSlider(Qt.Horizontal)  
+        self.slider_data_finishes_at.setFixedSize(QSize(450, 30))
+        self.slider_data_finishes_at.setRange(0, 15)
+        self.slider_data_finishes_at.setValue(15)
+        self.slider_data_finishes_at.setTickPosition(QSlider.TicksBelow)
+        self.slider_data_finishes_at.valueChanged.connect(self.slider_data_finishes_at_value_changed)
+
+        # Label Slider 1
+        self.label_data_begins_at = QLabel("1", self)
+        self.label_data_begins_at.setFixedSize(QSize(40, 30))
+        self.label_data_begins_at.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Label Slider 2
+        self.label_data_finishes_at = QLabel("16", self)
+        self.label_data_finishes_at.setFixedSize(QSize(40, 30))
+        self.label_data_finishes_at.setAlignment(QtCore.Qt.AlignCenter)
+
+
+
 
         # Main plot window
         self.figure_time = plt.figure()  # a figure instance to plot on
@@ -439,61 +471,47 @@ class MyTableWidget(QWidget):
         # Button "Subtract median"
         self.button_filter_time = QPushButton('Subtract median')
         self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)  # adding action to the button
-        self.button_filter_time.setFixedSize(QSize(110, 30))
+        self.button_filter_time.setFixedSize(QSize(273, 30))
 
-        # Work tatus label tab 2
+        # Work status label tab 2
         self.label_processing_status_t2 = QLabel('', self)
-        self.label_processing_status_t2.setFixedSize(QSize(300, 30))
+        # self.label_processing_status_t2.setFixedSize(QSize(300, 30))
         self.label_processing_status_t2.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_processing_status_t2.setFixedHeight(30)
         self.label_processing_status_t2.setFont(QFont('Arial', 14))
 
-        # Packing layouts in the window
-        self.input_controls_layout_t2.addWidget(self.button_read_time)
-        self.input_controls_layout_t2.addWidget(self.label_median_win)
-        self.input_controls_layout_t2.addWidget(self.filter_win_input)
-        self.input_controls_layout_t2.addWidget(self.button_filter_time)
-        self.input_controls_layout_t2.addWidget(self.label_processing_status_t2)
-        # self.input_controls_layout.addWidget(self.label_aver_const)
-        # self.input_controls_layout.addWidget(self.aver_const_input)
-        # self.input_controls_layout.addWidget(self.button_average)
-        # self.input_controls_layout.addWidget(self.label_low_limit_input)
-        # self.input_controls_layout.addWidget(self.low_limit_input)
-        # self.input_controls_layout.addWidget(self.label_high_limit_input)
-        # self.input_controls_layout.addWidget(self.high_limit_input)
-        # self.input_controls_layout.addWidget(self.button_crop)
-
-        self.tab2.layout.addLayout(self.input_controls_layout_t2)
+        # Packing layouts in the window line 1
+        self.input_controls_layout_t2_l1.addWidget(self.button_read_time)
+        self.input_controls_layout_t2_l1.addWidget(self.label_median_win)
+        self.input_controls_layout_t2_l1.addWidget(self.filter_win_input)
+        # self.input_controls_layout_t2_l1.addWidget(self.button_filter_time)
+        self.input_controls_layout_t2_l1.addWidget(self.label_cut_start_t2l1)
+        self.input_controls_layout_t2_l1.addWidget(self.slider_data_begins_at)
+        self.input_controls_layout_t2_l1.addWidget(self.label_data_begins_at)
+        self.input_controls_layout_t2_l1.addWidget(self.label_processing_status_t2)
         
+        # Packing layouts in the window line 2
+        self.input_controls_layout_t2_l2.addWidget(self.button_filter_time)
+        # self.input_controls_layout_t2_l2.addWidget(self.label_dummy_t2l2_4)
+        self.input_controls_layout_t2_l2.addWidget(self.label_cut_finish_t2l2)
+        self.input_controls_layout_t2_l2.addWidget(self.slider_data_finishes_at)
+        self.input_controls_layout_t2_l2.addWidget(self.label_data_finishes_at)
+        self.input_controls_layout_t2_l2.addWidget(self.label_dummy_t2l2_5)
+
+        # Pcking lines
+        self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
+        self.tab2.layout.addLayout(self.input_controls_layout_t2_l2)
+
         self.toolbar_layout_t2 = QHBoxLayout()
 
-        # # Creating labels to indicate the initial time resolution
-        # label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
-        # self.label_time_resolution = QLabel(label, self)
-        # self.label_time_resolution.setFixedSize(QSize(300, 30))
-        # self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
-
-        # self.frequency_limit = 10  # Hz
-        # self.label_freq_resolution = QLabel('Fig frequency limit:', self)
-        # self.label_freq_resolution.setFixedSize(QSize(100, 30))
-        # self.label_freq_resolution.setAlignment(QtCore.Qt.AlignCenter)
-
-        # self.label_hz = QLabel('Hz', self)
-        # self.label_hz.setFixedSize(QSize(15, 30))
-        # self.label_hz.setAlignment(QtCore.Qt.AlignCenter)
-
-
-        # self.freq_limit_input = QDoubleSpinBox()
-        # self.freq_limit_input.setStepType(step_type)
-        # self.freq_limit_input.setMinimum(0.0)
-        # self.freq_limit_input.setFixedSize(QSize(60, 30))
-        # self.freq_limit_input.setValue(self.frequency_limit)
-
+        # Creating labels to indicate the initial time resolution
+        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        self.label_time_resolution = QLabel(label, self)
+        self.label_time_resolution.setFixedSize(QSize(300, 30))
+        self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
         self.toolbar_layout_t2.addWidget(self.toolbar_time)
-        # self.toolbar_layout_t2.addWidget(self.label_time_resolution)
-        # self.toolbar_layout_t2.addWidget(self.label_freq_resolution)
-        # self.toolbar_layout_t2.addWidget(self.freq_limit_input)
-        # self.toolbar_layout_t2.addWidget(self.label_hz)
+        self.toolbar_layout_t2.addWidget(self.label_time_resolution)
         
         self.tab2.layout.addLayout(self.toolbar_layout_t2)
         self.tab2.layout.addWidget(self.canvas_time)
@@ -570,7 +588,7 @@ class MyTableWidget(QWidget):
         self.button_calc_fft.clicked.connect(self.thread_calculate_fft_of_data)  # adding action to the button
         self.button_calc_fft.setFixedSize(QSize(100, 30))
 
-        self.slider_low_freq_t3 = QSlider(Qt.Horizontal)  # .centralwidget
+        self.slider_low_freq_t3 = QSlider(Qt.Horizontal)  
         self.slider_low_freq_t3.setRange(0, 100)
 
         # self.slider_low_freq_t2.setMinimum(0)
@@ -1188,6 +1206,16 @@ class MyTableWidget(QWidget):
     #############################################################
     #              T A B    2    F U N C T I O N S              #
     #############################################################
+
+
+    def slider_data_begins_at_value_changed(self):
+        value = int(self.slider_data_begins_at.value())
+        self.label_data_begins_at.setText(str(value + 1))
+
+    def slider_data_finishes_at_value_changed(self):
+        value = int(self.slider_data_finishes_at.value())
+        self.label_data_finishes_at.setText(str(value + 1))
+
 
     # Thread called by the push button "Read data" on tab 2
     def thread_read_initial_data(self):
