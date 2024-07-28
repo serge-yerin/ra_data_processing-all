@@ -403,13 +403,11 @@ class MyTableWidget(QWidget):
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
 
         # Dummy labels to align Sliders in first and second lines
-        self.label_dummy_t2l2_4 = QLabel(" ", self)
-        self.label_dummy_t2l2_4.setFixedSize(QSize(110, 30))
 
         self.label_dummy_t2l2_5 = QLabel(" ", self)
         self.label_dummy_t2l2_5.setFixedHeight(30)
 
-
+        # Labels before sliders
         self.label_cut_start_t2l1 = QLabel("Cut start:", self)
         self.label_cut_start_t2l1.setFixedSize(QSize(90, 30))
         self.label_cut_start_t2l1.setAlignment(QtCore.Qt.AlignCenter)
@@ -417,8 +415,6 @@ class MyTableWidget(QWidget):
         self.label_cut_finish_t2l2 = QLabel("Cut finish:", self)
         self.label_cut_finish_t2l2.setFixedSize(QSize(90, 30))
         self.label_cut_finish_t2l2.setAlignment(QtCore.Qt.AlignCenter)
-
-
 
         # Spinbox filter window length
         self.filter_win_input = QDoubleSpinBox()
@@ -453,9 +449,6 @@ class MyTableWidget(QWidget):
         self.label_data_finishes_at.setFixedSize(QSize(40, 30))
         self.label_data_finishes_at.setAlignment(QtCore.Qt.AlignCenter)
 
-
-
-
         # Main plot window
         self.figure_time = plt.figure()  # a figure instance to plot on
         self.canvas_time = FigureCanvas(self.figure_time)  # takes the 'figure' instance as a parameter to __init__
@@ -465,13 +458,19 @@ class MyTableWidget(QWidget):
 
         # Button "Read data"
         self.button_read_time = QPushButton('Read data')
-        self.button_read_time.clicked.connect(self.thread_read_initial_data)  # adding action to the button
+        self.button_read_time.clicked.connect(self.thread_read_initial_data)
         self.button_read_time.setFixedSize(QSize(100, 30))
 
         # Button "Subtract median"
         self.button_filter_time = QPushButton('Subtract median')
-        self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)  # adding action to the button
+        self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)
         self.button_filter_time.setFixedSize(QSize(273, 30))
+
+        # Button "Cut data"
+        self.button_cut_data_time = QPushButton('Cut data')
+        self.button_cut_data_time.clicked.connect(self.thread_cut_initial_data_in_time)  
+        self.button_cut_data_time.setFixedSize(QSize(100, 30))
+
 
         # Work status label tab 2
         self.label_processing_status_t2 = QLabel('', self)
@@ -479,6 +478,14 @@ class MyTableWidget(QWidget):
         self.label_processing_status_t2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status_t2.setFixedHeight(30)
         self.label_processing_status_t2.setFont(QFont('Arial', 14))
+
+
+        # Cut index status label tab 2
+        self.label_cut_index_status_t2 = QLabel('', self)
+        self.label_cut_index_status_t2.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_cut_index_status_t2.setFixedHeight(30)
+        self.label_cut_index_status_t2.setFont(QFont('Arial', 14))
+
 
         # Packing layouts in the window line 1
         self.input_controls_layout_t2_l1.addWidget(self.button_read_time)
@@ -496,7 +503,8 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t2_l2.addWidget(self.label_cut_finish_t2l2)
         self.input_controls_layout_t2_l2.addWidget(self.slider_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.label_data_finishes_at)
-        self.input_controls_layout_t2_l2.addWidget(self.label_dummy_t2l2_5)
+        self.input_controls_layout_t2_l2.addWidget(self.button_cut_data_time)
+        self.input_controls_layout_t2_l2.addWidget(self.label_cut_index_status_t2)
 
         # Pcking lines
         self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
@@ -1231,6 +1239,8 @@ class MyTableWidget(QWidget):
         
         t0 = Thread(target=self.read_initial_data)
         t0.start()
+        t0.join()
+
 
 
     # Action called by the push button "Read data" on tab 2
@@ -1277,7 +1287,6 @@ class MyTableWidget(QWidget):
         self.label_processing_status_t2.setText(" ")
         self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
 
-
     #
     #
     #
@@ -1292,6 +1301,8 @@ class MyTableWidget(QWidget):
 
         t0 = Thread(target=self.subtract_median_in_time)
         t0.start()
+        t0.join()
+
 
 
     # Action called by the push button "Subtract median" on tab 2
@@ -1313,7 +1324,63 @@ class MyTableWidget(QWidget):
         ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
         ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
         self.figure_time.set_constrained_layout(True)
-        self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
+        self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+        self.canvas_time.draw()  # Refresh canvas
+    
+        self.label_processing_status_t2.setText(" ")
+        self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+
+    #
+    #
+    #
+    #
+    #
+
+    def thread_cut_initial_data_in_time(self):
+        
+        start_index = int(self.slider_data_begins_at.value())
+        finish_index = int(self.slider_data_finishes_at.value())
+
+        if start_index >= finish_index:
+
+            self.label_cut_index_status_t2.setText("Wrong values")
+            self.label_cut_index_status_t2.setStyleSheet("background-color: red;")
+        else:
+            
+            self.label_cut_index_status_t2.setText(" ")
+            self.label_cut_index_status_t2.setStyleSheet("background-color: light grey;")
+
+            self.label_processing_status_t2.setText("Processing...")
+            self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
+
+            t0 = Thread(target=self.cut_initial_data_in_time)
+            t0.start()
+            t0.join()
+
+
+    def cut_initial_data_in_time(self):
+        
+        start_index = int(self.slider_data_begins_at.value())
+        finish_index = int(self.slider_data_finishes_at.value())
+        total_time_points = self.vdm_data_array.shape[1]
+        start_time_point_cut = int(start_index * total_time_points / 16)
+        finish_time_point_cut = int((finish_index + 1) * total_time_points / 16)
+        self.time_points_num = finish_time_point_cut - start_time_point_cut
+
+        self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut]
+
+        # Updating figure on tab 2
+        self.figure_time.clear()  # clearing figure
+        ax0 = self.figure_time.add_subplot(111)
+        plot = ax0.imshow(self.cut_vdm_data_array, 
+                          extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          aspect='auto', cmap="Greys")
+        # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+        ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
+        self.figure_time.set_constrained_layout(True)
+        self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
         self.canvas_time.draw()  # Refresh canvas
     
         self.label_processing_status_t2.setText(" ")
@@ -1326,6 +1393,7 @@ class MyTableWidget(QWidget):
     #
 
 
+
     #############################################################
     #              T A B    3    F U N C T I O N S              #
     #############################################################
@@ -1334,27 +1402,60 @@ class MyTableWidget(QWidget):
     # Thread called by the push button "Calculate FFT"
     def thread_calculate_fft_of_data(self):
         
-        # Updating figure on tab 3 to indicate the FFT is being calculated
-        self.figure_freq.clear()  # clearing old figure
-        ax0 = self.figure_freq.add_subplot(111)
-        ax0.remove() 
-        self.figure_freq.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
-        self.canvas_freq.draw()  # refresh canvas
+        try:
+            print(self.cut_vdm_data_array.shape)
+            self.label_processing_status_t3.setText(" ")
+            self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
 
-        self.label_processing_status_t3.setText("Processing...")
-        self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
+            # Updating figure on tab 3 to indicate the FFT is being calculated
+            self.figure_freq.clear()  # clearing old figure
+            ax0 = self.figure_freq.add_subplot(111)
+            ax0.remove() 
+            self.figure_freq.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
+            self.canvas_freq.draw()  # refresh canvas
 
-        # Starting the thread of FFT calculation
-        t0 = Thread(target=self.calculate_fft_of_data)
-        t0.start()
-        t0.join()
+            self.label_processing_status_t3.setText("Processing...")
+            self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
+
+            # Starting the thread of FFT calculation
+            t0 = Thread(target=self.calculate_fft_of_data)
+            t0.start()
+            t0.join()
+
+        except AttributeError:
+            self.label_processing_status_t3.setText("Press 'Cut data' button first!")
+            self.label_processing_status_t3.setStyleSheet("background-color: red;")
+
+        # if self.cut_vdm_data_array:
+
+        #     self.label_cut_index_status_t2.setText(" ")
+        #     self.label_cut_index_status_t2.setStyleSheet("background-color: light grey;")
+
+        #     # Updating figure on tab 3 to indicate the FFT is being calculated
+        #     self.figure_freq.clear()  # clearing old figure
+        #     ax0 = self.figure_freq.add_subplot(111)
+        #     ax0.remove() 
+        #     self.figure_freq.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
+        #     self.canvas_freq.draw()  # refresh canvas
+
+        #     self.label_processing_status_t3.setText("Processing...")
+        #     self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
+
+        #     # Starting the thread of FFT calculation
+        #     t0 = Thread(target=self.calculate_fft_of_data)
+        #     t0.start()
+        #     t0.join()
+        # else:
+        #     self.label_cut_index_status_t2.setText("Press 'Cut values' button")
+        #     self.label_cut_index_status_t2.setStyleSheet("background-color: red;")
+
 
 
     # Action called by the push button "Calculate FFT"
     def calculate_fft_of_data(self):
 
         # Calculating FFT
-        self.vdm_spectra = np.power(np.real(np.fft.fft(self.vdm_data_array[:])), 2)  # calculation of the spectrum
+        self.vdm_spectra = np.power(np.real(np.fft.fft(self.cut_vdm_data_array[:])), 2)  # calculation of the spectrum
         self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
 
         # Normalizing spectrum
