@@ -473,7 +473,7 @@ class MyTableWidget(QWidget):
 
 
         # Work status label tab 2
-        self.label_processing_status_t2 = QLabel('', self)
+        self.label_processing_status_t2 = QLabel(" ", self)
         # self.label_processing_status_t2.setFixedSize(QSize(300, 30))
         self.label_processing_status_t2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status_t2.setFixedHeight(30)
@@ -491,7 +491,6 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t2_l1.addWidget(self.button_read_time)
         self.input_controls_layout_t2_l1.addWidget(self.label_median_win)
         self.input_controls_layout_t2_l1.addWidget(self.filter_win_input)
-        # self.input_controls_layout_t2_l1.addWidget(self.button_filter_time)
         self.input_controls_layout_t2_l1.addWidget(self.label_cut_start_t2l1)
         self.input_controls_layout_t2_l1.addWidget(self.slider_data_begins_at)
         self.input_controls_layout_t2_l1.addWidget(self.label_data_begins_at)
@@ -499,14 +498,13 @@ class MyTableWidget(QWidget):
         
         # Packing layouts in the window line 2
         self.input_controls_layout_t2_l2.addWidget(self.button_filter_time)
-        # self.input_controls_layout_t2_l2.addWidget(self.label_dummy_t2l2_4)
         self.input_controls_layout_t2_l2.addWidget(self.label_cut_finish_t2l2)
         self.input_controls_layout_t2_l2.addWidget(self.slider_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.label_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.button_cut_data_time)
         self.input_controls_layout_t2_l2.addWidget(self.label_cut_index_status_t2)
 
-        # Pcking lines
+        # Picking lines
         self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
         self.tab2.layout.addLayout(self.input_controls_layout_t2_l2)
 
@@ -535,7 +533,15 @@ class MyTableWidget(QWidget):
 
         # Layouts in the third tab
         self.tab3.layout = QVBoxLayout(self.tab3)
-        self.input_controls_layout_t3 = QHBoxLayout()
+        self.input_controls_layout_t3_l1 = QHBoxLayout()
+        self.input_controls_layout_t3_l2 = QHBoxLayout()
+
+        # Main plot window
+        self.figure_freq = plt.figure()  # a figure instance to plot on
+        self.canvas_freq = FigureCanvas(self.figure_freq)  # takes the 'figure' instance as a parameter to __init__
+
+        # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
+        self.toolbar_freq = NavigationToolbar(self.canvas_freq, self)
 
         # # Creating labels near spinboxes to describe the input
         # self.label_median_win = QLabel("Median window:", self)
@@ -547,114 +553,63 @@ class MyTableWidget(QWidget):
         # self.label_low_limit_input.setWordWrap(True)  # making label multi line
         # self.label_low_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        # self.label_high_limit_input = QLabel("Higher limit", self)
-        # self.label_high_limit_input.setFixedSize(QSize(70, 30))
-        # self.label_high_limit_input.setWordWrap(True)  # making label multi line
-        # self.label_high_limit_input.setAlignment(QtCore.Qt.AlignCenter)
 
-        # self.label_aver_const = QLabel("Average window", self)
-        # self.label_aver_const.setFixedSize(QSize(90, 30))
-        # self.label_aver_const.setWordWrap(True)  # making label multi line
-        # self.label_aver_const.setAlignment(QtCore.Qt.AlignCenter)
-
-        # # Selection of limits with spinboxes
-
-        # self.filter_win_input = QDoubleSpinBox()
-        # self.filter_win_input.setFixedSize(QSize(70, 30))
-        # self.filter_win_input.setMinimum(0)
-        # self.filter_win_input.setMaximum(100000)
-        # self.filter_win_input.setValue(100)
-
-        # self.aver_const_input = QDoubleSpinBox()
-        # self.aver_const_input.setFixedSize(QSize(60, 30))
-        # self.aver_const_input.setMinimum(1)
-        # self.aver_const_input.setMaximum(300)
-        # self.aver_const_input.setValue(1)
-
-
-        # self.low_limit_input = QDoubleSpinBox()
-        # self.low_limit_input.setStepType(step_type)
-        # self.low_limit_input.setMinimum(-10.0)
-        # self.low_limit_input.setFixedSize(QSize(60, 30))
-        # self.low_limit_input.setValue(-3)
-
-        # self.high_limit_input = QDoubleSpinBox()
-        # self.high_limit_input.setStepType(step_type)
-        # self.high_limit_input.setMinimum(-10.0)
-        # self.high_limit_input.setFixedSize(QSize(60, 30))
-        # self.high_limit_input.setValue(3)
-
-        # Main plot window
-        self.figure_freq = plt.figure()  # a figure instance to plot on
-        self.canvas_freq = FigureCanvas(self.figure_freq)  # takes the 'figure' instance as a parameter to __init__
-
-        # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
-        self.toolbar_freq = NavigationToolbar(self.canvas_freq, self)
 
         # Button "Calculate FFT"
         self.button_calc_fft = QPushButton('Calculate FFT')
         self.button_calc_fft.clicked.connect(self.thread_calculate_fft_of_data)  # adding action to the button
-        self.button_calc_fft.setFixedSize(QSize(100, 30))
+        self.button_calc_fft.setFixedSize(QSize(110, 30))
 
-        self.slider_low_freq_t3 = QSlider(Qt.Horizontal)  
-        self.slider_low_freq_t3.setRange(0, 100)
+        # Button "Apply range"
+        self.button_apply_range = QPushButton('Apply range')
+        self.button_apply_range.clicked.connect(self.thread_button_action_apply_range_t3)  # adding action to the button
+        self.button_apply_range.setFixedSize(QSize(110, 30))
 
-        # self.slider_low_freq_t2.setMinimum(0)
-        # self.slider_low_freq_t2.setMaximum(300)
-        # self.slider_low_freq_t2(QtCore.QRect(190, 100, 160, 16))
-        # self.slider_low_freq_t2(QtCore.Qt.Horizontal)
-
-        # After each value change, slot "scaletext" will get invoked.
-        self.slider_low_freq_t3.valueChanged.connect(self.thread_change_low_freq_fig_limits)
-
+        # Slider high amplitude range value
         self.slider_high_freq_t3 = QSlider(Qt.Horizontal)
+        self.slider_high_freq_t3.setFixedSize(QSize(600, 30))
         self.slider_high_freq_t3.setRange(0, 100)
-
+        self.slider_high_freq_t3.setValue(100)
+        self.slider_high_freq_t3.setTickPosition(QSlider.TicksBelow)
         # After each value change, slot "scaletext" will get invoked.
-        self.slider_high_freq_t3.valueChanged.connect(self.thread_change_high_freq_fig_limits)
+        self.slider_high_freq_t3.valueChanged.connect(self.slider_data_high_amplitude_at_value_changed)
 
+        # Slider low amplitude range value
+        self.slider_low_freq_t3 = QSlider(Qt.Horizontal)  
+        self.slider_low_freq_t3.setFixedSize(QSize(600, 30))
+        self.slider_low_freq_t3.setRange(0, 100)
+        self.slider_low_freq_t3.setValue(0)
+        self.slider_low_freq_t3.setTickPosition(QSlider.TicksAbove)
+        # After each value change, slot "scaletext" will get invoked.
+        self.slider_low_freq_t3.valueChanged.connect(self.slider_data_low_amplitude_at_value_changed)
 
-        # # Button "Subtract median"
-        # self.button_filter = QPushButton('Subtract median')
-        # self.button_filter.clicked.connect(self.subtract_median)  # adding action to the button
-        # self.button_filter.setFixedSize(QSize(110, 30))
+        # Label Slider 1
+        self.label_low_freq_t3 = QLabel("0.0", self)
+        self.label_low_freq_t3.setFixedSize(QSize(40, 30))
+        self.label_low_freq_t3.setAlignment(QtCore.Qt.AlignCenter)
 
-        # # Button "Average data"
-        # self.button_average = QPushButton('Moving average')
-        # self.button_average.clicked.connect(self.average_time_data)  # adding action to the button
-        # self.button_average.setFixedSize(QSize(110, 30))
-
-        # # Button "Crop data"
-        # self.button_crop = QPushButton('Crop data')
-        # self.button_crop.clicked.connect(self.crop_and_show_spectrum)  # adding action to the button
-        # self.button_crop.setFixedSize(QSize(100, 30))
+        # Label Slider 2
+        self.label_high_freq_t3 = QLabel("1.0", self)
+        self.label_high_freq_t3.setFixedSize(QSize(40, 30))
+        self.label_high_freq_t3.setAlignment(QtCore.Qt.AlignCenter)
 
         # Work status label tab 3 
         self.label_processing_status_t3 = QLabel('', self)
-        self.label_processing_status_t3.setFixedSize(QSize(300, 30))
+        # self.label_processing_status_t3.setFixedSize(QSize(300, 30))
+        self.label_processing_status_t3.setFixedHeight(30)
         self.label_processing_status_t3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status_t3.setFont(QFont('Arial', 14))
 
-        # Packing layouts in the window
-        # self.input_controls_layout.addWidget(self.label_median_win)
-        # self.input_controls_layout.addWidget(self.filter_win_input)
-        self.input_controls_layout_t3.addWidget(self.button_calc_fft)
-        self.input_controls_layout_t3.addWidget(self.slider_low_freq_t3)
-        self.input_controls_layout_t3.addWidget(self.slider_high_freq_t3)
-        self.input_controls_layout_t3.addWidget(self.label_processing_status_t3)
-        # self.input_controls_layout.addWidget(self.button_filter)
-        # self.input_controls_layout.addWidget(self.label_aver_const)
-        # self.input_controls_layout.addWidget(self.aver_const_input)
-        # self.input_controls_layout.addWidget(self.button_average)
-        # self.input_controls_layout.addWidget(self.label_low_limit_input)
-        # self.input_controls_layout.addWidget(self.low_limit_input)
-        # self.input_controls_layout.addWidget(self.label_high_limit_input)
-        # self.input_controls_layout.addWidget(self.high_limit_input)
-        # self.input_controls_layout.addWidget(self.button_crop)
+        # Dummy label to align tab 3 line 2
+        self.label_dummy_t3_l2 = QLabel('', self)
+        # self.label_dummy_t3_l2.setFixedSize(QSize(300, 30))
+        self.label_dummy_t3_l2.setFixedHeight(30)
+        self.label_dummy_t3_l2.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_dummy_t3_l2.setFont(QFont('Arial', 14))
 
-        self.tab3.layout.addLayout(self.input_controls_layout_t3)
-        
+
         self.toolbar_frequency_layout_t3 = QHBoxLayout()
+
 
         # Creating labels to indicate the initial time resolution
         label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
@@ -685,7 +640,23 @@ class MyTableWidget(QWidget):
         self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
         self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
         
+        
+        # Adding elements and packing layouts in the window
+        self.input_controls_layout_t3_l1.addWidget(self.button_calc_fft)
+        self.input_controls_layout_t3_l1.addWidget(self.slider_high_freq_t3)
+        self.input_controls_layout_t3_l1.addWidget(self.label_high_freq_t3)
+        self.input_controls_layout_t3_l1.addWidget(self.label_processing_status_t3)
+
+        self.input_controls_layout_t3_l2.addWidget(self.button_apply_range)
+        self.input_controls_layout_t3_l2.addWidget(self.slider_low_freq_t3)
+        self.input_controls_layout_t3_l2.addWidget(self.label_low_freq_t3)
+        self.input_controls_layout_t3_l2.addWidget(self.label_dummy_t3_l2)
+
+        self.tab3.layout.addLayout(self.input_controls_layout_t3_l1)
+        self.tab3.layout.addLayout(self.input_controls_layout_t3_l2)
+
         self.tab3.layout.addLayout(self.toolbar_frequency_layout_t3)
+        
         self.tab3.layout.addWidget(self.canvas_freq)
 
         self.tab3.setLayout(self.tab3.layout)
@@ -1227,19 +1198,18 @@ class MyTableWidget(QWidget):
 
     # Thread called by the push button "Read data" on tab 2
     def thread_read_initial_data(self):
-        
+
+        self.label_processing_status_t2.setText("Reading data...")
+        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
+
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
         ax0.remove() 
         self.figure_time.text(0.4, 0.5, "Reading data file...", color="C0", size=22)
-        self.canvas_time.draw()  # refresh canvas
+        self.canvas_time.draw() 
 
-        self.label_processing_status_t2.setText("Processing...")
-        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
-        
         t0 = Thread(target=self.read_initial_data)
         t0.start()
-        t0.join()
 
 
 
@@ -1296,12 +1266,12 @@ class MyTableWidget(QWidget):
     # Thread called by the push button "Subtract median" on tab 2
     def thread_subtract_median_in_time(self):
 
-        self.label_processing_status_t2.setText("Processing...")
+        self.label_processing_status_t2.setText("Subtracting...")
         self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
 
         t0 = Thread(target=self.subtract_median_in_time)
         t0.start()
-        t0.join()
+        # t0.join()
 
 
 
@@ -1350,42 +1320,47 @@ class MyTableWidget(QWidget):
             self.label_cut_index_status_t2.setText(" ")
             self.label_cut_index_status_t2.setStyleSheet("background-color: light grey;")
 
-            self.label_processing_status_t2.setText("Processing...")
+            self.label_processing_status_t2.setText("Cutting data...")
             self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
 
             t0 = Thread(target=self.cut_initial_data_in_time)
             t0.start()
-            t0.join()
+            # t0.join()
 
 
     def cut_initial_data_in_time(self):
         
-        start_index = int(self.slider_data_begins_at.value())
-        finish_index = int(self.slider_data_finishes_at.value())
-        total_time_points = self.vdm_data_array.shape[1]
-        start_time_point_cut = int(start_index * total_time_points / 16)
-        finish_time_point_cut = int((finish_index + 1) * total_time_points / 16)
-        self.time_points_num = finish_time_point_cut - start_time_point_cut
+        try:
+            start_index = int(self.slider_data_begins_at.value())
+            finish_index = int(self.slider_data_finishes_at.value())
+            total_time_points = self.vdm_data_array.shape[1]
+            start_time_point_cut = int(start_index * total_time_points / 16)
+            finish_time_point_cut = int((finish_index + 1) * total_time_points / 16)
+            self.time_points_num = finish_time_point_cut - start_time_point_cut
 
-        self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut]
+            self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut]
 
-        # Updating figure on tab 2
-        self.figure_time.clear()  # clearing figure
-        ax0 = self.figure_time.add_subplot(111)
-        plot = ax0.imshow(self.cut_vdm_data_array, 
-                          extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
-                          aspect='auto', cmap="Greys")
-        # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-        ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
-        ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
-        self.figure_time.set_constrained_layout(True)
-        self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
-        self.canvas_time.draw()  # Refresh canvas
-    
-        self.label_processing_status_t2.setText(" ")
-        self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
-
+            # Updating figure on tab 2
+            self.figure_time.clear()  # clearing figure
+            ax0 = self.figure_time.add_subplot(111)
+            plot = ax0.imshow(self.cut_vdm_data_array, 
+                            extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                            aspect='auto', cmap="Greys")
+            # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+            ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+            ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+            ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
+            self.figure_time.set_constrained_layout(True)
+            self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+            self.canvas_time.draw()  # Refresh canvas
+        
+            self.label_processing_status_t2.setText(" ")
+            self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+        
+        except AttributeError:
+        
+            self.label_processing_status_t3.setText("Press 'Read data' button first!")
+            self.label_processing_status_t3.setStyleSheet("background-color: red;")
     #
     #
     #
@@ -1420,35 +1395,11 @@ class MyTableWidget(QWidget):
             # Starting the thread of FFT calculation
             t0 = Thread(target=self.calculate_fft_of_data)
             t0.start()
-            t0.join()
+            # t0.join()
 
         except AttributeError:
             self.label_processing_status_t3.setText("Press 'Cut data' button first!")
             self.label_processing_status_t3.setStyleSheet("background-color: red;")
-
-        # if self.cut_vdm_data_array:
-
-        #     self.label_cut_index_status_t2.setText(" ")
-        #     self.label_cut_index_status_t2.setStyleSheet("background-color: light grey;")
-
-        #     # Updating figure on tab 3 to indicate the FFT is being calculated
-        #     self.figure_freq.clear()  # clearing old figure
-        #     ax0 = self.figure_freq.add_subplot(111)
-        #     ax0.remove() 
-        #     self.figure_freq.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
-        #     self.canvas_freq.draw()  # refresh canvas
-
-        #     self.label_processing_status_t3.setText("Processing...")
-        #     self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
-
-        #     # Starting the thread of FFT calculation
-        #     t0 = Thread(target=self.calculate_fft_of_data)
-        #     t0.start()
-        #     t0.join()
-        # else:
-        #     self.label_cut_index_status_t2.setText("Press 'Cut values' button")
-        #     self.label_cut_index_status_t2.setStyleSheet("background-color: red;")
-
 
 
     # Action called by the push button "Calculate FFT"
@@ -1494,62 +1445,42 @@ class MyTableWidget(QWidget):
         self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
 
 
-    # Thread called by slider low limit
-    def thread_change_low_freq_fig_limits(self, value):
+    # Changing value in label according to slider position
+    def slider_data_low_amplitude_at_value_changed(self):
+        value = int(self.slider_low_freq_t3.value())
+        self.label_low_freq_t3.setText(str(np.round(value / 100, 2)))
 
-        # Starting the thread of FFT calculation
-        t0 = Thread(target=self.change_low_freq_fig_limits, args=(value,))
-        t0.start()
-        t0.join()
-
-
-    # Action called by slider low limit
-    def change_low_freq_fig_limits(self, *args):
-
-        v_min_man = float(0.5 * (args[0] / 100))
-        # v_max_man = float(0.5 * (1 - (self.slider_high_freq_t3.value() / 100)) + 0.5)
-        v_max_man = float((1 - (self.slider_high_freq_t3.value() / 100)))
-
-        # Update the plot
-        rc('font', size=12, weight='bold')
-        self.figure_freq.clear()  # clearing figure
-        ax0 = self.figure_freq.add_subplot(111)
-
-        # divider = make_axes_locatable(ax0)
-        # cax = divider.append_axes('right', size='1%', pad=0)
-
-        plot = ax0.imshow(self.vdm_spectra, 
-                          extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
-                          vmin = v_min_man, vmax = v_max_man,
-                          aspect='auto', cmap="Greys")
-        ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-        ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
-        ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        self.figure_freq.set_constrained_layout(True)
-        # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
-        # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
-        self.canvas_freq.draw()  # refresh canvas
+    def slider_data_high_amplitude_at_value_changed(self):
+        value = int(self.slider_high_freq_t3.value())
+        self.label_high_freq_t3.setText(str(np.round(value / 100, 2)))
 
 
+    def thread_button_action_apply_range_t3(self):
+        
+        value_l = int(self.slider_low_freq_t3.value())
+        value_h = int(self.slider_high_freq_t3.value())
+
+        if value_l >= value_h:
+
+            self.label_processing_status_t3.setText("Wrong values")
+            self.label_processing_status_t3.setStyleSheet("background-color: red;")
+        
+        else:
+            
+            self.label_processing_status_t3.setText("Applying limits...")
+            self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
+        
+            t0 = Thread(target=self.button_action_apply_range_t3)
+            t0.start()
+            #  t0.join()
 
 
-    # Thread called by slider high limit
-    def thread_change_high_freq_fig_limits(self, value):
+    def button_action_apply_range_t3(self):
+        value_l = int(self.slider_low_freq_t3.value())
+        value_h = int(self.slider_high_freq_t3.value())
 
-        # Starting the thread of FFT calculation
-        t0 = Thread(target=self.change_high_freq_fig_limits, args=(value,))
-        t0.start()
-        t0.join()
-
-
-    # Action called by slider low limit
-    def change_high_freq_fig_limits(self, *args):
-
-        v_min_man = float(0.5 * (self.slider_low_freq_t3.value() / 100))
-        # v_max_man = float(0.5 * (1 - (args[0] / 100)) + 0.5)
-        v_max_man = float((1 - (args[0] / 100)))
-
+        v_min_man = float(value_l / 100)
+        v_max_man = float(value_h / 100)
 
         # Update the plot
         rc('font', size=12, weight='bold')
@@ -1571,6 +1502,91 @@ class MyTableWidget(QWidget):
         # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
         # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
         self.canvas_freq.draw()  # refresh canvas
+
+        del value_l, value_h
+
+        self.label_processing_status_t3.setText(" ")
+        self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
+
+
+
+    # # Thread called by slider low limit
+    # def thread_change_low_freq_fig_limits(self, value):
+
+    #     # Starting the thread of FFT calculation
+    #     t0 = Thread(target=self.change_low_freq_fig_limits, args=(value,))
+    #     t0.start()
+    #     t0.join()
+
+
+    # # Action called by slider low limit
+    # def change_low_freq_fig_limits(self, *args):
+
+    #     v_min_man = float(0.5 * (args[0] / 100))
+    #     # v_max_man = float(0.5 * (1 - (self.slider_high_freq_t3.value() / 100)) + 0.5)
+    #     v_max_man = float((1 - (self.slider_high_freq_t3.value() / 100)))
+
+    #     # Update the plot
+    #     rc('font', size=12, weight='bold')
+    #     self.figure_freq.clear()  # clearing figure
+    #     ax0 = self.figure_freq.add_subplot(111)
+
+    #     # divider = make_axes_locatable(ax0)
+    #     # cax = divider.append_axes('right', size='1%', pad=0)
+
+    #     plot = ax0.imshow(self.vdm_spectra, 
+    #                       extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+    #                       vmin = v_min_man, vmax = v_max_man,
+    #                       aspect='auto', cmap="Greys")
+    #     ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+    #     ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+    #     ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+    #     ax0.set_title('Time series', fontsize=10, fontweight='bold')
+    #     self.figure_freq.set_constrained_layout(True)
+    #     # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
+    #     # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+    #     self.canvas_freq.draw()  # refresh canvas
+
+
+
+
+    # # Thread called by slider high limit
+    # def thread_change_high_freq_fig_limits(self, value):
+
+    #     # Starting the thread of FFT calculation
+    #     t0 = Thread(target=self.change_high_freq_fig_limits, args=(value,))
+    #     t0.start()
+    #     t0.join()
+
+
+    # # Action called by slider low limit
+    # def change_high_freq_fig_limits(self, *args):
+
+    #     v_min_man = float(0.5 * (self.slider_low_freq_t3.value() / 100))
+    #     # v_max_man = float(0.5 * (1 - (args[0] / 100)) + 0.5)
+    #     v_max_man = float((1 - (args[0] / 100)))
+
+
+    #     # Update the plot
+    #     rc('font', size=12, weight='bold')
+    #     self.figure_freq.clear()  # clearing figure
+    #     ax0 = self.figure_freq.add_subplot(111)
+
+    #     # divider = make_axes_locatable(ax0)
+    #     # cax = divider.append_axes('right', size='1%', pad=0)
+
+    #     plot = ax0.imshow(self.vdm_spectra, 
+    #                       extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+    #                       vmin = v_min_man, vmax = v_max_man,
+    #                       aspect='auto', cmap="Greys")
+    #     ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+    #     ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
+    #     ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+    #     ax0.set_title('Time series', fontsize=10, fontweight='bold')
+    #     self.figure_freq.set_constrained_layout(True)
+    #     # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
+    #     # self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+    #     self.canvas_freq.draw()  # refresh canvas
 
 
 
