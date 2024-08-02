@@ -80,7 +80,7 @@ class MyTableWidget(QWidget):
         self.tabs.addTab(self.tab2, "Data in time domain")
         self.tabs.addTab(self.tab3, "Data in spectral domain")
         self.tabs.addTab(self.tab4, "Spectral domain analysis")
-        # self.tabs.addTab(self.tab5, "Process Excel DB")
+        self.tabs.addTab(self.tab5, "Spectrum of spectrum")
 
         self.time_resolution = (1 / 66000000) * 16384 * 32  # Data time resolution, s   # 0.007944
 
@@ -684,7 +684,6 @@ class MyTableWidget(QWidget):
         self.slider_dm_selection_t4l1.valueChanged.connect(self.slider_dm_selection_t4l1_changed)
 
         # Label Slider t4l1
-        # self.label_dm_selection_value_t4l1 = QLabel(" ", self)
         self.label_dm_selection_value_t4l1 = QLabel(str(np.round(self.vdm_dm_vector[0], 3)), self)
         self.label_dm_selection_value_t4l1.setFixedSize(QSize(40, 30))
         self.label_dm_selection_value_t4l1.setAlignment(QtCore.Qt.AlignCenter)
@@ -729,6 +728,53 @@ class MyTableWidget(QWidget):
         self.tab4.layout.addLayout(self.figures_layout_t4_l2)
 
         self.tab4.setLayout(self.tab4.layout)
+
+
+
+
+
+
+        # ############################################################
+        # #         Fifth tab - spectrum of spectrum                 #
+        # ############################################################
+
+        # Fifth tab
+        self.tab5.layout = QVBoxLayout(self.tab5)
+        self.input_controls_layout_t5_l1 = QHBoxLayout()
+        self.figures_layout_t5_l2 = QHBoxLayout()
+        self.figures_layout_t5_l3 = QHBoxLayout()
+
+        # Button "Plot data"
+        self.button_plot_data_t5_l1 = QPushButton('Plot data')
+        self.button_plot_data_t5_l1.clicked.connect(self.thread_plot_or_update_figures_tab_5)  # adding action to the button
+        self.button_plot_data_t5_l1.setFixedSize(QSize(250, 30))
+
+
+        # Plot window spectrum for particular DM
+        self.figure_spectrum_for_dm_t5_l2 = plt.figure()
+        self.canvas_spectrum_for_dm_t5_l2 = FigureCanvas(self.figure_spectrum_for_dm_t5_l2)  
+
+        # Plot window spectrum for particular DM
+        self.figure_spectrum_of_spectrum_t5_l3 = plt.figure()
+        self.canvas_spectrum_of_spectrum_t5_l3 = FigureCanvas(self.figure_spectrum_of_spectrum_t5_l3)  
+
+
+        # Packing into layouts
+        self.input_controls_layout_t5_l1.addWidget(self.button_plot_data_t5_l1)
+
+        self.figures_layout_t5_l2.addWidget(self.canvas_spectrum_for_dm_t5_l2)
+        
+        self.figures_layout_t5_l3.addWidget(self.canvas_spectrum_of_spectrum_t5_l3)
+
+        self.tab5.layout.addLayout(self.input_controls_layout_t5_l1)
+        self.tab5.layout.addLayout(self.figures_layout_t5_l2)
+        self.tab5.layout.addLayout(self.figures_layout_t5_l3)
+
+        self.tab5.setLayout(self.tab5.layout)
+
+
+
+
 
 
 
@@ -1495,11 +1541,132 @@ class MyTableWidget(QWidget):
         ax0 = self.figure_spectrum_for_dm_t4_l2.add_subplot(111)
         ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
         ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
-        ax0.set_xlabel('DM, pc * cm-3', fontsize=10, fontweight='bold')
-        ax0.set_ylabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
         ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
         self.figure_spectrum_for_dm_t4_l2.set_constrained_layout(True)
         self.canvas_spectrum_for_dm_t4_l2.draw()  # refresh canvas
+
+
+
+
+
+
+
+    #############################################################
+    #              T A B    5    F U N C T I O N S              #
+    #############################################################
+
+
+
+
+    def thread_plot_or_update_figures_tab_5(self):
+               
+
+        # Starting the thread of FFT calculation
+        t0 = Thread(target=self.plot_or_update_figures_tab_5)
+        t0.start()
+        # t0.join()
+
+
+    def plot_or_update_figures_tab_5(self):
+        
+        # # Taking the high limit of frequency scale from GUI
+        # self.high_frequency_limit = float(self.freq_limit_input.value())  # Hz
+
+        # # Finding index of the frequency axis where the value exceeds the limit for the first time
+        # max_idx = np.array([np.where(self.frequency_axis > self.high_frequency_limit)]).min()
+
+        # # # Cutting frequencies above selected limit to obtain best S/N
+        # # self.vdm_spectra_cut = self.vdm_spectra[:,:max_idx].copy()
+        # self.frequency_axis_cut = self.frequency_axis[0:max_idx].copy()
+
+        # # Values of color amplitudes
+        # value_l = int(self.slider_low_freq_t3.value())
+        # value_h = int(self.slider_high_freq_t3.value())
+
+        # v_min_man = float(value_l / 100)
+        # v_max_man = float(value_h / 100)
+
+        # Manually selected DM read from slider
+        man_dm_index = int(self.slider_dm_selection_t4l1.value())
+
+        # Update the plot 1
+        self.figure_spectrum_for_dm_t5_l2.clear()  # clearing figure
+        ax0 = self.figure_spectrum_for_dm_t5_l2.add_subplot(111)
+        ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
+        ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
+        ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
+        ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
+        self.figure_spectrum_for_dm_t5_l2.set_constrained_layout(True)
+        self.canvas_spectrum_for_dm_t5_l2.draw()  # refresh canvas
+
+
+
+
+        self.vdm_spectra_target_cut = self.vdm_spectra_cut[man_dm_index]
+
+        # Calculate FFT of spectrum
+        self.vdm_spectra_2_cut = np.power(np.real(np.fft.fft(self.vdm_spectra_target_cut)), 2)  # calculation of the spectrum
+        self.vdm_spectra_2_cut = self.vdm_spectra_2_cut[0 : int(self.vdm_spectra_2_cut.shape[0]/2)]  # delete second part of the spectrum
+
+        # Normalizing spectrum
+        self.vdm_spectra_2_cut = self.vdm_spectra_2_cut - np.min(self.vdm_spectra_2_cut)
+        self.vdm_spectra_2_cut = self.vdm_spectra_2_cut / np.max(self.vdm_spectra_2_cut)
+        self.vdm_spectra_2_cut[0:10] = 0.0
+
+        # Update the plot 2
+        self.figure_spectrum_of_spectrum_t5_l3.clear()  # clearing figure
+        ax0 = self.figure_spectrum_of_spectrum_t5_l3.add_subplot(111)
+        ax0.plot(self.vdm_spectra_2_cut)
+        # ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
+        # ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
+        # ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
+        # ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
+        self.figure_spectrum_of_spectrum_t5_l3.set_constrained_layout(True)
+        self.canvas_spectrum_of_spectrum_t5_l3.draw()  # refresh canvas
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
