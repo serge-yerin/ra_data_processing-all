@@ -665,8 +665,32 @@ class MyTableWidget(QWidget):
         self.button_plot_data_t4_l1.clicked.connect(self.plot_or_update_figures_tab_4)  # adding action to the button
         self.button_plot_data_t4_l1.setFixedSize(QSize(250, 30))
 
+        # Label before slider
+        self.label_dm_selection_t4l1 = QLabel("Select DM:", self)
+        self.label_dm_selection_t4l1.setFixedSize(QSize(90, 30))
+        self.label_dm_selection_t4l1.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        # Preparing dummy dm_vector for slider_dm_selection_t4l1 to be updated after data read
+        self.vdm_dm_vector = np.linspace(0, 100, num=100)
+
+
+        # Slider t4l1
+        self.slider_dm_selection_t4l1 = QSlider(Qt.Horizontal)  
+        self.slider_dm_selection_t4l1.setFixedSize(QSize(650, 30))
+        self.slider_dm_selection_t4l1.setRange(0, len(self.vdm_dm_vector))
+        self.slider_dm_selection_t4l1.setValue(0)
+        self.slider_dm_selection_t4l1.setTickPosition(QSlider.TicksAbove)
+        self.slider_dm_selection_t4l1.valueChanged.connect(self.slider_dm_selection_t4l1_changed)
+
+        # Label Slider t4l1
+        # self.label_dm_selection_value_t4l1 = QLabel(" ", self)
+        self.label_dm_selection_value_t4l1 = QLabel(str(np.round(self.vdm_dm_vector[0], 3)), self)
+        self.label_dm_selection_value_t4l1.setFixedSize(QSize(40, 30))
+        self.label_dm_selection_value_t4l1.setAlignment(QtCore.Qt.AlignCenter)
+
         # Work status label tab 4
-        self.label_processing_status_t4 = QLabel('', self)
+        self.label_processing_status_t4 = QLabel(" ", self)
         self.label_processing_status_t4.setFixedHeight(30)
         self.label_processing_status_t4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status_t4.setFont(QFont('Arial', 14))
@@ -689,6 +713,9 @@ class MyTableWidget(QWidget):
 
         # Packing into layouts
         self.input_controls_layout_t4_l1.addWidget(self.button_plot_data_t4_l1)
+        self.input_controls_layout_t4_l1.addWidget(self.label_dm_selection_t4l1)
+        self.input_controls_layout_t4_l1.addWidget(self.slider_dm_selection_t4l1)
+        self.input_controls_layout_t4_l1.addWidget(self.label_dm_selection_value_t4l1)
         self.input_controls_layout_t4_l1.addWidget(self.label_processing_status_t4)
 
         self.figures_layout_t4_l1.addWidget(self.canvas_dm_vs_time_t4_l1)
@@ -1063,10 +1090,16 @@ class MyTableWidget(QWidget):
         self.med_filter_length = 1
 
         # Calculating DM vector to have all DM values used
-        self.vdm_dm_vector = np.linspace( self.vdm_central_dm - self.vdm_dm_range,  
+        self.vdm_dm_vector = np.linspace(self.vdm_central_dm - self.vdm_dm_range,  
                                          self.vdm_central_dm + self.vdm_dm_range, 
                                          num=self.vdm_dm_points)
+        
+        # Configure gui interface on tab 4
+        self.slider_dm_selection_t4l1.setRange(0, len(self.vdm_dm_vector))
+        self.slider_dm_selection_t4l1.setValue(0)
+        self.label_dm_selection_value_t4l1.setText(str(np.round(self.vdm_dm_vector[0], 3)))
 
+        # Making plot
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
         plot = ax0.imshow(self.vdm_data_array, 
@@ -1349,6 +1382,14 @@ class MyTableWidget(QWidget):
     #              T A B    4    F U N C T I O N S              #
     #############################################################
 
+
+    def slider_dm_selection_t4l1_changed(self):
+        value = int(self.slider_dm_selection_t4l1.value())
+        self.label_dm_selection_value_t4l1.setText(str(np.round(self.vdm_dm_vector[value], 3)))
+
+
+
+
     def thread_plot_or_update_figures_tab_4(self):
                
         try:
@@ -1401,17 +1442,22 @@ class MyTableWidget(QWidget):
         self.vdm_spectra_cut = self.vdm_spectra[:,:max_idx].copy()
         self.frequency_axis_cut = self.frequency_axis[0:max_idx].copy()
 
-
+        # Values of colr amplitudes
         value_l = int(self.slider_low_freq_t3.value())
         value_h = int(self.slider_high_freq_t3.value())
 
         v_min_man = float(value_l / 100)
         v_max_man = float(value_h / 100)
 
+        # Manually selected DM read from slider
+        man_dm_index = int(self.slider_dm_selection_t4l1.value())
+        # self.label_dm_selection_value_t4l1.setText(str(np.round(self.vdm_dm_vector[value], 3)))
+
         # Update the plot 1
         rc('font', size=10, weight='bold')
         self.figure_dm_vs_time_t4_l1.clear()  # clearing figure
         ax0 = self.figure_dm_vs_time_t4_l1.add_subplot(111)
+        ax0.axhline(y = self.vdm_dm_vector[man_dm_index], color = 'C1', alpha = 0.2)
         ax0.imshow(self.vdm_spectra_cut, 
                    extent=[self.frequency_axis_cut[0], self.frequency_axis_cut[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                    vmin = v_min_man, vmax = v_max_man, aspect='auto', cmap="Greys")
@@ -1425,6 +1471,7 @@ class MyTableWidget(QWidget):
         # Update the plot 2
         self.figure_amplitude_vs_dm_t4_l1.clear()  # clearing figure
         ax0 = self.figure_amplitude_vs_dm_t4_l1.add_subplot(111)
+        ax0.axvline(x = self.vdm_dm_vector[man_dm_index], color = 'C1')
         ax0.plot(self.vdm_dm_vector,  np.mean(self.vdm_spectra_cut, axis=1))
         ax0.set_xlabel('DM, pc * cm-3', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
@@ -1446,11 +1493,11 @@ class MyTableWidget(QWidget):
         # Update the plot 4
         self.figure_spectrum_for_dm_t4_l2.clear()  # clearing figure
         ax0 = self.figure_spectrum_for_dm_t4_l2.add_subplot(111)
-        ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[15])
+        ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
         ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
         ax0.set_xlabel('DM, pc * cm-3', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        ax0.set_title('Averaged spectra for all DMs', fontsize=8, fontweight='bold')
+        ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
         self.figure_spectrum_for_dm_t4_l2.set_constrained_layout(True)
         self.canvas_spectrum_for_dm_t4_l2.draw()  # refresh canvas
 
