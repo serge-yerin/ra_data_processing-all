@@ -1148,7 +1148,7 @@ class MyTableWidget(QWidget):
         # Making plot
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
-        plot = ax0.imshow(self.vdm_data_array, 
+        plot = ax0.imshow(np.flipud(self.vdm_data_array), 
                           extent=[0,  self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
@@ -1398,7 +1398,7 @@ class MyTableWidget(QWidget):
         # divider = make_axes_locatable(ax0)
         # cax = divider.append_axes('right', size='1%', pad=0)
 
-        plot = ax0.imshow(self.vdm_spectra, 
+        plot = ax0.imshow(np.flipud(self.vdm_spectra), 
                           extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           vmin = v_min_man, vmax = v_max_man,
                           aspect='auto', cmap="Greys")
@@ -1504,7 +1504,7 @@ class MyTableWidget(QWidget):
         self.figure_dm_vs_time_t4_l1.clear()  # clearing figure
         ax0 = self.figure_dm_vs_time_t4_l1.add_subplot(111)
         ax0.axhline(y = self.vdm_dm_vector[man_dm_index], color = 'C1', alpha = 0.2)
-        ax0.imshow(self.vdm_spectra_cut, 
+        ax0.imshow(np.flipud(self.vdm_spectra_cut), 
                    extent=[self.frequency_axis_cut[0], self.frequency_axis_cut[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                    vmin = v_min_man, vmax = v_max_man, aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
