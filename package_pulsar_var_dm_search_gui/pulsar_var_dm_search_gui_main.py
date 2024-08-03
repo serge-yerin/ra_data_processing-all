@@ -2,7 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
-from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider
+from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider, QSizePolicy
 from PyQt5.QtCore import QSize, Qt
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
@@ -41,7 +41,7 @@ from package_ra_data_processing.filtering import median_filter
 # pip uninstall opencv-python
 # pip install opencv-python-headless
 
-software_version = '2024.07.21'
+software_version = '2024.08.03'
 
 
 # Main window
@@ -396,6 +396,12 @@ class MyTableWidget(QWidget):
         self.tab2.layout = QVBoxLayout(self.tab2)
         self.input_controls_layout_t2_l1 = QHBoxLayout()  # Line 1 of controls
         self.input_controls_layout_t2_l2 = QHBoxLayout()  # Line 2 of controls
+        self.canvas_and_input_controls_layout_t2 = QHBoxLayout() 
+
+        self.canvas_and_toolbox_left_vertical_layout_t2 = QVBoxLayout()
+        self.input_controls_right_vertical_layout_t2 = QVBoxLayout()
+
+        self.toolbar_layout_t2 = QHBoxLayout()
 
         # Creating labels near spinboxes to describe the input
         self.label_median_win = QLabel("Median window:", self)
@@ -423,24 +429,24 @@ class MyTableWidget(QWidget):
         self.filter_win_input.setMaximum(100000)
         self.filter_win_input.setValue(100)
 
-        # Slider 1
+        # Slider 1 - data cut
         self.slider_data_begins_at = QSlider(Qt.Horizontal)  
         self.slider_data_begins_at.setFixedSize(QSize(450, 30))
-        self.slider_data_begins_at.setRange(0, 15)
+        self.slider_data_begins_at.setRange(0, 16)
         self.slider_data_begins_at.setValue(0)
         self.slider_data_begins_at.setTickPosition(QSlider.TicksAbove)
         self.slider_data_begins_at.valueChanged.connect(self.slider_data_begins_at_value_changed)
         
-        # Slider 2
+        # Slider 2 - data cut
         self.slider_data_finishes_at = QSlider(Qt.Horizontal)  
         self.slider_data_finishes_at.setFixedSize(QSize(450, 30))
-        self.slider_data_finishes_at.setRange(0, 15)
-        self.slider_data_finishes_at.setValue(15)
+        self.slider_data_finishes_at.setRange(0, 16)
+        self.slider_data_finishes_at.setValue(16)
         self.slider_data_finishes_at.setTickPosition(QSlider.TicksBelow)
         self.slider_data_finishes_at.valueChanged.connect(self.slider_data_finishes_at_value_changed)
 
         # Label Slider 1
-        self.label_data_begins_at = QLabel("1", self)
+        self.label_data_begins_at = QLabel("0", self)
         self.label_data_begins_at.setFixedSize(QSize(40, 30))
         self.label_data_begins_at.setAlignment(QtCore.Qt.AlignCenter)
 
@@ -448,6 +454,19 @@ class MyTableWidget(QWidget):
         self.label_data_finishes_at = QLabel("16", self)
         self.label_data_finishes_at.setFixedSize(QSize(40, 30))
         self.label_data_finishes_at.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Slider 3 - amplitude on figure cut
+        self.slider_image_amplitude_color_max_t2 = QSlider(Qt.Vertical)  
+        self.slider_image_amplitude_color_max_t2.setFixedWidth(30)
+        self.slider_image_amplitude_color_max_t2.setRange(0, 200)
+        self.slider_image_amplitude_color_max_t2.setValue(200)
+        self.slider_image_amplitude_color_max_t2.setTickPosition(QSlider.TicksLeft)
+        self.slider_image_amplitude_color_max_t2.valueChanged.connect(self.slider_figure_color_amplitude_max_value_changed)
+
+        # Label Slider 3  - amplitude on figure cut
+        self.label_image_amplitude_color_max_t2 = QLabel("1.0", self)
+        self.label_image_amplitude_color_max_t2.setFixedSize(QSize(40, 30))
+        self.label_image_amplitude_color_max_t2.setAlignment(QtCore.Qt.AlignCenter)
 
         # Main plot window
         self.figure_time = plt.figure()  # a figure instance to plot on
@@ -471,14 +490,17 @@ class MyTableWidget(QWidget):
         self.button_cut_data_time.clicked.connect(self.thread_cut_initial_data_in_time)  
         self.button_cut_data_time.setFixedSize(QSize(100, 30))
 
+        # Button "Apply color range"
+        self.button_apply_color_range_t2 = QPushButton('Apply color range')
+        self.button_apply_color_range_t2.clicked.connect(self.thread_update_cut_data_with_color_amplitude_value)  
+        self.button_apply_color_range_t2.setFixedSize(QSize(100, 30))
+
 
         # Work status label tab 2
         self.label_processing_status_t2 = QLabel(" ", self)
-        # self.label_processing_status_t2.setFixedSize(QSize(300, 30))
         self.label_processing_status_t2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status_t2.setFixedHeight(30)
         self.label_processing_status_t2.setFont(QFont('Arial', 14))
-
 
         # Cut index status label tab 2
         self.label_cut_index_status_t2 = QLabel(" ", self)
@@ -486,6 +508,11 @@ class MyTableWidget(QWidget):
         self.label_cut_index_status_t2.setFixedHeight(30)
         self.label_cut_index_status_t2.setFont(QFont('Arial', 14))
 
+        # Creating labels to indicate the initial time resolution
+        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        self.label_time_resolution = QLabel(label, self)
+        self.label_time_resolution.setFixedSize(QSize(300, 30))
+        self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
         # Packing layouts in the window line 1
         self.input_controls_layout_t2_l1.addWidget(self.button_read_time)
@@ -502,25 +529,26 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t2_l2.addWidget(self.slider_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.label_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.button_cut_data_time)
+        self.input_controls_layout_t2_l2.addWidget(self.button_apply_color_range_t2)
         self.input_controls_layout_t2_l2.addWidget(self.label_cut_index_status_t2)
 
-        # Picking lines
-        self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
-        self.tab2.layout.addLayout(self.input_controls_layout_t2_l2)
-
-        self.toolbar_layout_t2 = QHBoxLayout()
-
-        # Creating labels to indicate the initial time resolution
-        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
-        self.label_time_resolution = QLabel(label, self)
-        self.label_time_resolution.setFixedSize(QSize(300, 30))
-        self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
-
+        
         self.toolbar_layout_t2.addWidget(self.toolbar_time)
         self.toolbar_layout_t2.addWidget(self.label_time_resolution)
+
+        self.canvas_and_toolbox_left_vertical_layout_t2.addLayout(self.toolbar_layout_t2)
+        self.canvas_and_toolbox_left_vertical_layout_t2.addWidget(self.canvas_time, stretch=1)
+
         
-        self.tab2.layout.addLayout(self.toolbar_layout_t2)
-        self.tab2.layout.addWidget(self.canvas_time)
+        self.input_controls_right_vertical_layout_t2.addWidget(self.label_image_amplitude_color_max_t2)
+        self.input_controls_right_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_max_t2, stretch=1)
+        
+        self.canvas_and_input_controls_layout_t2.addLayout(self.canvas_and_toolbox_left_vertical_layout_t2)
+        self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_right_vertical_layout_t2)
+
+        self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
+        self.tab2.layout.addLayout(self.input_controls_layout_t2_l2)
+        self.tab2.layout.addLayout(self.canvas_and_input_controls_layout_t2)
 
         self.tab2.setLayout(self.tab2.layout)
 
@@ -555,17 +583,17 @@ class MyTableWidget(QWidget):
 
         # Slider high amplitude range value
         self.slider_high_freq_t3 = QSlider(Qt.Horizontal)
-        self.slider_high_freq_t3.setFixedSize(QSize(600, 30))
-        self.slider_high_freq_t3.setRange(0, 100)
-        self.slider_high_freq_t3.setValue(100)
+        self.slider_high_freq_t3.setFixedSize(QSize(800, 30))
+        self.slider_high_freq_t3.setRange(0, 200)
+        self.slider_high_freq_t3.setValue(200)
         self.slider_high_freq_t3.setTickPosition(QSlider.TicksBelow)
         # After each value change, slot "scaletext" will get invoked.
         self.slider_high_freq_t3.valueChanged.connect(self.slider_data_high_amplitude_at_value_changed)
 
         # Slider low amplitude range value
         self.slider_low_freq_t3 = QSlider(Qt.Horizontal)  
-        self.slider_low_freq_t3.setFixedSize(QSize(600, 30))
-        self.slider_low_freq_t3.setRange(0, 100)
+        self.slider_low_freq_t3.setFixedSize(QSize(800, 30))
+        self.slider_low_freq_t3.setRange(0, 200)
         self.slider_low_freq_t3.setValue(0)
         self.slider_low_freq_t3.setTickPosition(QSlider.TicksAbove)
         # After each value change, slot "scaletext" will get invoked.
@@ -583,14 +611,12 @@ class MyTableWidget(QWidget):
 
         # Work status label tab 3 
         self.label_processing_status_t3 = QLabel('', self)
-        # self.label_processing_status_t3.setFixedSize(QSize(300, 30))
         self.label_processing_status_t3.setFixedHeight(30)
         self.label_processing_status_t3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status_t3.setFont(QFont('Arial', 14))
 
         # Dummy label to align tab 3 line 2
         self.label_dummy_t3_l2 = QLabel('', self)
-        # self.label_dummy_t3_l2.setFixedSize(QSize(300, 30))
         self.label_dummy_t3_l2.setFixedHeight(30)
         self.label_dummy_t3_l2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_dummy_t3_l2.setFont(QFont('Arial', 14))
@@ -622,10 +648,9 @@ class MyTableWidget(QWidget):
 
         self.toolbar_frequency_layout_t3.addWidget(self.toolbar_freq)
         self.toolbar_frequency_layout_t3.addWidget(self.label_time_resolution)
-        self.toolbar_frequency_layout_t3.addWidget(self.label_freq_limit)
-        self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
-        self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
-        
+        # self.toolbar_frequency_layout_t3.addWidget(self.label_freq_limit)
+        # self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
+        # self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
         
         # Adding elements and packing layouts in the window
         self.input_controls_layout_t3_l1.addWidget(self.button_calc_fft)
@@ -636,7 +661,11 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t3_l2.addWidget(self.button_apply_range)
         self.input_controls_layout_t3_l2.addWidget(self.slider_low_freq_t3)
         self.input_controls_layout_t3_l2.addWidget(self.label_low_freq_t3)
+        self.input_controls_layout_t3_l2.addWidget(self.label_freq_limit)
+        self.input_controls_layout_t3_l2.addWidget(self.freq_limit_input)
+        self.input_controls_layout_t3_l2.addWidget(self.label_hz)
         self.input_controls_layout_t3_l2.addWidget(self.label_dummy_t3_l2)
+
 
         self.tab3.layout.addLayout(self.input_controls_layout_t3_l1)
         self.tab3.layout.addLayout(self.input_controls_layout_t3_l2)
@@ -749,6 +778,11 @@ class MyTableWidget(QWidget):
         self.button_plot_data_t5_l1.clicked.connect(self.thread_plot_or_update_figures_tab_5)  # adding action to the button
         self.button_plot_data_t5_l1.setFixedSize(QSize(250, 30))
 
+        # Dummy label to align tab 5 line 1
+        self.label_dummy_t5_l1 = QLabel('', self)
+        self.label_dummy_t5_l1.setFixedHeight(30)
+        self.label_dummy_t5_l1.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_dummy_t5_l1.setFont(QFont('Arial', 14))
 
         # Plot window spectrum for particular DM
         self.figure_spectrum_for_dm_t5_l2 = plt.figure()
@@ -761,6 +795,7 @@ class MyTableWidget(QWidget):
 
         # Packing into layouts
         self.input_controls_layout_t5_l1.addWidget(self.button_plot_data_t5_l1)
+        self.input_controls_layout_t5_l1.addWidget(self.label_dummy_t5_l1)
 
         self.figures_layout_t5_l2.addWidget(self.canvas_spectrum_for_dm_t5_l2)
         
@@ -1088,11 +1123,15 @@ class MyTableWidget(QWidget):
 
     def slider_data_begins_at_value_changed(self):
         value = int(self.slider_data_begins_at.value())
-        self.label_data_begins_at.setText(str(value + 1))
+        self.label_data_begins_at.setText(str(value))
 
     def slider_data_finishes_at_value_changed(self):
         value = int(self.slider_data_finishes_at.value())
-        self.label_data_finishes_at.setText(str(value + 1))
+        self.label_data_finishes_at.setText(str(value))
+
+    def slider_figure_color_amplitude_max_value_changed(self):
+        value = int(self.slider_image_amplitude_color_max_t2.value())
+        self.label_image_amplitude_color_max_t2.setText(str(np.round(value / 200, 3)))
 
 
     # Thread called by the push button "Read data" on tab 2
@@ -1132,7 +1171,7 @@ class MyTableWidget(QWidget):
 
         # self.vdm_data = initial_data_array
 
-        # Set meduan filter length to 1 for the case the filter has never called
+        # Set median filter length to 1 for the case the filter has never called
         self.med_filter_length = 1
 
         # Calculating DM vector to have all DM values used
@@ -1140,6 +1179,11 @@ class MyTableWidget(QWidget):
                                          self.vdm_central_dm + self.vdm_dm_range, 
                                          num=self.vdm_dm_points)
         
+
+        # Normalizing data
+        self.vdm_data_array = self.vdm_data_array - np.min(self.vdm_data_array)
+        self.vdm_data_array = self.vdm_data_array / np.max(self.vdm_data_array)
+
         # Configure gui interface on tab 4
         self.slider_dm_selection_t4l1.setRange(0, len(self.vdm_dm_vector))
         self.slider_dm_selection_t4l1.setValue(0)
@@ -1153,7 +1197,7 @@ class MyTableWidget(QWidget):
                           aspect='auto', cmap="Greys")
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
         ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
         self.figure_time.set_constrained_layout(True)
         self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
@@ -1188,6 +1232,10 @@ class MyTableWidget(QWidget):
         median = scipy.ndimage.median_filter(self.vdm_data_array, self.med_filter_length, axes=1)
         self.vdm_data_array = self.vdm_data_array - median
 
+        # Normalizing data
+        self.vdm_data_array = self.vdm_data_array - np.min(self.vdm_data_array)
+        self.vdm_data_array = self.vdm_data_array / np.max(self.vdm_data_array)
+
         # Updating figure on tab 2
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
@@ -1196,7 +1244,7 @@ class MyTableWidget(QWidget):
                           aspect='auto', cmap="Greys")
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
         ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
         self.figure_time.set_constrained_layout(True)
         self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
@@ -1240,7 +1288,7 @@ class MyTableWidget(QWidget):
             finish_index = int(self.slider_data_finishes_at.value())
             total_time_points = self.vdm_data_array.shape[1]
             start_time_point_cut = int(start_index * total_time_points / 16)
-            finish_time_point_cut = int((finish_index + 1) * total_time_points / 16)
+            finish_time_point_cut = int(finish_index * total_time_points / 16)
             self.time_points_num = finish_time_point_cut - start_time_point_cut
 
             self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut]
@@ -1253,7 +1301,7 @@ class MyTableWidget(QWidget):
                             aspect='auto', cmap="Greys")
             # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
             ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
-            ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+            ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
             ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
             self.figure_time.set_constrained_layout(True)
             self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
@@ -1271,8 +1319,54 @@ class MyTableWidget(QWidget):
     #
     #
     #
+    def thread_update_cut_data_with_color_amplitude_value(self):
+
+        self.label_processing_status_t2.setText("Updating image...")
+        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
+
+        t0 = Thread(target=self.update_cut_data_with_color_amplitude_value)
+        t0.start()
+        # t0.join()
 
 
+
+    def update_cut_data_with_color_amplitude_value(self):
+        
+        try:
+
+            self.label_processing_status_t3.setText(" ")
+            self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
+
+            # Reading value
+            v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
+
+            # Updating figure on tab 2
+            self.figure_time.clear()  # clearing figure
+            ax0 = self.figure_time.add_subplot(111)
+            plot = ax0.imshow(self.cut_vdm_data_array, 
+                            extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                            vmin = 0, vmax = v_max_man, aspect='auto', cmap="Greys")
+            # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
+            ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+            ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
+            ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
+            self.figure_time.set_constrained_layout(True)
+            self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
+            self.canvas_time.draw()  # Refresh canvas
+        
+            self.label_processing_status_t2.setText(" ")
+            self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+        
+        except AttributeError:
+        
+            self.label_processing_status_t3.setText("Press 'Cut data' button first!")
+            self.label_processing_status_t3.setStyleSheet("background-color: red;")
+
+    #
+    #
+    #
+    #
+    #
 
     #############################################################
     #              T A B    3    F U N C T I O N S              #
@@ -1334,12 +1428,12 @@ class MyTableWidget(QWidget):
         # divider = make_axes_locatable(ax0)
         # cax = divider.append_axes('right', size='1%', pad=0)
         
-        plot = ax0.imshow(self.vdm_spectra, 
+        plot = ax0.imshow(np.flipud(self.vdm_spectra), 
                           extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
         self.figure_freq.set_constrained_layout(True)
         self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
@@ -1353,11 +1447,11 @@ class MyTableWidget(QWidget):
     # Changing value in label according to slider position
     def slider_data_low_amplitude_at_value_changed(self):
         value = int(self.slider_low_freq_t3.value())
-        self.label_low_freq_t3.setText(str(np.round(value / 100, 2)))
+        self.label_low_freq_t3.setText(str(np.round(value / 200, 3)))
 
     def slider_data_high_amplitude_at_value_changed(self):
         value = int(self.slider_high_freq_t3.value())
-        self.label_high_freq_t3.setText(str(np.round(value / 100, 2)))
+        self.label_high_freq_t3.setText(str(np.round(value / 200, 3)))
 
 
     def thread_button_action_apply_range_t3(self):
@@ -1404,7 +1498,7 @@ class MyTableWidget(QWidget):
                           aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Frequency, Hz', fontsize=12, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=12, fontweight='bold')
+        ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
         ax0.set_title('Time series', fontsize=10, fontweight='bold')
         self.figure_freq.set_constrained_layout(True)
         # self.figure_freq.colorbar(plot, cax=cax, pad=0, aspect=50, label="Amplitude, AU")
@@ -1509,8 +1603,8 @@ class MyTableWidget(QWidget):
                    vmin = v_min_man, vmax = v_max_man, aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
         ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        ax0.set_ylabel('DM, pc * cm-3', fontsize=10, fontweight='bold')
-        ax0.set_title('Time series', fontsize=8, fontweight='bold')
+        ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=10, fontweight='bold')
+        ax0.set_title('Spectra of time profiles vs. DM values', fontsize=8, fontweight='bold')
         self.figure_dm_vs_time_t4_l1.set_constrained_layout(True)
         self.canvas_dm_vs_time_t4_l1.draw()  # refresh canvas
 
@@ -1519,9 +1613,9 @@ class MyTableWidget(QWidget):
         ax0 = self.figure_amplitude_vs_dm_t4_l1.add_subplot(111)
         ax0.axvline(x = self.vdm_dm_vector[man_dm_index], color = 'C1')
         ax0.plot(self.vdm_dm_vector,  np.mean(self.vdm_spectra_cut, axis=1))
-        ax0.set_xlabel('DM, pc * cm-3', fontsize=10, fontweight='bold')
+        ax0.set_xlabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
-        ax0.set_title('Integrated spectra vs. DMs', fontsize=8, fontweight='bold')
+        ax0.set_title('Integrated spectra power vs. DM values', fontsize=8, fontweight='bold')
         self.figure_amplitude_vs_dm_t4_l1.set_constrained_layout(True)
         self.canvas_amplitude_vs_dm_t4_l1.draw()  # refresh canvas
 
@@ -1543,7 +1637,7 @@ class MyTableWidget(QWidget):
         ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
         ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
-        ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
+        ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)) + f' pc/cm\N{SUPERSCRIPT THREE}', fontsize=8, fontweight='bold')
         self.figure_spectrum_for_dm_t4_l2.set_constrained_layout(True)
         self.canvas_spectrum_for_dm_t4_l2.draw()  # refresh canvas
 
@@ -1571,23 +1665,6 @@ class MyTableWidget(QWidget):
 
     def plot_or_update_figures_tab_5(self):
         
-        # # Taking the high limit of frequency scale from GUI
-        # self.high_frequency_limit = float(self.freq_limit_input.value())  # Hz
-
-        # # Finding index of the frequency axis where the value exceeds the limit for the first time
-        # max_idx = np.array([np.where(self.frequency_axis > self.high_frequency_limit)]).min()
-
-        # # # Cutting frequencies above selected limit to obtain best S/N
-        # # self.vdm_spectra_cut = self.vdm_spectra[:,:max_idx].copy()
-        # self.frequency_axis_cut = self.frequency_axis[0:max_idx].copy()
-
-        # # Values of color amplitudes
-        # value_l = int(self.slider_low_freq_t3.value())
-        # value_h = int(self.slider_high_freq_t3.value())
-
-        # v_min_man = float(value_l / 100)
-        # v_max_man = float(value_h / 100)
-
         # Manually selected DM read from slider
         man_dm_index = int(self.slider_dm_selection_t4l1.value())
 
@@ -1601,8 +1678,6 @@ class MyTableWidget(QWidget):
         ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
         self.figure_spectrum_for_dm_t5_l2.set_constrained_layout(True)
         self.canvas_spectrum_for_dm_t5_l2.draw()  # refresh canvas
-
-
 
 
         self.vdm_spectra_target_cut = self.vdm_spectra_cut[man_dm_index]
@@ -1620,11 +1695,10 @@ class MyTableWidget(QWidget):
         self.figure_spectrum_of_spectrum_t5_l3.clear()  # clearing figure
         ax0 = self.figure_spectrum_of_spectrum_t5_l3.add_subplot(111)
         ax0.plot(self.vdm_spectra_2_cut)
-        # ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
-        # ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
-        # ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
+        ax0.set_xlim(0, len(self.vdm_spectra_2_cut))
+        ax0.set_xlabel('Frequency^2', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
-        # ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
+        ax0.set_title('Spectrum of spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)), fontsize=8, fontweight='bold')
         self.figure_spectrum_of_spectrum_t5_l3.set_constrained_layout(True)
         self.canvas_spectrum_of_spectrum_t5_l3.draw()  # refresh canvas
 
