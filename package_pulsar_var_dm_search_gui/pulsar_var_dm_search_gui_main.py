@@ -2,7 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
-from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider, QSizePolicy
+from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider, QCheckBox, QSizePolicy
 from PyQt5.QtCore import QSize, Qt
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
@@ -468,6 +468,17 @@ class MyTableWidget(QWidget):
         self.label_image_amplitude_color_max_t2.setFixedSize(QSize(40, 30))
         self.label_image_amplitude_color_max_t2.setAlignment(QtCore.Qt.AlignCenter)
 
+        # Checkbox - show red dots on image
+        self.checkbox_show_color_markers_t2 = QCheckBox(self)
+        self.checkbox_show_color_markers_t2.setFixedSize(QSize(30, 30))
+        self.checkbox_show_color_markers_t2.setChecked(True)
+
+        # Label checkbox - show red dots on image
+        self.label_checkbox_show_maxima_t2 = QLabel("Show \nmax", self)
+        self.label_checkbox_show_maxima_t2.setFixedSize(QSize(30, 30))
+        self.label_checkbox_show_maxima_t2.setAlignment(QtCore.Qt.AlignCenter)
+
+
         # Main plot window
         self.figure_time = plt.figure()  # a figure instance to plot on
         self.canvas_time = FigureCanvas(self.figure_time)  # takes the 'figure' instance as a parameter to __init__
@@ -540,6 +551,8 @@ class MyTableWidget(QWidget):
         self.canvas_and_toolbox_left_vertical_layout_t2.addWidget(self.canvas_time, stretch=1)
 
         
+        self.input_controls_right_vertical_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
+        self.input_controls_right_vertical_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
         self.input_controls_right_vertical_layout_t2.addWidget(self.label_image_amplitude_color_max_t2)
         self.input_controls_right_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_max_t2, stretch=1)
         
@@ -1340,12 +1353,21 @@ class MyTableWidget(QWidget):
             # Reading value
             v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
 
+            max_points = np.argwhere(self.cut_vdm_data_array >= v_max_man)
+            
             # Updating figure on tab 2
             self.figure_time.clear()  # clearing figure
             ax0 = self.figure_time.add_subplot(111)
             plot = ax0.imshow(self.cut_vdm_data_array, 
                             extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                             vmin = 0, vmax = v_max_man, aspect='auto', cmap="Greys")
+
+            # As we use np.flipud (flip up-down) the image to match the dm values vector, we also flip the points coordinates
+            # by subtraction from the length of the DM vector length
+            if self.checkbox_show_color_markers_t2.isChecked():
+                for i in range(len(max_points)):
+                    ax0.plot(max_points[i,1], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - max_points[i,0]) - 1], marker='o', color="red") 
+
             # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
             ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
             ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
