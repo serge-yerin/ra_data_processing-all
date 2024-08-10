@@ -1243,16 +1243,20 @@ class MyTableWidget(QWidget):
         # Subtract median
         self.med_filter_length = int(self.filter_win_input.value())
         median = scipy.ndimage.median_filter(self.vdm_data_array, self.med_filter_length, axes=1)
-        self.vdm_data_array = self.vdm_data_array - median
+        self.vdm_data_array = np.subtract(self.vdm_data_array, median)
+        del median
 
-        # Normalizing data
-        self.vdm_data_array = self.vdm_data_array - np.min(self.vdm_data_array)
-        self.vdm_data_array = self.vdm_data_array / np.max(self.vdm_data_array)
+        # Making copy of array to plot
+        vdm_data_array_to_plot = self.vdm_data_array.copy()
+
+        # Normalizing data to plot
+        vdm_data_array_to_plot = vdm_data_array_to_plot - np.min(vdm_data_array_to_plot)
+        vdm_data_array_to_plot = vdm_data_array_to_plot / np.max(vdm_data_array_to_plot)
 
         # Updating figure on tab 2
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
-        plot = ax0.imshow(self.vdm_data_array, 
+        plot = ax0.imshow(vdm_data_array_to_plot, 
                           extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
@@ -1265,6 +1269,8 @@ class MyTableWidget(QWidget):
     
         self.label_processing_status_t2.setText(" ")
         self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+
+        del vdm_data_array_to_plot
 
     #
     #
@@ -1304,12 +1310,19 @@ class MyTableWidget(QWidget):
             finish_time_point_cut = int(finish_index * total_time_points / 16)
             self.time_points_num = finish_time_point_cut - start_time_point_cut
 
-            self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut]
+            self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut].copy()
+
+            # Making copy of array to plot
+            cut_vdm_data_array_to_plot = self.cut_vdm_data_array.copy()
+
+            # Normalizing data to plot
+            cut_vdm_data_array_to_plot = cut_vdm_data_array_to_plot - np.min(cut_vdm_data_array_to_plot)
+            cut_vdm_data_array_to_plot = cut_vdm_data_array_to_plot / np.max(cut_vdm_data_array_to_plot)
 
             # Updating figure on tab 2
             self.figure_time.clear()  # clearing figure
             ax0 = self.figure_time.add_subplot(111)
-            plot = ax0.imshow(self.cut_vdm_data_array, 
+            plot = ax0.imshow(cut_vdm_data_array_to_plot, 
                             extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                             aspect='auto', cmap="Greys")
             # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
@@ -1322,6 +1335,8 @@ class MyTableWidget(QWidget):
         
             self.label_processing_status_t2.setText(" ")
             self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+
+            del cut_vdm_data_array_to_plot
         
         except AttributeError:
         
@@ -1350,15 +1365,23 @@ class MyTableWidget(QWidget):
             self.label_processing_status_t3.setText(" ")
             self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
 
+
+            # Making copy of array to plot
+            cut_vdm_data_array_to_plot = self.cut_vdm_data_array.copy()
+
+            # Normalizing data to plot
+            cut_vdm_data_array_to_plot = np.subtract(cut_vdm_data_array_to_plot, np.min(cut_vdm_data_array_to_plot))
+            cut_vdm_data_array_to_plot = np.divide(cut_vdm_data_array_to_plot, np.max(cut_vdm_data_array_to_plot))
+
             # Reading value
             v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
 
-            max_points = np.argwhere(self.cut_vdm_data_array >= v_max_man)
-            
+            max_points = np.argwhere(cut_vdm_data_array_to_plot >= v_max_man)
+
             # Updating figure on tab 2
             self.figure_time.clear()  # clearing figure
             ax0 = self.figure_time.add_subplot(111)
-            plot = ax0.imshow(self.cut_vdm_data_array, 
+            plot = ax0.imshow(cut_vdm_data_array_to_plot, 
                             extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                             vmin = 0, vmax = v_max_man, aspect='auto', cmap="Greys")
 
@@ -1378,6 +1401,8 @@ class MyTableWidget(QWidget):
         
             self.label_processing_status_t2.setText(" ")
             self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
+
+            del cut_vdm_data_array_to_plot
         
         except AttributeError:
         
@@ -1430,9 +1455,12 @@ class MyTableWidget(QWidget):
         self.vdm_spectra = np.power(np.real(np.fft.fft(self.cut_vdm_data_array[:])), 2)  # calculation of the spectrum
         self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
 
+        # Making local copy to plot
+        vdm_spectra_to_plot = self.vdm_spectra.copy()
+        
         # Normalizing spectrum
-        self.vdm_spectra = self.vdm_spectra - np.min(self.vdm_spectra)
-        self.vdm_spectra = self.vdm_spectra / np.max(self.vdm_spectra)
+        vdm_spectra_to_plot = np.subtract(vdm_spectra_to_plot, np.min(vdm_spectra_to_plot))
+        vdm_spectra_to_plot = np.divide(vdm_spectra_to_plot, np.max(vdm_spectra_to_plot))
 
         # Calculating the frequency resolution and low frequency (median) filter limit 
         self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
@@ -1450,7 +1478,7 @@ class MyTableWidget(QWidget):
         # divider = make_axes_locatable(ax0)
         # cax = divider.append_axes('right', size='1%', pad=0)
         
-        plot = ax0.imshow(np.flipud(self.vdm_spectra), 
+        plot = ax0.imshow(np.flipud(vdm_spectra_to_plot), 
                           extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
@@ -1506,6 +1534,13 @@ class MyTableWidget(QWidget):
         # Taking the high limit of frequency scale from GUI
         self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
 
+        # Making local copy to plot
+        vdm_spectra_to_plot = self.vdm_spectra.copy()
+        
+        # Normalizing spectrum
+        vdm_spectra_to_plot = np.subtract(vdm_spectra_to_plot, np.min(vdm_spectra_to_plot))
+        vdm_spectra_to_plot = np.divide(vdm_spectra_to_plot, np.max(vdm_spectra_to_plot))
+
         # Update the plot
         rc('font', size=12, weight='bold')
         self.figure_freq.clear()  # clearing figure
@@ -1514,7 +1549,7 @@ class MyTableWidget(QWidget):
         # divider = make_axes_locatable(ax0)
         # cax = divider.append_axes('right', size='1%', pad=0)
 
-        plot = ax0.imshow(np.flipud(self.vdm_spectra), 
+        plot = ax0.imshow(np.flipud(vdm_spectra_to_plot), 
                           extent=[self.frequency_axis[0], self.frequency_axis[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           vmin = v_min_man, vmax = v_max_man,
                           aspect='auto', cmap="Greys")
@@ -1527,7 +1562,7 @@ class MyTableWidget(QWidget):
         self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
         self.canvas_freq.draw()  # refresh canvas
 
-        del value_l, value_h
+        del value_l, value_h, vdm_spectra_to_plot
 
         self.label_processing_status_t3.setText(" ")
         self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
@@ -1604,6 +1639,13 @@ class MyTableWidget(QWidget):
         self.vdm_spectra_cut = self.vdm_spectra[:,:max_idx].copy()
         self.frequency_axis_cut = self.frequency_axis[0:max_idx].copy()
 
+        # Making local copy to plot
+        vdm_spectra_to_plot = self.vdm_spectra_cut.copy()
+        
+        # Normalizing spectrum
+        vdm_spectra_to_plot = np.subtract(vdm_spectra_to_plot, np.min(vdm_spectra_to_plot))
+        vdm_spectra_to_plot = np.divide(vdm_spectra_to_plot, np.max(vdm_spectra_to_plot))
+
         # Values of colr amplitudes
         value_l = int(self.slider_low_freq_t3.value())
         value_h = int(self.slider_high_freq_t3.value())
@@ -1620,7 +1662,7 @@ class MyTableWidget(QWidget):
         self.figure_dm_vs_time_t4_l1.clear()  # clearing figure
         ax0 = self.figure_dm_vs_time_t4_l1.add_subplot(111)
         ax0.axhline(y = self.vdm_dm_vector[man_dm_index], color = 'C1', alpha = 0.2)
-        ax0.imshow(np.flipud(self.vdm_spectra_cut), 
+        ax0.imshow(np.flipud(vdm_spectra_to_plot), 
                    extent=[self.frequency_axis_cut[0], self.frequency_axis_cut[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                    vmin = v_min_man, vmax = v_max_man, aspect='auto', cmap="Greys")
         ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
@@ -1662,6 +1704,8 @@ class MyTableWidget(QWidget):
         ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)) + f' pc/cm\N{SUPERSCRIPT THREE}', fontsize=8, fontweight='bold')
         self.figure_spectrum_for_dm_t4_l2.set_constrained_layout(True)
         self.canvas_spectrum_for_dm_t4_l2.draw()  # refresh canvas
+
+        del vdm_spectra_to_plot
 
 
 
