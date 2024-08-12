@@ -506,7 +506,6 @@ class MyTableWidget(QWidget):
         self.button_apply_color_range_t2.clicked.connect(self.thread_update_cut_data_with_color_amplitude_value)  
         self.button_apply_color_range_t2.setFixedSize(QSize(100, 30))
 
-
         # Work status label tab 2
         self.label_processing_status_t2 = QLabel(" ", self)
         self.label_processing_status_t2.setAlignment(QtCore.Qt.AlignCenter)
@@ -519,8 +518,13 @@ class MyTableWidget(QWidget):
         self.label_cut_index_status_t2.setFixedHeight(30)
         self.label_cut_index_status_t2.setFont(QFont('Arial', 14))
 
+        # Creating label to indicate the array dimensions
+        self.label_array_dimensions_t2 = QLabel("DM: 0 pts, time: 0 pts", self)
+        self.label_array_dimensions_t2.setFixedSize(QSize(200, 30))
+        self.label_array_dimensions_t2.setAlignment(QtCore.Qt.AlignCenter)
+        
         # Creating labels to indicate the initial time resolution
-        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        label = "Time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
         self.label_time_resolution = QLabel(label, self)
         self.label_time_resolution.setFixedSize(QSize(300, 30))
         self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
@@ -545,6 +549,7 @@ class MyTableWidget(QWidget):
 
         
         self.toolbar_layout_t2.addWidget(self.toolbar_time)
+        self.toolbar_layout_t2.addWidget(self.label_array_dimensions_t2)
         self.toolbar_layout_t2.addWidget(self.label_time_resolution)
 
         self.canvas_and_toolbox_left_vertical_layout_t2.addLayout(self.toolbar_layout_t2)
@@ -636,15 +641,22 @@ class MyTableWidget(QWidget):
 
         self.toolbar_frequency_layout_t3 = QHBoxLayout()
 
-        # Creating labels to indicate the initial time resolution
-        label = "Initial time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
+        # Creating label to indicate the initial time resolution
+        label = "Time resolution assumed: {:8.4f}".format(np.round(self.time_resolution * 1000, 6)) + "  ms."
         self.label_time_resolution = QLabel(label, self)
         self.label_time_resolution.setFixedSize(QSize(300, 30))
         self.label_time_resolution.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.label_freq_limit = QLabel('Fig frequency limit:', self)
-        self.label_freq_limit.setFixedSize(QSize(100, 30))
-        self.label_freq_limit.setAlignment(QtCore.Qt.AlignCenter)
+        # Creating label to indicate the initial time resolution
+        label = "Max frequency: {:8.4f}".format(np.round(0.0, 2)) + "  Hz"
+        self.label_max_frequency_t3 = QLabel(label, self)
+        self.label_max_frequency_t3.setFixedSize(QSize(200, 30))
+        self.label_max_frequency_t3.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        self.label_freq_limit_t3 = QLabel('Fig frequency limit:', self)
+        self.label_freq_limit_t3.setFixedSize(QSize(100, 30))
+        self.label_freq_limit_t3.setAlignment(QtCore.Qt.AlignCenter)
 
         self.label_hz = QLabel('Hz', self)
         self.label_hz.setFixedSize(QSize(15, 30))
@@ -660,6 +672,7 @@ class MyTableWidget(QWidget):
         self.freq_limit_input.setValue(frequency_limit_init)
 
         self.toolbar_frequency_layout_t3.addWidget(self.toolbar_freq)
+        self.toolbar_frequency_layout_t3.addWidget(self.label_max_frequency_t3)
         self.toolbar_frequency_layout_t3.addWidget(self.label_time_resolution)
         # self.toolbar_frequency_layout_t3.addWidget(self.label_freq_limit)
         # self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
@@ -674,7 +687,7 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t3_l2.addWidget(self.button_apply_range)
         self.input_controls_layout_t3_l2.addWidget(self.slider_low_freq_t3)
         self.input_controls_layout_t3_l2.addWidget(self.label_low_freq_t3)
-        self.input_controls_layout_t3_l2.addWidget(self.label_freq_limit)
+        self.input_controls_layout_t3_l2.addWidget(self.label_freq_limit_t3)
         self.input_controls_layout_t3_l2.addWidget(self.freq_limit_input)
         self.input_controls_layout_t3_l2.addWidget(self.label_hz)
         self.input_controls_layout_t3_l2.addWidget(self.label_dummy_t3_l2)
@@ -1184,6 +1197,9 @@ class MyTableWidget(QWidget):
 
         # self.vdm_data = initial_data_array
 
+        # Set label with array dimensions        
+        self.label_array_dimensions_t2.setText("DM: " + str(self.vdm_dm_points) + " pts, time: " + str(self.time_points_num) + " pts")
+
         # Set median filter length to 1 for the case the filter has never called
         self.med_filter_length = 1
 
@@ -1311,6 +1327,9 @@ class MyTableWidget(QWidget):
             self.time_points_num = finish_time_point_cut - start_time_point_cut
 
             self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut].copy()
+
+            # Set label with array dimensions        
+            self.label_array_dimensions_t2.setText("DM: " + str(self.vdm_dm_points) + " pts, time: " + str(self.time_points_num) + " pts")
 
             # Making copy of array to plot
             cut_vdm_data_array_to_plot = self.cut_vdm_data_array.copy()
@@ -1467,6 +1486,9 @@ class MyTableWidget(QWidget):
         self.low_freq_limit_of_filter = self.med_filter_length * self.frequency_resolution
         self.frequency_axis = np.array([self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])])
         
+        # Show max possible frequency of FFT
+        self.label_max_frequency_t3.setText("Max frequency: {:8.4f}".format(np.round(self.frequency_axis[-1], 2)) + "  Hz")
+
         # Taking the high limit of frequency scale from GUI
         self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
 
