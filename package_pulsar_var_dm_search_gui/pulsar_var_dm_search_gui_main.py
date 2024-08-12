@@ -519,7 +519,7 @@ class MyTableWidget(QWidget):
         self.label_cut_index_status_t2.setFont(QFont('Arial', 14))
 
         # Creating label to indicate the array dimensions
-        self.label_array_dimensions_t2 = QLabel("DM: 0 pts, time: 0 pts", self)
+        self.label_array_dimensions_t2 = QLabel("DM:  0  pts,   time:  0  pts", self)
         self.label_array_dimensions_t2.setFixedSize(QSize(200, 30))
         self.label_array_dimensions_t2.setAlignment(QtCore.Qt.AlignCenter)
         
@@ -1198,7 +1198,7 @@ class MyTableWidget(QWidget):
         # self.vdm_data = initial_data_array
 
         # Set label with array dimensions        
-        self.label_array_dimensions_t2.setText("DM: " + str(self.vdm_dm_points) + " pts, time: " + str(self.time_points_num) + " pts")
+        self.label_array_dimensions_t2.setText("DM:  " + str(self.vdm_dm_points) + "  pts,   time:  " + str(self.time_points_num) + "  pts")
 
         # Set median filter length to 1 for the case the filter has never called
         self.med_filter_length = 1
@@ -1208,7 +1208,9 @@ class MyTableWidget(QWidget):
                                          self.vdm_central_dm + self.vdm_dm_range, 
                                          num=self.vdm_dm_points)
         
-
+        # Calculating time axis in seconds
+        self.time_axis_sec = np.array([self.time_resolution * i for i in range(self.time_points_num)])
+ 
         # Normalizing data
         self.vdm_data_array = self.vdm_data_array - np.min(self.vdm_data_array)
         self.vdm_data_array = self.vdm_data_array / np.max(self.vdm_data_array)
@@ -1222,10 +1224,14 @@ class MyTableWidget(QWidget):
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
         plot = ax0.imshow(np.flipud(self.vdm_data_array), 
-                          extent=[0,  self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          extent=[self.time_axis_sec[0],  self.time_axis_sec[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
+
+        #                 extent=[0,  self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-        ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+        # ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+        ax0.set_xlabel('Time, seconds', fontsize=12, fontweight='bold')
         ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
         ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
         self.figure_time.set_constrained_layout(True)
@@ -1273,10 +1279,12 @@ class MyTableWidget(QWidget):
         self.figure_time.clear()  # clearing figure
         ax0 = self.figure_time.add_subplot(111)
         plot = ax0.imshow(vdm_data_array_to_plot, 
-                          extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                          extent=[self.time_axis_sec[0],  self.time_axis_sec[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                           aspect='auto', cmap="Greys")
+        
+        # extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
         # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-        ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+        ax0.set_xlabel('Time, seconds', fontsize=12, fontweight='bold')
         ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
         ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
         self.figure_time.set_constrained_layout(True)
@@ -1326,10 +1334,12 @@ class MyTableWidget(QWidget):
             finish_time_point_cut = int(finish_index * total_time_points / 16)
             self.time_points_num = finish_time_point_cut - start_time_point_cut
 
+            # Cutting data and time axis
             self.cut_vdm_data_array = self.vdm_data_array[:, start_time_point_cut: finish_time_point_cut].copy()
+            self.cut_time_axis_sec = self.time_axis_sec[start_time_point_cut: finish_time_point_cut]
 
             # Set label with array dimensions        
-            self.label_array_dimensions_t2.setText("DM: " + str(self.vdm_dm_points) + " pts, time: " + str(self.time_points_num) + " pts")
+            self.label_array_dimensions_t2.setText("DM:  " + str(self.vdm_dm_points) + "  pts,   time:  " + str(self.time_points_num) + "  pts")
 
             # Making copy of array to plot
             cut_vdm_data_array_to_plot = self.cut_vdm_data_array.copy()
@@ -1342,7 +1352,7 @@ class MyTableWidget(QWidget):
             self.figure_time.clear()  # clearing figure
             ax0 = self.figure_time.add_subplot(111)
             plot = ax0.imshow(cut_vdm_data_array_to_plot, 
-                            extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                            extent=[self.cut_time_axis_sec[0],  self.cut_time_axis_sec[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
                             aspect='auto', cmap="Greys")
             # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
             ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
@@ -1401,17 +1411,18 @@ class MyTableWidget(QWidget):
             self.figure_time.clear()  # clearing figure
             ax0 = self.figure_time.add_subplot(111)
             plot = ax0.imshow(cut_vdm_data_array_to_plot, 
-                            extent=[0, self.time_points_num, self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]], 
+                            extent=[self.cut_time_axis_sec[0],  self.cut_time_axis_sec[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]],  
                             vmin = 0, vmax = v_max_man, aspect='auto', cmap="Greys")
 
             # As we use np.flipud (flip up-down) the image to match the dm values vector, we also flip the points coordinates
             # by subtraction from the length of the DM vector length
             if self.checkbox_show_color_markers_t2.isChecked():
                 for i in range(len(max_points)):
-                    ax0.plot(max_points[i,1], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - max_points[i,0]) - 1], marker='o', color="red") 
+                    # ax0.plot(max_points[i,1], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - max_points[i,0]) - 1], marker='o', color="red") 
+                    ax0.plot(self.cut_time_axis_sec[max_points[i,1]], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - max_points[i,0]) - 1], marker='o', color="red") 
 
             # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
-            ax0.set_xlabel('Time, points', fontsize=12, fontweight='bold')
+            ax0.set_xlabel('Time, seconds', fontsize=12, fontweight='bold')
             ax0.set_ylabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=12, fontweight='bold')
             ax0.set_title('Time profiles vs. DM value', fontsize=10, fontweight='bold')
             self.figure_time.set_constrained_layout(True)
