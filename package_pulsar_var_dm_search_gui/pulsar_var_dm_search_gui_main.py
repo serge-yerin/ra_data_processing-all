@@ -1405,7 +1405,7 @@ class MyTableWidget(QWidget):
             # Reading value
             v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
 
-            max_points = np.argwhere(cut_vdm_data_array_to_plot >= v_max_man)
+            self.max_points = np.argwhere(cut_vdm_data_array_to_plot >= v_max_man)
 
             # Updating figure on tab 2
             self.figure_time.clear()  # clearing figure
@@ -1417,9 +1417,8 @@ class MyTableWidget(QWidget):
             # As we use np.flipud (flip up-down) the image to match the dm values vector, we also flip the points coordinates
             # by subtraction from the length of the DM vector length
             if self.checkbox_show_color_markers_t2.isChecked():
-                for i in range(len(max_points)):
-                    # ax0.plot(max_points[i,1], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - max_points[i,0]) - 1], marker='o', color="red") 
-                    ax0.plot(self.cut_time_axis_sec[max_points[i,1]], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - max_points[i,0]) - 1], marker='o', color="red") 
+                for i in range(len(self.max_points)):
+                    ax0.plot(self.cut_time_axis_sec[self.max_points[i,1]], self.vdm_dm_vector[int(len(self.vdm_dm_vector) - self.max_points[i,0]) - 1], marker='o', color="red") 
 
             # ax0.axis([self.low_freq_limit_of_filter, self.high_frequency_limit,  self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]])
             ax0.set_xlabel('Time, seconds', fontsize=12, fontweight='bold')
@@ -1705,14 +1704,39 @@ class MyTableWidget(QWidget):
         self.figure_dm_vs_time_t4_l1.set_constrained_layout(True)
         self.canvas_dm_vs_time_t4_l1.draw()  # refresh canvas
 
+        # Integrating spectry by all frequencies in selected range
+        mean_amp_vs_dm = np.mean(self.vdm_spectra_cut, axis=1)
+        
+        # Normalizing mean for plot
+        mean_amp_vs_dm = np.subtract(mean_amp_vs_dm, np.min(mean_amp_vs_dm))
+        mean_amp_vs_dm = np.divide(mean_amp_vs_dm, np.max(mean_amp_vs_dm))
+
+
         # Update the plot 2
         self.figure_amplitude_vs_dm_t4_l1.clear()  # clearing figure
         ax0 = self.figure_amplitude_vs_dm_t4_l1.add_subplot(111)
         ax0.axvline(x = self.vdm_dm_vector[man_dm_index], color = 'C1')
-        ax0.plot(self.vdm_dm_vector,  np.mean(self.vdm_spectra_cut, axis=1))
+        ax0.plot(self.vdm_dm_vector, mean_amp_vs_dm)
+        
+        ax0.plot(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)], np.max(mean_amp_vs_dm), 'o', color="C1", markersize=8.0)
+        ax0.text(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)], np.max(mean_amp_vs_dm), f'  DM:  '  + str(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)]) + f'  pc/cm\N{SUPERSCRIPT THREE}')  # $DM_{max}$
+
+        if self.checkbox_show_color_markers_t2.isChecked():
+            
+            # Calculating number of occurances of the max points on time-DM array
+            dm_occurances = np.zeros(len(self.vdm_dm_vector))
+            for i in range(len(self.max_points)):
+                for dm_point in range(len(self.vdm_dm_vector)):
+                    if self.max_points[i,0] == dm_point:
+                        dm_occurances[dm_point] +=1
+
+            ax1 = ax0.twinx()
+            ax1.plot(self.vdm_dm_vector, dm_occurances, 'o', color="C3", markersize=3.0)
+            ax1.set_ylabel('Max points on time-DM plane', fontsize=10, fontweight='bold')
+            
         ax0.set_xlabel(f'DM, pc/cm\N{SUPERSCRIPT THREE}', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
-        ax0.set_title('Integrated spectra power vs. DM values', fontsize=8, fontweight='bold')
+        ax0.set_title('Integrated spectra vs. DM values', fontsize=8, fontweight='bold')
         self.figure_amplitude_vs_dm_t4_l1.set_constrained_layout(True)
         self.canvas_amplitude_vs_dm_t4_l1.draw()  # refresh canvas
 
