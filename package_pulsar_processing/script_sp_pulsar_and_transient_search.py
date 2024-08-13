@@ -14,22 +14,25 @@ matrix. The matrix is plotted as a dynamic spectrum.
 # *******************************************************************************
 # Directory of files to be analyzed:
 # source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0950+08/'
-source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B0329+54/'
+# source_directory = '../RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
 # source_directory = '../RA_DATA_ARCHIVE/DSP_spectra_pulsar_UTR2_B1919+21/'
 result_directory = '../RA_DATA_RESULTS/'
 
 # central_dm = 2.972
-central_dm = 5.755
+# central_dm = 4.0
+central_dm = 22.5
+# central_dm = 5.755
 # central_dm = 12.0
-dm_range = 0.2
+dm_range = 12.5
 # dm_range = 0.5
 # dm_range = 3.0
 # dm_points = 51  # 41
-dm_points = 31  # 41  101
+dm_points = 1251  # 31  # 41  101
 
 time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s  (0.007944 s)
 fig_time = 30           # Time on one figure, s
-n_proc = 2              # Number of processes when making dedispersion (less than CPU cores)
+n_proc = 1              # Number of processes when making dedispersion (less than CPU cores)
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
@@ -120,9 +123,8 @@ if __name__ == '__main__':
     k = int(len(dm_vector)/2)  # Central value
     print(" {:>3}            {:^10}  ".format(k, np.round(dm_vector[k], 6)))
 
-
     # Removing possible values less than 2 pc/cm3 from DM vector
-    dm_vector = [elem for elem in dm_vector if elem > 2]
+    dm_vector = [elem for elem in dm_vector if elem >= 2]
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Making long DAT file of the initial data')
 
@@ -153,7 +155,7 @@ if __name__ == '__main__':
     # del file_header
 
 
-    # """
+    #"""
 
     # Run JDS/ADR reader for the current folder
 
@@ -229,17 +231,23 @@ if __name__ == '__main__':
         dat_rfi_mask_making(os.path.join(path_to_dat_files, dat_file_name + '_Data_' + data_types_to_process[i] + '.dat'),
                             1024, lin_data=True, delta_sigma=delta_sigma, n_sigma=n_sigma, min_l=min_l)
 
-    # """
+    #"""
 
     #
     #
     # data_types_to_process = ['chA']
-    # dat_file_name = 'P130422_121607.jds'
-    # dat_file_name = 'C250122_070501.jds'
+    # # dat_file_name = 'P130422_121607.jds'
+    # # dat_file_name = 'C250122_070501.jds'
+    # # dat_file_name = 'C250122_214003.jds'
+    # dat_file_name = 'C240122_152201.jds'
+    # dm_vector = np.linspace(22.46, 25, num=128)
+    # print(dm_vector[0], dm_vector[1], dm_vector[-1])
+
     #
     #
     #
 
+    # """
     # Dispersion delay removing in a loop for all values in DM vector
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing... \n')
 
@@ -311,8 +319,10 @@ if __name__ == '__main__':
                                                             512, amp_min, amp_max, 0, 0.0, 16.5, True, False, 300, 'Greys',
                                                             start_dm=0, use_mask_file=True, save_images=False,
                                                             result_path=path_to_dat_files)
-
+                                                           
     '''
+    # """
+
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Aligning profiles in time and saving array to file... \n\n')
 
