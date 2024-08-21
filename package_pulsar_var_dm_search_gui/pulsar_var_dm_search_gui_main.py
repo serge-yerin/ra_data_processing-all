@@ -399,6 +399,7 @@ class MyTableWidget(QWidget):
         self.canvas_and_input_controls_layout_t2 = QHBoxLayout() 
 
         self.canvas_and_toolbox_left_vertical_layout_t2 = QVBoxLayout()
+        self.input_controls_left_vertical_layout_t2 = QVBoxLayout()
         self.input_controls_right_vertical_layout_t2 = QVBoxLayout()
 
         self.toolbar_layout_t2 = QHBoxLayout()
@@ -407,7 +408,7 @@ class MyTableWidget(QWidget):
         self.label_median_win = QLabel("Median window:", self)
         self.label_median_win.setFixedSize(QSize(90, 30))
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
-
+        
         # Dummy labels to align Sliders in first and second lines
 
         self.label_dummy_t2l2_5 = QLabel(" ", self)
@@ -455,7 +456,7 @@ class MyTableWidget(QWidget):
         self.label_data_finishes_at.setFixedSize(QSize(40, 30))
         self.label_data_finishes_at.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Slider 3 - amplitude on figure cut
+        # Slider 3 - amplitude max on figure cut
         self.slider_image_amplitude_color_max_t2 = QSlider(Qt.Vertical)  
         self.slider_image_amplitude_color_max_t2.setFixedWidth(30)
         self.slider_image_amplitude_color_max_t2.setRange(0, 200)
@@ -463,10 +464,24 @@ class MyTableWidget(QWidget):
         self.slider_image_amplitude_color_max_t2.setTickPosition(QSlider.TicksLeft)
         self.slider_image_amplitude_color_max_t2.valueChanged.connect(self.slider_figure_color_amplitude_max_value_changed)
 
-        # Label Slider 3  - amplitude on figure cut
+        # Label Slider 3  - amplitude max on figure cut
         self.label_image_amplitude_color_max_t2 = QLabel("1.0", self)
         self.label_image_amplitude_color_max_t2.setFixedSize(QSize(40, 30))
         self.label_image_amplitude_color_max_t2.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Slider 4 - amplitude min on figure cut
+        self.slider_image_amplitude_color_min_t2 = QSlider(Qt.Vertical)  
+        self.slider_image_amplitude_color_min_t2.setFixedWidth(30)
+        self.slider_image_amplitude_color_min_t2.setRange(0, 200)
+        self.slider_image_amplitude_color_min_t2.setValue(0)
+        self.slider_image_amplitude_color_min_t2.setTickPosition(QSlider.TicksRight)
+        self.slider_image_amplitude_color_min_t2.valueChanged.connect(self.slider_figure_color_amplitude_min_value_changed)
+
+        # Label Slider 4  - amplitude min on figure cut
+        self.label_image_amplitude_color_min_t2 = QLabel("0.0", self)
+        self.label_image_amplitude_color_min_t2.setFixedSize(QSize(40, 30))
+        self.label_image_amplitude_color_min_t2.setAlignment(QtCore.Qt.AlignCenter)
+
 
         # Checkbox - show red dots on image
         self.checkbox_show_color_markers_t2 = QCheckBox(self)
@@ -474,8 +489,8 @@ class MyTableWidget(QWidget):
         self.checkbox_show_color_markers_t2.setChecked(True)
 
         # Label checkbox - show red dots on image
-        self.label_checkbox_show_maxima_t2 = QLabel("Show \nmax", self)
-        self.label_checkbox_show_maxima_t2.setFixedSize(QSize(30, 30))
+        self.label_checkbox_show_maxima_t2 = QLabel("Show max", self)
+        self.label_checkbox_show_maxima_t2.setFixedSize(QSize(50, 30))
         self.label_checkbox_show_maxima_t2.setAlignment(QtCore.Qt.AlignCenter)
 
 
@@ -495,16 +510,19 @@ class MyTableWidget(QWidget):
         self.button_filter_time = QPushButton('Subtract median')
         self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)
         self.button_filter_time.setFixedSize(QSize(273, 30))
+        self.button_filter_time.setEnabled(False)
 
         # Button "Cut data"
         self.button_cut_data_time = QPushButton('Cut data')
         self.button_cut_data_time.clicked.connect(self.thread_cut_initial_data_in_time)  
         self.button_cut_data_time.setFixedSize(QSize(100, 30))
+        self.button_cut_data_time.setEnabled(False)
 
         # Button "Apply color range"
         self.button_apply_color_range_t2 = QPushButton('Apply color range')
         self.button_apply_color_range_t2.clicked.connect(self.thread_update_cut_data_with_color_amplitude_value)  
         self.button_apply_color_range_t2.setFixedSize(QSize(100, 30))
+        self.button_apply_color_range_t2.setEnabled(False)
 
         # Work status label tab 2
         self.label_processing_status_t2 = QLabel(" ", self)
@@ -551,17 +569,24 @@ class MyTableWidget(QWidget):
         self.toolbar_layout_t2.addWidget(self.toolbar_time)
         self.toolbar_layout_t2.addWidget(self.label_array_dimensions_t2)
         self.toolbar_layout_t2.addWidget(self.label_time_resolution)
+        self.toolbar_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
+        self.toolbar_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
 
         self.canvas_and_toolbox_left_vertical_layout_t2.addLayout(self.toolbar_layout_t2)
         self.canvas_and_toolbox_left_vertical_layout_t2.addWidget(self.canvas_time, stretch=1)
 
         
-        self.input_controls_right_vertical_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
-        self.input_controls_right_vertical_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
+        # self.input_controls_right_vertical_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
+        # self.input_controls_right_vertical_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
         self.input_controls_right_vertical_layout_t2.addWidget(self.label_image_amplitude_color_max_t2)
         self.input_controls_right_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_max_t2, stretch=1)
-        
+
+        self.input_controls_left_vertical_layout_t2.addWidget(self.label_image_amplitude_color_min_t2)
+        self.input_controls_left_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_min_t2, stretch=1)
+
+
         self.canvas_and_input_controls_layout_t2.addLayout(self.canvas_and_toolbox_left_vertical_layout_t2)
+        self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_left_vertical_layout_t2)
         self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_right_vertical_layout_t2)
 
         self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
@@ -1159,6 +1184,11 @@ class MyTableWidget(QWidget):
         value = int(self.slider_image_amplitude_color_max_t2.value())
         self.label_image_amplitude_color_max_t2.setText(str(np.round(value / 200, 3)))
 
+    def slider_figure_color_amplitude_min_value_changed(self):
+        value = int(self.slider_image_amplitude_color_min_t2.value())
+        self.label_image_amplitude_color_min_t2.setText(str(np.round(value / 200, 3)))
+
+
 
     # Thread called by the push button "Read data" on tab 2
     def thread_read_initial_data(self):
@@ -1171,6 +1201,11 @@ class MyTableWidget(QWidget):
         ax0.remove() 
         self.figure_time.text(0.4, 0.5, "Reading data file...", color="C0", size=22)
         self.canvas_time.draw() 
+
+        # Disabling next buttons
+        self.button_filter_time.setEnabled(False)
+        self.button_cut_data_time.setEnabled(False)
+        self.button_apply_color_range_t2.setEnabled(False)
 
         t0 = Thread(target=self.read_initial_data)
         t0.start()
@@ -1237,6 +1272,10 @@ class MyTableWidget(QWidget):
         self.figure_time.set_constrained_layout(True)
         self.figure_time.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")  # , orientation="horizontal"
         self.canvas_time.draw()  # refresh canvas
+
+        # Enabling next buttons
+        self.button_filter_time.setEnabled(True)
+        self.button_cut_data_time.setEnabled(True)
 
         self.label_processing_status_t2.setText(" ")
         self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
@@ -1365,6 +1404,8 @@ class MyTableWidget(QWidget):
             self.label_processing_status_t2.setText(" ")
             self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
 
+            self.button_apply_color_range_t2.setEnabled(True)
+
             del cut_vdm_data_array_to_plot
         
         except AttributeError:
@@ -1378,12 +1419,24 @@ class MyTableWidget(QWidget):
     #
     def thread_update_cut_data_with_color_amplitude_value(self):
 
-        self.label_processing_status_t2.setText("Updating image...")
-        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
 
-        t0 = Thread(target=self.update_cut_data_with_color_amplitude_value)
-        t0.start()
-        # t0.join()
+        
+        v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
+        v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
+
+        if v_max_min >= v_max_man:
+
+            self.label_processing_status_t2.setText("Wrong values")
+            self.label_processing_status_t2.setStyleSheet("background-color: red;")
+        
+        else:
+            
+            self.label_processing_status_t2.setText("Applying limits...")
+            self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
+        
+            t0 = Thread(target=self.update_cut_data_with_color_amplitude_value)
+            t0.start()
+            # t0.join()
 
 
 
@@ -1404,6 +1457,7 @@ class MyTableWidget(QWidget):
 
             # Reading value
             v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
+            v_min_man = float(self.slider_image_amplitude_color_min_t2.value() / 200)
 
             self.max_points = np.argwhere(cut_vdm_data_array_to_plot >= v_max_man)
 
@@ -1412,7 +1466,7 @@ class MyTableWidget(QWidget):
             ax0 = self.figure_time.add_subplot(111)
             plot = ax0.imshow(cut_vdm_data_array_to_plot, 
                             extent=[self.cut_time_axis_sec[0],  self.cut_time_axis_sec[-1], self.vdm_dm_vector[0],  self.vdm_dm_vector[-1]],  
-                            vmin = 0, vmax = v_max_man, aspect='auto', cmap="Greys")
+                            vmin = v_min_man, vmax = v_max_man, aspect='auto', cmap="Greys")
 
             # As we use np.flipud (flip up-down) the image to match the dm values vector, we also flip the points coordinates
             # by subtraction from the length of the DM vector length
