@@ -576,8 +576,6 @@ class MyTableWidget(QWidget):
         self.canvas_and_toolbox_left_vertical_layout_t2.addWidget(self.canvas_time, stretch=1)
 
         
-        # self.input_controls_right_vertical_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
-        # self.input_controls_right_vertical_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
         self.input_controls_right_vertical_layout_t2.addWidget(self.label_image_amplitude_color_max_t2)
         self.input_controls_right_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_max_t2, stretch=1)
 
@@ -614,15 +612,31 @@ class MyTableWidget(QWidget):
         # This is the Matplotlib Navigation widget it takes the Canvas widget and a parent
         self.toolbar_freq = NavigationToolbar(self.canvas_freq, self)
 
+        # Checkbox - cut data with limits
+        self.checkbox_cut_data_amp_with_limits_t3 = QCheckBox(self)
+        self.checkbox_cut_data_amp_with_limits_t3.setFixedSize(QSize(20, 30))
+        self.checkbox_cut_data_amp_with_limits_t3.setChecked(False)
+
+        # Label checkbox
+        self.label_cut_data_amp_with_limits_t3 = QLabel("Cut data\namplitude", self)
+        self.label_cut_data_amp_with_limits_t3.setFixedSize(QSize(60, 30))
+        self.label_cut_data_amp_with_limits_t3.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Label dummy to align 1 and 2 lines
+        self.label_dummy_align_t3_l2_1 = QLabel('', self)
+        self.label_dummy_align_t3_l2_1.setFixedSize(QSize(85, 30))
+
         # Button "Calculate FFT"
         self.button_calc_fft = QPushButton('Calculate FFT')
         self.button_calc_fft.clicked.connect(self.thread_calculate_fft_of_data)  # adding action to the button
         self.button_calc_fft.setFixedSize(QSize(110, 30))
+        self.button_calc_fft.setEnabled(False)
 
         # Button "Apply range"
         self.button_apply_range = QPushButton('Apply range')
         self.button_apply_range.clicked.connect(self.thread_button_action_apply_range_t3)  # adding action to the button
         self.button_apply_range.setFixedSize(QSize(110, 30))
+        self.button_apply_range.setEnabled(False)
 
         # Slider high amplitude range value
         self.slider_high_freq_t3 = QSlider(Qt.Horizontal)
@@ -678,7 +692,6 @@ class MyTableWidget(QWidget):
         self.label_max_frequency_t3.setFixedSize(QSize(200, 30))
         self.label_max_frequency_t3.setAlignment(QtCore.Qt.AlignCenter)
 
-
         self.label_freq_limit_t3 = QLabel('Fig frequency limit:', self)
         self.label_freq_limit_t3.setFixedSize(QSize(100, 30))
         self.label_freq_limit_t3.setAlignment(QtCore.Qt.AlignCenter)
@@ -699,16 +712,16 @@ class MyTableWidget(QWidget):
         self.toolbar_frequency_layout_t3.addWidget(self.toolbar_freq)
         self.toolbar_frequency_layout_t3.addWidget(self.label_max_frequency_t3)
         self.toolbar_frequency_layout_t3.addWidget(self.label_time_resolution)
-        # self.toolbar_frequency_layout_t3.addWidget(self.label_freq_limit)
-        # self.toolbar_frequency_layout_t3.addWidget(self.freq_limit_input)
-        # self.toolbar_frequency_layout_t3.addWidget(self.label_hz)
         
         # Adding elements and packing layouts in the window
+        self.input_controls_layout_t3_l1.addWidget(self.checkbox_cut_data_amp_with_limits_t3)
+        self.input_controls_layout_t3_l1.addWidget(self.label_cut_data_amp_with_limits_t3)
         self.input_controls_layout_t3_l1.addWidget(self.button_calc_fft)
         self.input_controls_layout_t3_l1.addWidget(self.slider_high_freq_t3)
         self.input_controls_layout_t3_l1.addWidget(self.label_high_freq_t3)
         self.input_controls_layout_t3_l1.addWidget(self.label_processing_status_t3)
 
+        self.input_controls_layout_t3_l2.addWidget(self.label_dummy_align_t3_l2_1)
         self.input_controls_layout_t3_l2.addWidget(self.button_apply_range)
         self.input_controls_layout_t3_l2.addWidget(self.slider_low_freq_t3)
         self.input_controls_layout_t3_l2.addWidget(self.label_low_freq_t3)
@@ -1206,6 +1219,8 @@ class MyTableWidget(QWidget):
         self.button_filter_time.setEnabled(False)
         self.button_cut_data_time.setEnabled(False)
         self.button_apply_color_range_t2.setEnabled(False)
+        self.button_apply_range.setEnabled(False)
+        self.button_calc_fft.setEnabled(False)
 
         t0 = Thread(target=self.read_initial_data)
         t0.start()
@@ -1405,6 +1420,7 @@ class MyTableWidget(QWidget):
             self.label_processing_status_t2.setStyleSheet("background-color: light grey;")
 
             self.button_apply_color_range_t2.setEnabled(True)
+            self.button_calc_fft.setEnabled(True)
 
             del cut_vdm_data_array_to_plot
         
@@ -1418,8 +1434,6 @@ class MyTableWidget(QWidget):
     #
     #
     def thread_update_cut_data_with_color_amplitude_value(self):
-
-
         
         v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
         v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
@@ -1506,8 +1520,16 @@ class MyTableWidget(QWidget):
     # Thread called by the push button "Calculate FFT"
     def thread_calculate_fft_of_data(self):
         
-        try:
-            print(self.cut_vdm_data_array.shape)
+        v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
+        v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
+
+        if v_max_min >= v_max_man:
+
+            self.label_processing_status_t3.setText("Wrong amplitude values")
+            self.label_processing_status_t3.setStyleSheet("background-color: red;")
+        
+        else:
+            
             self.label_processing_status_t3.setText(" ")
             self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
 
@@ -1520,20 +1542,61 @@ class MyTableWidget(QWidget):
 
             self.label_processing_status_t3.setText("Processing...")
             self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
-
+        
             # Starting the thread of FFT calculation
             t0 = Thread(target=self.calculate_fft_of_data)
             t0.start()
             # t0.join()
 
-        except AttributeError:
-            self.label_processing_status_t3.setText("Press 'Cut data' button first!")
-            self.label_processing_status_t3.setStyleSheet("background-color: red;")
+
+
+        # try:
+        #     print(self.cut_vdm_data_array.shape)
+        #     self.label_processing_status_t3.setText(" ")
+        #     self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
+
+        #     # Updating figure on tab 3 to indicate the FFT is being calculated
+        #     self.figure_freq.clear()  # clearing old figure
+        #     ax0 = self.figure_freq.add_subplot(111)
+        #     ax0.remove() 
+        #     self.figure_freq.text(0.39, 0.5, "Calculating FFT...", color="C0", size=22)
+        #     self.canvas_freq.draw()  # refresh canvas
+
+        #     self.label_processing_status_t3.setText("Processing...")
+        #     self.label_processing_status_t3.setStyleSheet("background-color: yellow;")
+
+        #     # Starting the thread of FFT calculation
+        #     t0 = Thread(target=self.calculate_fft_of_data)
+        #     t0.start()
+        #     # t0.join()
+
+        # except AttributeError:
+        #     self.label_processing_status_t3.setText("Press 'Cut data' button first!")
+        #     self.label_processing_status_t3.setStyleSheet("background-color: red;")
 
 
     # Action called by the push button "Calculate FFT"
     def calculate_fft_of_data(self):
 
+        
+        if self.checkbox_cut_data_amp_with_limits_t3.isChecked():
+            
+            # Reading value
+            v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
+            v_min_man = float(self.slider_image_amplitude_color_min_t2.value() / 200)
+
+            # Here we unnormalize limits to apply them to non-normalized array
+            arr_min = np.min(self.cut_vdm_data_array)
+            arr_max = np.max(self.cut_vdm_data_array)
+
+            v_max_man = v_max_man * arr_max + arr_min
+            v_min_man = v_min_man * arr_max + arr_min
+
+            # Here we apply unnormalized limits to non-normalized array
+            self.cut_vdm_data_array[self.cut_vdm_data_array > v_max_man] = v_max_man
+            self.cut_vdm_data_array[self.cut_vdm_data_array < v_min_man] = v_min_man
+
+        
         # Calculating FFT
         self.vdm_spectra = np.power(np.real(np.fft.fft(self.cut_vdm_data_array[:])), 2)  # calculation of the spectrum
         self.vdm_spectra = self.vdm_spectra[:, 0 : int(self.vdm_spectra.shape[1]/2)]  # delete second part of the spectrum
@@ -1575,6 +1638,8 @@ class MyTableWidget(QWidget):
         self.figure_freq.colorbar(plot, pad=0, aspect=50, label="Amplitude, AU")
         # self.figure_freq.colorbar(plot, cax=cax, aspect=100, label="Amplitude, AU")
         self.canvas_freq.draw()  # refresh canvas
+
+        self.button_apply_range.setEnabled(True)
 
         self.label_processing_status_t3.setText(" ")
         self.label_processing_status_t3.setStyleSheet("background-color: light grey;")
