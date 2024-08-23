@@ -53,7 +53,7 @@ class Window(QMainWindow):
 
         # Window geometry and hierarchy
         self.setWindowTitle('Pulsar & transient search    v.' + software_version + '    Serge Yerin @ IRA NASU')  # Win title
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1300, 700)
         # menu_bar = self.menuBar()
         # file_menu = menu_bar.addMenu('&File')
 
@@ -399,8 +399,8 @@ class MyTableWidget(QWidget):
         self.canvas_and_input_controls_layout_t2 = QHBoxLayout() 
 
         self.canvas_and_toolbox_left_vertical_layout_t2 = QVBoxLayout()
-        self.input_controls_left_vertical_layout_t2 = QVBoxLayout()
-        self.input_controls_right_vertical_layout_t2 = QVBoxLayout()
+        # self.input_controls_left_vertical_layout_t2 = QVBoxLayout()
+        # self.input_controls_right_vertical_layout_t2 = QVBoxLayout()
 
         self.toolbar_layout_t2 = QHBoxLayout()
 
@@ -408,19 +408,68 @@ class MyTableWidget(QWidget):
         self.label_median_win = QLabel("Median window:", self)
         self.label_median_win.setFixedSize(QSize(90, 30))
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
-        
-        # Dummy labels to align Sliders in first and second lines
 
-        self.label_dummy_t2l2_5 = QLabel(" ", self)
-        self.label_dummy_t2l2_5.setFixedHeight(30)
+        # Creating labels near spinboxes to describe the input
+        self.label_dummy_t2 = QLabel(" ", self)
+        self.label_dummy_t2.setFixedSize(QSize(80, 30))
+        self.label_dummy_t2.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        # Creating labels near spinboxes to describe the input
+        self.label_image_amplitude_color_min_t2 = QLabel("Min color:", self)
+        self.label_image_amplitude_color_min_t2.setFixedSize(QSize(70, 30))
+        self.label_image_amplitude_color_min_t2.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Creating labels near spinboxes to describe the input
+        self.label_image_amplitude_color_max_t2 = QLabel("Max color:", self)
+        self.label_image_amplitude_color_max_t2.setFixedSize(QSize(70, 30))
+        self.label_image_amplitude_color_max_t2.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        # Adaptive spinbox step type 
+        step_type = QAbstractSpinBox.AdaptiveDecimalStepType 
+  
+        # Spinbox filter window length
+        self.spinbox_image_amplitude_color_min_t2 = QDoubleSpinBox()
+        self.spinbox_image_amplitude_color_min_t2.setFixedSize(QSize(70, 30))
+        self.spinbox_image_amplitude_color_min_t2.setMinimum(0)
+        self.spinbox_image_amplitude_color_min_t2.setMaximum(1)
+        self.spinbox_image_amplitude_color_min_t2.setDecimals(4) 
+        self.spinbox_image_amplitude_color_min_t2.setStepType(step_type) 
+        self.spinbox_image_amplitude_color_min_t2.setValue(0)
+
+        # Spinbox filter window length
+        self.spinbox_image_amplitude_color_max_t2 = QDoubleSpinBox()
+        self.spinbox_image_amplitude_color_max_t2.setFixedSize(QSize(70, 30))
+        self.spinbox_image_amplitude_color_max_t2.setMinimum(0)
+        self.spinbox_image_amplitude_color_max_t2.setMaximum(1)
+        self.spinbox_image_amplitude_color_max_t2.setDecimals(4) 
+        self.spinbox_image_amplitude_color_max_t2.setStepType(step_type) 
+        self.spinbox_image_amplitude_color_max_t2.setValue(1)
+
+
+        # # Dummy labels to align Sliders in first and second lines
+        # self.label_dummy_t2l2_5 = QLabel(" ", self)
+        # self.label_dummy_t2l2_5.setFixedHeight(30)
+
+        # Label dummy before chackbox
+        self.label_dummy_t2l1 = QLabel(" ", self)
+        self.label_dummy_t2l1.setFixedSize(QSize(5, 30))
+        self.label_dummy_t2l1.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Label dummy below strachable
+        self.label_dummy_t2l2 = QLabel(" ", self)
+        self.label_dummy_t2l2.setFixedSize(QSize(140, 30))
+        self.label_dummy_t2l2.setAlignment(QtCore.Qt.AlignCenter)
+
 
         # Labels before sliders
         self.label_cut_start_t2l1 = QLabel("Cut start:", self)
-        self.label_cut_start_t2l1.setFixedSize(QSize(90, 30))
+        self.label_cut_start_t2l1.setFixedSize(QSize(70, 30))
         self.label_cut_start_t2l1.setAlignment(QtCore.Qt.AlignCenter)
 
         self.label_cut_finish_t2l2 = QLabel("Cut finish:", self)
-        self.label_cut_finish_t2l2.setFixedSize(QSize(90, 30))
+        self.label_cut_finish_t2l2.setFixedSize(QSize(70, 30))
         self.label_cut_finish_t2l2.setAlignment(QtCore.Qt.AlignCenter)
 
         # Spinbox filter window length
@@ -456,31 +505,31 @@ class MyTableWidget(QWidget):
         self.label_data_finishes_at.setFixedSize(QSize(40, 30))
         self.label_data_finishes_at.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Slider 3 - amplitude max on figure cut
-        self.slider_image_amplitude_color_max_t2 = QSlider(Qt.Vertical)  
-        self.slider_image_amplitude_color_max_t2.setFixedWidth(30)
-        self.slider_image_amplitude_color_max_t2.setRange(0, 200)
-        self.slider_image_amplitude_color_max_t2.setValue(200)
-        self.slider_image_amplitude_color_max_t2.setTickPosition(QSlider.TicksLeft)
-        self.slider_image_amplitude_color_max_t2.valueChanged.connect(self.slider_figure_color_amplitude_max_value_changed)
+        # # Slider 3 - amplitude max on figure cut
+        # self.slider_image_amplitude_color_max_t2 = QSlider(Qt.Vertical)  
+        # self.slider_image_amplitude_color_max_t2.setFixedWidth(30)
+        # self.slider_image_amplitude_color_max_t2.setRange(0, 200)
+        # self.slider_image_amplitude_color_max_t2.setValue(200)
+        # self.slider_image_amplitude_color_max_t2.setTickPosition(QSlider.TicksLeft)
+        # self.slider_image_amplitude_color_max_t2.valueChanged.connect(self.slider_figure_color_amplitude_max_value_changed)
 
-        # Label Slider 3  - amplitude max on figure cut
-        self.label_image_amplitude_color_max_t2 = QLabel("1.0", self)
-        self.label_image_amplitude_color_max_t2.setFixedSize(QSize(40, 30))
-        self.label_image_amplitude_color_max_t2.setAlignment(QtCore.Qt.AlignCenter)
+        # # Label Slider 3  - amplitude max on figure cut
+        # self.label_image_amplitude_color_max_t2 = QLabel("1.0", self)
+        # self.label_image_amplitude_color_max_t2.setFixedSize(QSize(40, 30))
+        # self.label_image_amplitude_color_max_t2.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Slider 4 - amplitude min on figure cut
-        self.slider_image_amplitude_color_min_t2 = QSlider(Qt.Vertical)  
-        self.slider_image_amplitude_color_min_t2.setFixedWidth(30)
-        self.slider_image_amplitude_color_min_t2.setRange(0, 200)
-        self.slider_image_amplitude_color_min_t2.setValue(0)
-        self.slider_image_amplitude_color_min_t2.setTickPosition(QSlider.TicksRight)
-        self.slider_image_amplitude_color_min_t2.valueChanged.connect(self.slider_figure_color_amplitude_min_value_changed)
+        # # Slider 4 - amplitude min on figure cut
+        # self.slider_image_amplitude_color_min_t2 = QSlider(Qt.Vertical)  
+        # self.slider_image_amplitude_color_min_t2.setFixedWidth(30)
+        # self.slider_image_amplitude_color_min_t2.setRange(0, 200)
+        # self.slider_image_amplitude_color_min_t2.setValue(0)
+        # self.slider_image_amplitude_color_min_t2.setTickPosition(QSlider.TicksRight)
+        # self.slider_image_amplitude_color_min_t2.valueChanged.connect(self.slider_figure_color_amplitude_min_value_changed)
 
-        # Label Slider 4  - amplitude min on figure cut
-        self.label_image_amplitude_color_min_t2 = QLabel("0.0", self)
-        self.label_image_amplitude_color_min_t2.setFixedSize(QSize(40, 30))
-        self.label_image_amplitude_color_min_t2.setAlignment(QtCore.Qt.AlignCenter)
+        # # Label Slider 4  - amplitude min on figure cut
+        # self.label_image_amplitude_color_min_t2 = QLabel("0.0", self)
+        # self.label_image_amplitude_color_min_t2.setFixedSize(QSize(40, 30))
+        # self.label_image_amplitude_color_min_t2.setAlignment(QtCore.Qt.AlignCenter)
 
 
         # Checkbox - show red dots on image
@@ -504,18 +553,18 @@ class MyTableWidget(QWidget):
         # Button "Read data"
         self.button_read_time = QPushButton('Read data')
         self.button_read_time.clicked.connect(self.thread_read_initial_data)
-        self.button_read_time.setFixedSize(QSize(100, 30))
+        self.button_read_time.setFixedSize(QSize(80, 30))
 
         # Button "Subtract median"
         self.button_filter_time = QPushButton('Subtract median')
         self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)
-        self.button_filter_time.setFixedSize(QSize(273, 30))
+        self.button_filter_time.setFixedSize(QSize(253, 30))
         self.button_filter_time.setEnabled(False)
 
         # Button "Cut data"
         self.button_cut_data_time = QPushButton('Cut data')
         self.button_cut_data_time.clicked.connect(self.thread_cut_initial_data_in_time)  
-        self.button_cut_data_time.setFixedSize(QSize(100, 30))
+        self.button_cut_data_time.setFixedSize(QSize(80, 30))
         self.button_cut_data_time.setEnabled(False)
 
         # Button "Apply color range"
@@ -554,6 +603,12 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t2_l1.addWidget(self.label_cut_start_t2l1)
         self.input_controls_layout_t2_l1.addWidget(self.slider_data_begins_at)
         self.input_controls_layout_t2_l1.addWidget(self.label_data_begins_at)
+        self.input_controls_layout_t2_l1.addWidget(self.label_dummy_t2)
+        self.input_controls_layout_t2_l1.addWidget(self.label_image_amplitude_color_min_t2)
+        self.input_controls_layout_t2_l1.addWidget(self.spinbox_image_amplitude_color_min_t2)
+        self.input_controls_layout_t2_l1.addWidget(self.label_dummy_t2l1)
+        self.input_controls_layout_t2_l1.addWidget(self.checkbox_show_color_markers_t2)
+        self.input_controls_layout_t2_l1.addWidget(self.label_checkbox_show_maxima_t2)
         self.input_controls_layout_t2_l1.addWidget(self.label_processing_status_t2)
         
         # Packing layouts in the window line 2
@@ -562,30 +617,35 @@ class MyTableWidget(QWidget):
         self.input_controls_layout_t2_l2.addWidget(self.slider_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.label_data_finishes_at)
         self.input_controls_layout_t2_l2.addWidget(self.button_cut_data_time)
+        self.input_controls_layout_t2_l2.addWidget(self.label_image_amplitude_color_max_t2)
+        self.input_controls_layout_t2_l2.addWidget(self.spinbox_image_amplitude_color_max_t2)
         self.input_controls_layout_t2_l2.addWidget(self.button_apply_color_range_t2)
+        self.input_controls_layout_t2_l2.addWidget(self.label_dummy_t2l2)
+        
+        
         self.input_controls_layout_t2_l2.addWidget(self.label_cut_index_status_t2)
 
         
         self.toolbar_layout_t2.addWidget(self.toolbar_time)
         self.toolbar_layout_t2.addWidget(self.label_array_dimensions_t2)
         self.toolbar_layout_t2.addWidget(self.label_time_resolution)
-        self.toolbar_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
-        self.toolbar_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
+        # self.toolbar_layout_t2.addWidget(self.label_checkbox_show_maxima_t2)
+        # self.toolbar_layout_t2.addWidget(self.checkbox_show_color_markers_t2)
 
         self.canvas_and_toolbox_left_vertical_layout_t2.addLayout(self.toolbar_layout_t2)
         self.canvas_and_toolbox_left_vertical_layout_t2.addWidget(self.canvas_time, stretch=1)
 
         
-        self.input_controls_right_vertical_layout_t2.addWidget(self.label_image_amplitude_color_max_t2)
-        self.input_controls_right_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_max_t2, stretch=1)
+        # self.input_controls_right_vertical_layout_t2.addWidget(self.label_image_amplitude_color_max_t2)
+        # self.input_controls_right_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_max_t2, stretch=1)
 
-        self.input_controls_left_vertical_layout_t2.addWidget(self.label_image_amplitude_color_min_t2)
-        self.input_controls_left_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_min_t2, stretch=1)
+        # self.input_controls_left_vertical_layout_t2.addWidget(self.label_image_amplitude_color_min_t2)
+        # self.input_controls_left_vertical_layout_t2.addWidget(self.slider_image_amplitude_color_min_t2, stretch=1)
 
 
         self.canvas_and_input_controls_layout_t2.addLayout(self.canvas_and_toolbox_left_vertical_layout_t2)
-        self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_left_vertical_layout_t2)
-        self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_right_vertical_layout_t2)
+        # self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_left_vertical_layout_t2)
+        # self.canvas_and_input_controls_layout_t2.addLayout(self.input_controls_right_vertical_layout_t2)
 
         self.tab2.layout.addLayout(self.input_controls_layout_t2_l1)
         self.tab2.layout.addLayout(self.input_controls_layout_t2_l2)
@@ -1193,13 +1253,13 @@ class MyTableWidget(QWidget):
         value = int(self.slider_data_finishes_at.value())
         self.label_data_finishes_at.setText(str(value))
 
-    def slider_figure_color_amplitude_max_value_changed(self):
-        value = int(self.slider_image_amplitude_color_max_t2.value())
-        self.label_image_amplitude_color_max_t2.setText(str(np.round(value / 200, 3)))
+    # def slider_figure_color_amplitude_max_value_changed(self):
+    #     value = int(self.slider_image_amplitude_color_max_t2.value())
+    #     self.label_image_amplitude_color_max_t2.setText(str(np.round(value / 200, 3)))
 
-    def slider_figure_color_amplitude_min_value_changed(self):
-        value = int(self.slider_image_amplitude_color_min_t2.value())
-        self.label_image_amplitude_color_min_t2.setText(str(np.round(value / 200, 3)))
+    # def slider_figure_color_amplitude_min_value_changed(self):
+    #     value = int(self.slider_image_amplitude_color_min_t2.value())
+    #     self.label_image_amplitude_color_min_t2.setText(str(np.round(value / 200, 3)))
 
 
 
@@ -1435,10 +1495,14 @@ class MyTableWidget(QWidget):
     #
     def thread_update_cut_data_with_color_amplitude_value(self):
         
-        v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
-        v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
+        v_min_man = self.spinbox_image_amplitude_color_min_t2.value()
+        v_max_man = self.spinbox_image_amplitude_color_max_t2.value()
 
-        if v_max_min >= v_max_man:
+        # v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
+        # v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
+
+
+        if v_min_man >= v_max_man:
 
             self.label_processing_status_t2.setText("Wrong values")
             self.label_processing_status_t2.setStyleSheet("background-color: red;")
@@ -1470,8 +1534,11 @@ class MyTableWidget(QWidget):
             cut_vdm_data_array_to_plot = np.divide(cut_vdm_data_array_to_plot, np.max(cut_vdm_data_array_to_plot))
 
             # Reading value
-            v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
-            v_min_man = float(self.slider_image_amplitude_color_min_t2.value() / 200)
+            # v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
+            # v_min_man = float(self.slider_image_amplitude_color_min_t2.value() / 200)
+
+            v_min_man = float(self.spinbox_image_amplitude_color_min_t2.value())
+            v_max_man = float(self.spinbox_image_amplitude_color_max_t2.value())
 
             self.max_points = np.argwhere(cut_vdm_data_array_to_plot >= v_max_man)
 
@@ -1520,8 +1587,12 @@ class MyTableWidget(QWidget):
     # Thread called by the push button "Calculate FFT"
     def thread_calculate_fft_of_data(self):
         
-        v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
-        v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
+        # v_max_min = int(self.slider_image_amplitude_color_min_t2.value())
+        # v_max_man = int(self.slider_image_amplitude_color_max_t2.value())
+
+        v_max_min = self.spinbox_image_amplitude_color_min_t2.value()
+        v_max_man = self.spinbox_image_amplitude_color_max_t2.value()
+
 
         if v_max_min >= v_max_man:
 
@@ -1582,8 +1653,11 @@ class MyTableWidget(QWidget):
         if self.checkbox_cut_data_amp_with_limits_t3.isChecked():
             
             # Reading value
-            v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
-            v_min_man = float(self.slider_image_amplitude_color_min_t2.value() / 200)
+            # v_max_man = float(self.slider_image_amplitude_color_max_t2.value() / 200)
+            # v_min_man = float(self.slider_image_amplitude_color_min_t2.value() / 200)
+
+            v_max_man = float(self.spinbox_image_amplitude_color_min_t2.value())
+            v_min_man = float(self.spinbox_image_amplitude_color_max_t2.value())
 
             # Here we unnormalize limits to apply them to non-normalized array
             arr_min = np.min(self.cut_vdm_data_array)
