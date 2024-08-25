@@ -1594,13 +1594,19 @@ class MyTableWidget(QWidget):
         vdm_spectra_to_plot = np.subtract(vdm_spectra_to_plot, np.min(vdm_spectra_to_plot))
         vdm_spectra_to_plot = np.divide(vdm_spectra_to_plot, np.max(vdm_spectra_to_plot))
 
+        # Nulling of the first smaples of the spectra under median filter
+        vdm_spectra_to_plot[:, :self.med_filter_length] = 0
+
         # Calculating the frequency resolution and low frequency (median) filter limit 
         self.frequency_resolution = 1 / (self.time_resolution * 2 * self.vdm_spectra.shape[1])  # frequency resolution, Hz   
         self.low_freq_limit_of_filter = self.med_filter_length * self.frequency_resolution
         self.frequency_axis = np.array([self.frequency_resolution * i for i in range(self.vdm_spectra.shape[1])])
         
         # Show max possible frequency of FFT
-        self.label_max_frequency_t3.setText("Max frequency: {:8.4f}".format(np.round(self.frequency_axis[-1], 2)) + "  Hz")
+        self.label_max_frequency_t3.setText("Max frequency: {:8.2f}".format(np.round(self.frequency_axis[-1], 2)) + "  Hz")
+
+        # Set maximal possible frequency in the spinbox to plot
+        self.freq_limit_input.setValue(np.round(self.frequency_axis[-1], 2))
 
         # Taking the high limit of frequency scale from GUI
         self.high_frequency_limit = int(self.freq_limit_input.value())  # Hz
@@ -1667,6 +1673,9 @@ class MyTableWidget(QWidget):
         # Normalizing spectrum
         vdm_spectra_to_plot = np.subtract(vdm_spectra_to_plot, np.min(vdm_spectra_to_plot))
         vdm_spectra_to_plot = np.divide(vdm_spectra_to_plot, np.max(vdm_spectra_to_plot))
+
+        # Nulling of the first smaples of the spectra under median filter
+        vdm_spectra_to_plot[:, :self.med_filter_length] = 0
 
         # Update the plot
         rc('font', size=12, weight='bold')
@@ -1773,6 +1782,9 @@ class MyTableWidget(QWidget):
         vdm_spectra_to_plot = np.subtract(vdm_spectra_to_plot, np.min(vdm_spectra_to_plot))
         vdm_spectra_to_plot = np.divide(vdm_spectra_to_plot, np.max(vdm_spectra_to_plot))
 
+        # Nulling of the first smaples of the spectra under median filter
+        vdm_spectra_to_plot[:, :self.med_filter_length] = 0
+
         # Values of color amplitudes
         v_min_man = float(self.spinbox_image_amplitude_color_min_t3.value())
         v_max_man = float(self.spinbox_image_amplitude_color_max_t3.value())
@@ -1833,21 +1845,26 @@ class MyTableWidget(QWidget):
         self.canvas_amplitude_vs_dm_t4_l1.draw()  # refresh canvas
 
         # Update the plot 3
+
+        mean_profile = np.mean(self.vdm_spectra_cut, axis=0)
         self.figure_integrated_spectra_over_dms_t4_l2.clear()  # clearing figure
         ax0 = self.figure_integrated_spectra_over_dms_t4_l2.add_subplot(111)
-        ax0.plot(self.frequency_axis_cut, np.mean(self.vdm_spectra_cut, axis=0))
+        ax0.plot(self.frequency_axis_cut, mean_profile)
         ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
+        ax0.set_ylim(0, 1.1 * np.max(mean_profile))
         ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
         ax0.set_title('Averaged spectra over all DMs', fontsize=8, fontweight='bold')
         self.figure_integrated_spectra_over_dms_t4_l2.set_constrained_layout(True)
         self.canvas_integrated_spectra_over_dms_t4_l2.draw()  # refresh canvas
+        del mean_profile
 
         # Update the plot 4
         self.figure_spectrum_for_dm_t4_l2.clear()  # clearing figure
         ax0 = self.figure_spectrum_for_dm_t4_l2.add_subplot(111)
         ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
         ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
+        ax0.set_ylim(0, 1.1 * np.max(self.vdm_spectra_cut[man_dm_index]))
         ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
         ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)) + f' pc/cm\N{SUPERSCRIPT THREE}', fontsize=8, fontweight='bold')
