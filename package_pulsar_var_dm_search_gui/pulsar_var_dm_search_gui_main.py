@@ -1794,7 +1794,6 @@ class MyTableWidget(QWidget):
 
         # Manually selected DM read from slider
         man_dm_index = int(self.slider_dm_selection_t4l1.value())
-        # self.label_dm_selection_value_t4l1.setText(str(np.round(self.vdm_dm_vector[value], 3)))
 
         # Update the plot 1
         rc('font', size=10, weight='bold')
@@ -1817,7 +1816,6 @@ class MyTableWidget(QWidget):
         # Normalizing mean for plot
         mean_amp_vs_dm = np.subtract(mean_amp_vs_dm, np.min(mean_amp_vs_dm))
         mean_amp_vs_dm = np.divide(mean_amp_vs_dm, np.max(mean_amp_vs_dm))
-
 
         # Update the plot 2
         self.figure_amplitude_vs_dm_t4_l1.clear()  # clearing figure
@@ -1849,7 +1847,8 @@ class MyTableWidget(QWidget):
 
         # Update the plot 3
 
-        mean_profile = np.mean(self.vdm_spectra_cut, axis=0)
+        # mean_profile = np.mean(self.vdm_spectra_cut, axis=0)
+        mean_profile = np.mean(vdm_spectra_to_plot, axis=0)
         self.figure_integrated_spectra_over_dms_t4_l2.clear()  # clearing figure
         ax0 = self.figure_integrated_spectra_over_dms_t4_l2.add_subplot(111)
         ax0.plot(self.frequency_axis_cut, mean_profile)
@@ -1865,9 +1864,11 @@ class MyTableWidget(QWidget):
         # Update the plot 4
         self.figure_spectrum_for_dm_t4_l2.clear()  # clearing figure
         ax0 = self.figure_spectrum_for_dm_t4_l2.add_subplot(111)
-        ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
+        # ax0.plot(self.frequency_axis_cut, self.vdm_spectra_cut[man_dm_index])
+        ax0.plot(self.frequency_axis_cut, vdm_spectra_to_plot[man_dm_index])
         ax0.set_xlim(self.low_freq_limit_of_filter, self.high_frequency_limit)
-        ax0.set_ylim(0, 1.1 * np.max(self.vdm_spectra_cut[man_dm_index]))
+        # ax0.set_ylim(0, 1.1 * np.max(self.vdm_spectra_cut[man_dm_index]))
+        ax0.set_ylim(0, 1.1 * np.max(vdm_spectra_to_plot[man_dm_index]))
         ax0.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
         ax0.set_ylabel('Amplitude, AU', fontsize=10, fontweight='bold')
         ax0.set_title('Spectrum for DM = ' + str(np.round(self.vdm_dm_vector[man_dm_index], 3)) + f' pc/cm\N{SUPERSCRIPT THREE}', fontsize=8, fontweight='bold')
