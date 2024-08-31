@@ -1769,7 +1769,10 @@ class MyTableWidget(QWidget):
         self.high_frequency_limit = float(self.freq_limit_input.value())  # Hz
 
         # Finding index of the frequency axis where the value exceeds the limit for the first time
-        max_idx = np.array([np.where(self.frequency_axis > self.high_frequency_limit)]).min()
+        try:
+            max_idx = np.array([np.where(self.frequency_axis >= self.high_frequency_limit)]).min()
+        except: 
+            max_idx = int(len(self.frequency_axis) - 1)
 
         # Cutting frequencies above selected limit to obtain best S/N
         self.vdm_spectra_cut = self.vdm_spectra[:,:max_idx].copy()
