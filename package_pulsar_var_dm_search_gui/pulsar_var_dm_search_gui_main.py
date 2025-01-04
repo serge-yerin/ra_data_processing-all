@@ -2,7 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel
 from PyQt5.QtWidgets import QTabWidget, QPushButton, QDoubleSpinBox, QAbstractSpinBox, QRadioButton, QLineEdit
-from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider, QCheckBox, QSizePolicy
+from PyQt5.QtWidgets import QFileDialog, QPlainTextEdit, QSlider, QCheckBox, QComboBox, QSizePolicy
 from PyQt5.QtCore import QSize, Qt
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
@@ -228,7 +228,6 @@ class MyTableWidget(QWidget):
         # Nested horizontal layout for DM entry
         self.dm_calc_layout = QHBoxLayout()
 
-
         # Button "Calculate DM values"
         self.button_calc_dm = QPushButton('Calculate DM values')
         self.button_calc_dm.clicked.connect(self.calculate_dm_values)  # adding action to the button  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -293,17 +292,96 @@ class MyTableWidget(QWidget):
         self.tab1.layout.addLayout(self.dm_calc_layout, 6, 1)
 
 
+
+
+        # Nested horizontal layout for processing parameters entry
+        self.proc_param_entry_layout = QHBoxLayout()
+
+        self.label_dm_dummy_entry_1 = QLabel(" ", self)
+        self.label_dm_dummy_entry_1.setEnabled(False)
+        self.label_dm_dummy_entry_1.setFixedSize(QSize(140, 30))
+        self.proc_param_entry_layout.addWidget(self.label_dm_dummy_entry_1)
+
+        self.label_data_channels_entry = QLabel("Channels: ", self)
+        self.label_data_channels_entry.setEnabled(False)
+        self.label_data_channels_entry.setFixedSize(QSize(80, 30))
+        self.label_data_channels_entry.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_data_channels_entry)
+
+        self.channel_select_dropdown = QComboBox(self)
+        self.channel_select_dropdown.addItem("A")
+        self.channel_select_dropdown.addItem("B")
+        self.channel_select_dropdown.addItem("A & B")
+        self.channel_select_dropdown.move(50, 50)
+        self.channel_select_dropdown.setFixedSize(QSize(60, 30))
+        self.channel_select_dropdown.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.channel_select_dropdown)
+
+
+        self.label_channels_dummy_1 = QLabel(' ', self)
+        self.label_channels_dummy_1.setFixedSize(QSize(80, 30))
+        self.label_channels_dummy_1.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_channels_dummy_1)
+
+        self.label_channels_dummy_2 = QLabel(' ', self)
+        self.label_channels_dummy_2.setFixedSize(QSize(80, 30))
+        self.label_channels_dummy_2.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_channels_dummy_2)
+
+        self.label_channels_dummy_3 = QLabel(' ', self)
+        self.label_channels_dummy_3.setFixedSize(QSize(60, 30))
+        self.label_channels_dummy_3.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_channels_dummy_3)
+
+        self.label_channels_dummy_4 = QLabel(' ', self)
+        self.label_channels_dummy_4.setFixedSize(QSize(20, 30))
+        self.label_channels_dummy_4.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_channels_dummy_4)
+
+        self.label_no_of_processes_entry = QLabel("  Number of processes: ", self)
+        self.label_no_of_processes_entry.setEnabled(False)
+        self.label_no_of_processes_entry.setFixedSize(QSize(140, 30))
+        self.label_no_of_processes_entry.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_no_of_processes_entry)
+
+        self.process_no_select_dropdown = QComboBox(self)
+        self.process_no_select_dropdown.addItem("1")
+        self.process_no_select_dropdown.addItem("2")
+        self.process_no_select_dropdown.addItem("3")
+        self.process_no_select_dropdown.addItem("4")
+        self.process_no_select_dropdown.addItem("5")
+        self.process_no_select_dropdown.addItem("6")
+        self.process_no_select_dropdown.addItem("7")
+        self.process_no_select_dropdown.move(50, 50)
+        self.process_no_select_dropdown.setFixedSize(QSize(60, 30))
+        self.process_no_select_dropdown.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.process_no_select_dropdown)
+
+        self.label_processes_no_dummy = QLabel(' ', self)
+        self.label_processes_no_dummy.setFixedSize(QSize(80, 30))
+        self.label_processes_no_dummy.setEnabled(False)
+        self.proc_param_entry_layout.addWidget(self.label_processes_no_dummy)
+
+        # Add nested horizontal layout to the main one
+        self.tab1.layout.addLayout(self.proc_param_entry_layout, 7, 1)
+
+
+
+
+
+
+
         # Button "Preprocess jds files"
         self.button_process_jds = QPushButton('Preprocess jds files')
         self.button_process_jds.clicked.connect(self.thread_preprocess_jds_files)  # adding action to the button
         self.button_process_jds.setEnabled(False)
-        self.tab1.layout.addWidget(self.button_process_jds, 7, 1, Qt.AlignTop)
+        self.tab1.layout.addWidget(self.button_process_jds, 8, 1, Qt.AlignTop)
 
         # JDS processing status label
         self.label_processing_status = QLabel('', self)
         self.label_processing_status.setAlignment(QtCore.Qt.AlignCenter)
         self.label_processing_status.setFont(QFont('Arial', 14))
-        self.tab1.layout.addWidget(self.label_processing_status, 8, 1)
+        self.tab1.layout.addWidget(self.label_processing_status, 9, 1)
 
 
 
@@ -311,31 +389,31 @@ class MyTableWidget(QWidget):
         self.radiobutton_pairs = QRadioButton("Raw .jds pairs preprocess:")
         self.radiobutton_pairs.process_type = "raw jds pairs files"
         self.radiobutton_pairs.toggled.connect(self.rb_pairs_on_click)
-        self.tab1.layout.addWidget(self.radiobutton_pairs, 9, 0)  # , Qt.AlignTop
+        self.tab1.layout.addWidget(self.radiobutton_pairs, 10, 0)  # , Qt.AlignTop
 
         # Path to source folder line
         self.source_pairs_path_line = QLineEdit()
         self.source_pairs_path_line.setEnabled(False)
-        self.tab1.layout.addWidget(self.source_pairs_path_line, 9, 1)
+        self.tab1.layout.addWidget(self.source_pairs_path_line, 10, 1)
 
         # Button "Specify result folder"
         self.button_select_pairs_source_path = QPushButton('Specify source folder')
         self.button_select_pairs_source_path.clicked.connect(self.specify_source_pairs_folder_dialog)  # add new action!!!
         self.button_select_pairs_source_path.setFixedSize(QSize(150, 30))
         self.button_select_pairs_source_path.setEnabled(False)
-        self.tab1.layout.addWidget(self.button_select_pairs_source_path, 9, 2)
+        self.tab1.layout.addWidget(self.button_select_pairs_source_path, 10, 2)
 
         # Path to result folder line
         self.result_pairs_path_line = QLineEdit()
         self.result_pairs_path_line.setEnabled(False)
-        self.tab1.layout.addWidget(self.result_pairs_path_line, 10, 1)
+        self.tab1.layout.addWidget(self.result_pairs_path_line, 11, 1)
 
         # Button "Specify result folder"
         self.button_select_pairs_result_path = QPushButton('Specify result folder')
         self.button_select_pairs_result_path.clicked.connect(self.specify_result_pairs_folder_dialog)  # adding action
         self.button_select_pairs_result_path.setFixedSize(QSize(150, 30))
         self.button_select_pairs_result_path.setEnabled(False)
-        self.tab1.layout.addWidget(self.button_select_pairs_result_path, 10, 2)
+        self.tab1.layout.addWidget(self.button_select_pairs_result_path, 11, 2)
 
         # Nested horizontal layout for DM entry
         self.pairs_dm_entry_layout = QHBoxLayout()
@@ -357,19 +435,19 @@ class MyTableWidget(QWidget):
         self.pairs_dm_entry_layout.addWidget(self.label_pairs_dm_units)
 
         # Add nested horizontal layout to the main one
-        self.tab1.layout.addLayout(self.pairs_dm_entry_layout, 11, 1)
+        self.tab1.layout.addLayout(self.pairs_dm_entry_layout, 12, 1)
 
         # Button "Preprocess pairs of jds files"
         self.button_process_pairs_jds = QPushButton('Preprocess pairs of jds files from specified folder')
         self.button_process_pairs_jds.clicked.connect(self.thread_preprocess_pairs_jds_files)  # adding action
         self.button_process_pairs_jds.setEnabled(False)
-        self.tab1.layout.addWidget(self.button_process_pairs_jds, 12, 1, Qt.AlignTop)
+        self.tab1.layout.addWidget(self.button_process_pairs_jds, 13, 1, Qt.AlignTop)
 
         # JDS pairs processing status label
         self.label_pairs_processing_status = QLabel('', self)
         self.label_pairs_processing_status.setAlignment(QtCore.Qt.AlignCenter)
         self.label_pairs_processing_status.setFont(QFont('Arial', 14))
-        self.tab1.layout.addWidget(self.label_pairs_processing_status, 13, 1)
+        self.tab1.layout.addWidget(self.label_pairs_processing_status, 14, 1)
 
 
 
@@ -922,6 +1000,11 @@ class MyTableWidget(QWidget):
             self.label_dm_stop_entry.setEnabled(False)
             self.label_dm_stop_units.setEnabled(False)
 
+            self.label_data_channels_entry.setEnabled(False)
+            self.channel_select_dropdown.setEnabled(False)
+            self.label_no_of_processes_entry.setEnabled(False)
+            self.process_no_select_dropdown.setEnabled(False)
+
             self.button_select_pairs_source_path.setEnabled(False)
             self.button_select_pairs_result_path.setEnabled(False)
             self.button_process_pairs_jds.setEnabled(False)
@@ -961,6 +1044,11 @@ class MyTableWidget(QWidget):
             self.label_dm_stop_entry.setEnabled(True)
             self.label_dm_stop_units.setEnabled(True)
 
+            self.label_data_channels_entry.setEnabled(True)
+            self.channel_select_dropdown.setEnabled(True)
+            self.label_no_of_processes_entry.setEnabled(True)
+            self.process_no_select_dropdown.setEnabled(True)
+
             self.button_select_pairs_source_path.setEnabled(False)
             self.button_select_pairs_result_path.setEnabled(False)
             self.button_process_pairs_jds.setEnabled(False)
@@ -998,6 +1086,11 @@ class MyTableWidget(QWidget):
             self.label_dm_step_units.setEnabled(False)
             self.label_dm_stop_entry.setEnabled(False)
             self.label_dm_stop_units.setEnabled(False)
+
+            self.label_data_channels_entry.setEnabled(False)
+            self.channel_select_dropdown.setEnabled(False)
+            self.label_no_of_processes_entry.setEnabled(False)
+            self.process_no_select_dropdown.setEnabled(False)
 
             self.button_select_pairs_source_path.setEnabled(True)
             self.button_select_pairs_result_path.setEnabled(True)
