@@ -1824,7 +1824,9 @@ class MyTableWidget(QWidget):
         ax0.plot(self.vdm_dm_vector, mean_amp_vs_dm)
         
         ax0.plot(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)], np.max(mean_amp_vs_dm), 'o', color="C1", markersize=8.0)
-        ax0.text(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)], np.max(mean_amp_vs_dm), f'  DM:  '  + str(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)]) + f'  pc/cm\N{SUPERSCRIPT THREE}')  # $DM_{max}$
+        ax0.text(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)], np.max(mean_amp_vs_dm), 
+                 f'  DM:  '  + str(np.round(self.vdm_dm_vector[np.argmax(mean_amp_vs_dm)], 4)) + 
+                 f'  pc/cm\N{SUPERSCRIPT THREE}')  # $DM_{max}$
 
         if self.checkbox_show_color_markers_t2.isChecked():
             
