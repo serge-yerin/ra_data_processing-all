@@ -17,6 +17,27 @@ matplotlib
 
 Instead of usual **opencv-python library** we use **opencv-python-headless** to avoid conflicts with **PyQt5** GUI framework.
 
+We have tested the scripts to work properly on such set of library versions on Windows 11 with Python 3.12.2:
+
+``` python
+astropy 6.1.4
+astroplan 0.10.1
+matplotlib 3.9.2
+numpy 1.26.4
+pandas 2.2.3
+pexpect 4.9.0
+Pillow 10.4.0
+progress 1.6
+requests 2.32.3
+scipy 1.14.1
+wakeonlan 3.1.0
+opencv-python-headless 4.10.0.84
+PyAstronomy 0.22.0
+PyQt5 5.15.11
+openpyxl 3.1.15
+tqdm 4.66.5
+```
+
 **On Linux** you may have to install tkinter if the error 'No module named 'Tkinter'' appears with the command:
 
 ``` python
