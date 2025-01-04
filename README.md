@@ -2,17 +2,41 @@
 
 Scripts and functions for visualizing and processing of radio astronomy data from Ukrainian low-frequency radio telescopes UTR-2, URAN, GURT (DSP and ADR receivers) as well as to control the ADR receivers to make scheduled observation.
 
-Additional libraries needed are listed in **requirements.txt**. The most used scripts were sucessfully run with **Python 3.11.8**, but there could be some files that were not tested for a long time.
+Each script has several lines at its beginning with all variables to be defined by user, so no need to search processing parameters in the code. Short descriptions of each parameters are given in the comments.
 
-On Linux you may have to install tkinter if the error 'No module named 'Tkinter'' appears with the command:
+**NOTE** The scripts are constantly in development, so they are published as is, and can be updated and/or modified at any time. The code was is being written by not a programmer, so the quality of the code is low. The only adevantage of this code is that it usually works.
+
+## Installations of environments (Python & libs)
+
+Additional libraries needed are listed in **requirements.txt**. The most used scripts were sucessfully run with **Python 3.11.8**, but there could be some files that were not tested for a long time. The **requirements.txt** file contains library names without particular versions of the libraries. The known for now restriction is the scripts do not run with **numpy 2.X**, only **numpy 1.X** works. Actually a lot of libraries from the list are used only in particular scripts so you can install only libs needed for your tasks. Most commonly used libs are:
+
+``` python
+numpy
+matplotlib
+```
+
+Instead of usual **opencv-python library** we use **opencv-python-headless** to avoid conflicts with **PyQt5** GUI framework.
+
+**On Linux** you may have to install tkinter if the error 'No module named 'Tkinter'' appears with the command:
 
 ``` python
 sudo apt-get install python3-tk
 ```
 
-Instead of usual **opencv-python library** we use **opencv-python-headless** to avoid conflicts with **PyQt5** GUI framework.
+**On Linux** (Ubuntu 24.04) if the error:
+``` python
+qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in ""
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
 
-Each script has several lines at its beginning with all variables to be defined by user, so no need to search processing parameters in the code. Short descriptions of each parameters are given in the comments.
+Available platform plugins are: linuxfb, minimal, offscreen, vnc, webgl, xcb.
+```
+occurs you may have to install wayland with the command:
+
+``` python
+sudo apt install qtwayland5
+```
+
 
 ## Parameters of radio astronomy data to keep in mind
 
