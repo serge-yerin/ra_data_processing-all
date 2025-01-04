@@ -406,7 +406,7 @@ class MyTableWidget(QWidget):
 
         # Creating labels near spinboxes to describe the input
         self.label_median_win = QLabel("Median window:", self)
-        self.label_median_win.setFixedSize(QSize(90, 30))
+        self.label_median_win.setFixedSize(QSize(100, 30))
         self.label_median_win.setAlignment(QtCore.Qt.AlignCenter)
 
         # Creating labels near spinboxes to describe the input
@@ -504,7 +504,7 @@ class MyTableWidget(QWidget):
 
         # Label checkbox - show red dots on image
         self.label_checkbox_show_maxima_t2 = QLabel("Show max", self)
-        self.label_checkbox_show_maxima_t2.setFixedSize(QSize(50, 30))
+        self.label_checkbox_show_maxima_t2.setFixedSize(QSize(60, 30))
         self.label_checkbox_show_maxima_t2.setAlignment(QtCore.Qt.AlignCenter)
 
 
@@ -523,7 +523,7 @@ class MyTableWidget(QWidget):
         # Button "Subtract median"
         self.button_filter_time = QPushButton('Subtract median')
         self.button_filter_time.clicked.connect(self.thread_subtract_median_in_time)
-        self.button_filter_time.setFixedSize(QSize(253, 30))
+        self.button_filter_time.setFixedSize(QSize(263, 30))
         self.button_filter_time.setEnabled(False)
 
         # Button "Cut data"
@@ -535,7 +535,7 @@ class MyTableWidget(QWidget):
         # Button "Apply color range"
         self.button_apply_color_range_t2 = QPushButton('Apply color range')
         self.button_apply_color_range_t2.clicked.connect(self.thread_update_cut_data_with_color_amplitude_value)  
-        self.button_apply_color_range_t2.setFixedSize(QSize(100, 30))
+        self.button_apply_color_range_t2.setFixedSize(QSize(120, 30))
         self.button_apply_color_range_t2.setEnabled(False)
 
         # Work status label tab 2
