@@ -25,16 +25,13 @@ if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from package_pulsar_profile_analysis_gui.f_calculate_spectrum_of_profile import calculate_spectrum_of_profile
-from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds import make_transient_profile_from_jds
+from package_pulsar_var_dm_search_gui.f_make_var_dm_file_from_jds import make_var_dm_file_from_jds
 from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds_file_pairs import (
     f_make_transient_profile_from_jds_file_pairs)
-from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_1_8
-from package_pulsar_profile_analysis_gui.f_time_profile_spectra_for_gui import time_profile_spectra_for_gui_16
-from package_pulsar_profile_analysis_gui.f_xlsx_vvz_pulsar_sources_reader import xlsx_vvz_pulsar_sources_reader
 
-from package_common_modules.text_manipulations import read_one_value_txt_file
+# from package_common_modules.text_manipulations import read_one_value_txt_file
 from package_common_modules.text_manipulations import separate_filename_and_path
-from package_ra_data_processing.filtering import median_filter
+# from package_ra_data_processing.filtering import median_filter
 
 
 # Keep in mind that for Linux (Ubuntu 22.04) you may will need to use headless opencv:
@@ -1022,7 +1019,7 @@ class MyTableWidget(QWidget):
     def one_vdm_file_dialog(self):
         file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "VDM Files (*.vdm)")
         if check:
-            self.vdm_filepath, self.vdm_filename = separate_filename_and_path(file)
+            [self.vdm_filepath, self.vdm_filename] = os.path.split(file)
             self.vdm_file_path_line.setText(file)
 
 
@@ -1047,7 +1044,7 @@ class MyTableWidget(QWidget):
         if check:
             for i in range(len(files)):
                 self.jds_file_path_line.appendPlainText(files[i])
-                directory, file_name = separate_filename_and_path(files[i])
+                [directory, file_name] = os.path.split(files[i])
                 file_names.append(file_name)
             self.jds_analysis_directory = directory
             self.jds_analysis_list = file_names
@@ -1094,7 +1091,7 @@ class MyTableWidget(QWidget):
         self.label_processing_status.setStyleSheet("background-color: yellow;")
 
         try:
-            profile_txt_file_path = make_transient_profile_from_jds(self.jds_analysis_directory,
+            profile_txt_file_path = make_var_dm_file_from_jds(self.jds_analysis_directory,
                                                                     jds_analysis_files,
                                                                     jds_result_folder,
                                                                     self.source_dm)
@@ -1105,7 +1102,7 @@ class MyTableWidget(QWidget):
 
         # After the processing is finished,
         self.txt_file_path_line.setText(profile_txt_file_path)
-        self.txt_filepath, self.txt_filename = separate_filename_and_path(profile_txt_file_path)
+        [self.txt_filepath, self.txt_filename] = os.path.split(profile_txt_file_path)
         self.label_processing_status.setText("JDS preprocessing finished! "
                                              "You can now open next tab and process the profile")
         self.label_processing_status.setStyleSheet("background-color: lightgreen;")
@@ -1959,345 +1956,6 @@ class MyTableWidget(QWidget):
         self.figure_spectrum_of_spectrum_t5_l3.set_constrained_layout(True)
         self.canvas_spectrum_of_spectrum_t5_l3.draw()  # refresh canvas
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # action called by the push button Average data
-    def average_time_data(self):
-
-        pulsar_data_in_time = np.array(self.filtered_data_in_time)
-
-        # Read the average value from the input
-        average_const = int(self.aver_const_input.value())
-        self.frequency_limit = float(self.freq_limit_input.value())
-        
-        # Make sure the length of the array is divisible by average constant
-        # points_limit = (len(pulsar_data_in_time) // average_const) * average_const
-        # pulsar_data_in_time = pulsar_data_in_time[:points_limit]
-        print(len(pulsar_data_in_time))
-        # Calculate the average and new time resolution
-        # pulsar_data_in_time = np.average(pulsar_data_in_time.reshape(-1, average_const ), axis=1)
-        pulsar_data_in_time = np.convolve(pulsar_data_in_time, np.ones(average_const), 'valid') / average_const
-        self.filtered_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-        # self.time_resolution = self.time_resolution * average_const
-        print(len(pulsar_data_in_time))
-        
-        # Calculating the spectrum
-        frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(self.filtered_data_in_time, self.time_resolution)
-
-        # Update the plot
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(211)
-        ax0.plot(self.filtered_data_in_time)
-        ax0.set_xlim([0, len(self.filtered_data_in_time)])
-        ax0.set_ylim([-5.0, 5.0])
-        ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        ax1 = self.figure.add_subplot(212)
-        ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-        self.canvas.draw()  # refresh canvas
-
-
-    def crop_and_show_spectrum(self):
-
-        # Getting current values from spinboxes
-        min_limit = self.low_limit_input.value()
-        max_limit = self.high_limit_input.value()
-        self.frequency_limit = float(self.freq_limit_input.value())
-
-        # Clip data
-        self.cropped_data_in_time = np.clip(self.filtered_data_in_time, min_limit, max_limit)
-
-        # Calculating the spectrum
-        frequency_axis, pulses_spectra, spectrum_max = \
-            calculate_spectrum_of_profile(self.cropped_data_in_time, self.time_resolution)
-
-        self.harmonics_highlight = None
-
-        def mouse_event(event):
-            x = event.xdata
-            self.harmonics_highlight = [0.5*x, x, 2*x, 3*x, 4*x, 5*x, 6*x, 7*x, 8*x, 9*x, 10*x,
-                                        11*x, 12*x, 13*x, 14*x, 15*x, 16*x, 17*x, 18*x, 19*x, 20*x,
-                                        21*x, 22*x, 23*x, 24*x, 25*x, 26*x, 27*x, 28*x, 29*x, 30*x]
-
-            self.figure.clear()  # clearing old figure
-            ax0 = self.figure.add_subplot(211)
-            ax0.plot(self.cropped_data_in_time)
-            ax0.set_xlim([0, len(self.cropped_data_in_time)])
-            ax0.set_ylim([-5.0, 5.0])
-            ax0.set_title('Time series', fontsize=10, fontweight='bold')
-            ax1 = self.figure.add_subplot(212)
-            plt.text(x, 0.8 * spectrum_max, ' $f$ = ' + str(np.round(x, 3)) + ' $Hz$ $or$ $P$ = ' +
-                     str(np.round(1/x, 3)) + ' $s$', fontsize=14, color='C3')
-            for harmonic in self.harmonics_highlight:
-                ax1.axvline(x=harmonic, color='C1', linestyle='-', linewidth=2.0, alpha=0.2)
-            ax1.plot(frequency_axis, pulses_spectra)
-            ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-            ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-            self.figure.subplots_adjust(hspace=0.25, top=0.945)
-            ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-            self.canvas.draw()  # refresh canvas
-
-        # Update the plot
-        cid = self.figure.canvas.mpl_connect('button_press_event', mouse_event)
-        self.figure.clear()  # clearing old figure
-        ax0 = self.figure.add_subplot(211)
-        ax0.plot(self.cropped_data_in_time)
-        ax0.set_xlim([0, len(self.cropped_data_in_time)])
-        ax0.set_ylim([-5.0, 5.0])
-        ax0.set_title('Time series', fontsize=10, fontweight='bold')
-        ax1 = self.figure.add_subplot(212)
-        # Adding the plots for parts of data to the big result picture
-        ax1.plot(frequency_axis, pulses_spectra)
-        ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-        ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-        self.figure.subplots_adjust(hspace=0.25, top=0.945)
-        ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-        self.canvas.draw()  # refresh canvas
-
-
-    def thread_t5_start_processing(self):
-        self.t5_text_field.appendPlainText('Reading database...')
-        t1 = Thread(target=self.t5_start_processing)
-        t1.start()
-
-    # action called by the push button
-    def t5_start_processing(self):
-
-        self.t5_label_processing_status.setText('Excel database file reading')
-        self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
-        
-        # Reading profile data from txt file
-        try:
-            excel_filepath = self.xlsx_file_path_line.text()
-            db_data_path = self.data_path_replace_line.text()
-            temp_big_folder = self.big_temp_data_path_line.text()
-            excel_filepath = os.path.normpath(excel_filepath)
-            db_data_path = os.path.normpath(db_data_path)
-            temp_big_folder = os.path.normpath(temp_big_folder)
-            [self.excel_directory, self.excel_filename] = os.path.split(excel_filepath)
-            [code_date, beam, source_dm, file_paths] = xlsx_vvz_pulsar_sources_reader(self.excel_directory, self.excel_filename, 
-                                                                                      'Лист1', db_data_path)
-
-        except:
-            self.t5_label_processing_status.setText('Error reading Excel database or data finding')
-            self.t5_label_processing_status.setStyleSheet("background-color: red;")
-
-        pairs_number = len(code_date)
-        
-        self.t5_text_field.clear()  # Cleat the text input to add new file paths
-        
-        obs_names = []
-        for pair in range(pairs_number):
-            tmp_filepath = file_paths[pair][0].split(os.sep)
-            numbers = tmp_filepath[-2].split(' ')
-            data_file_name = tmp_filepath[-1][:-4]
-
-            obs_name = code_date[pair].replace('/','_') + '_{:0>2d}'.format(int(numbers[0])) + '_{:0>2d}'.format(int(numbers[1])) + \
-                       '  beam ' + beam[pair] + '  DM={: >6}'.format(str(np.round(source_dm[pair], 4))) + '  ' + data_file_name
-
-            obs_names.append(obs_name)
-            print(obs_name)
-
-            # self.t5_text_field.appendPlainText(code_date[pair] + '_' + beam[pair] + '  ' + str(source_dm[pair]) + '   ' + file_paths[pair][0])
-            # self.t5_text_field.appendPlainText('Text')
-        
-        for pair in range(pairs_number):
-
-            print('\n* Processing pair # ' + str(pair + 1) + ' out of ' + str(pairs_number))
-            self.t5_label_processing_status.setText('Processing raw data pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-            self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
-
-            try:            
-                [jds_pair_directory, jds_file_1] = os.path.split(file_paths[pair][0])
-                [jds_pair_directory, jds_file_2] = os.path.split(file_paths[pair][1])
-
-                profile_txt_file_path = make_transient_profile_from_jds(jds_pair_directory,
-                                                                        [jds_file_1, jds_file_2],
-                                                                        temp_big_folder,
-                                                                        source_dm[pair])
-                # profile_txt_file_path = os.path.normpath('e:/temp/Transient_search_1 10/Transient_DM_21.022_A240311_160000.jds_Data_chA_time_profile.txt')
-            
-            except:
-                print('Error making transient profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setText('Error making transient profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setStyleSheet("background-color: red;")
-
-            try:
-                # Copy result profile and timeline into initial data folder
-                [txt_file_path, txt_file_name] = os.path.split(profile_txt_file_path)
-                tl_file_name = txt_file_name.split('_Data_')[0] + '_Timeline.txt'
-                shutil.copy(profile_txt_file_path, os.path.join(jds_pair_directory, txt_file_name))
-                shutil.copy(os.path.join(txt_file_path, tl_file_name), os.path.join(jds_pair_directory, tl_file_name))
-                
-                # Make new directory in the big temp folder and copy profile there
-                new_obs_folder = os.path.join(temp_big_folder, obs_names[pair].replace(' ', '_'))
-                os.mkdir(new_obs_folder) 
-                
-                shutil.copy(profile_txt_file_path, os.path.join(new_obs_folder, txt_file_name))
-                shutil.copy(os.path.join(txt_file_path, tl_file_name), os.path.join(new_obs_folder, tl_file_name))
-
-                # Delete the temporary data folder
-                shutil.rmtree(txt_file_path)
-            except:
-                print('Error copying profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setText('Error copying profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setStyleSheet("background-color: red;")
-
-            try:
-                print('Processing spectra of pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setText('Processing spectra of pair #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setStyleSheet("background-color: lightgreen;")
-                
-                # Reading profile data from txt file
-                profile_filepath = os.path.join(new_obs_folder, txt_file_name)
-                pulsar_data_in_time = read_one_value_txt_file(profile_filepath)
-
-                # Calculating the spectrum
-                frequency_axis, pulses_spectra, spectrum_max = \
-                    calculate_spectrum_of_profile(pulsar_data_in_time, self.time_resolution)
-                
-                fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(16.0, 7.0))
-                ax0.plot(pulsar_data_in_time)
-                ax0.set_xlim([0, len(pulsar_data_in_time)])
-                # ax0.set_ylim([-5.0, 5.0])
-                ax0.set_title('Time series', fontsize=10, fontweight='bold')
-                ax1.plot(frequency_axis, pulses_spectra)
-                ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-                ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-                fig.subplots_adjust(hspace=0.25, top=0.945)
-                ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-                pylab.savefig(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum before filtering.png'), 
-                              bbox_inches='tight', dpi=300)
-                plt.close('all')
-
-
-                # Subtract median and normalize data
-                median = median_filter(pulsar_data_in_time, int(self.t5_filter_win_input.value()))
-                pulsar_data_in_time = pulsar_data_in_time - median
-                pulsar_data_in_time = pulsar_data_in_time / np.std(pulsar_data_in_time)
-
-                # Getting current values from spinboxes
-                min_limit = self.t5_low_limit_input.value()
-                max_limit = self.t5_high_limit_input.value()
-
-                # Clip data
-                cropped_data_in_time = np.clip(pulsar_data_in_time, min_limit, max_limit)
-
-                # Calculating the spectrum
-                frequency_axis, pulses_spectra, spectrum_max = \
-                    calculate_spectrum_of_profile(cropped_data_in_time, self.time_resolution)
-                
-                fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(16.0, 7.0))
-                ax0.plot(cropped_data_in_time)
-                ax0.set_xlim([0, len(cropped_data_in_time)])
-                # ax0.set_ylim([-5.0, 5.0])
-                ax0.set_title('Time series', fontsize=10, fontweight='bold')
-                ax1.plot(frequency_axis, pulses_spectra)
-                ax1.axis([0, self.frequency_limit, 0, 1.1 * spectrum_max])
-                ax1.set_xlabel('Frequency, Hz', fontsize=10, fontweight='bold')
-                fig.subplots_adjust(hspace=0.25, top=0.945)
-                ax1.set_title('Spectrum', fontsize=10, fontweight='bold')
-                pylab.savefig(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum after filtering.png'), 
-                              bbox_inches='tight', dpi=300)
-                plt.close('all')
-
-                harmonics_highlight = None
-                # Run function to make and save bit plot
-                time_profile_spectra_for_gui_16(cropped_data_in_time, self.time_resolution, harmonics_highlight,
-                                                self.frequency_limit, new_obs_folder, txt_file_name,
-                                                software_version, 300)
-										
-                # Run function to make and save bit plot
-                time_profile_spectra_for_gui_1_8(cropped_data_in_time, self.time_resolution, harmonics_highlight,
-                                                 self.frequency_limit, new_obs_folder, txt_file_name,
-                                                 software_version, 300)
-                
-                # Copy the plots to source folder as well
-                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum before filtering.png'), 
-                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' profile and spectrum before filtering.png'))
-                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' profile and spectrum after filtering.png'), 
-                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' profile and spectrum after filtering.png'))
-                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' big picture up to 8 parts.png'), 
-                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' big picture up to 8 parts.png'))
-                shutil.copy(os.path.join(new_obs_folder, txt_file_name[0:-4] + ' big picture 16 parts.png'), 
-                            os.path.join(jds_pair_directory, txt_file_name[0:-4] + ' big picture 16 parts.png'))
-
-
-            except:
-                print('Error processing profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setText('Error processing profile #  ' + str(pair + 1) + '  out of  ' + str(pairs_number))
-                self.t5_label_processing_status.setStyleSheet("background-color: red;")
-
-
-
-        self.t5_label_processing_status.setText('Program finished work, check the data.')
-        self.t5_label_processing_status.setStyleSheet("background-color: lightblue;")
-
-        return
-
-    def specify_db_data_folder_dialog(self):
-        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
-        if dir_name:
-            # self.path_to_result_folder = dir_name
-            self.data_path_replace_line.setText(str(dir_name))
-
-
-    def specify_big_temp_data_path_dialog(self):
-        dir_name = QFileDialog.getExistingDirectory(self, "Select a Directory")
-        if dir_name:
-            # self.path_to_result_folder = dir_name
-            self.big_temp_data_path_line.setText(str(dir_name))
-
-
-    def one_xls_file_open_dialog(self):
-        file, check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()", "", "Excel Files (*.xls, *.xlsx)")
-        if check:
-            self.xlsx_file_path_line.setText(file)
 
 
 # Driver code
