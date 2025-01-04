@@ -1213,25 +1213,44 @@ class MyTableWidget(QWidget):
     # Thread called by the push button "Read data" on tab 2
     def thread_read_initial_data(self):
 
-        self.label_processing_status_t2.setText("Reading data...")
-        self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
 
-        self.figure_time.clear()  # clearing figure
-        ax0 = self.figure_time.add_subplot(111)
-        ax0.remove() 
-        self.figure_time.text(0.4, 0.5, "Reading data file...", color="C0", size=22)
-        self.canvas_time.draw() 
+        # Reading the path fo VDM data file from GUI and normalizing it
+        data_filepath = self.vdm_file_path_line.text()
+        data_filepath = os.path.normpath(data_filepath)
+        [directory, self.data_filename] = os.path.split(data_filepath)
+        
+        # Checking (.vdm) data file exists
+        exists = os.path.isfile(os.path.join(directory, self.data_filename))
+        # path.isfile(path)
 
-        # Disabling next buttons
-        self.button_filter_time.setEnabled(False)
-        self.button_cut_data_time.setEnabled(False)
-        self.button_apply_color_range_t2.setEnabled(False)
-        self.button_apply_range.setEnabled(False)
-        self.button_calc_fft.setEnabled(False)
+        if exists:
+            self.label_processing_status_t2.setText("Reading data...")
+            self.label_processing_status_t2.setStyleSheet("background-color: yellow;")
 
-        t0 = Thread(target=self.read_initial_data)
-        t0.start()
+            self.figure_time.clear()  # clearing figure
+            ax0 = self.figure_time.add_subplot(111)
+            ax0.remove() 
+            self.figure_time.text(0.4, 0.5, "Reading data file...", color="C0", size=22)
+            self.canvas_time.draw() 
 
+            # Disabling next buttons
+            self.button_filter_time.setEnabled(False)
+            self.button_cut_data_time.setEnabled(False)
+            self.button_apply_color_range_t2.setEnabled(False)
+            self.button_apply_range.setEnabled(False)
+            self.button_calc_fft.setEnabled(False)
+
+            t0 = Thread(target=self.read_initial_data)
+            t0.start()
+        else:
+            self.label_processing_status_t2.setText("No such file")
+            self.label_processing_status_t2.setStyleSheet("background-color: red;")
+
+            self.figure_time.clear()  # clearing figure
+            ax0 = self.figure_time.add_subplot(111)
+            ax0.remove() 
+            self.figure_time.text(0.3, 0.5, "Error reading the file. Check if it exists.", color="C0", size=22)
+            self.canvas_time.draw() 
 
 
     # Action called by the push button "Read data" on tab 2
