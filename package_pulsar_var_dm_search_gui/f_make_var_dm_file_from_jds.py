@@ -28,22 +28,23 @@ from package_cleaning.dat_rfi_mask_making import dat_rfi_mask_making
 from package_ra_data_processing.f_cross_spectra_phase_calibration import cross_spectra_phase_calibration
 
 
-def make_var_dm_file_from_jds(source_directory, file_name_list_current, result_directory, source_dm):
-    
-    
+def make_var_dm_file_from_jds(source_directory, file_name_list_current, result_directory, 
+                              dm_vector, time_res, data_types, n_proc):
+    """
+    Makes various dispersion measure (VDM) files from jds files
 
-    central_dm = 22.5
-    dm_range = 12.5
-    dm_points = 1251
-
-    time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s  (0.007944 s)
+    Args:
+        source_directory (str): directory with e source jds files
+        file_name_list_current (list of strings): list of file names in the source directory to analyze 
+        result_directory (str): path to result directory where all results will be saved
+        dm_vector (list of floats): list of DM values to dedisperse the observation data
+        time_res (float): time resolution of the observation data
+        data_types (list of strings): list of data channel names to analyze A/B/A&B
+        n_proc (_type_): number of processes to start analysis (depends on number of CPU cores)
+    """
+    
     fig_time = 30           # Time on one figure, s
-    n_proc = 1              # Number of processes when making dedispersion (less than CPU cores)
-
-    # Types of data to get (full possible set in the comment below - copy to code necessary)
-    # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
-    data_types = ['chA']
-
+    
     # Calibration file needed only if cross-spectra are involved
     phase_calibr_txt_file = source_directory + 'Calibration_P130422_114347.jds_cross_spectra_phase.txt'
 
@@ -86,13 +87,12 @@ def make_var_dm_file_from_jds(source_directory, file_name_list_current, result_d
     source_directory = os.path.normpath(source_directory)
     result_directory = os.path.normpath(result_directory)
 
-    # Making a DM values vector
-    dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
-
     # Printing to terminal the DM values vector
-    print('\n  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', dm_points, '\n')
+    print('\n  DM varies in range from', dm_vector[0], 'to', dm_vector[-1], ', number of points:', len(dm_vector), '\n')
     for i in range(int(len(dm_vector)/2)):
-        print(" {:>3}   {:<10}    |    {:<10}   {:>3} ".format(i, np.round(dm_vector[i], 6), np.round(dm_vector[-(i+1)], 6), len(dm_vector)-i-1))
+        print(" {:>3}   {:<10}    |    {:<10}   {:>3} ".format(i, np.round(dm_vector[i], 6), 
+                                                               np.round(dm_vector[-(i+1)], 6), 
+                                                               len(dm_vector)-i-1))
 
     k = int(len(dm_vector)/2)  # Central value
     print(" {:>3}            {:^10}  ".format(k, np.round(dm_vector[k], 6)))
@@ -224,9 +224,29 @@ def make_var_dm_file_from_jds(source_directory, file_name_list_current, result_d
 
     amp_min = -0.15
     amp_max = 0.55
-    dedispersed_data_file_list = []
-    calculated_dm_vector = []
+    # dedispersed_data_file_list = []
+    # calculated_dm_vector = []
 
+   # # for i in range(len(data_types_to_process)):
+    # for k in range(dm_points):
+        
+    #     if dm_vector[k] > 0:
+        
+    #         print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Dispersion delay removing step ', k+1, ' of ',
+    #             dm_points, ' DM: ', np.round(dm_vector[k], 6), ' pc / cm3 ')
+
+    #         try:
+    #             dedispersed_data_file_name = pulsar_incoherent_dedispersion(path_to_dat_files,  dat_file_name + '_Data_' + data_types_to_process[0] + '.dat', 
+    #                                                                         'Transient', 512, amp_min, amp_max, False, 16.5, 33.0, True, False, 300,
+    #                                                                         'Greys', use_mask_file=True, save_pics=False, source_dm=dm_vector[k],
+    #                                                                         result_path=path_to_dat_files, print_or_not=False)
+
+    #             dedispersed_data_file_list.append(dedispersed_data_file_name)
+    #             calculated_dm_vector.append(dm_vector[k])
+    #         except:
+    #             print("    Calculation failed!")
+    #     else:
+    #         pass
     
     # Running incoherent dedispersion for many DM values in parallel
     args = (path_to_dat_files,  
@@ -257,7 +277,10 @@ def make_var_dm_file_from_jds(source_directory, file_name_list_current, result_d
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Aligning profiles in time and saving array to file... \n\n')
 
-    data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0], central_dm, dm_range, dm_points)
+    data_file_name, tl_file_name = align_time_profiles(path_to_dat_files, dat_file_name, data_types_to_process[0], 
+                                                       dm_vector[int(len(dm_vector)/2 + 1)], 
+                                                       dm_vector[int(len(dm_vector)/2 + 1)] - dm_vector[0], 
+                                                       len(dm_vector))
 
     # Separate file name and path
     data_path, data_file_name = os.path.split(data_file_name)
@@ -268,3 +291,35 @@ def make_var_dm_file_from_jds(source_directory, file_name_list_current, result_d
                               time_res, fig_time, print_or_not=True)
 
     print('\n\n  * ', str(datetime.datetime.now())[:19], ' * Pipeline finished successfully! \n\n')
+
+
+
+if __name__ == '__main__':
+
+    source_directory = 'C:/Users/user/python/RA_DATA_ARCHIVE/DSP_cross_spectra_B0809+74_URAN2/'
+    file_name_list_current = ['P130422_121607.jds', 'P130422_122028.jds']
+    result_directory = 'C:/Users/user/python/RA_DATA_ARCHIVE/'
+
+    central_dm = 5.755
+    dm_range = 0.3
+    dm_points = 5
+
+    # Calculating DM vector to have all DM values used
+    dm_vector = np.linspace(central_dm - dm_range, central_dm + dm_range, num=dm_points)
+
+    # Typical time resolution
+    time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s  (0.007944 s)
+
+    n_proc = 3              # Number of processes when making dedispersion (less than CPU cores)
+
+    # Types of data to get (full possible set in the comment below - copy to code necessary)
+    # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
+    data_types = ['chA']
+
+    make_var_dm_file_from_jds(source_directory, 
+                              file_name_list_current, 
+                              result_directory, 
+                              dm_vector, 
+                              time_res, 
+                              data_types, 
+                              n_proc)
