@@ -38,7 +38,7 @@ from package_common_modules.text_manipulations import separate_filename_and_path
 # pip uninstall opencv-python
 # pip install opencv-python-headless
 
-software_version = '2024.08.03'
+software_version = '2025.01.05'
 
 
 # Main window
