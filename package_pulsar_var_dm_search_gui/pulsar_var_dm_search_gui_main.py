@@ -230,7 +230,7 @@ class MyTableWidget(QWidget):
 
         # Button "Calculate DM values"
         self.button_calc_dm = QPushButton('Calculate DM values')
-        self.button_calc_dm.clicked.connect(self.calculate_dm_values)  # adding action to the button  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.button_calc_dm.clicked.connect(self.calculate_dm_values)
         self.button_calc_dm.setEnabled(False)
         self.button_calc_dm.setFixedSize(QSize(140, 25))
         self.dm_calc_layout.addWidget(self.button_calc_dm)
@@ -303,7 +303,6 @@ class MyTableWidget(QWidget):
         self.proc_param_entry_layout.addWidget(self.label_dm_dummy_entry_1)
 
         self.label_data_channels_entry = QLabel("Channels: ", self)
-        self.label_data_channels_entry.setEnabled(False)
         self.label_data_channels_entry.setFixedSize(QSize(80, 30))
         self.label_data_channels_entry.setEnabled(False)
         self.proc_param_entry_layout.addWidget(self.label_data_channels_entry)
@@ -345,13 +344,15 @@ class MyTableWidget(QWidget):
         self.proc_param_entry_layout.addWidget(self.label_no_of_processes_entry)
 
         self.process_no_select_dropdown = QComboBox(self)
-        self.process_no_select_dropdown.addItem("1")
-        self.process_no_select_dropdown.addItem("2")
-        self.process_no_select_dropdown.addItem("3")
-        self.process_no_select_dropdown.addItem("4")
-        self.process_no_select_dropdown.addItem("5")
-        self.process_no_select_dropdown.addItem("6")
-        self.process_no_select_dropdown.addItem("7")
+        # self.process_no_select_dropdown.addItem("1")
+        # self.process_no_select_dropdown.addItem("2")
+        # self.process_no_select_dropdown.addItem("3")
+        # self.process_no_select_dropdown.addItem("4")
+        # self.process_no_select_dropdown.addItem("5")
+        # self.process_no_select_dropdown.addItem("6")
+        # self.process_no_select_dropdown.addItem("7")
+        processes_number_list = ["1", "2", "3", "4", "5", "6", "7"]
+        self.process_no_select_dropdown.addItems(processes_number_list)
         self.process_no_select_dropdown.move(50, 50)
         self.process_no_select_dropdown.setFixedSize(QSize(60, 30))
         self.process_no_select_dropdown.setEnabled(False)
@@ -1025,7 +1026,7 @@ class MyTableWidget(QWidget):
 
             self.button_open_jds.setEnabled(True)
             self.button_select_result_path.setEnabled(True)
-            self.button_process_jds.setEnabled(True)
+            # self.button_process_jds.setEnabled(True)
             self.jds_file_path_line.setEnabled(True)
             self.result_path_line.setEnabled(True)
             self.label_dm_entry.setEnabled(True)
@@ -1124,6 +1125,7 @@ class MyTableWidget(QWidget):
         # Calculating DM vector to display DM values
         self.dm_vector = np.linspace(self.central_dm - self.dm_range, self.central_dm + self.dm_range, num=self.dm_points)
 
+        self.button_process_jds.setEnabled(True)
         self.line_start_dm_entry.setText(str(np.round(self.dm_vector[0], 6)))
         self.line_dm_step_entry.setText(str(np.round(self.dm_vector[1] - self.dm_vector[0], 6)))
         self.line_dm_stop_entry.setText(str(np.round(self.dm_vector[-1], 6)))
@@ -1179,23 +1181,44 @@ class MyTableWidget(QWidget):
             self.label_processing_status.setStyleSheet("background-color: red;")
             return
 
+        # Typical time resolution
+        time_res = (1 / 66000000) * 16384 * 32     # Time resolution, s  (0.007944 s)
+
+        tmp = self.channel_select_dropdown.currentIndex()
+        if tmp == "A":
+            data_types = ['chA']
+        elif tmp == "B":
+            data_types = ['chB']
+        elif tmp == "A & B":
+            data_types = ['chA', 'chB']
+        else:
+            data_types = ['chA']
+        
+        n_proc = int(self.process_no_select_dropdown.currentIndex())
+
         # Only if parameters are good, run processing
         self.label_processing_status.setText("JDS data are being processed...")
         self.label_processing_status.setStyleSheet("background-color: yellow;")
 
         try:
-            profile_txt_file_path = make_var_dm_file_from_jds(self.jds_analysis_directory,
-                                                                    jds_analysis_files,
-                                                                    jds_result_folder,
-                                                                    self.source_dm)
+            var_dm_file_path = make_var_dm_file_from_jds(self.jds_analysis_directory, 
+                                                         jds_analysis_files, 
+                                                         jds_result_folder,
+                                                         self.dm_vector, 
+                                                         time_res, 
+                                                         data_types, 
+                                                         n_proc)
+
+
+
         except:
             self.label_processing_status.setText("Something wrong happened during calculations!")
             self.label_processing_status.setStyleSheet("background-color: red;")
             return
 
         # After the processing is finished,
-        self.txt_file_path_line.setText(profile_txt_file_path)
-        [self.txt_filepath, self.txt_filename] = os.path.split(profile_txt_file_path)
+        self.txt_file_path_line.setText(var_dm_file_path)
+        [self.txt_filepath, self.txt_filename] = os.path.split(var_dm_file_path)
         self.label_processing_status.setText("JDS preprocessing finished! "
                                              "You can now open next tab and process the profile")
         self.label_processing_status.setStyleSheet("background-color: lightgreen;")
