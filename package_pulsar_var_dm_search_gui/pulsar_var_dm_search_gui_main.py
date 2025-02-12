@@ -30,7 +30,6 @@ from package_pulsar_profile_analysis_gui.f_make_transient_profile_from_jds_file_
     f_make_transient_profile_from_jds_file_pairs)
 
 # from package_common_modules.text_manipulations import read_one_value_txt_file
-from package_common_modules.text_manipulations import separate_filename_and_path
 # from package_ra_data_processing.filtering import median_filter
 
 
