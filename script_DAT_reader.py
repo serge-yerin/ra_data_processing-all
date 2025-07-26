@@ -1,6 +1,8 @@
 # Python3
-Software_version = '2022.07.26'
+Software_version = '2025.07.26'
 # Program intended to read and show data from DAT files
+
+import os
 
 # *******************************************************************************
 #                              P A R A M E T E R S                              *
@@ -9,7 +11,7 @@ Software_version = '2022.07.26'
 common_path = ''  # '/media/data/PYTHON/ra_data_processing-all/'
 
 # Directory of DAT file to be analyzed:
-filename = common_path + 'A200605_084324.adr_Data_chA.dat'
+filename = os.path.join(common_path, 'A200605_084324.adr_Data_chA.dat')
 
 # Types of data to get (full possible set in the comment below - copy to code necessary)
 # data_types = ['chA', 'chB', 'C_m', 'C_p', 'CRe', 'CIm', 'A+B', 'A-B', 'chAdt', 'chBdt']
@@ -56,7 +58,7 @@ save_dyn_sp_to_txt_file = False         # Save short part of dynamic spectrum to
 # *******************************************************************************
 #                     I M P O R T    L I B R A R I E S                          *
 # *******************************************************************************
-import os
+
 import sys
 import numpy as np
 import time
@@ -88,7 +90,7 @@ current_date = time.strftime("%d.%m.%Y")
 print('  Today is ', current_date, ' time is ', current_time, ' \n')
 
 # Directory of Timeline file to be analyzed:
-timeLineFileName = common_path + filename[-31:-13] + '_Timeline.txt'
+timeLineFileName = os.path.join(common_path, filename[-31:-13] + '_Timeline.txt')
 
 for j in range(len(data_types)):  # Main loop by types of data to analyze
 
@@ -477,7 +479,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                      ' MHz ' + sumDifMode+' Processing: ' + reducing_type + str(averageConst) +
                      ' spectra (' + str(round(averageConst * time_res, 3)) + ' sec.)')
 
-            FileName = ('DAT_Results/' + df_filename[0:14] + '_' + data_types[j] +
+            FileName = os.path.join('DAT_Results/', df_filename[0:14] + '_' + data_types[j] +
                         ' Intensity variation at ' + str(round(frequency[index], 3)) + '.png')
 
             OneValueWithTimePlot(timeline, array[[index], :].transpose(), Label,
@@ -488,8 +490,8 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
 
         # *** Saving value changes at particular frequency to TXT file ***
         if channel_save_txt == 1:
-            SingleChannelData = open('DAT_Results/' + df_filename[0:14] + '_' + filename[-7:-4:] +
-                                     ' Intensity variation at ' + str(round(frequency[index], 3)) + ' MHz.txt', "w")
+            SingleChannelData = open(os.path.join('DAT_Results/', df_filename[0:14] + '_' + filename[-7:-4:] +
+                                     ' Intensity variation at ' + str(round(frequency[index], 3)) + ' MHz.txt'), "w")
             for i in range(len(dateTimeNew)-1):
                 SingleChannelData.write(str(dateTimeNew[i]).rstrip() + '   ' +
                                         str(array.transpose()[i, index]) + ' \n')
@@ -533,7 +535,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                     ' Processing: ' + reducing_type + str(averageConst) + ' spectra (' +
                     str(round(averageConst*time_res, 3)) + ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
                     ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
-        fig_file_name = ('DAT_Results/' + fileNameAdd + df_filename[0:14] + '_'+data_types[j] + ' Dynamic spectrum.png')
+        fig_file_name = os.path.join('DAT_Results/', fileNameAdd + df_filename[0:14] + '_'+data_types[j] + ' Dynamic spectrum.png')
 
         OneDynSpectraPlot(array, Vmin, Vmax, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, freqLine,
                           len(freqLine), colormap, 'UTC Date and time, YYYY-MM-DD HH:MM:SS.msec', fig_file_name,
@@ -564,7 +566,7 @@ for j in range(len(data_types)):  # Main loop by types of data to analyze
                     ' Processing: ' + reducing_type + str(averageConst)+' spectra (' + 
                     str(round(averageConst * time_res, 3)) + ' sec.)\n' + ' Receiver: ' + str(df_system_name) +
                     ', Place: ' + str(df_obs_place) + ', Description: ' + str(df_description))
-        fig_file_name = ('DAT_Results/' + fileNameAddNorm + df_filename[0:14] + '_' + data_types[j] +
+        fig_file_name = os.path.join('DAT_Results/', fileNameAddNorm + df_filename[0:14] + '_' + data_types[j] +
                          ' Dynamic spectrum cleaned and normalized' + '.png')
 
         OneDynSpectraPlot(array, VminNorm, VmaxNorm, Suptitle, 'Intensity, dB', len(dateTimeNew), TimeScaleFig, 
