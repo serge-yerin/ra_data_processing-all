@@ -16,6 +16,7 @@ if __package__ is None:
 
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
+from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 
 
 # def pulsar_incoherent_dedispersion(common_path, filename, pulsar_name, average_const, profile_pic_min, profile_pic_max,
@@ -59,10 +60,8 @@ def dat_file_resampling(initial_dat_file_path, output_dat_file_path, resampling_
     initial_dat_file_path = os.path.normpath(initial_dat_file_path)
     initial_time_line_file_name = os.path.normpath(initial_time_line_file_name)
 
-
     output_dat_file_path = os.path.normpath(output_dat_file_path)
     output_time_line_file_name = os.path.normpath(output_time_line_file_name)
-
 
     # Opening DAT datafile to check the initial file type
 
@@ -83,33 +82,17 @@ def dat_file_resampling(initial_dat_file_path, output_dat_file_path, resampling_
     else:
         sys.exit(' Error! Unknown data type!')
 
-    return
+    # Number of spectra in the file   #   file size - 1024 bytes of header
+    dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
 
+    print(dat_sp_in_file)
 
-    # # Manually set frequencies for two channels mode
-    # if int(clc_freq / 1000000) == 33:
-    #     # fft_size = 8192
-    #     fmin = 16.5
-    #     fmax = 33.0
-    #     frequency_list = np.linspace(fmin, fmax, fft_size)
+    # ************************************************************************************
+    #                             R E A D I N G   D A T A                                *
+    # ************************************************************************************
 
-    # # Number of spectra in the file   #   file size - 1024 bytes of header
-    # dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
-
-    # if save_profile_txt > 0:
-    #     # *** Creating a name for long timeline TXT file ***
-    #     profile_file_name = os.path.join(common_path, pulsar_name + '_DM_' +
-    #                                      str(np.round(pulsar_dm, 6)) + '_' +
-    #                                      filename[:-4] + '_time_profile.txt')
-    #     profile_txt_file = open(profile_file_name, 'w')  # Open and close to delete the file with the same name
-    #     profile_txt_file.close()
-
-    # # ************************************************************************************
-    # #                             R E A D I N G   D A T A                                *
-    # # ************************************************************************************
-
-    # # Timeline file reading
-    # timeline, dt_timeline = time_line_file_reader(time_line_file_name)
+    # Timeline file reading
+    timeline, dt_timeline = time_line_file_reader(initial_time_line_file_name)
 
     # # Selecting the frequency range of data to be analyzed
     # if spec_freq_range:
@@ -345,13 +328,11 @@ if __name__ == '__main__':
 
     start_time = time.time()
 
-    initial_dat_file_path = "C:/Users/user/python/ra_data_processing-all/P130725_075910.jds_Data_chA.dat"
-    output_dat_file_path = "C:/Users/user/python/ra_data_processing-all/P130725_075910.jds_Data_chA_new.dat"
+    initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chA.dat"
+    output_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chA_new.dat"
     resampling_in_time = 2  # e.g., 2 means to double time resolution (half time samples)
     resampling_in_frequency = 2  # e.g., 2 means to double frequency resolution (half frequency channels)   
 
-    # a = os.getcwd()
-    print("Hello!")
 
     dat_file_resampling(initial_dat_file_path, output_dat_file_path, resampling_in_time, resampling_in_frequency, print_or_not=True)
 
