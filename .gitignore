@@ -1,8 +1,9 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-# Data fil
-.dat
+# Data files
+*.dat
+*.csv
 
 # Environment
 .env
@@ -10,4 +11,4 @@ __pycache__/
 .venv
 env/
 venv/
-ENV/
+ENV/ß
