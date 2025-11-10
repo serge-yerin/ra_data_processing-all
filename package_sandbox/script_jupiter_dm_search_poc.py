@@ -56,8 +56,8 @@ else:
 dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
 num_frequencies = len(frequency_list)  # -4 to exclude time codes at the file end
 block_length_in_spectra = 100
-# num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
-num_of_blocks = 1
+num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
+# num_of_blocks = 1
 
 print(dat_sp_in_file)
 
@@ -248,15 +248,35 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     index_of_closest = filtered_indices.index(closest)
     print("\n Index of closest value:", index_of_closest)
 
-    if closest >= target_freq_index:
-        second_closest = filtered_indices[index_of_closest - 1]
-    else:
-        second_closest = filtered_indices[index_of_closest + 1]
+    # if closest >= target_freq_index:
+    #     second_closest = filtered_indices[index_of_closest - 1]
+    # else:
+    #     second_closest = filtered_indices[index_of_closest + 1]
 
 
-    print("\n Closest value to target frequency is:", closest)
-    print("\n Second closest value to target frequency is:", second_closest)  
+    # print("\n Closest value to target frequency is:", closest)
+    # print("Second closest value to target frequency is:", second_closest)  
+    # print("Difference between them is:", abs(closest - second_closest))
 
     f_target = (66.0 / 16384) * (4000 + target_freq_index)
 
     print("\n Target Frequency:", f_target, "MHz")
+
+
+
+    if closest < target_freq_index:
+        index_of_closest += 1
+        closest = filtered_indices[index_of_closest]
+
+    print("Closest frequency index above target:", closest)
+
+    list_of_closest_indices = [index_of_closest, index_of_closest + 1, index_of_closest + 2, index_of_closest + 3, index_of_closest + 4]
+    # print("List of closest frequenc indices above target:", list_of_closest_indices)
+
+    list_of_closest_points = []
+    for i in range(len(list_of_closest_indices)):
+        list_of_closest_points.append( filtered_indices[list_of_closest_indices[i]] )
+    
+    # list_of_closest_points = filtered_indices[list_of_closest_indices[:]]
+    print("List of closest frequency points above target:", list_of_closest_points)
+
