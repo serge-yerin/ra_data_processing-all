@@ -121,57 +121,142 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
         data = np.reshape(data, [(num_frequencies), block_length_in_spectra], order='F')  # 2
         data = data[:num_frequencies-4, :]  # To delete the last channels of DSP data where time is stored
 
-#     # Cutting the array in predefined frequency range
-#     if spec_freq_range:
-#         data, frequency_list, fi_start, fi_stop = specify_frequency_range(data, frequency_list_initial,
-#                                                                           freq_start, freq_stop)
-#         num_frequencies = len(frequency_list)
-#     else:
-#         num_frequencies = num_frequencies_initial  # + 4
+    #     # Cutting the array in predefined frequency range
+    #     if spec_freq_range:
+    #         data, frequency_list, fi_start, fi_stop = specify_frequency_range(data, frequency_list_initial,
+    #                                                                           freq_start, freq_stop)
+    #         num_frequencies = len(frequency_list)
+    #     else:
+    #         num_frequencies = num_frequencies_initial  # + 4
 
 
-data_init = data.copy()
+    data_init = data.copy()
 
-# # Logging the data
-# with np.errstate(divide='ignore'):
-#     data[:, :] = 10 * np.log10(data[:, :])
-# data[data == -np.inf] = 0
-# data[data == np.nan] = 0
-# data[np.isinf(data)] = 0
+    # # Logging the data
+    # with np.errstate(divide='ignore'):
+    #     data[:, :] = 10 * np.log10(data[:, :])
+    # data[data == -np.inf] = 0
+    # data[data == np.nan] = 0
+    # data[np.isinf(data)] = 0
 
-# plt.imshow(10 * np.log10(data), aspect='auto', origin='lower', cmap='jet')
-# plt.show()
+    # plt.imshow(10 * np.log10(data), aspect='auto', origin='lower', cmap='jet')
+    # plt.show()
 
-# Preparing single averaged data profile for figure
-profile = data_init.mean(axis=1)[:]
-
-
-plt.plot(10 * np.log10(profile))
-plt.show()
+    # Preparing single averaged data profile for figure
+    profile = data_init.mean(axis=1)[:]
 
 
-import scipy.ndimage
-# lf_profile = scipy.ndimage.minimum_filter(profile, size=120)
-lf_profile = median_filter(profile, 120)
+    # plt.plot(10 * np.log10(profile))
+    # plt.show()
 
-plt.plot(10 * np.log10(lf_profile))
-plt.show()
 
-profile = profile / lf_profile
+    import scipy.ndimage
+    # lf_profile = scipy.ndimage.minimum_filter(profile, size=120)
+    lf_profile = median_filter(profile, 120)
 
-plt.plot(10 * np.log10(profile))
-plt.show()
+    # plt.plot(10 * np.log10(lf_profile))
+    # plt.show()
 
-profile = profile[4500:6200]
-plt.plot(10 * np.log10(profile))
-plt.show()
+    profile = profile / lf_profile
 
-# profile = median_filter(profile, 10)
+    # plt.plot(10 * np.log10(profile))
+    # plt.show()
 
-# plt.plot(10 * np.log10(profile))
-# plt.show()
+    profile = profile[4000:6000]
 
-profile_sp = np.fft.fft(profile)
-profile_sp[0:10] = 0
-plt.plot(np.abs(profile_sp[len(profile_sp)//2:]))
-plt.show()  
+    # plt.plot(10 * np.log10(profile))
+    # plt.show()
+
+    # profile = median_filter(profile, 10)
+
+    # plt.plot(10 * np.log10(profile))
+    # plt.show()
+
+    # profile_sp = np.fft.fft(profile)
+    # profile_sp[0:10] = 0
+    # plt.plot(np.abs(profile_sp[len(profile_sp)//2:]))
+    # plt.show()  
+
+    from scipy.ndimage import uniform_filter1d
+    mean_profile = uniform_filter1d(profile, size=20)
+
+    from scipy.signal import argrelmin
+    indices = argrelmin(profile)[0]
+    print(indices)
+
+    # plt.plot(10 * np.log10(profile))
+    # plt.plot(10 * np.log10(mean_profile))
+    # plt.plot(indices, 10 * np.log10(profile[indices]), 'ro')
+    # plt.show()
+
+
+    filtered_indices = []
+    for i in range(len(indices)-1):
+
+        if profile[indices[i]] < mean_profile[indices[i]]:
+            filtered_indices.append(indices[i]) 
+
+    # plt.plot(10 * np.log10(profile))
+    # plt.plot(10 * np.log10(mean_profile))
+    # plt.plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
+    # plt.show()
+
+    # plt.plot(indices, 'bo')
+    # plt.plot(filtered_indices, 'ro')
+    # plt.show()
+
+    fig, axs = plt.subplots(2, 1) # Create a figure and a 1x2 grid of axes
+
+    only_minima_profile = profile[filtered_indices]
+
+    axs[0].plot(10 * np.log10(profile))
+    axs[0].plot(10 * np.log10(mean_profile))
+    # axs[0].plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
+    axs[0].plot(filtered_indices, 10 * np.log10(only_minima_profile), 'ro')
+    axs[0].set_title("Plot 1")
+
+    axs[1].plot(indices, 'bo')
+    axs[1].plot(filtered_indices, 'ro')
+    axs[1].set_title("Plot 2")
+
+    plt.tight_layout()
+    plt.show()
+    plt.close('all')    
+
+    # print(filtered_indices)
+
+    def find_closest_value(data_list, target_value):
+        """
+        Finds the value in a list that is closest to a given target value.
+
+        Args:
+            data_list (list): The list of numbers to search within.
+            target_value (int or float): The value to find the closest element to.
+
+        Returns:
+            int or float: The value from the list that is closest to the target_value.
+        """
+        if not data_list:
+            raise ValueError("The input list cannot be empty.")
+
+        closest_value = min(data_list, key=lambda x: abs(x - target_value))
+        return closest_value
+
+
+    target_freq_index = 1000
+    closest = find_closest_value(filtered_indices, target_freq_index)
+    index_of_closest = filtered_indices.index(closest)
+    print("\n Index of closest value:", index_of_closest)
+
+    if closest >= target_freq_index:
+        second_closest = filtered_indices[index_of_closest - 1]
+    else:
+        second_closest = filtered_indices[index_of_closest + 1]
+
+
+    print("\n Closest value to target frequency is:", closest)
+    print("\n Second closest value to target frequency is:", second_closest)  
+
+    f_target = (66.0 / 16384) * (4000 + target_freq_index)
+
+    print("\n Target Frequency:", f_target, "MHz")
