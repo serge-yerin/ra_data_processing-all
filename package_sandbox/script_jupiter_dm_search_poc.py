@@ -1,7 +1,6 @@
 # from package_pulsar_processing.f_cut_needed_pulsar_period_from_dat import cut_needed_pulsar_period_from_dat_to_dat  
 # from package_pulsar_processing.f_cut_needed_time_points_from_txt import cut_needed_time_points_from_dat_to_txt
 
-
 import os
 import sys
 import time
@@ -22,19 +21,24 @@ from package_ra_data_processing.filtering import median_filter, average_filter
 initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chA.dat"
 print_or_not = True
 spec_freq_range = True
-freq_start = 17000.0  # in kHz
-freq_stop = 25000.0   # in kHz
 
+window_start_index = 3500
+window_stop_index = 6500
+target_freq_index = 800
+n = 100 # number of minima to be used for RM calculation    
 
- # Path to timeline file to be analyzed:
+speed_of_light = 2.99792458e8 # meters per second
+
+print('\n\n\nLowest frequency to be analyzed:', window_start_index * (66.0 / 16384), 'MHz')
+print('\nHighest frequency to be analyzed:', window_stop_index * (66.0 / 16384), 'MHz\n\n\n')
+
+# Path to timeline file to be analyzed:
 initial_time_line_file_name = initial_dat_file_path[-31:-13] + '_Timeline.txt'
 
 initial_dat_file_path = os.path.normpath(initial_dat_file_path)
 initial_time_line_file_name = os.path.normpath(initial_time_line_file_name)
 
-
 # Opening DAT datafile to check the initial file type
-
 file = open(initial_dat_file_path, 'rb')
 df_filename = file.read(32).decode('utf-8').rstrip('\x00')            # Initial data file name
 file.close()
@@ -54,7 +58,7 @@ else:
 
 # Number of spectra in the file   #   file size - 1024 bytes of header
 dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
-num_frequencies = len(frequency_list)  # -4 to exclude time codes at the file end
+num_frequencies = len(frequency_list)  
 block_length_in_spectra = 100
 # num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
 num_of_blocks = 20
@@ -68,34 +72,11 @@ print(dat_sp_in_file)
 # Timeline file reading
 timeline, dt_timeline = time_line_file_reader(initial_time_line_file_name)
 
+reduced_timeline = timeline[::block_length_in_spectra]
 
+for i in range(len(reduced_timeline)):
+    reduced_timeline[i] = reduced_timeline[i][11:19]  # To remove milliseconds from time strings
 
-
-# # Selecting the frequency range of data to be analyzed
-# if spec_freq_range:
-#     tmp_list_a = []
-#     tmp_list_b = []
-#     for i in range(len(frequency_list)):
-#         tmp_list_a.append(abs(frequency_list[i] - freq_start))
-#         tmp_list_b.append(abs(frequency_list[i] - freq_stop))
-#     ifmin = tmp_list_a.index(min(tmp_list_a))
-#     ifmax = tmp_list_b.index(min(tmp_list_b))
-#     del tmp_list_a, tmp_list_b
-
-# ifmin = int(np.round(fmin * 1e6 / df))
-# ifmax = int(np.round(fmax * 1e6 / df)) - 4
-
-
-# # Change number of frequency channels in the header
-# file_header = jds_header_new_channels_numbers(file_header, ifmin, ifmax)
-
-
-    
-# if receiver_type == '.jds':
-#   num_frequencies_initial = len(frequency_list) - 4
-
-# frequency_list_initial = np.empty_like(frequency_list)
-# frequency_list_initial[:] = frequency_list[:]
 
 dat_file = open(initial_dat_file_path, 'rb')
 dat_file.seek(1024)    # Jumping to 1024 byte from file beginning
@@ -124,23 +105,8 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
         data = np.reshape(data, [(num_frequencies), block_length_in_spectra], order='F')  # 2
         data = data[:num_frequencies-4, :]  # To delete the last channels of DSP data where time is stored
 
-    #     # Cutting the array in predefined frequency range
-    #     if spec_freq_range:
-    #         data, frequency_list, fi_start, fi_stop = specify_frequency_range(data, frequency_list_initial,
-    #                                                                           freq_start, freq_stop)
-    #         num_frequencies = len(frequency_list)
-    #     else:
-    #         num_frequencies = num_frequencies_initial  # + 4
-
 
     data_init = data.copy()
-
-    # # Logging the data
-    # with np.errstate(divide='ignore'):
-    #     data[:, :] = 10 * np.log10(data[:, :])
-    # data[data == -np.inf] = 0
-    # data[data == np.nan] = 0
-    # data[np.isinf(data)] = 0
 
     # plt.imshow(10 * np.log10(data), aspect='auto', origin='lower', cmap='jet')
     # plt.show()
@@ -148,13 +114,9 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     # Preparing single averaged data profile for figure
     profile = data_init.mean(axis=1)[:]
 
-
     # plt.plot(10 * np.log10(profile))
     # plt.show()
 
-
-    import scipy.ndimage
-    # lf_profile = scipy.ndimage.minimum_filter(profile, size=120)
     lf_profile = median_filter(profile, 120)
 
     # plt.plot(10 * np.log10(lf_profile))
@@ -165,35 +127,24 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     # plt.plot(10 * np.log10(profile))
     # plt.show()
 
-    window_start_index = 3500
-    window_stop_index = 6500
+    # window_start_index = 3500
+    # window_stop_index = 6500
     profile = profile[window_start_index: window_stop_index]
 
     # plt.plot(10 * np.log10(profile))
     # plt.show()
-
-    # profile = median_filter(profile, 10)
-
-    # plt.plot(10 * np.log10(profile))
-    # plt.show()
-
-    # profile_sp = np.fft.fft(profile)
-    # profile_sp[0:10] = 0
-    # plt.plot(np.abs(profile_sp[len(profile_sp)//2:]))
-    # plt.show()  
 
     from scipy.ndimage import uniform_filter1d
     mean_profile = uniform_filter1d(profile, size=20)
 
     from scipy.signal import argrelmin
     indices = argrelmin(profile)[0]
-    print(indices)
+    # print(indices)
 
     # plt.plot(10 * np.log10(profile))
     # plt.plot(10 * np.log10(mean_profile))
     # plt.plot(indices, 10 * np.log10(profile[indices]), 'ro')
     # plt.show()
-
 
     filtered_indices = []
     for i in range(len(indices)-1):
@@ -245,20 +196,11 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
         return closest_value
 
 
-    target_freq_index = 800
+    # target_freq_index = 800
     closest = find_closest_value(filtered_indices, target_freq_index)
     index_of_closest = filtered_indices.index(closest)
     print("\n Index of closest value:", index_of_closest)
 
-    # if closest >= target_freq_index:
-    #     second_closest = filtered_indices[index_of_closest - 1]
-    # else:
-    #     second_closest = filtered_indices[index_of_closest + 1]
-
-
-    # print("\n Closest value to target frequency is:", closest)
-    # print("Second closest value to target frequency is:", second_closest)  
-    # print("Difference between them is:", abs(closest - second_closest))
 
     f_target = (66000000.0 / 16384) * (window_start_index + target_freq_index)
 
@@ -271,33 +213,31 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
 
     print("Closest frequency index above target:", closest)
 
-    n = 100
+    # n = 100
     list_of_closest_indices = list(range(0, n))
     for i in range(len(list_of_closest_indices)):
         list_of_closest_indices[i] += index_of_closest
-    print("List of closest frequency indices above target:", list_of_closest_indices)
+    # print("List of closest frequency indices above target:", list_of_closest_indices)
 
     list_of_closest_points = []
     for i in range(len(list_of_closest_indices)):
         list_of_closest_points.append( filtered_indices[list_of_closest_indices[i]] )
-    print("\nList of closest frequency points above target:", list_of_closest_points, "\n")
+    # print("\nList of closest frequency points above target:", list_of_closest_points, "\n")
 
     list_minima_frequencies = []
     for i in range(len(list_of_closest_indices)):
         list_minima_frequencies.append( (66000000.0 / 16384) * (window_start_index + list_of_closest_points[i]) )
-    print("\nList of minima frequencies above target:", list_minima_frequencies, "\n")
+    # print("\nList of minima frequencies above target:", list_minima_frequencies, "\n")
 
     list_delta_frequencies = []
     for i in range(len(list_minima_frequencies)-1):
         list_delta_frequencies.append( list_minima_frequencies[i+1] - list_minima_frequencies[i] )
-    print("\nList of delta frequencies above target:", list_delta_frequencies, "\n")
+    # print("\nList of delta frequencies above target:", list_delta_frequencies, "\n")
 
     list_central_frequencies = []
     for i in range(len(list_minima_frequencies)-1):
         list_central_frequencies.append( (list_minima_frequencies[i+1] + list_minima_frequencies[i]) / 2 )
-    print("\nList of central frequencies above target:", list_central_frequencies, "\n")
-
-    speed_of_light = 2.99792458e8 # meters per second
+    # print("\nList of central frequencies above target:", list_central_frequencies, "\n")
 
 
     list_rm_values = []
@@ -311,7 +251,7 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
         
         list_rm_values.append(main_const * numerator / denominator)
         
-    print("\nList of RM values:", list_rm_values, "\n")
+    # print("\nList of RM values:", list_rm_values, "\n")
 
     time_point_median_rm = np.median(list_rm_values)
     time_point_std_rm = np.std(list_rm_values)
@@ -330,8 +270,15 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     jupiter_rm_std_vs_time.append(time_point_std_rm)
     
 
+x_values = np.arange(1, len(reduced_timeline) + 1, 1)
+
+
 x = np.linspace(0, len(jupiter_rm_vs_time)-1, len(jupiter_rm_vs_time))
 plt.plot(x, jupiter_rm_vs_time, 'ro')
 # plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
+plt.xticks(x_values, reduced_timeline, rotation=45)
+plt.locator_params(axis='x', nbins=10)
 plt.ylim(1.5, 3.0) 
 plt.show()
+
+
