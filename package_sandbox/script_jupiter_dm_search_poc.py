@@ -25,6 +25,7 @@ spec_freq_range = True
 window_start_index = 3500
 window_stop_index = 6500
 target_freq_index = 800
+block_length_in_spectra = 100
 n = 100 # number of minima to be used for RM calculation    
 
 speed_of_light = 2.99792458e8 # meters per second
@@ -59,7 +60,7 @@ else:
 # Number of spectra in the file   #   file size - 1024 bytes of header
 dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
 num_frequencies = len(frequency_list)  
-block_length_in_spectra = 100
+
 # num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
 num_of_blocks = 20
 
