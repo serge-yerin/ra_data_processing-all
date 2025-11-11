@@ -56,8 +56,8 @@ else:
 dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
 num_frequencies = len(frequency_list)  # -4 to exclude time codes at the file end
 block_length_in_spectra = 100
-num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
-# num_of_blocks = 1
+# num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
+num_of_blocks = 20
 
 print(dat_sp_in_file)
 
@@ -99,6 +99,9 @@ timeline, dt_timeline = time_line_file_reader(initial_time_line_file_name)
 
 dat_file = open(initial_dat_file_path, 'rb')
 dat_file.seek(1024)    # Jumping to 1024 byte from file beginning
+
+jupiter_rm_vs_time = []
+jupiter_rm_std_vs_time = []
 
 for block in range(num_of_blocks):   # main loop by number of blocks in file
 
@@ -162,7 +165,9 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     # plt.plot(10 * np.log10(profile))
     # plt.show()
 
-    profile = profile[4000:6000]
+    window_start_index = 3500
+    window_stop_index = 6500
+    profile = profile[window_start_index: window_stop_index]
 
     # plt.plot(10 * np.log10(profile))
     # plt.show()
@@ -205,23 +210,20 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     # plt.plot(filtered_indices, 'ro')
     # plt.show()
 
-    fig, axs = plt.subplots(2, 1) # Create a figure and a 1x2 grid of axes
-
     only_minima_profile = profile[filtered_indices]
 
-    axs[0].plot(10 * np.log10(profile))
-    axs[0].plot(10 * np.log10(mean_profile))
-    # axs[0].plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
-    axs[0].plot(filtered_indices, 10 * np.log10(only_minima_profile), 'ro')
-    axs[0].set_title("Plot 1")
-
-    axs[1].plot(indices, 'bo')
-    axs[1].plot(filtered_indices, 'ro')
-    axs[1].set_title("Plot 2")
-
-    plt.tight_layout()
-    plt.show()
-    plt.close('all')    
+    # fig, axs = plt.subplots(2, 1) # Create a figure and a 1x2 grid of axes
+    # axs[0].plot(10 * np.log10(profile))
+    # axs[0].plot(10 * np.log10(mean_profile))
+    # # axs[0].plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
+    # axs[0].plot(filtered_indices, 10 * np.log10(only_minima_profile), 'ro')
+    # axs[0].set_title("Plot 1")
+    # axs[1].plot(indices, 'bo')
+    # axs[1].plot(filtered_indices, 'ro')
+    # axs[1].set_title("Plot 2")
+    # plt.tight_layout()
+    # plt.show()
+    # plt.close('all')    
 
     # print(filtered_indices)
 
@@ -243,7 +245,7 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
         return closest_value
 
 
-    target_freq_index = 1000
+    target_freq_index = 800
     closest = find_closest_value(filtered_indices, target_freq_index)
     index_of_closest = filtered_indices.index(closest)
     print("\n Index of closest value:", index_of_closest)
@@ -258,10 +260,9 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
     # print("Second closest value to target frequency is:", second_closest)  
     # print("Difference between them is:", abs(closest - second_closest))
 
-    f_target = (66.0 / 16384) * (4000 + target_freq_index)
+    f_target = (66000000.0 / 16384) * (window_start_index + target_freq_index)
 
-    print("\n Target Frequency:", f_target, "MHz")
-
+    print("\n Target Frequency:", f_target, "Hz")
 
 
     if closest < target_freq_index:
@@ -270,13 +271,67 @@ for block in range(num_of_blocks):   # main loop by number of blocks in file
 
     print("Closest frequency index above target:", closest)
 
-    list_of_closest_indices = [index_of_closest, index_of_closest + 1, index_of_closest + 2, index_of_closest + 3, index_of_closest + 4]
-    # print("List of closest frequenc indices above target:", list_of_closest_indices)
+    n = 100
+    list_of_closest_indices = list(range(0, n))
+    for i in range(len(list_of_closest_indices)):
+        list_of_closest_indices[i] += index_of_closest
+    print("List of closest frequency indices above target:", list_of_closest_indices)
 
     list_of_closest_points = []
     for i in range(len(list_of_closest_indices)):
         list_of_closest_points.append( filtered_indices[list_of_closest_indices[i]] )
-    
-    # list_of_closest_points = filtered_indices[list_of_closest_indices[:]]
-    print("List of closest frequency points above target:", list_of_closest_points)
+    print("\nList of closest frequency points above target:", list_of_closest_points, "\n")
 
+    list_minima_frequencies = []
+    for i in range(len(list_of_closest_indices)):
+        list_minima_frequencies.append( (66000000.0 / 16384) * (window_start_index + list_of_closest_points[i]) )
+    print("\nList of minima frequencies above target:", list_minima_frequencies, "\n")
+
+    list_delta_frequencies = []
+    for i in range(len(list_minima_frequencies)-1):
+        list_delta_frequencies.append( list_minima_frequencies[i+1] - list_minima_frequencies[i] )
+    print("\nList of delta frequencies above target:", list_delta_frequencies, "\n")
+
+    list_central_frequencies = []
+    for i in range(len(list_minima_frequencies)-1):
+        list_central_frequencies.append( (list_minima_frequencies[i+1] + list_minima_frequencies[i]) / 2 )
+    print("\nList of central frequencies above target:", list_central_frequencies, "\n")
+
+    speed_of_light = 2.99792458e8 # meters per second
+
+
+    list_rm_values = []
+    main_const = np.pi / speed_of_light**2
+    for i in range(len(list_delta_frequencies)):
+        
+        # list_rm_values.append( (np.pi / speed_of_light**2) * list_central_frequencies[i]**3 / (2 * list_delta_frequencies[i]))
+        
+        numerator = list_central_frequencies[i]**2 * (list_central_frequencies[i] + list_delta_frequencies[i])**2
+        denominator = (list_central_frequencies[i] + list_delta_frequencies[i])**2 - list_central_frequencies[i]**2
+        
+        list_rm_values.append(main_const * numerator / denominator)
+        
+    print("\nList of RM values:", list_rm_values, "\n")
+
+    time_point_median_rm = np.median(list_rm_values)
+    time_point_std_rm = np.std(list_rm_values)
+    print(time_point_median_rm, time_point_std_rm)
+    
+    list_rm_values = np.array(list_rm_values)
+    
+    import numpy.ma as ma
+    mask = np.abs(list_rm_values - time_point_median_rm) > 2 * time_point_std_rm
+    masked_data = ma.masked_array(list_rm_values, mask=mask)
+    time_point_std_rm = np.std(masked_data)
+    
+    print(time_point_median_rm, time_point_std_rm)
+    
+    jupiter_rm_vs_time.append(time_point_median_rm)
+    jupiter_rm_std_vs_time.append(time_point_std_rm)
+    
+
+x = np.linspace(0, len(jupiter_rm_vs_time)-1, len(jupiter_rm_vs_time))
+plt.plot(x, jupiter_rm_vs_time, 'ro')
+# plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
+plt.ylim(1.5, 3.0) 
+plt.show()
