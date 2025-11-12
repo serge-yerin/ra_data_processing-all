@@ -28,7 +28,7 @@ window_start_index = [3000, 4000, 5000]  #3500
 window_stop_index = [4000, 5000, 6000]  #6500
 target_freq_index = 1  #800
 block_length_in_spectra = 100
-num_of_points = [120, 60, 70] # number of minima to be used for RM calculation 100    
+num_of_points = [120, 60, 60] # number of minima to be used for RM calculation 100    
 
 speed_of_light = 2.99792458e8 # meters per second
 
@@ -81,8 +81,8 @@ else:
 dat_sp_in_file = int((df_filesize - 1024) / (len(frequency_list) * 8))
 num_frequencies = len(frequency_list)  
 
-# num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
-num_of_blocks = 20
+num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
+# num_of_blocks = 20
 
 print(dat_sp_in_file)
 
@@ -298,15 +298,17 @@ x_values = np.arange(1, len(reduced_timeline) + 1, 1)
 print(jupiter_rm_vs_time_vs_freq.shape)
 
 x = np.linspace(0, len(jupiter_rm_vs_time)-1, len(jupiter_rm_vs_time))
-plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', label=f'{freq_bands_str[0]}')
-plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', label=f'{freq_bands_str[1]}')
-plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', label=f'{freq_bands_str[2]}')
+plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.6, label=f'{freq_bands_str[0]}')
+plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.6, label=f'{freq_bands_str[1]}')
+plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.6, label=f'{freq_bands_str[2]}')
 # plt.plot(x, jupiter_rm_vs_time, 'ro')
 # plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
 plt.xticks(x_values, reduced_timeline, rotation=45)
+plt.xlim(x_values[0], x_values[-1])
+plt.grid()
 plt.legend()
-plt.locator_params(axis='x', nbins=10)
-plt.ylim(1.5, 20.0) 
+plt.locator_params(axis='x', nbins=12)
+plt.ylim(1.5, 14.0) 
 plt.show()
 
 
