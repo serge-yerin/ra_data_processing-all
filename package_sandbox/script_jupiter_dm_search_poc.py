@@ -18,7 +18,7 @@ from package_ra_data_files_formats.read_file_header_jds import file_header_jds_r
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
 from package_ra_data_processing.filtering import median_filter, average_filter
 
-initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chA.dat"
+initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chB.dat"
 # initial_dat_file_path = "../ra_data_processing-all/P130725_082052.jds_Data_chA.dat"
 # initial_dat_file_path = "../ra_data_processing-all/P130725_084023.jds_Data_chA.dat"
 print_or_not = True
@@ -190,11 +190,11 @@ for band in range(3):
             if profile[indices[i]] < mean_profile[indices[i]]:
                 filtered_indices.append(indices[i]) 
 
-        if block == 0:
-            plt.plot(10 * np.log10(profile))
-            plt.plot(10 * np.log10(mean_profile))
-            plt.plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
-            plt.show()
+        # if block == 0:
+        #     plt.plot(10 * np.log10(profile))
+        #     plt.plot(10 * np.log10(mean_profile))
+        #     plt.plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
+        #     plt.show()
 
         # plt.plot(indices, 'bo')
         # plt.plot(filtered_indices, 'ro')
@@ -298,9 +298,9 @@ x_values = np.arange(1, len(reduced_timeline) + 1, 1)
 print(jupiter_rm_vs_time_vs_freq.shape)
 
 x = np.linspace(0, len(jupiter_rm_vs_time)-1, len(jupiter_rm_vs_time))
-plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.6, label=f'{freq_bands_str[0]}')
-plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.6, label=f'{freq_bands_str[1]}')
-plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.6, label=f'{freq_bands_str[2]}')
+plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.2, label=f'{freq_bands_str[0]}')
+plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.2, label=f'{freq_bands_str[1]}')
+plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.2, label=f'{freq_bands_str[2]}')
 # plt.plot(x, jupiter_rm_vs_time, 'ro')
 # plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
 plt.xticks(x_values, reduced_timeline, rotation=45)
@@ -308,7 +308,23 @@ plt.xlim(x_values[0], x_values[-1])
 plt.grid()
 plt.legend()
 plt.locator_params(axis='x', nbins=12)
-plt.ylim(1.5, 14.0) 
+plt.ylim(1.5, 13.5) 
 plt.show()
+plt.close('all')
+
+
+plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.6, label=f'{freq_bands_str[0]}')
+# plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.4, label=f'{freq_bands_str[1]}')
+# plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.4, label=f'{freq_bands_str[2]}')
+# plt.plot(x, jupiter_rm_vs_time, 'ro')
+# plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
+plt.xticks(x_values, reduced_timeline, rotation=45)
+plt.xlim(x_values[0], x_values[-1])
+plt.grid()
+plt.legend()
+plt.locator_params(axis='x', nbins=12)
+plt.ylim(1.5, 3.0) 
+plt.show()
+plt.close('all')
 
 
