@@ -4,6 +4,7 @@ __pycache__/
 # Data files
 *.dat
 *.csv
+*.png
 
 # Environment
 .env
