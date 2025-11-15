@@ -5,10 +5,12 @@ import os
 import sys
 import time
 import numpy as np
+import pandas as pd
+from os import path
 from datetime import timedelta
 import matplotlib.pyplot as plt
+from progress.bar import IncrementalBar
 
-from os import path
 # To change system path to main source_directory of the project:
 if __package__ is None:
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
@@ -16,22 +18,31 @@ if __package__ is None:
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 from package_ra_data_files_formats.read_file_header_jds import file_header_jds_read
 from package_ra_data_files_formats.time_line_file_reader import time_line_file_reader
-from package_ra_data_processing.filtering import median_filter, average_filter
+from package_ra_data_processing.filtering import median_filter
 
-initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chB.dat"
+# initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chA.dat"
 # initial_dat_file_path = "../ra_data_processing-all/P130725_082052.jds_Data_chA.dat"
 # initial_dat_file_path = "../ra_data_processing-all/P130725_084023.jds_Data_chA.dat"
-print_or_not = True
+# initial_dat_file_path = "../ra_data_processing-all/P020625_155715.jds_Data_chA.dat"
+initial_dat_file_path = "../ra_data_processing-all/P040625_103458.jds_Data_chA.dat"
+print_or_not = False
 spec_freq_range = True
 
-window_start_index = [3000, 4000, 5000]  #3500 
-window_stop_index = [4000, 5000, 6000]  #6500
-target_freq_index = 1  #800
+# window_start_index = [3000, 4000, 5000]  #3500 
+# window_stop_index = [4000, 5000, 6000]  #6500
+
+window_start_index = [2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000]
+window_stop_index = [3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500]
+
+
 block_length_in_spectra = 100
-num_of_points = [120, 60, 60] # number of minima to be used for RM calculation 100    
+statistic_window_len = 800
+
+# target_freq_index = 1  #800
+# num_of_points = [120, 60, 50] # number of minima to be used for RM calculation 100    
+
 
 speed_of_light = 2.99792458e8 # meters per second
-
 
 
 def find_closest_value(data_list, target_value):
@@ -73,7 +84,7 @@ if receiver_type == '.adr':
 elif receiver_type == '.jds':
     [df_filename, df_filesize, df_system_name, df_obs_place, df_description, clc_freq, df_creation_time_utc,
         sp_in_file, receiver_mode, mode, n_avr, time_res, fmin, fmax, df, frequency_list, fft_size,
-        data_block_size] = file_header_jds_read(initial_dat_file_path, 0, print_or_not)
+        data_block_size] = file_header_jds_read(initial_dat_file_path, 0, True)
 else:
     sys.exit(' Error! Unknown data type!')
 
@@ -84,7 +95,8 @@ num_frequencies = len(frequency_list)
 num_of_blocks = int(dat_sp_in_file / block_length_in_spectra)
 # num_of_blocks = 20
 
-print(dat_sp_in_file)
+if print_or_not:
+    print(dat_sp_in_file)
 
 # ************************************************************************************
 #                             R E A D I N G   D A T A                                *
@@ -103,11 +115,10 @@ dat_file = open(initial_dat_file_path, 'rb')
 # dat_file.seek(1024)    # Jumping to 1024 byte from file beginning
 
 
-jupiter_rm_vs_time_vs_freq = np.empty((3, num_of_blocks))
+jupiter_rm_vs_time_vs_freq = np.empty((len(window_start_index), num_of_blocks))
 freq_bands_str = []
 
-for band in range(3):  
-
+for band in range(len(window_start_index)):  
 
     jupiter_rm_vs_time = []
     jupiter_rm_std_vs_time = []
@@ -117,8 +128,12 @@ for band in range(3):
     f_low = str(np.round(window_start_index[band] * (66.0 / 16384), 3))  # MHz   
     f_high = str(np.round(window_stop_index[band] * (66.0 / 16384), 3))  # MHz
 
-    print('\n\n\nLowest frequency to be analyzed:', f_low, 'MHz')
-    print('\nHighest frequency to be analyzed:', f_high, 'MHz\n\n\n')
+    print('\n * Band  # ', band + 1, ' of ', len(window_start_index)+1, ' at ', f_low, " - ", f_high, ' MHz',
+    '\n ******************************************************************')
+
+    if not print_or_not:
+        bar = IncrementalBar('   Calculating RM in a loop: ', max=num_of_blocks, suffix='%(percent)d%%')
+        bar.start()
 
     freq_bands_str.append(f_low + ' - ' + f_high + ' MHz')  
 
@@ -202,53 +217,61 @@ for band in range(3):
 
         only_minima_profile = profile[filtered_indices]
 
-        # fig, axs = plt.subplots(2, 1) # Create a figure and a 1x2 grid of axes
-        # axs[0].plot(10 * np.log10(profile))
-        # axs[0].plot(10 * np.log10(mean_profile))
-        # # axs[0].plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
-        # axs[0].plot(filtered_indices, 10 * np.log10(only_minima_profile), 'ro')
-        # axs[0].set_title("Plot 1")
-        # axs[1].plot(indices, 'bo')
-        # axs[1].plot(filtered_indices, 'ro')
-        # axs[1].set_title("Plot 2")
-        # plt.tight_layout()
-        # plt.show()
-        # plt.close('all')    
+        # if block == 0:    
+        #     fig, axs = plt.subplots(2, 1) # Create a figure and a 1x2 grid of axes
+        #     axs[0].plot(10 * np.log10(profile))
+        #     axs[0].plot(10 * np.log10(mean_profile))
+        #     # axs[0].plot(filtered_indices, 10 * np.log10(profile[filtered_indices]), 'ro')
+        #     axs[0].plot(filtered_indices, 10 * np.log10(only_minima_profile), 'ro')
+        #     axs[0].set_title("Plot 1")
+        #     axs[1].plot(indices, 'bo')
+        #     axs[1].plot(filtered_indices, 'ro')
+        #     axs[1].set_title("Plot 2")
+        #     plt.tight_layout()
+        #     plt.show()
+        #     plt.close('all')    
 
         # print(filtered_indices)
 
 
-        # target_freq_index = 800
-        closest = find_closest_value(filtered_indices, target_freq_index)
-        index_of_closest = filtered_indices.index(closest)
-        print("\n Index of closest value:", index_of_closest)
 
 
-        f_target = (66000000.0 / 16384) * (window_start_index[band] + target_freq_index)
+        #---------------------------------------------------------------------------------------
+        # closest = find_closest_value(filtered_indices, target_freq_index)
+        # index_of_closest = filtered_indices.index(closest)
+        # if print_or_not:
+        #     print("\n Index of closest value:", index_of_closest)
 
-        print("\n Target Frequency:", f_target, "Hz")
+        # f_target = (66000000.0 / 16384) * (window_start_index[band] + target_freq_index)
+        # if print_or_not:
+        #     print("\n Target Frequency:", f_target, "Hz")
 
+        # if closest < target_freq_index:
+        #     index_of_closest += 1
+        #     closest = filtered_indices[index_of_closest]
 
-        if closest < target_freq_index:
-            index_of_closest += 1
-            closest = filtered_indices[index_of_closest]
+        # if print_or_not:
+        #     print("Closest frequency index above target:", closest)
 
-        print("Closest frequency index above target:", closest)
+        # list_of_closest_indices = list(range(0, num_of_points[band]))
+        # for i in range(len(list_of_closest_indices)):
+        #     list_of_closest_indices[i] += index_of_closest
+        # # print("List of closest frequency indices above target:", list_of_closest_indices)
 
-        # n = 100
-        list_of_closest_indices = list(range(0, num_of_points[band]))  # 100
-        for i in range(len(list_of_closest_indices)):
-            list_of_closest_indices[i] += index_of_closest
-        # print("List of closest frequency indices above target:", list_of_closest_indices)
+        # list_of_closest_points = []
+        # for i in range(len(list_of_closest_indices)):
+        #     list_of_closest_points.append( filtered_indices[list_of_closest_indices[i]] )
+        # # print("\nList of closest frequency points above target:", list_of_closest_points, "\n")
 
-        list_of_closest_points = []
-        for i in range(len(list_of_closest_indices)):
-            list_of_closest_points.append( filtered_indices[list_of_closest_indices[i]] )
-        # print("\nList of closest frequency points above target:", list_of_closest_points, "\n")
+        # list_minima_frequencies = []
+        # for i in range(len(list_of_closest_indices)):
+        #     list_minima_frequencies.append( (66000000.0 / 16384) * (window_start_index[band] + list_of_closest_points[i]) )
+        # # print("\nList of minima frequencies above target:", list_minima_frequencies, "\n")
+        #---------------------------------------------------------------------------------------
 
         list_minima_frequencies = []
-        for i in range(len(list_of_closest_indices)):
-            list_minima_frequencies.append( (66000000.0 / 16384) * (window_start_index[band] + list_of_closest_points[i]) )
+        for i in range(len(filtered_indices)):
+            list_minima_frequencies.append( (66000000.0 / 16384) * (window_start_index[band] + filtered_indices[i]) )
         # print("\nList of minima frequencies above target:", list_minima_frequencies, "\n")
 
         list_delta_frequencies = []
@@ -277,7 +300,8 @@ for band in range(3):
 
         time_point_median_rm = np.median(list_rm_values)
         time_point_std_rm = np.std(list_rm_values)
-        print(time_point_median_rm, time_point_std_rm)
+        if print_or_not:
+            print(time_point_median_rm, time_point_std_rm)
         
         list_rm_values = np.array(list_rm_values)
         
@@ -286,21 +310,38 @@ for band in range(3):
         masked_data = ma.masked_array(list_rm_values, mask=mask)
         time_point_std_rm = np.std(masked_data)
         
-        print(time_point_median_rm, time_point_std_rm)
+        if print_or_not:
+            print(time_point_median_rm, time_point_std_rm)
         
         jupiter_rm_vs_time.append(time_point_median_rm)
         jupiter_rm_std_vs_time.append(time_point_std_rm)
+
+        if not print_or_not:
+            bar.next()  
+    
+    if not print_or_not:
+        bar.finish()
     
     jupiter_rm_vs_time_vs_freq[band, :] = jupiter_rm_vs_time
 
+dat_file.close()
+
 x_values = np.arange(1, len(reduced_timeline) + 1, 1)
 
-print(jupiter_rm_vs_time_vs_freq.shape)
+print("\n\n")
+if print_or_not:
+    print(jupiter_rm_vs_time_vs_freq.shape)
 
 x = np.linspace(0, len(jupiter_rm_vs_time)-1, len(jupiter_rm_vs_time))
-plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.2, label=f'{freq_bands_str[0]}')
-plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.2, label=f'{freq_bands_str[1]}')
-plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.2, label=f'{freq_bands_str[2]}')
+
+
+
+plt.figure(figsize=(16, 10))
+for band in range(len(window_start_index)):  
+    plt.plot(x, jupiter_rm_vs_time_vs_freq[band,:], 'o', alpha=0.4, label=f'{freq_bands_str[band]}')
+# plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.2, label=f'{freq_bands_str[0]}')
+# plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.2, label=f'{freq_bands_str[1]}')
+# plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.2, label=f'{freq_bands_str[2]}')
 # plt.plot(x, jupiter_rm_vs_time, 'ro')
 # plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
 plt.xticks(x_values, reduced_timeline, rotation=45)
@@ -308,23 +349,37 @@ plt.xlim(x_values[0], x_values[-1])
 plt.grid()
 plt.legend()
 plt.locator_params(axis='x', nbins=12)
-plt.ylim(1.5, 13.5) 
-plt.show()
+plt.ylim(1.0, 15) 
+plt.savefig(df_filename + os.path.split(initial_dat_file_path)[1][-8:-4] + '_Jupiter_RM_vs_time_all_bands.png', dpi=300)
+# plt.show()
 plt.close('all')
 
 
-plt.plot(x, jupiter_rm_vs_time_vs_freq[0,:], 'o', color = 'C0', alpha=0.6, label=f'{freq_bands_str[0]}')
-# plt.plot(x, jupiter_rm_vs_time_vs_freq[1,:], 'o', color = 'C1', alpha=0.4, label=f'{freq_bands_str[1]}')
-# plt.plot(x, jupiter_rm_vs_time_vs_freq[2,:], 'o', color = 'C3', alpha=0.4, label=f'{freq_bands_str[2]}')
-# plt.plot(x, jupiter_rm_vs_time, 'ro')
-# plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
-plt.xticks(x_values, reduced_timeline, rotation=45)
-plt.xlim(x_values[0], x_values[-1])
-plt.grid()
-plt.legend()
-plt.locator_params(axis='x', nbins=12)
-plt.ylim(1.5, 3.0) 
-plt.show()
-plt.close('all')
+for band in range(len(window_start_index)):
+
+    data = jupiter_rm_vs_time_vs_freq[band, :]
+
+    ts = pd.Series(data)
+    # rolling mean
+    running_mean = ts.rolling(window=statistic_window_len, min_periods=2).mean()
+    # rolling standard deviation:
+    running_std = ts.rolling(window=statistic_window_len, min_periods=2).std()
+
+    plt.figure(figsize=(16, 10))
+    plt.plot(x, running_mean + running_std, color = 'C3', alpha=0.4, label=f'Std+')
+    plt.plot(x, running_mean - running_std, color = 'C3', alpha=0.4, label=f'Std-')
+    plt.plot(x, data, 'o', color = 'C0', alpha=0.8, label=f'{freq_bands_str[band]}')
+    plt.plot(x, running_mean, color = 'C1', alpha=1, linewidth=3, label=f'Mean')
+
+    # plt.errorbar(x, jupiter_rm_vs_time, yerr = jupiter_rm_std_vs_time) # , fmt ='o'
+    plt.xticks(x_values, reduced_timeline, rotation=45)
+    plt.xlim(x_values[0], x_values[-1])
+    plt.grid()
+    plt.legend()
+    plt.locator_params(axis='x', nbins=12)
+    # plt.ylim(1.5, 3.0) 
+    plt.savefig(df_filename + os.path.split(initial_dat_file_path)[1][-8:-4] + '_Jupiter_RM_vs_time_' + freq_bands_str[band] + '.png', dpi=300)
+    # plt.show()
+    plt.close('all')
 
 
