@@ -21,10 +21,10 @@ from package_ra_data_files_formats.time_line_file_reader import time_line_file_r
 from package_ra_data_processing.filtering import median_filter
 
 # initial_dat_file_path = "../ra_data_processing-all/P130725_075910.jds_Data_chA.dat"
-# initial_dat_file_path = "../ra_data_processing-all/P130725_082052.jds_Data_chA.dat"
+initial_dat_file_path = "../ra_data_processing-all/P130725_082052.jds_Data_chA.dat"
 # initial_dat_file_path = "../ra_data_processing-all/P130725_084023.jds_Data_chA.dat"
 # initial_dat_file_path = "../ra_data_processing-all/P020625_155715.jds_Data_chA.dat"
-initial_dat_file_path = "../ra_data_processing-all/P040625_103458.jds_Data_chA.dat"
+# initial_dat_file_path = "../ra_data_processing-all/P040625_103458.jds_Data_chA.dat"
 print_or_not = False
 spec_freq_range = True
 
@@ -350,6 +350,8 @@ plt.grid()
 plt.legend()
 plt.locator_params(axis='x', nbins=12)
 plt.ylim(1.0, 15) 
+plt.title('Jupiter RM vs time in all frequency bands: ' + df_filename + os.path.split(initial_dat_file_path)[1][-8:-4])
+plt.tight_layout()
 plt.savefig(df_filename + os.path.split(initial_dat_file_path)[1][-8:-4] + '_Jupiter_RM_vs_time_all_bands.png', dpi=300)
 # plt.show()
 plt.close('all')
@@ -378,6 +380,7 @@ for band in range(len(window_start_index)):
     plt.legend()
     plt.locator_params(axis='x', nbins=12)
     # plt.ylim(1.5, 3.0) 
+    plt.tight_layout()
     plt.savefig(df_filename + os.path.split(initial_dat_file_path)[1][-8:-4] + '_Jupiter_RM_vs_time_' + freq_bands_str[band] + '.png', dpi=300)
     # plt.show()
     plt.close('all')
