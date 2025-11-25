@@ -15,8 +15,8 @@ dat_file_name_list = find_files_only_in_current_folder(path_to_data, '.dat', 1)
 
 # print(dat_file_name_list)
 
-f_min = 5.0  # Minimum frequency in MHz
-f_max = 7.0  # Maximum frequency in MHz
+f_min = 15.0  # Minimum frequency in MHz
+f_max = 25.0  # Maximum frequency in MHz
 
 min_data_array = []
 max_data_array = []
@@ -63,12 +63,15 @@ for i in range(len(dat_file_name_list)):
         min_data = np.min(data, axis=1)
         max_data = np.max(data, axis=1) 
 
+
+
         min_min_data = scipy.ndimage.minimum_filter(min_data, size=50)
         min_min_data = median_filter(min_min_data, 100)
 
         min_data_array.append(min_data)
         max_data_array.append(max_data) 
         min_min_data_array.append(min_min_data)
+
 
         data = 10 * np.log10(data)
         min_data = 10 * np.log10(min_data)
@@ -149,25 +152,25 @@ min_3_data = np.min(min_min_data_array, axis=0)
 
 
 
-# plt.figure(1, figsize=(10.0, 6.0))
-# for i in range(len(min_data_array)):
-#     plt.plot(frequency, 10 * np.log10(min_data_array[i]), label=f'Min Data {date_array[i]}')
-# plt.plot(frequency, 10 * np.log10(min_3_data))
-# plt.title('Min Data Across Files')
-# plt.xlabel('Frequency (Hz)')
-# plt.ylabel('Power (dB)')
-# plt.legend()
-# plt.tight_layout()
-# plt.show()
-# plt.close('all')    
+plt.figure(1, figsize=(10.0, 6.0))
+for i in range(len(min_data_array)):
+    plt.plot(frequency, 10 * np.log10(min_data_array[i]), label=f'Min Data {str(date_array[i])[0:19]}')
+plt.plot(frequency, 10 * np.log10(min_3_data))
+plt.title('Min Data Across Files')
+plt.xlabel('Frequency, MHz')
+plt.ylabel('Power (dB)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+plt.close('all')    
 
 
 plt.figure(1, figsize=(10.0, 6.0))
 for i in range(len(min_data_array)):
-    plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_data_array[i][range_min_point: range_max_point]), label=f'Min Data {date_array[i]}')
+    plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_data_array[i][range_min_point: range_max_point]), label=f'Min Data {str(date_array[i])[0:19]}')
 plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_3_data[range_min_point: range_max_point]))
 plt.title('Min Data Across Files')
-plt.xlabel('Frequency (Hz)')
+plt.xlabel('Frequency, MHz')
 plt.ylabel('Power (dB)')
 plt.legend()
 plt.tight_layout()
@@ -182,25 +185,50 @@ array1 = np.log10(min_data_array[:, range_min_point: range_max_point])
 
 print(array1.shape)
 
+
+# array1[3, :] = np.nan  
+
+len_x = range_max_point - range_min_point
+x_values = np.linspace(0, len_x-1, len_x)
+
+reduced_frequency = []
+for i in range(len_x):
+    reduced_frequency.append(np.round(frequency[range_min_point + i], 2))
+
+
+y_values = np.linspace(0, len(date_array)-1, len(date_array))
+reduced_timeline = []
+for i in range(len(date_array)):
+    reduced_timeline.append(str(date_array[i])[0:10])
+
+
+
 plt.figure(1, figsize=(10.0, 6.0))
 plt.imshow(array1, aspect='auto', interpolation='none', origin='lower',   
                          cmap='jet')  # extent=[0, num_samp, fmin, fmax]
 # plt.colorbar(label='Power (dB)')
 # plt.title(f'RFI Analysis for {df_filename}')
-# plt.xlabel('Sample Number')
-# plt.ylabel('Frequency (Hz)')
+
+plt.xticks(x_values, reduced_frequency)
+plt.yticks(y_values, reduced_timeline)
+plt.ylim(y_values[0]-0.5, y_values[-1]+0.5)
+plt.locator_params(axis='x', nbins=int(f_max - f_min)/1)
+plt.ylabel('Date')
+plt.xlabel('Frequency, MHz')
 plt.tight_layout()
 plt.show()
 plt.close('all')
 
-# plt.figure(1, figsize=(10.0, 6.0))
-# for i in range(len(max_data_array)):
-#     plt.plot(frequency, 10 * np.log10(max_data_array[i]), label=f'Max Data {date_array[i]}')
-# plt.title('Max Data Across Files')
-# plt.xlabel('Frequency (Hz)')
-# plt.ylabel('Power (dB)')
-# plt.legend()
-# plt.tight_layout()
-# plt.show()
-# plt.close('all')   
+
+
+plt.figure(1, figsize=(10.0, 6.0))
+for i in range(len(max_data_array)):
+    plt.plot(frequency, 10 * np.log10(max_data_array[i]), label=f'Max Data {date_array[i]}')
+plt.title('Max Data Across Files')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power (dB)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+plt.close('all')   
     
