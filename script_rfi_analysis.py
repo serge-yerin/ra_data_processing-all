@@ -7,14 +7,17 @@ import numpy as np
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
 from package_ra_data_files_formats.read_file_header_adr import file_header_adr_read
 import matplotlib.pyplot as plt
+from matplotlib import rc
 from package_ra_data_processing.filtering import median_filter, average_filter  
 
 
 path_to_data = os.path.normpath('../DATA_preprocessed/')
-f_min = 0.0  # Minimum frequency in MHz
-f_max = 80.0  # Maximum frequency in MHz
+path_to_results = os.path.normpath('../DATA_results/')
+f_min = 5.0  # Minimum frequency in MHz
+f_max = 25.0  # Maximum frequency in MHz
 
-
+if not os.path.exists(path_to_results):
+    os.makedirs(path_to_results)
 
 # Get list of .dat files in the specified folder
 dat_file_name_list = find_files_only_in_current_folder(path_to_data, '.dat', 1)
@@ -88,18 +91,18 @@ for file_index in range(len(dat_file_name_list)):
         # min_data = median_filter(min_data, 25)
         # max_data = median_filter(max_data, 25)
 
-
-
-        # plt.figure(1, figsize=(10.0, 6.0))
+        plt.figure(1, figsize=(10.0, 6.0))
         # plt.plot(frequency, min_data, label='Min Data', color='blue')
         # plt.plot(frequency, min_min_data, label='Min-min Data', color='red')
-        # plt.title(f'Min/Max Data for {df_filename}')
-        # plt.xlabel('Frequency (Hz)')
-        # plt.ylabel('Power (dB)')
-        # plt.legend()
-        # plt.tight_layout()
+        plt.plot(frequency, min_data - min_min_data, label='Level above background', color='red')
+        plt.title(f'Normalized minmal RFI levels for {df_filename}')
+        plt.xlabel('Frequency, MHz')
+        plt.ylabel('Power level, dB')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(path_to_results, f'Normalized minmal RFI levels - {df_filename[:-4]}.png'), dpi=350)
         # plt.show()
-        # plt.close('all')
+        plt.close('all')
 
 
         # plt.figure(1, figsize=(10.0, 6.0))
@@ -126,8 +129,8 @@ for file_index in range(len(dat_file_name_list)):
         # plt.show()
         # plt.close('all')
 
-        range_min_point = int(f_min * 8192 / 80)
-        range_max_point = int(f_max * 8192 / 80)
+        range_min_point = int(f_min * 8192 / fmax)
+        range_max_point = int(f_max * 8192 / fmax)
         
         # plt.figure(1, figsize=(10.0, 6.0))
         # plt.plot(frequency[range_min_point: range_max_point], min_data[range_min_point: range_max_point], label='Min Data', color='blue')
@@ -155,42 +158,53 @@ for file_index in range(len(dat_file_name_list)):
 #     print(f'File: {dat_file_name_list[i]}, Date: {date_array[i]}')  
 
 
-min_3_data = np.min(min_min_data_array, axis=0)
+# min_3_data = np.min(min_min_data_array, axis=0)
 
 
 with np.errstate(divide='ignore', invalid='ignore'):
     plt.figure(1, figsize=(10.0, 6.0))
     for i in range(len(min_data_array)):
-        plt.plot(frequency, 10 * np.log10(min_data_array[i]), label=f'Min Data {str(date_array[i])[0:19]}')
-    plt.plot(frequency, 10 * np.log10(min_3_data))
-    plt.title('Min Data Across Files')
+        plt.plot(frequency, 10 * np.log10(min_data_array[i]), label=f'min levels {str(date_array[i])[0:19]}')
+    # plt.plot(frequency, 10 * np.log10(min_3_data))
+    plt.title('Minimal levels for all dates in full range')
     plt.xlabel('Frequency, MHz')
-    plt.ylabel('Power (dB)')
+    plt.xlim(frequency[0], frequency[-1])
+    plt.ylabel('Power level, dB')
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join(path_to_results, 'Minimal level of response across all dates - full range.png'), dpi=350) 
+    # plt.show()
     plt.close('all')    
 
+
+
 with np.errstate(divide='ignore', invalid='ignore'):
     plt.figure(1, figsize=(10.0, 6.0))
     for i in range(len(min_data_array)):
-        plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_data_array[i][range_min_point: range_max_point]), label=f'Min Data {str(date_array[i])[0:19]}')
-    plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_3_data[range_min_point: range_max_point]))
-    plt.title('Min Data Across Files')
+        plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_data_array[i][range_min_point: range_max_point]), 
+                 label=f'min levels {str(date_array[i])[0:19]}')
+    # plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_3_data[range_min_point: range_max_point]))
+    plt.title(f'Minimal levels for all dates in selected range of {f_min} - {f_max} MHz')
     plt.xlabel('Frequency, MHz')
-    plt.ylabel('Power (dB)')
+    plt.xlim(frequency[range_min_point], frequency[range_max_point-1])
+    plt.ylabel('Power level, dB')
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join(path_to_results, 'Minimal level of response across all dates - selected range.png'), dpi=350) 
+    # plt.show()
     plt.close('all')    
 
 min_data_array = np.array(min_data_array)
+max_data_array = np.array(max_data_array)
+min_min_data_array = np.array(min_min_data_array)
 
 # print(min_data_array.shape)
 
 min_spectra_vs_date = min_data_array[:, range_min_point: range_max_point]
+max_spectra_vs_date = max_data_array[:, range_min_point: range_max_point]
+min_filterd_spectra_vs_date = min_min_data_array[:, range_min_point: range_max_point]
 
-# print(array1.shape)
+
 # array1[3, :] = np.nan  
 
 
@@ -208,32 +222,79 @@ for i in range(len(date_array)):
     reduced_timeline.append(str(date_array[i])[0:10])
 
 
+# with np.errstate(divide='ignore', invalid='ignore'):
+#     plt.figure(1, figsize=(10.0, 6.0))
+#     plt.imshow(np.log10(min_spectra_vs_date), aspect='auto', interpolation='none', origin='lower',   
+#                             cmap='jet')  # extent=[0, num_samp, fmin, fmax]
+#     # plt.colorbar(label='Power (dB)')
+#     # plt.title(f'RFI Analysis for {df_filename}')
+#     plt.xticks(x_values, reduced_frequency)
+#     plt.yticks(y_values, reduced_timeline)
+#     plt.ylim(y_values[0]-0.5, y_values[-1]+0.5)
+#     plt.locator_params(axis='x', nbins=11)
+#     plt.ylabel('Date')
+#     plt.xlabel('Frequency, MHz')
+#     plt.tight_layout()
+#     plt.show()
+#     plt.close('all')
+
+
 with np.errstate(divide='ignore', invalid='ignore'):
-    plt.figure(1, figsize=(10.0, 6.0))
-    plt.imshow(np.log10(min_spectra_vs_date), aspect='auto', interpolation='none', origin='lower',   
-                            cmap='jet')  # extent=[0, num_samp, fmin, fmax]
-    # plt.colorbar(label='Power (dB)')
+    rc('font', size=6, weight='bold')
+    fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
+    im = ax.imshow(np.log10(min_spectra_vs_date / min_filterd_spectra_vs_date),
+               vmin=-0.2, vmax=2.0, 
+               aspect='auto', interpolation='none', origin='lower', cmap='jet')  # extent=[0, num_samp, fmin, fmax]
+    fig.colorbar(im, ax=ax, label='Power level, dB')
     # plt.title(f'RFI Analysis for {df_filename}')
-    plt.xticks(x_values, reduced_frequency)
-    plt.yticks(y_values, reduced_timeline)
-    plt.ylim(y_values[0]-0.5, y_values[-1]+0.5)
-    plt.locator_params(axis='x', nbins=11)
-    plt.ylabel('Date')
-    plt.xlabel('Frequency, MHz')
-    plt.tight_layout()
-    plt.show()
+    # plt.xticks(x_values, reduced_frequency)
+    ax.set_yticks(y_values, reduced_timeline)
+    ax.set_ylim(y_values[0]-0.5, y_values[-1]+0.5)
+    text = ax.get_xticks().tolist()
+    for i in range(len(text)-1):
+        k = int(text[i])
+        text[i] = reduced_frequency[k]
+    ax.set_xticklabels(text, fontsize=6, fontweight='bold')
+    ax.set_ylabel('Dates', fontsize=10, fontweight='bold')
+    ax.set_xlabel('Frequency, MHz', fontsize=10, fontweight='bold')
+    fig.tight_layout()
+    fig.savefig(os.path.join(path_to_results, 'Normalized minimal level of response across all dates - selected range.png'), dpi=350)
+    # plt.show()
     plt.close('all')
 
 
+with np.errstate(divide='ignore', invalid='ignore'):
+    rc('font', size=6, weight='bold')
+    fig, ax = plt.subplots(1, figsize=(10.0, 6.0))
+    im = ax.imshow(np.log10(max_spectra_vs_date / min_filterd_spectra_vs_date),
+               vmin=-0.2, vmax=2.0, 
+               aspect='auto', interpolation='none', origin='lower', cmap='jet')  # extent=[0, num_samp, fmin, fmax]
+    fig.colorbar(im, ax=ax, label='Power level, dB')
+    # plt.title(f'RFI Analysis for {df_filename}')
+    # plt.xticks(x_values, reduced_frequency)
+    ax.set_yticks(y_values, reduced_timeline)
+    ax.set_ylim(y_values[0]-0.5, y_values[-1]+0.5)
+    text = ax.get_xticks().tolist()
+    for i in range(len(text)-1):
+        k = int(text[i])
+        text[i] = reduced_frequency[k]
+    ax.set_xticklabels(text, fontsize=6, fontweight='bold')
+    ax.set_ylabel('Dates', fontsize=10, fontweight='bold')
+    ax.set_xlabel('Frequency, MHz', fontsize=10, fontweight='bold')
+    fig.tight_layout()
+    fig.savefig(os.path.join(path_to_results, 'Normalized maximal level of response across all dates - selected range.png'), dpi=350)
+    # plt.show()
+    plt.close('all')
 
-plt.figure(1, figsize=(10.0, 6.0))
-for i in range(len(max_data_array)):
-    plt.plot(frequency, 10 * np.log10(max_data_array[i]), label=f'Max Data {date_array[i]}')
-plt.title('Max Data Across Files')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Power (dB)')
-plt.legend()
-plt.tight_layout()
-plt.show()
-plt.close('all')   
+
+# plt.figure(1, figsize=(10.0, 6.0))
+# for i in range(len(max_data_array)):
+#     plt.plot(frequency, 10 * np.log10(max_data_array[i]), label=f'Max Data {date_array[i]}')
+# plt.title('Max Data Across Files')
+# plt.xlabel('Frequency (Hz)')
+# plt.ylabel('Power (dB)')
+# plt.legend()
+# plt.tight_layout()
+# plt.show()
+# plt.close('all')   
     
