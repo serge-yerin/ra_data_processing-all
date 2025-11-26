@@ -11,8 +11,8 @@ from package_ra_data_processing.filtering import median_filter, average_filter
 
 
 path_to_data = os.path.normpath('../DATA_preprocessed/')
-f_min = 25.0  # Minimum frequency in MHz
-f_max = 45.0  # Maximum frequency in MHz
+f_min = 0.0  # Minimum frequency in MHz
+f_max = 80.0  # Maximum frequency in MHz
 
 
 
@@ -171,29 +171,28 @@ with np.errstate(divide='ignore', invalid='ignore'):
     plt.show()
     plt.close('all')    
 
-
-plt.figure(1, figsize=(10.0, 6.0))
-for i in range(len(min_data_array)):
-    plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_data_array[i][range_min_point: range_max_point]), label=f'Min Data {str(date_array[i])[0:19]}')
-plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_3_data[range_min_point: range_max_point]))
-plt.title('Min Data Across Files')
-plt.xlabel('Frequency, MHz')
-plt.ylabel('Power (dB)')
-plt.legend()
-plt.tight_layout()
-plt.show()
-plt.close('all')    
+with np.errstate(divide='ignore', invalid='ignore'):
+    plt.figure(1, figsize=(10.0, 6.0))
+    for i in range(len(min_data_array)):
+        plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_data_array[i][range_min_point: range_max_point]), label=f'Min Data {str(date_array[i])[0:19]}')
+    plt.plot(frequency[range_min_point: range_max_point], 10 * np.log10(min_3_data[range_min_point: range_max_point]))
+    plt.title('Min Data Across Files')
+    plt.xlabel('Frequency, MHz')
+    plt.ylabel('Power (dB)')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    plt.close('all')    
 
 min_data_array = np.array(min_data_array)
 
 # print(min_data_array.shape)
 
-array1 = np.log10(min_data_array[:, range_min_point: range_max_point])
+min_spectra_vs_date = min_data_array[:, range_min_point: range_max_point]
 
 # print(array1.shape)
-
-
 # array1[3, :] = np.nan  
+
 
 len_x = range_max_point - range_min_point
 x_values = np.linspace(0, len_x-1, len_x)
@@ -209,21 +208,21 @@ for i in range(len(date_array)):
     reduced_timeline.append(str(date_array[i])[0:10])
 
 
-
-plt.figure(1, figsize=(10.0, 6.0))
-plt.imshow(array1, aspect='auto', interpolation='none', origin='lower',   
-                         cmap='jet')  # extent=[0, num_samp, fmin, fmax]
-# plt.colorbar(label='Power (dB)')
-# plt.title(f'RFI Analysis for {df_filename}')
-plt.xticks(x_values, reduced_frequency)
-plt.yticks(y_values, reduced_timeline)
-plt.ylim(y_values[0]-0.5, y_values[-1]+0.5)
-plt.locator_params(axis='x', nbins=11)
-plt.ylabel('Date')
-plt.xlabel('Frequency, MHz')
-plt.tight_layout()
-plt.show()
-plt.close('all')
+with np.errstate(divide='ignore', invalid='ignore'):
+    plt.figure(1, figsize=(10.0, 6.0))
+    plt.imshow(np.log10(min_spectra_vs_date), aspect='auto', interpolation='none', origin='lower',   
+                            cmap='jet')  # extent=[0, num_samp, fmin, fmax]
+    # plt.colorbar(label='Power (dB)')
+    # plt.title(f'RFI Analysis for {df_filename}')
+    plt.xticks(x_values, reduced_frequency)
+    plt.yticks(y_values, reduced_timeline)
+    plt.ylim(y_values[0]-0.5, y_values[-1]+0.5)
+    plt.locator_params(axis='x', nbins=11)
+    plt.ylabel('Date')
+    plt.xlabel('Frequency, MHz')
+    plt.tight_layout()
+    plt.show()
+    plt.close('all')
 
 
 
