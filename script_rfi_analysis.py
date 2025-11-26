@@ -2,6 +2,7 @@
 
 import os
 import datetime
+from datetime import date, timedelta
 import scipy
 import numpy as np
 from package_common_modules.find_files_only_in_current_folder import find_files_only_in_current_folder
@@ -14,13 +15,21 @@ from package_ra_data_processing.filtering import median_filter, average_filter
 path_to_data = os.path.normpath('../DATA_preprocessed/')
 path_to_results = os.path.normpath('../DATA_results/')
 f_min = 5.0  # Minimum frequency in MHz
-f_max = 25.0  # Maximum frequency in MHz
+f_max = 20.0  # Maximum frequency in MHz
 
 if not os.path.exists(path_to_results):
     os.makedirs(path_to_results)
 
 # Get list of .dat files in the specified folder
 dat_file_name_list = find_files_only_in_current_folder(path_to_data, '.dat', 1)
+
+
+
+
+
+
+
+
 
 
 
@@ -49,11 +58,12 @@ for file_index in range(len(dat_file_name_list)):
             BlockSize] = file_header_adr_read(filename, 0, 0)
 
         
-
         file_start_time_utc = datetime.datetime(int('20' + df_filename[1:3]), int(df_filename[3:5]), int(df_filename[5:7]), 
                                                 int(df_creation_timeUTC[0:2]), int(df_creation_timeUTC[3:5]), int(df_creation_timeUTC[6:8]),
                                                 int(df_creation_timeUTC[9:12]) * 1000)
         
+        print(file_start_time_utc)
+
         date_array.append(file_start_time_utc)
 
     else:
@@ -74,8 +84,6 @@ for file_index in range(len(dat_file_name_list)):
         min_data = np.min(data, axis=1)
         max_data = np.max(data, axis=1) 
 
-
-
         min_min_data = scipy.ndimage.minimum_filter(min_data, size=50)
         min_min_data = median_filter(min_min_data, 100)
 
@@ -92,42 +100,45 @@ for file_index in range(len(dat_file_name_list)):
         # max_data = median_filter(max_data, 25)
 
         plt.figure(1, figsize=(10.0, 6.0))
-        # plt.plot(frequency, min_data, label='Min Data', color='blue')
-        # plt.plot(frequency, min_min_data, label='Min-min Data', color='red')
-        plt.plot(frequency, min_data - min_min_data, label='Level above background', color='red')
-        plt.title(f'Normalized minmal RFI levels for {df_filename}')
+        plt.plot(frequency, max_data, label='Max level', color='C0', alpha=0.6)
+        plt.plot(frequency, min_data, label='Min level', color='C1', alpha=0.6)
+        plt.plot(frequency, min_min_data, label='Filtered min level', color='C3')
+        plt.title(f'Actual RFI levels for {df_filename}')
         plt.xlabel('Frequency, MHz')
         plt.ylabel('Power level, dB')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(path_to_results, f'Normalized minmal RFI levels - {df_filename[:-4]}.png'), dpi=350)
+        plt.savefig(os.path.join(path_to_results, f'Actual RFI levels - {df_filename[:-4]}.png'), dpi=350)
         # plt.show()
         plt.close('all')
 
 
-        # plt.figure(1, figsize=(10.0, 6.0))
-        # plt.imshow(data, aspect='auto', interpolation='none', origin='lower',   
-        #            extent=[0, num_samp, fmin, fmax], cmap='jet')
-        # plt.colorbar(label='Power (dB)')
-        # plt.title(f'RFI Analysis for {df_filename}')
-        # plt.xlabel('Sample Number')
-        # plt.ylabel('Frequency (Hz)')
-        # # plt.grid(True)
-        # plt.tight_layout()
+        plt.figure(1, figsize=(10.0, 6.0))
+        plt.plot(frequency, max_data - min_min_data, label='Max level', color='C0', alpha=0.6)
+        plt.plot(frequency, min_data - min_min_data, label='Min level', color='C1', alpha=0.6)
+        plt.title(f'Normalized RFI levels above background for {df_filename}')
+        plt.xlabel('Frequency, MHz')
+        plt.ylabel('Power level, dB')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(path_to_results, f'Normalized RFI levels - {df_filename[:-4]}.png'), dpi=350)
         # plt.show()
-        # plt.close('all')
+        plt.close('all')
 
 
-        # plt.figure(1, figsize=(10.0, 6.0))
-        # plt.plot(frequency, min_data, label='Min Data', color='blue')
-        # plt.plot(frequency, max_data, label='Max Data', color='red')
-        # plt.title(f'Min/Max Data for {df_filename}')
-        # plt.xlabel('Frequency (Hz)')
-        # plt.ylabel('Power (dB)')
-        # plt.legend()
-        # plt.tight_layout()
-        # plt.show()
-        # plt.close('all')
+        with np.errstate(divide='ignore', invalid='ignore'):
+            plt.figure(1, figsize=(10.0, 6.0))
+            plt.imshow(10*np.log10(data), aspect='auto', interpolation='none', origin='lower',   
+                    extent=[0, num_samp, fmin, fmax], cmap='jet')
+            plt.colorbar(label='Power levels, dB')
+            plt.title(f'Dynamic sperctrum of {df_filename}')
+            plt.xlabel('Sample number')
+            plt.ylabel('Frequency, MHz')
+            plt.tight_layout()
+            plt.savefig(os.path.join(path_to_results, f'Dynamic spectrum of RFI - {df_filename[:-4]}.png'), dpi=350)
+            # plt.show()
+            plt.close('all')
+
 
         range_min_point = int(f_min * 8192 / fmax)
         range_max_point = int(f_max * 8192 / fmax)
@@ -153,12 +164,18 @@ for file_index in range(len(dat_file_name_list)):
         # plt.tight_layout()
         # plt.show()
         # plt.close('all')
-    
-# for i in range(len(date_array)):
-#     print(f'File: {dat_file_name_list[i]}, Date: {date_array[i]}')  
 
+date_array.sort()
 
-# min_3_data = np.min(min_min_data_array, axis=0)
+start_date = date(date_array[0].year, date_array[0].month, date_array[0].day)
+end_date = date(date_array[-1].year, date_array[-1].month, date_array[-1].day)
+
+print(f'Start date: {start_date},   End date: {end_date}')
+
+dates_list = [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
+
+# for date in dates_list: 
+#     print(date)
 
 
 with np.errstate(divide='ignore', invalid='ignore'):
@@ -204,9 +221,7 @@ min_spectra_vs_date = min_data_array[:, range_min_point: range_max_point]
 max_spectra_vs_date = max_data_array[:, range_min_point: range_max_point]
 min_filterd_spectra_vs_date = min_min_data_array[:, range_min_point: range_max_point]
 
-
 # array1[3, :] = np.nan  
-
 
 len_x = range_max_point - range_min_point
 x_values = np.linspace(0, len_x-1, len_x)
